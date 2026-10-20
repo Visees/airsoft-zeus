@@ -26,7 +26,9 @@ import { TeamBadge } from './team-badge';
   selector: 'zeus-event-card',
   imports: [RouterLink, NgIcon, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  // contain:inline-size: the card takes its width from the list, never from its (truncated) text,
+  // so it cannot push a grid/flex parent wider than the screen.
+  host: { class: 'block [contain:inline-size]' },
   template: `
     @let e = event();
     <a
@@ -66,8 +68,9 @@ import { TeamBadge } from './team-badge';
           }
         </div>
         <h3 class="truncate text-base font-bold uppercase group-hover:text-primary">{{ e.name }}</h3>
+        <p class="num truncate text-sm">{{ timeLabel() }}</p>
         <p class="truncate text-sm text-muted-foreground">
-          {{ modeLabel() }} · <span class="num">{{ timeLabel() }}</span>
+          {{ modeLabel() }}
           @if (e.meetingAddress) {
             · {{ e.meetingAddress }}
           }
