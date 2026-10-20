@@ -30,7 +30,8 @@ async function send(to: string, subject: string, html: string, text: string): Pr
     return;
   }
   try {
-    await transport.sendMail({ from: config.MAIL_FROM, to, subject, html, text });
+    const info = await transport.sendMail({ from: config.MAIL_FROM, to, subject, html, text });
+    logger.info({ subject, messageId: info.messageId }, 'email sent');
   } catch (err) {
     logger.error({ err, to, subject }, 'email send failed');
   }
