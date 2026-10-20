@@ -48,6 +48,12 @@ services:
       - uploads:/app/uploads
     expose:
       - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 40s
+      retries: 5
 
   frontend:
     build: ./frontend
@@ -61,6 +67,12 @@ services:
       API_INTERNAL_URL: http://api:3000
     expose:
       - "4000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/healthz >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
 
 volumes:
   pgdata:
