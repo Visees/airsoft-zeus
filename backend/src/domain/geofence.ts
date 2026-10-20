@@ -73,11 +73,27 @@ export interface AdvanceResult {
   contestEndedAfterMs: number | null;
   changed: boolean;
   multiplier: Record<string, number>;
+  /** Majority rule: the team that alone has the most players inside (null otherwise). */
+  leader: string | null;
 }
 
 export function multiplierFor(cfg: Geofence, playersPresent: number): number {
   if (!cfg.multiPlayerBoost || playersPresent <= 1) return 1;
   return Math.min(cfg.maxMultiplier, 1 + cfg.boostPerExtraPlayer * (playersPresent - 1));
+}
+
+/**
+ * Majority rule ("domination"): with several teams inside, the team with strictly more players
+ * present holds the zone. Null when the rule is off, only one team is inside, or there is a tie.
+ */
+export function majorityLeader(present: GeofenceState['present'], cfg: Geofence): string | null {
+  if (!cfg.contestable || cfg.contestRule !== 'majority') return null;
+  const counts = Object.entries(present)
+    .map(([team, users]) => [team, Object.keys(users).length] as const)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1]);
+  if (counts.length < 2) return null;
+  return counts[0][1] > counts[1][1] ? counts[0][0] : null;
 }
 
 export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult {
@@ -101,7 +117,9 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
   const multiplier: Record<string, number> = {};
   for (const t of teamsPresent) multiplier[t] = multiplierFor(cfg, Object.keys(s.present[t]).length);
   const wasContested = s.contested;
-  s.contested = cfg.contestable && teamsPresent.length >= 2;
+  const leader = majorityLeader(s.present, cfg);
+  // Majority rule: only a tie contests the zone; otherwise any second team inside does.
+  s.contested = cfg.contestable && teamsPresent.length >= 2 && leader === null;
   let contestEndedAfterMs: number | null = null;
   if (s.contested && !wasContested) {
     s.contestedSince = now;
@@ -118,6 +136,17 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
     s.contestedSince = null;
   }
 
+  // Majority rule: teams that are not (or no longer) the majority stop accruing; credit them up to now.
+  if (leader) {
+    for (const [teamId, entry] of Object.entries(s.progress)) {
+      if (teamId === leader || entry.at === null) continue;
+      if (now - entry.at <= input.maxGapMs && now > entry.at && s.present[teamId]) {
+        entry.s += ((now - entry.at) / 1000) * (multiplier[teamId] ?? 1);
+      }
+      entry.at = null;
+    }
+  }
+
   // 3. teams that left the zone
   for (const teamId of Object.keys(s.progress)) {
     if (!s.present[teamId]) {
@@ -131,8 +160,8 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
   if (report?.inside && s.present[report.teamId]) {
     const t = report.teamId;
     const entry = (s.progress[t] ??= { s: 0, at: null });
-    if (s.contested || !input.canAccrue(t)) {
-      entry.at = null; // paused while contested or not capturable
+    if (s.contested || !input.canAccrue(t) || (leader !== null && t !== leader)) {
+      entry.at = null; // paused while contested, outnumbered or not capturable
       if (!input.canAccrue(t) && entry.s === 0) delete s.progress[t];
     } else {
       if (entry.at !== null && now - entry.at <= input.maxGapMs && now > entry.at) {
@@ -146,5 +175,5 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
     }
   }
 
-  return { state: s, completedBy, contestEndedAfterMs, changed: JSON.stringify(s) !== before, multiplier };
+  return { state: s, completedBy, contestEndedAfterMs, changed: JSON.stringify(s) !== before, multiplier, leader };
 }

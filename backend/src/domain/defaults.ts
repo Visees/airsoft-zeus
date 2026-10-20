@@ -94,6 +94,8 @@ export const geofenceSchema = z.object({
   boostPerExtraPlayer: z.number().min(0).max(5),
   maxMultiplier: z.number().min(1).max(10),
   contestable: z.boolean(),
+  /** With several teams inside a contestable zone: 'pause' = nobody progresses; 'majority' = the team with most players inside does (a tie pauses). */
+  contestRule: z.enum(['pause', 'majority']),
   requireScreenOpen: z.boolean(),
   maxAccuracyM: z.number().min(3).max(500),
 });
@@ -107,6 +109,7 @@ export const DEFAULT_GEOFENCE: Geofence = {
   boostPerExtraPlayer: 0.5,
   maxMultiplier: 3,
   contestable: true,
+  contestRule: 'pause',
   requireScreenOpen: false,
   maxAccuracyM: 30,
 };

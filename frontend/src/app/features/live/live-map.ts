@@ -28,6 +28,7 @@ import {
   formatNumber,
   formatRelative,
 } from '../../core/util/format';
+import { CaptureBar, showCaptureBar, zoneCanAccrue } from '../../shared/capture-bar';
 import { nowSignal } from '../../shared/game-timer';
 import { TacticalMap } from '../../shared/map/tactical-map';
 import { StatusChip, objectiveStatusChip } from '../../shared/status-chip';
@@ -41,7 +42,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
 /** Full-bleed tactical map with perk chips, recent activity and a preview panel for the tapped marker. */
 @Component({
   selector: 'zeus-live-map',
-  imports: [NgIcon, HlmButton, TacticalMap, StatusChip, TeamBadge],
+  imports: [NgIcon, HlmButton, TacticalMap, StatusChip, TeamBadge, CaptureBar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block h-full' },
   template: `
@@ -144,6 +145,9 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
               <span class="num">+{{ o.rewards.recurringPointsPerMinute }} pts/min held</span>
             }
           </div>
+          @if (showBar(selectedCapture())) {
+            <zeus-capture-bar class="mt-2" [status]="selectedCapture()!" [canAccrue]="canAccrue(o)" />
+          }
           <div class="mt-2 flex items-center gap-2 text-nav">
             @if (dirTo(o); as d) {
               <ng-icon name="lucideNavigation2" size="20" aria-hidden="true" [style.transform]="'rotate(' + d.deg + 'deg)'" />
@@ -228,6 +232,7 @@ export class LiveMapScreen {
   protected readonly tracker = inject(LocationTracker);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly mapRef = viewChild<TacticalMap>('map');
   private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panel');
 
@@ -267,6 +272,14 @@ export class LiveMapScreen {
     const s = this.selection();
     return s?.kind === 'objective' ? (this.store.objectiveById().get(s.id) ?? null) : null;
   });
+  /** Viewer's zone capture state for the selected objective. */
+  protected readonly selectedCapture = computed(() => {
+    const o = this.selectedObjective();
+    return o ? (this.tracker.geofence().find((g) => g.objectiveId === o.id) ?? null) : null;
+  });
+  protected readonly showBar = showCaptureBar;
+  protected readonly canAccrue = zoneCanAccrue;
+
   protected readonly selectedPlayer = computed(() => {
     const s = this.selection();
     if (s?.kind !== 'player') return null;
@@ -294,7 +307,12 @@ export class LiveMapScreen {
     // This screen is kept alive between tabs (KeepAliveRouteStrategy), so every navigation that
     // carries ?focus=<objectiveId> is a new request, even for the same id as last time.
     let seq = 0;
+    let wasShown = false;
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed()).subscribe(() => {
+      // Back on the map tab after another tab: the kept map was out of the page, so its markers need rebuilding.
+      const shown = this.host.nativeElement.isConnected;
+      if (shown && !wasShown) this.mapRef()?.reattach();
+      wasShown = shown;
       const id: unknown = this.router.routerState.snapshot.root.queryParams['focus'];
       if (typeof id === 'string' && id) this.focusRequest.set({ id, seq: ++seq });
     });

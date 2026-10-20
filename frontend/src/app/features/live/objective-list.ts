@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Objective } from '../../core/api/models';
+import { GeofenceStatus, Objective } from '../../core/api/models';
 import { LiveStore } from '../../core/live/live-store';
 import { LocationTracker } from '../../core/location/location-tracker.service';
 import { ObjectiveCard } from '../../shared/cards';
@@ -12,7 +12,7 @@ interface Group {
   key: string;
   label: string;
   hint: string | null;
-  items: { o: Objective; distance: number | null; note: string | null }[];
+  items: { o: Objective; distance: number | null; note: string | null; capture: GeofenceStatus | null }[];
 }
 
 /** Objectives grouped by state, nearest first. */
@@ -57,6 +57,7 @@ interface Group {
                     [distanceM]="it.distance"
                     [teams]="store.teams()"
                     [now]="serverNow()"
+                    [capture]="it.capture"
                     (open)="open($event)"
                     (navigate)="showOnMap($event)"
                   />
@@ -111,7 +112,7 @@ export class ObjectiveListScreen {
       } else if (o.status === 'inactive' && !o.availabilityStart) {
         note = 'Opens when the Game Master activates it';
       }
-      buckets[key].items.push({ o, distance: distanceFrom(fix, o), note });
+      buckets[key].items.push({ o, distance: distanceFrom(fix, o), note, capture: g ?? null });
     }
 
     const order = ['available', 'progress', 'captured', 'locked', 'completed', 'disabled'];

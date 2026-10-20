@@ -77,6 +77,7 @@ export const DEFAULT_GEOFENCE: GeofenceConfig = {
   boostPerExtraPlayer: 0.25,
   maxMultiplier: 2,
   contestable: true,
+  contestRule: 'pause',
   requireScreenOpen: false,
   maxAccuracyM: 25,
 };

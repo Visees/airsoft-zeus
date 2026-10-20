@@ -290,6 +290,40 @@ describe('geofence', () => {
     r = step(r.state, 11_000, { userId: 'u1', teamId: 'A', inside: true }, boost);
     expect(r.state.progress.A.s).toBeCloseTo(1.5 + 15, 0);
   });
+  describe('majority rule', () => {
+    const maj = { ...cfg, contestRule: 'majority' as const };
+    it('lets the team with more players inside keep capturing', () => {
+      let r = step(emptyState(), 0, { userId: 'a1', teamId: 'A', inside: true }, maj);
+      r = step(r.state, 1_000, { userId: 'a2', teamId: 'A', inside: true }, maj);
+      r = step(r.state, 2_000, { userId: 'b1', teamId: 'B', inside: true }, maj);
+      expect(r.state.contested).toBe(false);
+      expect(r.leader).toBe('A');
+      r = step(r.state, 12_000, { userId: 'a1', teamId: 'A', inside: true }, maj);
+      expect(r.state.progress.A.s).toBeCloseTo(12);
+      r = step(r.state, 13_000, { userId: 'b1', teamId: 'B', inside: true }, maj);
+      expect(r.state.progress.B?.s ?? 0).toBe(0); // outnumbered: no progress
+    });
+    it('contests on a tie, and the new majority takes over', () => {
+      let r = step(emptyState(), 0, { userId: 'a1', teamId: 'A', inside: true }, maj);
+      r = step(r.state, 10_000, { userId: 'b1', teamId: 'B', inside: true }, maj);
+      expect(r.state.contested).toBe(true); // 1 vs 1
+      expect(r.state.progress.A.s).toBeCloseTo(10);
+      r = step(r.state, 11_000, { userId: 'b2', teamId: 'B', inside: true }, maj);
+      expect(r.state.contested).toBe(false);
+      expect(r.leader).toBe('B');
+      r = step(r.state, 21_000, { userId: 'b1', teamId: 'B', inside: true }, maj);
+      expect(r.state.progress.B.s).toBeCloseTo(10);
+      r = step(r.state, 22_000, { userId: 'a1', teamId: 'A', inside: true }, maj);
+      expect(r.state.progress.A.s).toBeCloseTo(10); // A paused while outnumbered
+    });
+    it('is ignored when the zone is not contestable', () => {
+      const off = { ...maj, contestable: false };
+      let r = step(emptyState(), 0, { userId: 'a1', teamId: 'A', inside: true }, off);
+      r = step(r.state, 1_000, { userId: 'b1', teamId: 'B', inside: true }, off);
+      expect(r.leader).toBeNull();
+      expect(r.state.contested).toBe(false);
+    });
+  });
 });
 
 describe('anti-cheat', () => {

@@ -198,6 +198,8 @@ export class TacticalMap {
   private readonly markers = new Map<string, { marker: google.maps.marker.AdvancedMarkerElement; sig: string }>();
   private readonly shapes = new Map<string, { shape: google.maps.MVCObject & { setMap(m: google.maps.Map | null): void }; sig: string }>();
   private listeners: google.maps.MapsEventListener[] = [];
+  /** Bumped by reattach() to rebuild every Google marker. */
+  private readonly redraw = signal(0);
 
   // schematic view state: origin (lat/lng of projection), scale px/m, pan offset px
   private readonly origin = signal<LatLng>({ lat: 45.0, lng: 9.0 });
@@ -221,6 +223,7 @@ export class TacticalMap {
     // Google renderer sync
     effect(() => {
       const r = this.renderer();
+      this.redraw();
       const data = {
         objectives: this.objectives(),
         pois: this.pois(),
@@ -289,6 +292,18 @@ export class TacticalMap {
       const pt = this.project(p);
       this.pan.set({ x: w / 2 - pt.x * this.scale(), y: h / 2 - pt.y * this.scale() });
     }
+  }
+
+  /**
+   * Call after the map's host was taken out of the document and put back (the live map is kept
+   * alive between tabs). Google drops the DOM of advanced markers when their map leaves the page
+   * and does not restore it, so markers vanish while shapes stay; rebuild them from current data.
+   */
+  reattach(): void {
+    if (!this.map) return;
+    this.markers.forEach((m) => (m.marker.map = null));
+    this.markers.clear();
+    this.redraw.update((v) => v + 1);
   }
 
   centerOnSelf(): void {

@@ -19,6 +19,7 @@ import {
   formatNumber,
   formatTime,
 } from '../../core/util/format';
+import { zoneCanAccrue } from '../../shared/capture-bar';
 import { CaptureProgress } from '../../shared/capture-progress';
 import { nowSignal } from '../../shared/game-timer';
 import { ErrorState, LoadingSkeleton } from '../../shared/states';
@@ -191,7 +192,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
           @if (usesZone()) {
             <div class="panel p-4">
               @if (geo(); as g) {
-                <zeus-capture-progress [status]="g" />
+                <zeus-capture-progress [status]="g" [canAccrue]="canAccrue(o)" />
               } @else if (!sharingActive()) {
                 <div class="flex flex-col gap-2 text-sm">
                   <p class="font-bold">Location sharing is off</p>
@@ -227,6 +228,11 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
               <p class="mt-2 text-xs text-muted-foreground">
                 Hold for <span class="num">{{ holdLabel() }}</span>.
                 @if (o.geofence.resetOnExit) { Leaving the zone resets the progress. }
+                @if (o.geofence.contestable && o.geofence.contestRule === 'majority') {
+                  If several teams are inside, the one with the most players keeps capturing.
+                } @else if (o.geofence.contestable) {
+                  Enemies inside stop the capture.
+                }
                 @if (o.geofence.multiPlayerBoost) { More teammates inside make it faster. }
                 @if (o.geofence.requireScreenOpen) { Keep this screen open while you hold it. }
               </p>
@@ -392,6 +398,7 @@ export class ObjectiveDetailsScreen {
   protected readonly objective = computed(() => this.store.objectiveById().get(this.objectiveId()) ?? this.fetched());
   protected readonly myTeamId = computed(() => this.store.me()?.teamId ?? null);
   protected readonly fix = this.tracker.lastFix;
+  protected readonly canAccrue = zoneCanAccrue;
   protected readonly geo = computed(() => this.tracker.geofence().find((g) => g.objectiveId === this.objectiveId()) ?? null);
 
   protected readonly listLink = computed(() => liveLink(this.store.eventId(), 'objectives'));

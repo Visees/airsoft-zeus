@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { EventSummary, Member, Objective, Perk, Squad, Team } from '../core/api/models';
+import { EventSummary, GeofenceStatus, Member, Objective, Perk, Squad, Team } from '../core/api/models';
 import {
   BLOCK_REASON_LABELS,
   GAME_MODE_LABELS,
@@ -16,6 +16,7 @@ import {
   formatTime,
   initials,
 } from '../core/util/format';
+import { CaptureBar, showCaptureBar, zoneCanAccrue } from './capture-bar';
 import { CurrencyDisplay } from './currency-display';
 import { SquadBadge } from './squad-badge';
 import { StatusChip, eventStatusChip, objectiveStatusChip } from './status-chip';
@@ -166,7 +167,7 @@ export class PlayerListItem {
 /** Objective card for lists. */
 @Component({
   selector: 'zeus-objective-card',
-  imports: [NgIcon, StatusChip, TeamBadge, HlmButton],
+  imports: [NgIcon, StatusChip, TeamBadge, HlmButton, CaptureBar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -203,6 +204,9 @@ export class PlayerListItem {
           }
         </span>
       </button>
+      @if (showBar(capture())) {
+        <zeus-capture-bar [status]="capture()!" [canAccrue]="canAccrue()" />
+      }
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
         @if (owner()) {
           <span class="inline-flex items-center gap-1.5 text-sm"><span class="label-caps">Held by</span> <zeus-team-badge [team]="owner()" size="sm" [showIcon]="false" /></span>
@@ -224,10 +228,14 @@ export class ObjectiveCard {
   readonly teams = input<Team[]>([]);
   /** server-corrected now (ms) for remaining time */
   readonly now = input<number>(Date.now());
+  /** Viewer's zone capture state for this objective (from the location tracker). */
+  readonly capture = input<GeofenceStatus | null>(null);
   readonly open = output<Objective>();
   readonly navigate = output<Objective>();
 
   protected readonly fmt = formatNumber;
+  protected readonly showBar = showCaptureBar;
+  protected readonly canAccrue = computed(() => zoneCanAccrue(this.objective()));
   protected readonly chip = computed(() => objectiveStatusChip(this.objective().status));
   protected readonly owner = computed(() => this.teams().find((t) => t.id === this.objective().ownerTeamId) ?? null);
   protected readonly distance = computed(() => formatDistance(this.distanceM()));

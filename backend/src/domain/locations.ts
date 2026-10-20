@@ -6,7 +6,7 @@ import { hub } from '../realtime/hub.js';
 import { FRESH_MS, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
 import { eventContext, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
-import { advance, fromRow, toRow } from './geofence.js';
+import { advance, fromRow, majorityLeader, toRow } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
@@ -29,6 +29,8 @@ export interface GeofenceStatusDto {
   blocked: 'low_accuracy' | 'screen_closed' | null;
   /** Worst GPS accuracy (m) this objective accepts. */
   maxAccuracyM: number;
+  /** Majority rule: another team has more players inside, so this team's hold is paused. */
+  outnumbered: boolean;
 }
 
 export interface ReportResult {
@@ -138,19 +140,23 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
     const prev = fromRow(states.get(o.id));
     const wasPresent = !!prev.present[teamId]?.[userId];
     const near = d <= cfg.radiusM * 3 + 50 || maybeInside;
-    const dto = (s: typeof prev, captured: boolean, multiplier = 1): GeofenceStatusDto => ({
-      objectiveId: o.id,
-      inside,
-      distanceM: Math.round(d),
-      progressSec: Math.min(cfg.durationSec, Math.round((s.progress[teamId]?.s ?? 0) * 10) / 10),
-      requiredSec: cfg.durationSec,
-      contested: s.contested,
-      armed: !!s.armed[teamId],
-      captured,
-      multiplier,
-      blocked,
-      maxAccuracyM: cfg.maxAccuracyM,
-    });
+    const dto = (s: typeof prev, captured: boolean, multiplier = 1): GeofenceStatusDto => {
+      const leader = majorityLeader(s.present, cfg);
+      return {
+        objectiveId: o.id,
+        inside,
+        distanceM: Math.round(d),
+        progressSec: Math.min(cfg.durationSec, Math.round((s.progress[teamId]?.s ?? 0) * 10) / 10),
+        requiredSec: cfg.durationSec,
+        contested: s.contested,
+        armed: !!s.armed[teamId],
+        captured,
+        multiplier,
+        blocked,
+        maxAccuracyM: cfg.maxAccuracyM,
+        outnumbered: !!s.present[teamId] && leader !== null && leader !== teamId,
+      };
+    };
     if (!inside && !wasPresent) {
       if (near) out.push(dto(prev, false));
       continue;

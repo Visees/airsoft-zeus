@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { GeofenceStatus } from '../core/api/models';
 import { formatClock, formatDistance } from '../core/util/format';
+import { useHoldEstimate } from './capture-bar';
 
 /**
  * Geofence capture progress ring: distance, inside/outside, progress, time left, contested.
@@ -52,6 +53,9 @@ import { formatClock, formatDistance } from '../core/util/format';
       @if (status()?.contested) {
         <dt class="label-caps self-center">State</dt>
         <dd class="font-semibold text-destructive">▲ Contested — enemies in zone</dd>
+      } @else if (status()?.outnumbered) {
+        <dt class="label-caps self-center">State</dt>
+        <dd class="font-semibold text-destructive">▲ Outnumbered — your team needs more players inside</dd>
       }
       @if (status()?.armed) {
         <dt class="label-caps self-center">State</dt>
@@ -71,17 +75,22 @@ import { formatClock, formatDistance } from '../core/util/format';
 })
 export class CaptureProgress {
   readonly status = input<GeofenceStatus | null>(null);
+  /** Can the viewer's team build hold time here (see zoneCanAccrue)? */
+  readonly canAccrue = input(true);
   protected readonly circumference = 2 * Math.PI * 44;
+  /** Hold seconds, extrapolated between location reports. */
+  private readonly held = useHoldEstimate(this.status, this.canAccrue);
 
   protected readonly pct = computed(() => {
     const s = this.status();
     if (!s || s.requiredSec <= 0) return 0;
-    return Math.min(100, Math.round((s.progressSec / s.requiredSec) * 100));
+    if (s.armed) return 100;
+    return Math.min(100, Math.floor((this.held() / s.requiredSec) * 100));
   });
   protected readonly dashOffset = computed(() => this.circumference * (1 - this.pct() / 100));
   protected readonly ringColor = computed(() => {
     const s = this.status();
-    if (s?.contested) return 'var(--destructive)';
+    if (s?.contested || s?.outnumbered) return 'var(--destructive)';
     if (s?.inside) return 'var(--primary)';
     return 'var(--warning)';
   });
@@ -90,6 +99,6 @@ export class CaptureProgress {
     const s = this.status();
     if (!s) return '—';
     const mult = s.multiplier > 0 ? s.multiplier : 1;
-    return formatClock(((s.requiredSec - s.progressSec) / mult) * 1000);
+    return formatClock(((s.requiredSec - this.held()) / mult) * 1000);
   });
 }

@@ -12,7 +12,7 @@ import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiService } from '../../core/api/api.service';
 import { ApiError } from '../../core/api/api-error';
-import { CaptureMethod, EventDetail, LatLng, Objective, ObjectiveInput, ObjectiveQr, ObjectiveType, ObjectiveVisibility } from '../../core/api/models';
+import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Objective, ObjectiveInput, ObjectiveQr, ObjectiveType, ObjectiveVisibility } from '../../core/api/models';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { OBJECTIVE_TYPE_LABELS, fromLocalInput, toLocalInput } from '../../core/util/format';
@@ -322,8 +322,21 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 </label>
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="contestable" class="mt-1 size-5 accent-primary" />
-                  <span>Enemies in the zone contest it <span class="block text-sm text-muted-foreground">Progress stops while players of another team are inside.</span></span>
+                  <span>Enemies in the zone contest it <span class="block text-sm text-muted-foreground">Another team inside the zone affects the capture, as chosen below.</span></span>
                 </label>
+                @if (g.contestable.value) {
+                  <fieldset class="ml-8 flex flex-col">
+                    <legend class="sr-only">When several teams are inside</legend>
+                    <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
+                      <input type="radio" formControlName="contestRule" value="pause" class="mt-1 size-5 accent-primary" />
+                      <span>Nobody progresses <span class="block text-sm text-muted-foreground">The zone is contested while two or more teams are inside.</span></span>
+                    </label>
+                    <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
+                      <input type="radio" formControlName="contestRule" value="majority" class="mt-1 size-5 accent-primary" />
+                      <span>Majority captures (domination) <span class="block text-sm text-muted-foreground">The team with the most players inside keeps capturing; a tie contests the zone.</span></span>
+                    </label>
+                  </fieldset>
+                }
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="requireScreenOpen" class="mt-1 size-5 accent-primary" />
                   <span>Player must keep the objective screen open <span class="block text-sm text-muted-foreground">Progress only counts while the objective is open in the app.</span></span>
@@ -602,6 +615,7 @@ export class ObjectiveEditorScreen {
       boostPerExtraPlayer: new FormControl<number>(DEFAULT_GEOFENCE.boostPerExtraPlayer, { nonNullable: true, validators: [Validators.min(0)] }),
       maxMultiplier: new FormControl<number>(DEFAULT_GEOFENCE.maxMultiplier, { nonNullable: true, validators: [Validators.min(1)] }),
       contestable: new FormControl(DEFAULT_GEOFENCE.contestable, { nonNullable: true }),
+      contestRule: new FormControl<GeofenceConfig['contestRule']>(DEFAULT_GEOFENCE.contestRule, { nonNullable: true }),
       requireScreenOpen: new FormControl(DEFAULT_GEOFENCE.requireScreenOpen, { nonNullable: true }),
       maxAccuracyM: new FormControl<number>(DEFAULT_GEOFENCE.maxAccuracyM, { nonNullable: true, validators: [Validators.min(1)] }),
     }),
@@ -927,6 +941,7 @@ export class ObjectiveEditorScreen {
         boostPerExtraPlayer: num(v.geofence.boostPerExtraPlayer, DEFAULT_GEOFENCE.boostPerExtraPlayer),
         maxMultiplier: num(v.geofence.maxMultiplier, DEFAULT_GEOFENCE.maxMultiplier),
         contestable: v.geofence.contestable,
+        contestRule: v.geofence.contestRule,
         requireScreenOpen: v.geofence.requireScreenOpen,
         maxAccuracyM: num(v.geofence.maxAccuracyM, DEFAULT_GEOFENCE.maxAccuracyM),
       },

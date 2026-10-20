@@ -41,6 +41,8 @@ export class LocationTracker {
   readonly eventId = signal<Uuid | null>(null);
   readonly lastFix = signal<Fix | null>(null);
   readonly geofence = signal<GeofenceStatus[]>([]);
+  /** When `geofence` was last received (ms); capture bars extrapolate progress from it. */
+  readonly geofenceAt = signal(0);
   readonly lastFlags = signal<LocationReportResponse['flags']>([]);
   readonly lastSentAt = signal<number | null>(null);
   readonly pendingCount = signal(0);
@@ -161,26 +163,45 @@ export class LocationTracker {
     void this.flush();
   }
 
-  private onPosition(pos: GeolocationPosition): void {
-    const fix: Fix = {
+  private toSample(pos: GeolocationPosition): LocationSample {
+    return {
       lat: pos.coords.latitude,
       lng: pos.coords.longitude,
       accuracy: pos.coords.accuracy,
       heading: pos.coords.heading,
       speed: pos.coords.speed,
+      altitude: pos.coords.altitude,
       timestamp: pos.timestamp || Date.now(),
     };
+  }
+
+  /** One fresh fix, or null on error/timeout. */
+  private currentPosition(): Promise<GeolocationPosition | null> {
+    const s = this.settings;
+    return new Promise((resolve) =>
+      navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
+        enableHighAccuracy: !!s?.highAccuracy && !s?.batterySaver,
+        maximumAge: 1_000,
+        timeout: Math.min(10_000, this.intervalMs()),
+      }),
+    );
+  }
+
+  /** Queue a fix from getCurrentPosition (no distance filter; only newer than the last queued one). */
+  private queueSample(sample: LocationSample): void {
+    this.lastFix.set({ lat: sample.lat, lng: sample.lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp });
+    if (this.lastQueued && sample.timestamp <= this.lastQueued.timestamp) return;
+    this.queue.push(sample);
+    if (this.queue.length > MAX_QUEUE) this.queue.splice(0, this.queue.length - MAX_QUEUE);
+    this.lastQueued = sample;
+    this.pendingCount.set(this.queue.length);
+  }
+
+  private onPosition(pos: GeolocationPosition): void {
+    const sample = this.toSample(pos);
+    const fix: Fix = { lat: sample.lat, lng: sample.lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp };
     this.lastFix.set(fix);
     if (!this.settings || this.watchId === null) return;
-    const sample: LocationSample = {
-      lat: fix.lat,
-      lng: fix.lng,
-      accuracy: fix.accuracy,
-      heading: fix.heading,
-      speed: fix.speed,
-      altitude: pos.coords.altitude,
-      timestamp: fix.timestamp,
-    };
     const last = this.lastQueued;
     const moved = last ? distanceM(last, sample) : Infinity;
     const elapsed = last ? sample.timestamp - last.timestamp : Infinity;
@@ -199,22 +220,25 @@ export class LocationTracker {
   private async flush(): Promise<void> {
     const eventId = this.eventId();
     if (!eventId || this.sending) return this.schedule(this.intervalMs());
+    this.sending = true;
     if (!this.queue.length) {
-      // keep-alive: resend the last fix if it is recent
-      const fix = this.lastFix();
-      if (fix && Date.now() - fix.timestamp < this.intervalMs() * 2) {
-        this.queue.push({ lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy, heading: fix.heading, speed: fix.speed, timestamp: fix.timestamp });
-      } else {
+      // A phone standing still often gets no watchPosition callbacks, and resending the last fix is
+      // useless (the server drops samples whose timestamp is not newer). Ask for a fresh fix, so a
+      // player holding a zone keeps reporting.
+      const pos = await this.currentPosition();
+      if (pos && this.eventId() === eventId) this.queueSample(this.toSample(pos));
+      if (!this.queue.length) {
+        this.sending = false;
         return this.schedule(this.intervalMs());
       }
     }
     const batch = this.queue.slice(0, MAX_BATCH);
-    this.sending = true;
     try {
       const res = await this.api.reportLocation(eventId, { samples: batch, screenObjectiveId: this.screenObjectiveId() });
       this.queue.splice(0, batch.length);
       this.pendingCount.set(this.queue.length);
       this.geofence.set(res.geofence);
+      this.geofenceAt.set(Date.now());
       this.lastFlags.set(res.flags);
       this.lastSentAt.set(Date.now());
       this.lastError.set(null);
@@ -248,7 +272,8 @@ export class LocationTracker {
     this.timer = setTimeout(() => void this.flush(), ms);
   }
 
-  private intervalMs(): number {
+  /** Expected time between location reports. */
+  intervalMs(): number {
     const base = Math.max(3, this.settings?.intervalSec ?? 10) * 1000;
     return this.settings?.batterySaver ? base * 2 : base;
   }

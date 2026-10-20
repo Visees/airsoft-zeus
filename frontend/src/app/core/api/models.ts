@@ -471,6 +471,8 @@ export interface GeofenceConfig {
   boostPerExtraPlayer: number;
   maxMultiplier: number;
   contestable: boolean;
+  /** Several teams inside: 'pause' = nobody progresses; 'majority' = the team with most players inside does. */
+  contestRule: 'pause' | 'majority';
   requireScreenOpen: boolean;
   maxAccuracyM: number;
 }
@@ -873,6 +875,8 @@ export interface GeofenceStatus {
   blocked: 'low_accuracy' | 'screen_closed' | null;
   /** Worst GPS accuracy (m) this objective accepts. */
   maxAccuracyM: number;
+  /** Majority rule: another team has more players inside, so this team's hold is paused. */
+  outnumbered: boolean;
 }
 
 export interface LocationReportResponse {
