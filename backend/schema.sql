@@ -1,7 +1,7 @@
 -- Airsoft Zeus database schema.
 -- Database names are snake_case; the API converts to camelCase at the boundary.
--- Runs once on an empty data volume (docker-entrypoint-initdb.d). Later changes go
--- in backend/migrations/ and are applied by the api on start.
+-- Applied by the api on start when the database is empty (src/migrate.ts). Later changes
+-- go in backend/migrations/ and are applied after it, once each, in order.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

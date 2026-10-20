@@ -9,8 +9,8 @@ services:
       POSTGRES_USER: zeus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
     volumes:
+      # The api applies backend/schema.sql on an empty database (Coolify leaves bind mounts empty).
       - pgdata:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zeus -d zeus"]
       interval: 10s

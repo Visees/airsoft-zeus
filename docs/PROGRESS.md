@@ -10,7 +10,7 @@ No Flutter, no Firebase. Node 24 needed locally for the Angular CLI (`fnm instal
 
 ## Done
 
-* `docker/postgres/init/01-schema.sql` — full schema (users, events, members, teams, squads,
+* `backend/schema.sql` — full schema (users, events, members, teams, squads,
   objectives, capture states, POIs, zones, perks, purchases, effects, intel, ledgers (append-only
   triggers), locations + history, announcements, activity, alerts, audit, templates, idempotency).
 * `DESIGN.md`, `docs/FRONTEND_GUIDE.md` — design system "Field Ops" and frontend conventions.

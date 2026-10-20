@@ -13,6 +13,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 COPY --from=build /app/dist ./dist
+COPY schema.sql ./
 COPY migrations ./migrations
 RUN mkdir -p /app/uploads && chown node:node /app/uploads
 USER node

@@ -9,7 +9,7 @@ capture objectives by code, QR code or by holding a zone, and spend team credits
 | --- | --- |
 | `frontend/` | Angular 22 (standalone, signals, zoneless), Tailwind 4, Spartan UI, PWA (service worker, Web Push). The Node SSR server serves the app, proxies `/api` and `/socket.io` to the API, and server-renders the public results page `/r/:token`. |
 | `backend/` | Node 24, Express 5, TypeScript, PostgreSQL 17, Socket.IO. All game rules run here. |
-| `docker/` | Postgres schema (`docker/postgres/init/01-schema.sql`). |
+| `backend/schema.sql` | Postgres base schema, applied by the api on an empty database. |
 | `docs/` | `ARCHITECTURE.md` (how it works), `FRONTEND_GUIDE.md` (how screens are built), `PROGRESS.md`. Design system in `DESIGN.md`. |
 
 ## Run locally

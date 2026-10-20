@@ -38,7 +38,7 @@
 
 ## Data model
 
-Schema: `docker/postgres/init/01-schema.sql`. Main tables:
+Schema: `backend/schema.sql`. Main tables:
 
 * `users` (private profile, privacy settings, stats), `user_badges`, `clubs`, `consent_log`
   (append-only), `auth_tokens` (hashed refresh/verify/reset tokens), `push_subscriptions`,
