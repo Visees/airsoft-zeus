@@ -1,0 +1,23 @@
+# Local development only (Coolify ignores this file).
+services:
+  postgres:
+    ports:
+      - "${LOCAL_PG_PORT:-5433}:5432"
+  api:
+    ports:
+      - "${LOCAL_API_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      COOKIE_SECURE: "false"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+  frontend:
+    ports:
+      - "${LOCAL_WEB_PORT:-8080}:4000"
+  # Catches every email (verification, password reset): http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "${LOCAL_MAIL_PORT:-8025}:8025"

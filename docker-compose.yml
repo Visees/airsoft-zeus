@@ -1,0 +1,67 @@
+# Production stack (Coolify). Local development adds docker-compose.override.yml.
+# No container names and no published ports: Coolify's Traefik routes the domain to `frontend:4000`.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zeus
+      POSTGRES_USER: zeus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zeus -d zeus"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: postgres://zeus:${POSTGRES_PASSWORD:?}@postgres:5432/zeus
+      SITE_URL: ${SITE_URL:?}
+      JWT_SECRET: ${JWT_SECRET:?}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Airsoft Zeus <no-reply@example.com>}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_MAP_ID: ${GOOGLE_MAPS_MAP_ID:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+      UPLOAD_DIR: /app/uploads
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
+      SEED_PASSWORD: ${SEED_PASSWORD:-zeus-demo-2026}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "3000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PORT: "4000"
+      SITE_URL: ${SITE_URL:?}
+      API_INTERNAL_URL: http://api:3000
+    expose:
+      - "4000"
+
+volumes:
+  pgdata:
+  uploads:
