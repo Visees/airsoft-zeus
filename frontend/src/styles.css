@@ -1,0 +1,253 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+
+/* Spartan helm components live outside src/ */
+@source '../libs/ui';
+
+/* ---------------------------------------------------------------------------
+ * Field Ops design tokens (see DESIGN.md). Light is the base, dark overrides.
+ * The app follows the system theme; live game screens force dark unless the
+ * user picked light explicitly (ThemeService).
+ * ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --radius: 0.375rem;
+
+  --background: #f2f2ec;
+  --foreground: #151813;
+  --card: #ffffff;
+  --card-foreground: #151813;
+  --popover: #ffffff;
+  --popover-foreground: #151813;
+  --primary: #4a5a1f;
+  --primary-foreground: #ffffff;
+  --secondary: #e3e5da;
+  --secondary-foreground: #151813;
+  --muted: #e8e8e0;
+  --muted-foreground: #565c51;
+  --accent: #e3e5da;
+  --accent-foreground: #151813;
+  --destructive: #c42b2f;
+  --destructive-foreground: #ffffff;
+  --warning: #8f5d09;
+  --warning-foreground: #ffffff;
+  --warning-surface: #f6e7c8;
+  --nav: #0b7a90;
+  --nav-foreground: #ffffff;
+  --success: #4a5a1f;
+  --border: #cfd2c5;
+  --input: #b9bdae;
+  --ring: #4a5a1f;
+  --hud: rgb(255 255 255 / 0.92);
+
+  --chart-1: #4a5a1f;
+  --chart-2: #0b7a90;
+  --chart-3: #8f5d09;
+  --chart-4: #7a4d8f;
+  --chart-5: #c42b2f;
+
+  --sidebar: #e9eae2;
+  --sidebar-foreground: #151813;
+  --sidebar-primary: #4a5a1f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dfe1d5;
+  --sidebar-accent-foreground: #151813;
+  --sidebar-border: #cfd2c5;
+  --sidebar-ring: #4a5a1f;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --background: #0e100f;
+  --foreground: #e9ece6;
+  --card: #161917;
+  --card-foreground: #e9ece6;
+  --popover: #1b1f1c;
+  --popover-foreground: #e9ece6;
+  --primary: #a4b465;
+  --primary-foreground: #121509;
+  --secondary: #232823;
+  --secondary-foreground: #e9ece6;
+  --muted: #1f2420;
+  --muted-foreground: #a2aa9f;
+  --accent: #262c26;
+  --accent-foreground: #e9ece6;
+  --destructive: #f0595c;
+  --destructive-foreground: #1a0606;
+  --warning: #e6b04f;
+  --warning-foreground: #1a1406;
+  --warning-surface: #2e2511;
+  --nav: #4fc7dd;
+  --nav-foreground: #061417;
+  --success: #a4b465;
+  --border: #2c322d;
+  --input: #3a413b;
+  --ring: #a4b465;
+  --hud: rgb(14 16 15 / 0.9);
+
+  --chart-1: #a4b465;
+  --chart-2: #4fc7dd;
+  --chart-3: #e6b04f;
+  --chart-4: #b48ad0;
+  --chart-5: #f0595c;
+
+  --sidebar: #121513;
+  --sidebar-foreground: #e9ece6;
+  --sidebar-primary: #a4b465;
+  --sidebar-primary-foreground: #121509;
+  --sidebar-accent: #1f2420;
+  --sidebar-accent-foreground: #e9ece6;
+  --sidebar-border: #2c322d;
+  --sidebar-ring: #a4b465;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-nav: var(--nav);
+  --color-nav-foreground: var(--nav-foreground);
+  --color-success: var(--success);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-hud: var(--hud);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow-x: clip;
+  }
+  h1,
+  h2,
+  h3 {
+    font-stretch: 85%;
+    letter-spacing: 0.01em;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  /* Inputs at 16px so iOS Safari does not zoom */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Stencil-tag section label: OBJECTIVES · 4 ACTIVE */
+  .label-caps {
+    font-size: 0.75rem;
+    font-weight: 650;
+    font-stretch: 80%;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .hud {
+    background: var(--hud);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 18px rgb(0 0 0 / 0.25);
+  }
+  .tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .page {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    padding-block: 1rem 6rem;
+  }
+  @media (min-width: 1024px) {
+    .page {
+      padding-inline: 1.5rem;
+      padding-bottom: 2rem;
+    }
+  }
+  .page-narrow {
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    padding-block: 1rem 6rem;
+  }
+  .field-error {
+    font-size: 0.875rem;
+    color: var(--destructive);
+    margin-top: 0.25rem;
+  }
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Google Maps info windows/labels follow the theme */
+.gm-style .gm-style-iw-c {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border-radius: var(--radius) !important;
+}
+.gm-style .gm-style-iw-tc::after {
+  background: var(--popover) !important;
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Airsoft Zeus</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Organise and play live airsoft events: tactical map, objectives with code, QR and zone captures, live scores and team perks." />
+    <meta name="theme-color" content="#0e100f" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="icons/icon-96x96.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      // Apply the stored/system theme before first paint to avoid a flash.
+      try {
+        var p = localStorage.getItem('zeus.theme');
+        p = p ? JSON.parse(p) : 'system';
+        if (p === 'dark' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+    <noscript>Airsoft Zeus needs JavaScript to run.</noscript>
+  </body>
+</html>

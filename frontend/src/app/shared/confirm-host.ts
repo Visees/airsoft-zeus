@@ -1,0 +1,123 @@
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { ConfirmService } from '../core/ui/confirm.service';
+
+/**
+ * Renders ConfirmService requests with a native <dialog> (focus trap, Escape, top layer).
+ * Bottom sheet on phones, centred on wider screens. Mounted once in App.
+ */
+@Component({
+  selector: 'zeus-confirm-host',
+  imports: [FormsModule, HlmButton, HlmInput, HlmLabel],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: `
+    dialog {
+      margin: auto auto 0;
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding-bottom: calc(1.25rem + var(--safe-bottom));
+    }
+    @media (min-width: 640px) {
+      dialog {
+        margin: auto;
+        max-width: 30rem;
+        border-radius: var(--radius);
+        padding-bottom: 1.25rem;
+      }
+    }
+    dialog::backdrop {
+      background: rgb(0 0 0 / 0.6);
+    }
+  `,
+  template: `
+    <dialog
+      #dlg
+      class="border border-border bg-popover p-5 text-popover-foreground shadow-2xl"
+      role="alertdialog"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-message"
+      (cancel)="close(false, $event)"
+    >
+      @if (req(); as r) {
+        <form method="dialog" (submit)="$event.preventDefault(); close(true)">
+          <h2 id="confirm-title" class="text-lg uppercase">{{ r.title }}</h2>
+          @if (r.message) {
+            <p id="confirm-message" class="mt-2 text-sm text-muted-foreground">{{ r.message }}</p>
+          }
+          @if (r.consequences?.length) {
+            <ul class="mt-3 flex flex-col gap-1 rounded-sm border border-border bg-muted p-3 text-sm">
+              @for (c of r.consequences; track $index) {
+                <li class="flex gap-2"><span aria-hidden="true" class="text-warning">▸</span>{{ c }}</li>
+              }
+            </ul>
+          }
+          @if (r.reason) {
+            <div class="mt-4 flex flex-col gap-1.5">
+              <label hlmLabel for="confirm-reason">{{ r.reason.label }}@if (r.reason.required) { <span aria-hidden="true">*</span> }</label>
+              <input hlmInput id="confirm-reason" [(ngModel)]="reason" name="reason" [placeholder]="r.reason.placeholder ?? ''" autocomplete="off" />
+            </div>
+          }
+          @if (r.requireText) {
+            <div class="mt-4 flex flex-col gap-1.5">
+              <label hlmLabel for="confirm-text">Type <span class="num font-bold">{{ r.requireText }}</span> to confirm</label>
+              <input hlmInput id="confirm-text" [(ngModel)]="typed" name="typed" autocomplete="off" autocapitalize="characters" />
+            </div>
+          }
+          <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button hlmBtn type="button" variant="outline" class="h-12 sm:h-10" (click)="close(false)">{{ r.cancelLabel ?? 'Cancel' }}</button>
+            <button
+              hlmBtn
+              type="submit"
+              class="h-12 sm:h-10"
+              [class]="r.destructive ? '!bg-destructive !text-destructive-foreground hover:!bg-destructive/85' : ''"
+              [disabled]="!canConfirm()"
+            >
+              {{ r.confirmLabel ?? 'Confirm' }}
+            </button>
+          </div>
+        </form>
+      }
+    </dialog>
+  `,
+})
+export class ConfirmHost {
+  private readonly confirm = inject(ConfirmService);
+  private readonly dlg = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
+  protected readonly req = this.confirm.current;
+  protected readonly reason = signal('');
+  protected readonly typed = signal('');
+
+  protected readonly canConfirm = computed(() => {
+    const r = this.req();
+    if (!r) return false;
+    if (r.requireText && this.typed().trim() !== r.requireText) return false;
+    if (r.reason?.required && this.reason().trim().length < 3) return false;
+    return true;
+  });
+
+  constructor() {
+    effect(() => {
+      const r = this.req();
+      const el = this.dlg().nativeElement;
+      if (r && !el.open) {
+        this.reason.set('');
+        this.typed.set('');
+        el.showModal();
+      } else if (!r && el.open) {
+        el.close();
+      }
+    });
+  }
+
+  protected close(confirmed: boolean, ev?: Event): void {
+    ev?.preventDefault();
+    const r = this.req();
+    if (!r) return;
+    if (confirmed && !this.canConfirm()) return;
+    r.resolve({ confirmed, reason: this.reason().trim() });
+  }
+}
