@@ -429,6 +429,8 @@ export interface Member {
   rulesAccepted: boolean;
   locationPermission: PermissionState;
   notificationPermission: PermissionState;
+  /** The player consented to location tracking for this event. */
+  trackingConsented: boolean;
   trackingActive: boolean;
   online: boolean;
   lastSeenAt: IsoDate | null;
