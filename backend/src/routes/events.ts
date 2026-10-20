@@ -784,7 +784,7 @@ eventsRouter.post('/:eventId/teams', async (req, res) => {
     if ((n?.n ?? 0) >= 16) throw conflict('An event can have at most 16 teams.', 'too_many_teams');
     const row = await one<{ id: string }>(
       `INSERT INTO teams (event_id, name, color, icon, pattern, capacity, sort_order, alliance_id, base_lat, base_lng)
-       VALUES ($1,$2,COALESCE($3,'#7C8A4A'),COALESCE($4,'shield'),COALESCE($5,'solid'),COALESCE($6,0),COALESCE($7,$11),$8,$9,$10) RETURNING id`,
+       VALUES ($1,$2,COALESCE($3,'#7C8A4A'),COALESCE($4,'shield'),COALESCE($5,'solid'),COALESCE($6,0),COALESCE($7::int,$11::int),$8,$9,$10) RETURNING id`,
       [eventId, b.name, b.color ?? null, b.icon ?? null, b.pattern ?? null, b.capacity ?? null, b.sortOrder ?? null, b.allianceId ?? null, b.baseLat ?? null, b.baseLng ?? null, n?.n ?? 0],
       t,
     );
