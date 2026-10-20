@@ -1,4 +1,4 @@
-import { many, one, type Row, type Tx } from '../db.js';
+import { many, one, type Queryable, type Row, type Tx } from '../db.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
 import { hub } from '../realtime/hub.js';
 import type { EventContext } from './context.js';
@@ -56,7 +56,7 @@ export function perkAvailability(
   return res(null);
 }
 
-export async function teamPerkStats(q: Tx | { query: Tx['query'] }, eventId: string, teamId: string): Promise<Map<string, TeamPerkStats>> {
+export async function teamPerkStats(q: Queryable, eventId: string, teamId: string): Promise<Map<string, TeamPerkStats>> {
   const rows = await many<{ perk_id: string; n: number; last_at: Date | null }>(
     `SELECT perk_id, count(*)::int AS n, max(created_at) AS last_at FROM perk_purchases
       WHERE event_id = $1 AND team_id = $2 AND status <> 'rejected' AND NOT refunded GROUP BY perk_id`,
@@ -192,14 +192,14 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
   return purchaseId;
 }
 
-export async function loadPurchase(t: Tx | { query: Tx['query'] }, eventId: string, purchaseId: string) {
+export async function loadPurchase(t: Queryable, eventId: string, purchaseId: string) {
   const row = await one(`SELECT ${dto.PURCHASE_SELECT} WHERE pp.id = $1 AND pp.event_id = $2`, [purchaseId, eventId], t);
   if (!row) throw notFound('Purchase not found.');
   return row;
 }
 
 /** Activate a purchase in status 'ready'. */
-export async function activate(t: Tx, ctx: EventContext, purchaseId: string, actorId: string, now: number): Promise<void> {
+export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _actorId: string, now: number): Promise<void> {
   const eventId = ctx.event.id;
   const pp = await one('SELECT * FROM perk_purchases WHERE id = $1 AND event_id = $2 FOR UPDATE', [purchaseId, eventId], t);
   if (!pp) throw notFound('Purchase not found.');
@@ -322,7 +322,6 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, act
     if (['jammer', 'shield'].includes(perk.type)) hub.invalidate(eventId, ['objectives']);
     hub.positionsDirty(eventId);
   });
-  void actorId;
 }
 
 /** Rebuild objectives.jammed_for and shield columns from the active effects. */

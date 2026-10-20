@@ -17,7 +17,7 @@ import {
 } from './rules.js';
 import * as dto from './serialize.js';
 
-export type ObjRow = Row & ObjectiveRow & { name: string; event_id: string; rewards: unknown; recurring_last_at: Date | null; last_status: string | null };
+export type ObjRow = Row & ObjectiveRow & { name: string; event_id: string; lat: number; lng: number; rewards: unknown; recurring_last_at: Date | null; last_status: string | null };
 
 export const OBJECTIVE_SELECT = `o.*, u.nickname AS last_captured_by_nickname FROM objectives o LEFT JOIN users u ON u.id = o.last_captured_by`;
 

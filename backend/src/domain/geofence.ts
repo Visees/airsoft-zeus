@@ -25,7 +25,8 @@ export interface GeofenceState {
 
 export const emptyState = (): GeofenceState => ({ progress: {}, present: {}, armed: {}, contested: false, contestedSince: null });
 
-export function fromRow(row: { progress: unknown; present: unknown; armed: unknown; contested: boolean } | null | undefined): GeofenceState {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function fromRow(row: Record<string, any> | null | undefined): GeofenceState {
   if (!row) return emptyState();
   const p = (row.progress ?? {}) as { teams?: Record<string, TeamProgress>; contestedSince?: number | null };
   return {

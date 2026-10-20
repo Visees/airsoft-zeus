@@ -241,7 +241,7 @@ async function writeIntel(ctx: EventContext, userId: string, teamId: string, now
     const cfg = (e.config?.uav ?? {}) as { refreshSec?: number; precision?: Precision; delaySec?: number; areaRadiusM?: number };
     const refreshMs = Math.max(2, cfg.refreshSec ?? 10) * 1000;
     if (e.last_written && now - new Date(e.last_written).getTime() < refreshMs) continue;
-    await upsertIntel(ctx.event.id, e, userId, loc, cfg, now);
+    await upsertIntel(ctx.event.id, { id: e.id, team_id: e.team_id }, userId, loc as never, cfg, now);
   }
 }
 

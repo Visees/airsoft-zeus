@@ -1,3 +1,4 @@
+import type { Row } from '../db.js';
 import { badRequest } from '../errors.js';
 
 /** Keyset cursor over (created_at, id), encoded as base64url JSON. */
@@ -23,7 +24,7 @@ export function decodeCursor(raw: unknown): Cursor | null {
 }
 
 /** Build a page from rows fetched with LIMIT pageSize + 1. */
-export function page<R extends { created_at: Date | string; id: string | number }, T>(rows: R[], pageSize: number, map: (r: R) => T) {
+export function page<R extends Row, T>(rows: R[], pageSize: number, map: (r: R) => T) {
   const hasMore = rows.length > pageSize;
   const slice = hasMore ? rows.slice(0, pageSize) : rows;
   const last = slice[slice.length - 1];
