@@ -57,6 +57,15 @@ import { formatClock, formatDistance } from '../core/util/format';
         <dt class="label-caps self-center">State</dt>
         <dd class="font-semibold text-primary">✓ Zone held — enter the code</dd>
       }
+      @if (status()?.blocked === 'low_accuracy') {
+        <dt class="label-caps self-center">GPS</dt>
+        <dd class="font-semibold text-warning">
+          ▲ Too imprecise — needs ±<span class="num">{{ status()!.maxAccuracyM }}</span> m or better. Move into the open and wait for a GPS fix.
+        </dd>
+      } @else if (status()?.blocked === 'screen_closed') {
+        <dt class="label-caps self-center">State</dt>
+        <dd class="font-semibold text-warning">▲ Keep this screen open to hold the zone</dd>
+      }
     </dl>
   `,
 })

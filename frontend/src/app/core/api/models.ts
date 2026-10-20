@@ -869,6 +869,10 @@ export interface GeofenceStatus {
   armed: boolean;
   captured: boolean;
   multiplier: number;
+  /** Why a player who may be in the zone is not counted. */
+  blocked: 'low_accuracy' | 'screen_closed' | null;
+  /** Worst GPS accuracy (m) this objective accepts. */
+  maxAccuracyM: number;
 }
 
 export interface LocationReportResponse {

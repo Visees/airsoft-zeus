@@ -25,6 +25,10 @@ export interface GeofenceStatusDto {
   armed: boolean;
   captured: boolean;
   multiplier: number;
+  /** Why a player who may be in the zone is not counted (shown on the capture screen). */
+  blocked: 'low_accuracy' | 'screen_closed' | null;
+  /** Worst GPS accuracy (m) this objective accepts. */
+  maxAccuracyM: number;
 }
 
 export interface ReportResult {
@@ -125,12 +129,30 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
     if (!objectiveVisible(o, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) continue;
     const cfg = geofenceOf(o.geofence);
     const d = distanceM(fix, o);
-    const inside = d <= cfg.radiusM && fix.accuracy <= cfg.maxAccuracyM && !fix.lowAccuracy && (!cfg.requireScreenOpen || screenObjectiveId === o.id);
+    const accuracyOk = fix.accuracy <= cfg.maxAccuracyM && !fix.lowAccuracy;
+    const screenOk = !cfg.requireScreenOpen || screenObjectiveId === o.id;
+    const inside = d <= cfg.radiusM && accuracyOk && screenOk;
+    // With a poor fix the player may really be inside even when the reported point is not.
+    const maybeInside = d <= cfg.radiusM + fix.accuracy;
+    const blocked = !maybeInside ? null : !accuracyOk ? 'low_accuracy' : d <= cfg.radiusM && !screenOk ? 'screen_closed' : null;
     const prev = fromRow(states.get(o.id));
     const wasPresent = !!prev.present[teamId]?.[userId];
-    const near = d <= cfg.radiusM * 3 + 50;
+    const near = d <= cfg.radiusM * 3 + 50 || maybeInside;
+    const dto = (s: typeof prev, captured: boolean, multiplier = 1): GeofenceStatusDto => ({
+      objectiveId: o.id,
+      inside,
+      distanceM: Math.round(d),
+      progressSec: Math.min(cfg.durationSec, Math.round((s.progress[teamId]?.s ?? 0) * 10) / 10),
+      requiredSec: cfg.durationSec,
+      contested: s.contested,
+      armed: !!s.armed[teamId],
+      captured,
+      multiplier,
+      blocked,
+      maxAccuracyM: cfg.maxAccuracyM,
+    });
     if (!inside && !wasPresent) {
-      if (near) out.push(statusDto(o.id, false, d, prev, teamId, cfg.durationSec, false));
+      if (near) out.push(dto(prev, false));
       continue;
     }
 
@@ -195,7 +217,7 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
       return { state: adv.state, captured, multiplier: adv.multiplier[teamId] ?? 1 };
     });
     if (!result) continue;
-    out.push(statusDto(o.id, inside, d, result.state, teamId, cfg.durationSec, result.captured, result.multiplier));
+    out.push(dto(result.state, result.captured, result.multiplier));
   }
   return out;
 }
@@ -209,20 +231,6 @@ async function saveState(t: Tx, objectiveId: string, s: ReturnType<typeof fromRo
     JSON.stringify(r.armed),
     r.contested,
   ]);
-}
-
-function statusDto(objectiveId: string, inside: boolean, d: number, s: ReturnType<typeof fromRow>, teamId: string, requiredSec: number, captured: boolean, multiplier = 1): GeofenceStatusDto {
-  return {
-    objectiveId,
-    inside,
-    distanceM: Math.round(d),
-    progressSec: Math.min(requiredSec, Math.round((s.progress[teamId]?.s ?? 0) * 10) / 10),
-    requiredSec,
-    contested: s.contested,
-    armed: !!s.armed[teamId],
-    captured,
-    multiplier,
-  };
 }
 
 /** UAV: while an effect targets this player's team, store a degraded snapshot for the buying team. */

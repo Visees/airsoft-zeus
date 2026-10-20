@@ -103,7 +103,8 @@ export async function applyLedger(t: Tx, input: LedgerInput): Promise<LedgerResu
 
   t.afterCommit(() => {
     hub.teams(input.eventId);
-    hub.invalidate(input.eventId, ['ledger'], ['gm', { teamId: input.teamId }]);
+    // Perk availability (insufficient_funds) is computed against the team balance, so refresh it too.
+    hub.invalidate(input.eventId, input.kind === 'currency' ? ['ledger', 'perks'] : ['ledger'], ['gm', { teamId: input.teamId }]);
   });
   return { applied, balance: next };
 }
