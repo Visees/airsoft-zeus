@@ -1337,7 +1337,6 @@ export class MapEditorScreen implements OnInit {
         description: '',
         lat: p.lat,
         lng: p.lng,
-        icon: '',
         color: POI_TYPE_COLORS[type],
         imageUrl: null,
         teamId: null,
@@ -1689,7 +1688,7 @@ export class MapEditorScreen implements OnInit {
         if (loc) {
           this.searchText.set(place.name ?? input.value);
           const vp = place.geometry?.viewport;
-          const gmap = this.mapRef()?.map;
+          const gmap = this.mapRef()?.activeMap();
           if (vp && gmap) gmap.fitBounds(vp);
           else this.mapRef()?.panTo({ lat: loc.lat(), lng: loc.lng() }, 17);
           this.mobileSearch.set(false);
@@ -1746,7 +1745,7 @@ export class MapEditorScreen implements OnInit {
   protected async setEventArea(): Promise<void> {
     this.menu.set(null);
     let area: { lat: number; lng: number; zoom: number } | null = null;
-    const gmap = this.mapRef()?.map;
+    const gmap = this.mapRef()?.activeMap();
     const c = gmap?.getCenter();
     if (gmap && c) {
       area = { lat: c.lat(), lng: c.lng(), zoom: Math.round(gmap.getZoom() ?? 16) };

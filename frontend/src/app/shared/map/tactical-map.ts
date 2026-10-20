@@ -163,6 +163,8 @@ export class TacticalMap {
   readonly allowRendererToggle = input(true);
   readonly controlsBottom = input(false);
   readonly mapType = input<'hybrid' | 'roadmap' | 'satellite' | 'terrain'>('hybrid');
+  /** false: taps inside zones go to mapClick (placing points inside an area). */
+  readonly shapesClickable = input(true);
   /** 'cooperative' for small embedded previews so one-finger scrolling scrolls the page. */
   readonly gestureHandling = input<'greedy' | 'cooperative'>('greedy');
 
@@ -173,7 +175,8 @@ export class TacticalMap {
   readonly mapClick = output<LatLng>();
   readonly markerMoved = output<MarkerMove>();
 
-  protected readonly renderer = signal<Renderer>('loading');
+  /** Which renderer is showing: 'google', 'schematic' or 'loading'. */
+  readonly renderer = signal<Renderer>('loading');
   protected readonly mapsState = this.loader.state;
   private readonly userPrefersSchematic = signal(false);
 
@@ -181,8 +184,13 @@ export class TacticalMap {
   private readonly schematicHost = viewChild<ElementRef<HTMLDivElement>>('schematicHost');
   private readonly schematicOverlay = viewChild<ElementRef<HTMLDivElement>>('schematicOverlay');
 
-  /** The Google map instance, for editors that add their own listeners. */
+  /** The Google map instance (it stays alive when the schematic view is shown; use activeMap()). */
   map: google.maps.Map | null = null;
+
+  /** The Google map only while it is the visible renderer. */
+  activeMap(): google.maps.Map | null {
+    return this.renderer() === 'google' ? this.map : null;
+  }
   private readonly markers = new Map<string, { marker: google.maps.marker.AdvancedMarkerElement; sig: string }>();
   private readonly shapes = new Map<string, { shape: google.maps.MVCObject & { setMap(m: google.maps.Map | null): void }; sig: string }>();
   private listeners: google.maps.MapsEventListener[] = [];
@@ -220,6 +228,7 @@ export class TacticalMap {
         labels: this.showLabels(),
         draft: this.draft(),
         editable: this.editable(),
+        shapesClickable: this.shapesClickable(),
       };
       if (r === 'google' && this.map) untracked(() => this.syncGoogle(data));
     });
@@ -389,6 +398,7 @@ export class TacticalMap {
     labels: boolean;
     draft: DraftShape | null;
     editable: boolean;
+    shapesClickable: boolean;
   }): void {
     const map = this.map!;
     const teamById = new Map(d.teams.map((t) => [t.id, t]));
@@ -446,19 +456,19 @@ export class TacticalMap {
     // zones
     for (const z of d.zones) {
       const style = zoneStyle(z);
-      const sig = JSON.stringify([z.points, z.radiusM, z.color, z.fillOpacity, z.strokeWidth, z.kind, z.geometry]);
-      const click = () => this.zoneClick.emit(z);
+      const sig = JSON.stringify([z.points, z.radiusM, z.color, z.fillOpacity, z.strokeWidth, z.kind, z.geometry, d.shapesClickable]);
+      const click = d.shapesClickable ? () => this.zoneClick.emit(this.zones().find((x) => x.id === z.id) ?? z) : undefined;
       if (z.geometry === 'polygon' && z.points.length >= 3) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polygon({ paths: z.points, ...style.poly, clickable: true }), click);
+        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polygon({ paths: z.points, ...style.poly, clickable: d.shapesClickable }), click);
       } else if (z.geometry === 'polyline' && z.points.length >= 2) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polyline({ path: z.points, ...style.line, clickable: true }), click);
+        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polyline({ path: z.points, ...style.line, clickable: d.shapesClickable }), click);
       } else if (z.geometry === 'circle' && z.points[0] && z.radiusM) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Circle({ center: z.points[0], radius: z.radiusM!, ...style.poly, clickable: true }), click);
+        upsertShape(`z:${z.id}`, sig, () => new google.maps.Circle({ center: z.points[0], radius: z.radiusM!, ...style.poly, clickable: d.shapesClickable }), click);
       }
       const labelAt = z.geometry === 'point' || z.kind === 'label' ? z.points[0] : null;
       if ((labelAt || (d.labels && z.label)) && z.points[0]) {
         const at = labelAt ?? centroidOf(z.points);
-        upsertMarker(`zl:${z.id}`, at, `${z.label}|${z.color}`, () => zoneLabel(z.label || z.kind, z.color), { z: 10, onClick: click });
+        upsertMarker(`zl:${z.id}`, at, `${z.label}|${z.color}`, () => zoneLabel(z.label || z.kind, z.color), { z: 10, onClick: click ?? (() => this.zoneClick.emit(z)) });
       }
     }
 
@@ -469,7 +479,7 @@ export class TacticalMap {
       const sig = JSON.stringify([o.status, o.ownerTeamId, o.color, o.name, o.jammedUntil, selected, d.labels, owner?.color]);
       upsertMarker(`o:${o.id}`, { lat: o.lat, lng: o.lng }, sig, () => objectiveMarker(o, owner, selected, d.labels), {
         z: 300,
-        onClick: () => this.objectiveClick.emit(o),
+        onClick: () => this.objectiveClick.emit(this.objectives().find((x) => x.id === o.id) ?? o),
         draggable: d.editable,
         onDragEnd: (p) => this.markerMoved.emit({ kind: 'objective', id: o.id, position: p }),
       });
@@ -495,7 +505,7 @@ export class TacticalMap {
       const selected = d.selected === p.id;
       upsertMarker(`p:${p.id}`, { lat: p.lat, lng: p.lng }, JSON.stringify([p.type, p.color, p.name, selected, d.labels]), () => poiMarker(p, selected, d.labels), {
         z: 200,
-        onClick: () => this.poiClick.emit(p),
+        onClick: () => this.poiClick.emit(this.pois().find((x) => x.id === p.id) ?? p),
         draggable: d.editable,
         onDragEnd: (pos) => this.markerMoved.emit({ kind: 'poi', id: p.id, position: pos }),
       });
@@ -510,7 +520,7 @@ export class TacticalMap {
       const sig = JSON.stringify([pos.status, pos.kind, pos.nickname, pos.playerRole, team?.color, selected, d.labels]);
       upsertMarker(key, { lat: pos.lat, lng: pos.lng }, sig, () => playerMarker(pos, team, { selected, showLabel: d.labels }), {
         z: pos.kind === 'ally' ? 500 : 450,
-        onClick: () => this.playerClick.emit(pos),
+        onClick: () => this.playerClick.emit(this.positions().find((x) => x.userId === pos.userId && x.kind === pos.kind) ?? pos),
       });
       if (pos.radiusM && pos.radiusM > 0) {
         const color = pos.kind === 'ally' ? (team?.color ?? '#888') : cssVar('--destructive');
