@@ -116,7 +116,7 @@ let uid = 0;
               <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No objective was captured in this game.</p>
             } @else {
               <div class="panel overflow-x-auto">
-                <table class="w-full min-w-[28rem] text-sm">
+                <table class="w-full min-w-md text-sm">
                   <caption class="sr-only">Number of captures of each objective by team</caption>
                   <thead>
                     <tr class="border-b border-border text-left">
@@ -191,7 +191,7 @@ let uid = 0;
               <details class="mt-2">
                 <summary class="tap inline-flex cursor-pointer items-center text-sm font-semibold text-primary">Show captures as a table</summary>
                 <div class="panel mt-2 overflow-x-auto">
-                  <table class="w-full min-w-[30rem] text-sm">
+                  <table class="w-full min-w-120 text-sm">
                     <caption class="sr-only">All captures by objective</caption>
                     <thead>
                       <tr class="border-b border-border text-left">
@@ -268,7 +268,7 @@ let uid = 0;
                           }
                         </td>
                         <th scope="row" class="p-2 text-left font-normal">
-                          <span class="block max-w-[9rem] truncate font-semibold sm:max-w-none">{{ p.nickname }}</span>
+                          <span class="block max-w-36 truncate font-semibold sm:max-w-none">{{ p.nickname }}</span>
                           <zeus-team-badge [team]="teamBadge(p.teamId)" size="sm" [showIcon]="false" />
                         </th>
                         <td class="num p-2 text-right" [class.font-bold]="sortKey() === 'points'">{{ fmt(p.points) }}</td>

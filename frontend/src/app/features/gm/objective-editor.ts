@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormRecord, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -54,7 +54,6 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   imports: [
     ReactiveFormsModule,
     NgTemplateOutlet,
-    RouterLink,
     NgIcon,
     HlmButton,
     HlmInput,
@@ -72,7 +71,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
   template: `
-    <div class="page !max-w-5xl">
+    <div class="page max-w-5xl!">
       <zeus-page-header
         [title]="isNew() ? 'New objective' : (objective()?.name ?? 'Objective')"
         [eyebrow]="event()?.name ?? 'Objective editor'"
@@ -358,7 +357,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 <div>
                   <h3 class="mb-2 text-sm font-semibold">Per-team overrides</h3>
                   <div class="overflow-x-auto">
-                    <table class="w-full min-w-[22rem] text-sm">
+                    <table class="w-full min-w-88 text-sm">
                       <thead>
                         <tr class="text-left text-muted-foreground">
                           <th class="py-1.5 pr-2 font-medium">Team</th>
@@ -463,7 +462,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                     @for (o of otherObjectives(); track o.id) {
                       <label class="flex min-h-11 cursor-pointer items-center gap-3">
                         <input type="checkbox" class="size-5 accent-primary" [checked]="value().prerequisiteIds?.includes(o.id)" (change)="toggle(form.controls.prerequisiteIds, o.id, $event)" />
-                        <span class="inline-block size-3 rotate-45 rounded-[2px] border-2" [style.border-color]="o.color" aria-hidden="true"></span>{{ o.name }}
+                        <span class="inline-block size-3 rotate-45 rounded-xs border-2" [style.border-color]="o.color" aria-hidden="true"></span>{{ o.name }}
                       </label>
                     }
                   </div>

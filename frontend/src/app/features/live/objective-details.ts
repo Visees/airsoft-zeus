@@ -242,7 +242,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
                 hlmInput
                 id="capture-code"
                 formControlName="code"
-                class="num h-14 text-center text-2xl font-bold tracking-[0.18em]"
+                class="num h-14 text-center text-2xl font-bold tracking-[0.18em] uppercase"
                 autocomplete="off"
                 autocapitalize="characters"
                 autocorrect="off"
@@ -256,7 +256,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
               @if (codeError()) {
                 <p id="capture-code-error" class="field-error">{{ codeError() }}</p>
               } @else {
-                <p id="capture-code-hint" class="text-xs text-muted-foreground">Type the code exactly as written on the objective.</p>
+                <p id="capture-code-hint" class="text-xs text-muted-foreground">The code is written on the objective. Capitals, spaces and dashes do not matter.</p>
               }
               <button hlmBtn type="submit" class="h-14 text-base font-bold" [disabled]="attempt.state() === 'pending' || !!block()">
                 @if (attempt.state() === 'pending' && attempt.objectiveId() === o.id) {

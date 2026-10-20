@@ -489,7 +489,8 @@ export class EventDetailsScreen {
       case 'paused':
         return 'The game has already started. Registration is closed.';
       case 'draft':
-        return 'Registration is not open yet.';
+      case 'published':
+        return 'Registration has not opened yet. Check back later.';
     }
     if (e.registrationLocked) return 'The Game Master has closed registration.';
     if (e.approvedCount >= e.maxPlayers) return 'This event is full.';

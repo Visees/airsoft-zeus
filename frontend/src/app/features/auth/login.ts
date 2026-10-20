@@ -109,14 +109,14 @@ export class LoginScreen {
     } catch (e) {
       const err = ApiError.from(e);
       if (err.status === 429) {
-        this.formError.set({ kind: 'rate', message: 'Too many login attempts. For your security, wait a few minutes before trying again, or reset your password.' });
+        this.formError.set({ kind: 'rate', message: err.message || 'Too many login attempts. Wait a few minutes before trying again, or reset your password.' });
       } else if (err.isNetwork) {
         this.formError.set({ kind: 'network', message: err.message });
       } else if (err.status === 401 || err.status === 400) {
         const unmatched = applyServerErrors(this.form, err);
         this.formError.set({
           kind: 'auth',
-          message: Object.keys(err.fields).length && !unmatched.length ? 'Check the highlighted fields.' : err.status === 401 ? 'Email or password is incorrect.' : err.message,
+          message: Object.keys(err.fields).length && !unmatched.length ? 'Check the highlighted fields.' : err.message || 'Wrong email or password.',
         });
         this.form.controls.password.reset('');
       } else {

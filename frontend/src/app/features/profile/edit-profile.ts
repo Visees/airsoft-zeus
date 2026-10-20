@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -35,8 +35,8 @@ const FIELD_ALIASES: Record<string, string> = {
   'privacy.shareEmergencyWithGm': 'shareEmergencyWithGm',
 };
 
-function pastDateValidator(ctrl: FormControl<string>) {
-  const v = ctrl.value;
+function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
+  const v = ctrl.value as string;
   if (!v) return null;
   const d = new Date(v + 'T00:00:00');
   if (isNaN(d.getTime())) return { date: true };

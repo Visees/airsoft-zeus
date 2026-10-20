@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +17,7 @@ import { RealtimeService } from '../../core/realtime/realtime.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { GAME_MODE_LABELS, formatDate, formatNumber, formatTime, initials } from '../../core/util/format';
-import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
+import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { StatusChip, eventStatusChip } from '../../shared/status-chip';
 import { SaveState, SaveStateIndicator, SegmentOption, SegmentedControl, SwitchRow } from './common/controls';
 import { BASICS_FIELD_MAP, EventBasicsFormComponent, basicsToInput, createBasicsForm, patchBasicsForm } from './common/event-basics-form';
@@ -39,6 +40,7 @@ interface NavCard {
   selector: 'zeus-event-editor-screen',
   imports: [
     ReactiveFormsModule,
+    NgTemplateOutlet,
     RouterLink,
     NgIcon,
     HlmButton,
@@ -48,7 +50,6 @@ interface NavCard {
     PageHeader,
     LoadingSkeleton,
     ErrorState,
-    EmptyState,
     StatusChip,
     SaveStateIndicator,
     SegmentedControl,
@@ -271,9 +272,9 @@ interface NavCard {
 
     <ng-template #saveBar let-section="section">
       <div class="sticky bottom-[calc(4rem+var(--safe-bottom))] z-10 mt-4 flex items-center justify-end gap-3 border-t border-border bg-background/95 py-3 backdrop-blur lg:bottom-0">
-        <zeus-save-state [state]="sectionState(section)" [error]="saveErrors()[$any(section)] ?? null" />
-        <button hlmBtn class="h-11 min-w-28" type="button" (click)="save(section)" [disabled]="states()[$any(section)] === 'saving'">
-          {{ states()[$any(section)] === 'saving' ? 'Saving…' : 'Save' }}
+        <zeus-save-state [state]="sectionState(section)" [error]="errorOf(section)" />
+        <button hlmBtn class="h-11 min-w-28" type="button" (click)="save(section)" [disabled]="sectionState(section) === 'saving'">
+          {{ sectionState(section) === 'saving' ? 'Saving…' : 'Save' }}
         </button>
       </div>
     </ng-template>
@@ -461,6 +462,10 @@ export class EventEditorScreen {
     const s = this.states()[section];
     if (s === 'saving' || s === 'failed') return s;
     return this.formFor(section).dirty ? 'unsaved' : s;
+  }
+
+  protected errorOf(section: Section): string | null {
+    return this.saveErrors()[section] ?? null;
   }
 
   protected dirtyMark(section: Section): boolean {

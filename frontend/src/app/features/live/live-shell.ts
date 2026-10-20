@@ -371,12 +371,14 @@ export class LiveShell {
   protected readonly ended = computed(() => this.status() === 'completed' || this.status() === 'cancelled');
   private readonly me = this.store.me;
   private readonly isMember = computed(() => this.me()?.status === 'approved');
+  /** Only players share a position (the server rejects Game Master reports with tracking_not_allowed). */
+  private readonly isPlayer = computed(() => this.isMember() && this.me()?.role === 'player');
   protected readonly consented = computed(() => !!this.me()?.trackingConsented || this.session.hasConsented(this.eventId()));
   private readonly stoppedByUser = computed(() => this.session.isStopped(this.eventId()));
 
   /** Run the GPS tracker: game running, approved member, consent given, not stopped by the player. */
   private readonly wantsTracking = computed(
-    () => this.running() && this.isMember() && this.consented() && !this.stoppedByUser(),
+    () => this.running() && this.isPlayer() && this.consented() && !this.stoppedByUser(),
   );
 
   protected readonly showGmPrompt = computed(
@@ -407,7 +409,7 @@ export class LiveShell {
   });
 
   protected readonly sharing = computed<SharingIndicator | null>(() => {
-    if (!this.isMember() || this.ended()) return null;
+    if (!this.isPlayer() || this.ended()) return null;
     const mine = this.tracker.eventId() === this.eventId();
     const state = this.tracker.state();
     if (!this.consented()) return { label: 'Not sharing', glyph: '○', tone: 'border border-warning/60 text-warning', action: 'sheet' };
@@ -480,7 +482,7 @@ export class LiveShell {
 
     // Ask for consent once per visit while the game runs.
     effect(() => {
-      const ask = this.running() && this.isMember() && !this.consented() && !this.session.hasDeclined(this.eventId());
+      const ask = this.running() && this.isPlayer() && !this.consented() && !this.session.hasDeclined(this.eventId());
       if (ask && !this.autoSheetShown) {
         this.autoSheetShown = true;
         untracked(() => this.session.sheetOpen.set(true));

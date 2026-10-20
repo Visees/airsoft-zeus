@@ -19,15 +19,13 @@ No Flutter, no Firebase. Node 24 needed locally for the Angular CLI (`fnm instal
   (batching, offline queue, wake lock), push, theme, connectivity, confirm/toast services,
   shared components incl. `TacticalMap` (Google Maps + offline schematic renderer), app shell,
   route table, SSR server with proxy + security headers. `ng build` passes (before agents).
-* Backend so far (not yet type-checked as a whole):
-  `config, logger, errors, db (tx + afterCommit + advisory lock)`, `lib/*` (validate, ids, geo,
-  rate-limit, idempotency, pagination), `auth/*` (scrypt, JWT, rotating refresh tokens, middleware),
-  `domain/defaults, rules (pure: status, capture eligibility, visibility, position projection),
-  geofence (pure), anticheat (pure), context, serialize, journal (activity/alerts/audit/notify),
-  ledger, objectives (capture transaction, recurring, revoke), locations (report pipeline,
-  geofence, UAV intel), perks (availability, purchase, approval, activation, cancel, expiry),
-  lifecycle (transitions, complete game, stats/badges, extend)`, `realtime/hub.ts`, `push.ts`, `mail.ts`.
-* `backend/test/rules.test.ts` — 41 unit tests, passing.
+* Backend complete and type-checked: domain engine (rules, geofence, anti-cheat, ledger,
+  objectives, locations, perks, lifecycle, tick, results/exports), realtime hub, all routes
+  matching `api.service.ts`, seed data, migrations runner.
+* Docker: `docker-compose.yml` (Coolify), `docker-compose.override.yml` (local: ports, Mailpit,
+  demo data), Dockerfiles, `.env.example`. Postgres + API + Mailpit verified running.
+* Tests: 41 unit tests + 12 end-to-end API tests (fresh stack) passing.
+* Docs: README (run, deploy, backups), docs/ARCHITECTURE.md.
 
 ## In progress — frontend screens (5 agents stopped at the limit; partial work is on disk)
 
@@ -44,12 +42,5 @@ Stub files contain the comment `// STUB`. Run `npx ngc -p tsconfig.app.json --no
 
 ## Next steps
 
-1. Backend: `domain/tick.ts` (recurring rewards, expiries, availability notifications,
-   disconnected alerts, auto-end, retention cleanup), `domain/results.ts` (results, CSV/PDF export,
-   public results), all `routes/*` matching `api.service.ts`, `app.ts`, `index.ts`, uploads,
-   seed data (`is_test_data`), `npm run typecheck`, integration tests against Postgres.
-2. Finish the frontend screens listed above; full `ng build`.
-3. Dockerfiles (frontend, backend), `docker-compose.yml` + override (Mailpit for dev email),
-   `.env.example`, README (run locally, Coolify deploy, backups/restores).
-4. `docs/ARCHITECTURE.md` for the new stack.
-5. Run the stack, seed demo data, Playwright walkthrough at 375/1280, fix.
+1. Finish the frontend screens listed above (agents resumed); full `ng build`.
+2. Build the frontend image, run the whole stack, Playwright walkthrough at 375/1280, fix.

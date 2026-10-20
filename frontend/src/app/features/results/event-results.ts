@@ -164,9 +164,11 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                   <button hlmBtn type="button" class="h-11" (click)="share()"><ng-icon name="lucideShare2" size="16" aria-hidden="true" /> Share</button>
                 </div>
               } @else if (isGm()) {
-                <p class="text-sm text-muted-foreground">Publish a public page with the winner, leaderboard and timeline. Player positions are never included.</p>
+                <p class="text-sm text-muted-foreground">
+                  {{ published() === false ? 'The public page is unpublished: the old link shows "not available".' : 'Publish a public page with the winner, leaderboard and timeline. Player positions are never included.' }}
+                </p>
                 <button hlmBtn type="button" class="h-11" [disabled]="publishing()" (click)="publish()">
-                  <ng-icon name="lucideGlobe" size="16" aria-hidden="true" /> {{ publishing() ? 'Publishing…' : 'Publish results page' }}
+                  <ng-icon name="lucideGlobe" size="16" aria-hidden="true" /> {{ publishing() ? 'Publishing…' : published() === false ? 'Publish again' : 'Publish results page' }}
                 </button>
               } @else {
                 <p class="text-sm text-muted-foreground">The Game Master has not published a public results page yet.</p>
@@ -192,6 +194,8 @@ export class EventResultsScreen {
   protected readonly publishing = signal(false);
   protected readonly copied = signal(false);
   private readonly token = signal<string | null>(null);
+  /** GMs receive the token even when the page is unpublished, so it is checked separately. */
+  protected readonly published = signal<boolean | null>(null);
 
   protected readonly fmt = formatNumber;
   protected readonly signed = formatSigned;
@@ -223,7 +227,7 @@ export class EventResultsScreen {
   });
   protected readonly shareUrl = computed(() => {
     const t = this.token();
-    return t ? publicResultsUrl(this.doc.location.origin, t) : null;
+    return t && this.published() !== false ? publicResultsUrl(this.doc.location.origin, t) : null;
   });
 
   private requestId = 0;
@@ -264,6 +268,16 @@ export class EventResultsScreen {
       this.event.set(e);
       if (!this.token() && e.resultsToken) this.token.set(e.resultsToken);
     }
+    const token = this.token();
+    if (token && e?.isGm) {
+      this.published.set(await this.api.publicResults(token).then(
+        () => true,
+        (err: unknown) => (ApiError.from(err).status === 404 ? false : null),
+      ));
+      if (req !== this.requestId) return;
+    } else {
+      this.published.set(token ? true : null);
+    }
     this.loading.set(false);
   }
 
@@ -272,6 +286,7 @@ export class EventResultsScreen {
     try {
       const res = await this.api.publishResults(this.eventId());
       this.token.set(res.token);
+      this.published.set(true);
       this.toast.success('Results page published', 'Share the link with your players.');
     } catch (err) {
       this.toast.error(err);

@@ -113,7 +113,8 @@ export class SquadRow {
       return;
     }
     const raw = c.value.trim();
-    const body: Partial<Squad> = field === 'name' ? { name: raw } : field === 'callsign' ? { callsign: raw.toUpperCase() || null } : { icon: raw || null };
+    // The server keeps the old value for null, so an empty string clears a field.
+    const body: Partial<Squad> = field === 'name' ? { name: raw } : field === 'callsign' ? { callsign: raw.toUpperCase() } : { icon: raw };
     this.state.set('saving');
     try {
       await this.api.updateSquad(this.eventId(), this.squad().id, body);
@@ -202,7 +203,17 @@ export class SquadRow {
         >
           <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucidePencil'" size="14" aria-hidden="true" /> {{ expanded() ? 'Close' : 'Edit' }}
         </button>
-        <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" [attr.aria-label]="'Delete team ' + t.name">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          class="tap text-destructive"
+          type="button"
+          [disabled]="running()"
+          [attr.title]="running() ? 'Teams cannot be deleted once the game has started' : null"
+          (click)="remove()"
+          [attr.aria-label]="'Delete team ' + t.name"
+        >
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>
       </header>
@@ -344,7 +355,6 @@ export class TeamEditor {
     const consequences = [
       t.memberCount ? `${t.memberCount} players become unassigned.` : 'No players are in this team.',
       this.teamSquads().length ? `${this.teamSquads().length} squads are deleted.` : null,
-      this.running() ? 'The game is running: these players lose their team map immediately.' : null,
       'This cannot be undone.',
     ].filter((x): x is string => !!x);
     const ok = await this.confirm.ask({ title: `Delete team ${t.name}?`, consequences, destructive: true, confirmLabel: 'Delete team' });

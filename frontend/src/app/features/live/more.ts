@@ -97,7 +97,9 @@ const FLAG_LABELS: Record<string, string> = {
             }
           </ul>
         }
-        @if (!consented()) {
+        @if (!isPlayer()) {
+          <p class="text-sm text-muted-foreground">Only players share their location. Game Masters see players from the control center.</p>
+        } @else if (!consented()) {
           <p class="text-sm text-muted-foreground">You have not agreed to share your location in this event.</p>
           <button hlmBtn type="button" class="h-12" (click)="session.sheetOpen.set(true)">
             <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> Share my location
@@ -245,6 +247,7 @@ export class LiveMoreScreen {
   protected readonly leaving = signal(false);
 
   protected readonly eventId = computed(() => this.store.eventId() ?? '');
+  protected readonly isPlayer = computed(() => this.store.me()?.role === 'player' && this.store.me()?.status === 'approved');
   protected readonly mine = computed(() => this.tracker.eventId() === this.store.eventId());
   protected readonly consented = computed(() => !!this.store.me()?.trackingConsented || this.session.hasConsented(this.store.eventId()));
   protected readonly stopped = computed(() => this.session.isStopped(this.store.eventId()));

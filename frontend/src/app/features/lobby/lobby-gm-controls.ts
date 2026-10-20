@@ -33,16 +33,19 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
         <button hlmBtn type="button" class="h-12" [disabled]="busy() !== null" (click)="openLobby()">
           <ng-icon name="lucideUsers" size="18" aria-hidden="true" /> Open lobby
         </button>
-        <p class="-mt-1 text-xs text-muted-foreground">Moves the event to Lobby: players see the start countdown and get ready.</p>
+        <p class="-mt-1 text-xs text-muted-foreground">Moves the event to Lobby: players see the start countdown and get ready. The game can only start from the lobby.</p>
       }
 
-      <button hlmBtn type="button" class="h-12" [variant]="preLobby() ? 'outline' : 'default'" [disabled]="busy() !== null || !startable()" (click)="start()">
+      <button hlmBtn type="button" class="h-12" [variant]="preLobby() ? 'outline' : 'default'" [disabled]="busy() !== null || !!startBlock()" [attr.aria-describedby]="startBlock() ? 'start-block' : null" (click)="start()">
         @if (busy() === 'start') {
           <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Starting…
         } @else {
           <ng-icon name="lucidePlay" size="18" aria-hidden="true" /> Start game
         }
       </button>
+      @if (startBlock(); as why) {
+        <p id="start-block" class="-mt-1 text-xs text-muted-foreground">{{ why }}</p>
+      }
 
       <div class="grid grid-cols-2 gap-2">
         <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy() !== null" [attr.aria-expanded]="delayOpen()" aria-controls="delay-form" (click)="toggleDelay()">
@@ -195,7 +198,13 @@ export class LobbyGmControls {
     const s = this.event().status;
     return s === 'published' || s === 'registration_open';
   });
-  protected readonly startable = computed(() => ['published', 'registration_open', 'lobby'].includes(this.event().status));
+  /** The API only allows lobby → live, with at least two teams. */
+  protected readonly startBlock = computed<string | null>(() => {
+    const e = this.event();
+    if (e.status !== 'lobby') return 'Open the lobby first, then start the game from here.';
+    if (e.teams.length < 2) return 'Create at least two teams before starting.';
+    return null;
+  });
   protected readonly startLabel = computed(() => formatDateTime(this.event().startAt));
   protected readonly players = computed(() => this.members().filter((m) => m.status === 'approved' && m.role === 'player'));
   protected readonly pending = computed(() => this.members().filter((m) => m.status === 'pending'));
@@ -227,8 +236,9 @@ export class LobbyGmControls {
     const notReady = players.filter((m) => !m.ready).length;
     const noTeam = players.filter((m) => !m.teamId).length;
     const s = e.scoring;
+    const plannedMs = new Date(e.endAt).getTime() - new Date(e.startAt).getTime();
     const consequences = [
-      `The game clock starts now (planned end ${formatTime(e.endAt)}).`,
+      `The game clock starts now and runs for ${formatDuration(plannedMs)} (until about ${formatTime(new Date(Date.now() + plannedMs).toISOString())}).`,
       `Location tracking starts for ${consented} of ${players.length} players who consented.`,
       e.storeEnabled
         ? `Every team gets its starting balance: ${formatNumber(s.startingPoints)} points and ${formatNumber(s.startingCurrency)} credits.`

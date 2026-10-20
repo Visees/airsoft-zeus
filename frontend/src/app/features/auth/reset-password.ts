@@ -7,6 +7,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { AuthLayout } from './auth-layout';
 import { applyServerErrors, fieldError, focusFirstInvalid, matchValidator } from './form-utils';
 import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
@@ -39,7 +40,7 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
           <div class="flex flex-col items-start gap-3" role="status">
             <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true"><ng-icon name="lucideCircleCheck" size="24" /></span>
             <h1 class="text-3xl uppercase">Password changed</h1>
-            <p class="text-muted-foreground">You can now log in with your new password. Use it on your other devices too.</p>
+            <p class="text-muted-foreground">You can now log in with your new password. For your security, all devices were signed out.</p>
             <a hlmBtn routerLink="/auth/login" class="mt-2 h-12 w-full text-base">Log in</a>
           </div>
         }
@@ -76,6 +77,7 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
 })
 export class ResetPasswordScreen {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly token = input<string | undefined>();
@@ -121,14 +123,16 @@ export class ResetPasswordScreen {
     this.saving.set(true);
     try {
       await this.api.resetPassword(this.token()!, this.form.controls.password.value);
+      // The server revokes every session, including this device's.
+      this.auth.clear();
       this.result.set('done');
     } catch (e) {
       const err = ApiError.from(e);
       if (err.status === 400 && Object.keys(err.fields).some((f) => f !== 'token')) {
         const unmatched = applyServerErrors(this.form, err);
         if (unmatched.length) this.error.set(unmatched[0]);
-      } else if (err.status === 400 || err.status === 404 || err.status === 410 || err.fields['token']) {
-        if (err.fields['token']) this.expiredMessage.set(err.fields['token']);
+      } else if (err.code === 'invalid_token' || err.status === 400 || err.status === 404 || err.status === 410) {
+        if (err.code === 'invalid_token') this.expiredMessage.set(err.message);
         this.result.set('expired');
       } else {
         this.error.set(err.message);
