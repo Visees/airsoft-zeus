@@ -170,7 +170,7 @@ commonRouter.get('/public/results/:token', async (req, res) => {
 });
 
 commonRouter.get('/templates/events', requireVerified, async (req, res) => {
-  const rows = await many(`SELECT id, name, created_at, data->'event'->>'gameMode' AS game_mode FROM event_templates WHERE owner_id = $1 ORDER BY created_at DESC`, [
+  const rows = await many(`SELECT id, name, created_at, data->'event'->>'game_mode' AS game_mode FROM event_templates WHERE owner_id = $1 ORDER BY created_at DESC`, [
     currentUser(req).id,
   ]);
   res.json(rows.map((r) => ({ id: r.id, name: r.name, createdAt: dto.iso(r.created_at), gameMode: r.game_mode ?? 'custom' })));

@@ -310,7 +310,7 @@ export class PerkCard {
   readonly buy = output<Perk>();
   protected readonly dur = formatDuration;
   protected readonly typeLabel = computed(() => PERK_TYPE_LABELS[this.perk().type]);
-  protected readonly icon = computed(() => perkIcon(this.perk().type));
+  protected readonly icon = computed(() => (this.perk().icon?.startsWith('lucide') ? this.perk().icon : perkIcon(this.perk().type)));
   protected readonly canBuy = computed(() => this.perk().availability?.canBuy ?? false);
   protected readonly availabilityLabel = computed(() => {
     const a = this.perk().availability;

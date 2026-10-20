@@ -322,9 +322,13 @@ eventsRouter.post('/:eventId/template', async (req, res) => {
   const row = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const snap = await snapshotEvent(eventId, t);
-    return one('INSERT INTO event_templates (owner_id, name, data) VALUES ($1,$2,$3) RETURNING id, name, created_at', [me.id, b.name, JSON.stringify(snap)], t);
+    return one(
+      `INSERT INTO event_templates (owner_id, name, data) VALUES ($1,$2,$3) RETURNING id, name, created_at, data->'event'->>'game_mode' AS game_mode`,
+      [me.id, b.name, JSON.stringify(snap)],
+      t,
+    );
   });
-  res.status(201).json({ id: row!.id, name: row!.name, createdAt: dto.iso(row!.created_at), gameMode: 'custom' });
+  res.status(201).json({ id: row!.id, name: row!.name, createdAt: dto.iso(row!.created_at), gameMode: row!.game_mode ?? 'custom' });
 });
 
 export const templateInstantiateRouter = Router();
@@ -871,12 +875,13 @@ eventsRouter.patch('/:eventId/squads/:squadId', async (req, res) => {
     const s = await one('SELECT * FROM squads WHERE id = $1 AND event_id = $2 FOR UPDATE', [squadId, eventId], t);
     if (!s) throw notFound('Squad not found.');
     if (b.teamId && b.teamId !== s.team_id) throw badRequest('A squad cannot move to another team.', 'invalid_argument', { teamId: 'Cannot change' });
-    await t.query('UPDATE squads SET name = COALESCE($2, name), callsign = COALESCE($3, callsign), icon = COALESCE($4, icon) WHERE id = $1', [
-      squadId,
-      b.name ?? null,
-      b.callsign ?? null,
-      b.icon ?? null,
-    ]);
+    // undefined = keep, null or '' = clear (name is required)
+    await t.query(
+      `UPDATE squads SET name = COALESCE($2, name),
+              callsign = CASE WHEN $5 THEN NULLIF($3, '') ELSE callsign END,
+              icon = CASE WHEN $6 THEN NULLIF($4, '') ELSE icon END WHERE id = $1`,
+      [squadId, b.name ?? null, b.callsign ?? null, b.icon ?? null, b.callsign !== undefined, b.icon !== undefined],
+    );
     if (b.leaderId !== undefined) {
       if (b.leaderId) {
         const m = await one('SELECT team_id FROM event_members WHERE event_id = $1 AND user_id = $2 AND status = $3', [eventId, b.leaderId, 'approved'], t);
