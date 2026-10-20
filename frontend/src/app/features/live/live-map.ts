@@ -7,12 +7,13 @@ import {
   computed,
   effect,
   inject,
-  input,
   signal,
   untracked,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { LatLng, Objective, Poi, VisiblePosition } from '../../core/api/models';
@@ -223,9 +224,6 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
   `,
 })
 export class LiveMapScreen {
-  /** ?focus=<objectiveId> */
-  readonly focus = input<string | undefined>(undefined);
-
   protected readonly store = inject(LiveStore);
   protected readonly tracker = inject(LocationTracker);
   private readonly router = inject(Router);
@@ -239,7 +237,9 @@ export class LiveMapScreen {
   protected readonly selection = signal<Selection | null>(null);
   protected readonly activityOpen = signal(false);
   private readonly focusCenter = signal<LatLng | null>(null, { equal: sameLatLng });
-  private handledFocus: string | null = null;
+  /** Latest ?focus=<objectiveId> request; seq makes repeated requests for the same id distinct. */
+  private readonly focusRequest = signal<{ id: string; seq: number } | null>(null);
+  private handledFocus = 0;
 
   protected readonly fmt = formatNumber;
 
@@ -291,12 +291,21 @@ export class LiveMapScreen {
   protected readonly activity = computed(() => this.store.activity().slice(0, 3));
 
   constructor() {
-    // ?focus=<objectiveId>: select it and pan to it (once per id).
+    // This screen is kept alive between tabs (KeepAliveRouteStrategy), so every navigation that
+    // carries ?focus=<objectiveId> is a new request, even for the same id as last time.
+    let seq = 0;
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed()).subscribe(() => {
+      const id: unknown = this.router.routerState.snapshot.root.queryParams['focus'];
+      if (typeof id === 'string' && id) this.focusRequest.set({ id, seq: ++seq });
+    });
+
+    // Select the requested objective and pan to it, once per request (waits for objectives to load).
     effect(() => {
-      const id = this.focus();
-      const o = id ? this.store.objectiveById().get(id) : undefined;
-      if (!id || !o || id === this.handledFocus) return;
-      this.handledFocus = id;
+      const req = this.focusRequest();
+      const o = req ? this.store.objectiveById().get(req.id) : undefined;
+      if (!req || !o || req.seq === this.handledFocus) return;
+      this.handledFocus = req.seq;
+      const id = req.id;
       untracked(() => {
         this.focusCenter.set({ lat: o.lat, lng: o.lng });
         this.select({ kind: 'objective', id });

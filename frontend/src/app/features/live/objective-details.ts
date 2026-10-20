@@ -21,7 +21,6 @@ import {
 } from '../../core/util/format';
 import { CaptureProgress } from '../../shared/capture-progress';
 import { nowSignal } from '../../shared/game-timer';
-import { TacticalMap } from '../../shared/map/tactical-map';
 import { ErrorState, LoadingSkeleton } from '../../shared/states';
 import { StatusChip, objectiveStatusChip } from '../../shared/status-chip';
 import { TeamBadge } from '../../shared/team-badge';
@@ -44,7 +43,6 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
     HlmLabel,
     CaptureProgress,
     CaptureFeedback,
-    TacticalMap,
     StatusChip,
     TeamBadge,
     LoadingSkeleton,
@@ -312,22 +310,6 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
           </section>
         }
 
-        <!-- Map preview -->
-        <section aria-label="Location">
-          <div class="panel h-55 overflow-hidden">
-            <zeus-tactical-map gestureHandling="cooperative"
-              class="h-full w-full"
-              [objectives]="mapObjectives()"
-              [self]="fix()"
-              [selectedId]="o.id"
-              [fitKey]="o.id"
-              [center]="objectiveCenter()"
-              [zoom]="18"
-              [allowRendererToggle]="false"
-            />
-          </div>
-        </section>
-
         <!-- History -->
         <section class="flex flex-col gap-2" aria-labelledby="history-title">
           <h3 id="history-title" class="label-caps">
@@ -437,17 +419,6 @@ export class ObjectiveDetailsScreen {
   });
   protected readonly sharingActive = computed(() => this.tracker.eventId() === this.store.eventId() && this.tracker.state() !== 'denied');
 
-  protected readonly mapObjectives = computed(() => {
-    const o = this.objective();
-    return o ? [o] : [];
-  });
-  protected readonly objectiveCenter = computed(
-    () => {
-      const o = this.objective();
-      return o ? { lat: o.lat, lng: o.lng } : null;
-    },
-    { equal: (a, b) => a?.lat === b?.lat && a?.lng === b?.lng },
-  );
 
   protected readonly direction = computed(() => {
     const o = this.objective();

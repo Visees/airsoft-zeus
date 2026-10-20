@@ -7,6 +7,7 @@ import { ApiService } from '../../core/api/api.service';
 import { LiveStore } from '../../core/live/live-store';
 import { LocationTracker } from '../../core/location/location-tracker.service';
 import { ConnectivityService } from '../../core/net/connectivity.service';
+import { KeepAliveRouteStrategy, LIVE_MAP_KEEP_ALIVE } from '../../core/routing/keep-alive-route-strategy';
 import { RealtimeService } from '../../core/realtime/realtime.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ToastService } from '../../core/ui/toast.service';
@@ -440,6 +441,9 @@ export class LiveShell {
   constructor() {
     this.theme.setLiveMode(true);
     const destroyRef = inject(DestroyRef);
+    // The live map is kept alive across tabs (one billed map load per game); drop it with the shell.
+    const reuse = inject(KeepAliveRouteStrategy);
+    destroyRef.onDestroy(() => reuse.release(LIVE_MAP_KEEP_ALIVE));
 
     // Load (and reload if the route is reused for another event).
     effect(() => {

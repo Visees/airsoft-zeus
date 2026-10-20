@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
 import { LiveStore } from './core/live/live-store';
+import { LIVE_MAP_KEEP_ALIVE } from './core/routing/keep-alive-route-strategy';
 import { AppShell } from './layout/app-shell';
 
 /**
@@ -34,7 +35,7 @@ export const routes: Routes = [
     providers: [LiveStore],
     loadComponent: () => import('./features/live/live-shell').then((m) => m.LiveShell),
     children: [
-      { path: '', title: 'Live map', loadComponent: () => import('./features/live/live-map').then((m) => m.LiveMapScreen) },
+      { path: '', title: 'Live map', data: { keepAlive: LIVE_MAP_KEEP_ALIVE }, loadComponent: () => import('./features/live/live-map').then((m) => m.LiveMapScreen) },
       { path: 'objectives', title: 'Objectives', loadComponent: () => import('./features/live/objective-list').then((m) => m.ObjectiveListScreen) },
       { path: 'objectives/:objectiveId', title: 'Objective', loadComponent: () => import('./features/live/objective-details').then((m) => m.ObjectiveDetailsScreen) },
       /** ?objective=<id> preselects the objective being captured */
