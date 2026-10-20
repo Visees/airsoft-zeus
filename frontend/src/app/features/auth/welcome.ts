@@ -15,7 +15,7 @@ import { AuthLayout } from './auth-layout';
 
       <section class="pt-4 sm:pt-10" aria-labelledby="welcome-title">
         <p class="label-caps">Live airsoft · players and Game Masters</p>
-        <h1 id="welcome-title" class="mt-2 text-3xl uppercase sm:text-5xl">Run the game.<br />Not the paperwork.</h1>
+        <h1 id="welcome-title" class="mt-2 text-3xl uppercase sm:text-5xl">Run and play airsoft events from your phone</h1>
         <p class="mt-3 max-w-prose text-muted-foreground">
           Join events, see your team on a live map, capture objectives and spend credits on perks. Game Masters set it all up and run it from one screen.
         </p>

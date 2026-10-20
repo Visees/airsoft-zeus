@@ -22,6 +22,11 @@ import * as dto from '../domain/serialize.js';
 export const authRouter = Router();
 
 const COOKIE = 'zeus_rt';
+const HINT = 'zeus_session';
+export function clearSessionCookies(res: Response): void {
+  res.clearCookie(COOKIE, { path: '/api/auth' });
+  res.clearCookie(HINT, { path: '/' });
+}
 const cookieOpts = () => ({
   httpOnly: true,
   secure: cookieSecure,
@@ -36,6 +41,8 @@ async function sessionResponse(req: Request, res: Response, userId: string, refr
   const badges = await many('SELECT * FROM user_badges WHERE user_id = $1 ORDER BY awarded_at', [userId]);
   const rt = refreshToken ?? (await issueRefreshToken(userId, req.get('user-agent')));
   res.cookie(COOKIE, rt, cookieOpts());
+  // Readable hint (no secret) so the app only tries to restore a session when one may exist.
+  res.cookie(HINT, '1', { ...cookieOpts(), httpOnly: false, path: '/' });
   res.json({
     user: dto.meUser(user, badges),
     accessToken: signAccessToken({ sub: user.id, ver: user.token_version, ev: !!user.email_verified_at }),
@@ -119,7 +126,7 @@ authRouter.post('/refresh', async (req, res) => {
   if (!raw) throw unauthorized('Not signed in.', 'no_session');
   const r = await rotateRefreshToken(raw, req.get('user-agent'));
   if (!r.ok) {
-    res.clearCookie(COOKIE, { path: '/api/auth' });
+    clearSessionCookies(res);
     throw unauthorized('Your session has expired. Sign in again.', 'session_expired');
   }
   await sessionResponse(req, res, r.userId, r.token);
@@ -128,7 +135,7 @@ authRouter.post('/refresh', async (req, res) => {
 authRouter.post('/logout', async (req, res) => {
   const raw = req.cookies?.[COOKIE];
   if (raw) await revokeRefreshToken(raw);
-  res.clearCookie(COOKIE, { path: '/api/auth' });
+  clearSessionCookies(res);
   res.json({ ok: true });
 });
 
@@ -176,7 +183,7 @@ authRouter.post('/reset-password', async (req, res) => {
     await t.query('UPDATE users SET password_hash = $2, email_verified_at = COALESCE(email_verified_at, now()), updated_at = now() WHERE id = $1', [userId, hash]);
     await revokeAllSessions(userId, t);
   });
-  res.clearCookie(COOKIE, { path: '/api/auth' });
+  clearSessionCookies(res);
   res.json({ ok: true });
 });
 

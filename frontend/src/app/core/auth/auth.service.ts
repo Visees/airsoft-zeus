@@ -35,7 +35,9 @@ export class AuthService {
       this._ready.set(true);
       return Promise.resolve();
     }
-    this.initPromise ??= this.refresh().then(() => this._ready.set(true));
+    // No session hint cookie → nothing to restore (avoids a guaranteed 401).
+    const hasSession = typeof document !== 'undefined' && /(?:^|;\s*)zeus_session=1/.test(document.cookie);
+    this.initPromise ??= (hasSession ? this.refresh() : Promise.resolve(false)).then(() => this._ready.set(true));
     return this.initPromise;
   }
 

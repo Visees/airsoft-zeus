@@ -24,7 +24,7 @@ import { postAuthUrl } from './post-auth';
         @if (next()) {
           Log in to continue where you left off.
         } @else {
-          Welcome back. Your events and teams are waiting.
+          Log in with the email address you registered with.
         }
       </p>
 

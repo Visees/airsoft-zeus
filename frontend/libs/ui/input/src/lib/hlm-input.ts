@@ -1,5 +1,5 @@
-import { Directive } from '@angular/core';
-import { BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
+import { Directive, inject } from '@angular/core';
+import { BrnFieldControl, BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
 import { BrnInput } from '@spartan-ng/brain/input';
 import { classes } from '@spartan-ng/helm/utils';
 
@@ -10,9 +10,15 @@ import { classes } from '@spartan-ng/helm/utils';
     { directive: BrnInput, inputs: ['id', 'forceInvalid'] },
     BrnFieldControlDescribedBy,
   ],
-  host: { 'data-slot': 'input' },
+  host: {
+    'data-slot': 'input',
+    // Announce "invalid" only when the error is shown (touched/submitted), like the styling.
+    '[attr.aria-invalid]': '_field?.spartanInvalid() ? "true" : null',
+  },
 })
 export class HlmInput {
+  protected readonly _field = inject(BrnFieldControl, { optional: true });
+
   constructor() {
     classes(
       () =>

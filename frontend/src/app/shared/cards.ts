@@ -273,7 +273,9 @@ export class ObjectiveCard {
           <ng-icon [name]="icon()" size="22" />
         </span>
         <div class="min-w-0 flex-1">
-          <p class="label-caps">{{ typeLabel() }}</p>
+          @if (typeLabel().toLowerCase() !== p.name.toLowerCase()) {
+            <p class="label-caps">{{ typeLabel() }}</p>
+          }
           <h3 class="truncate font-bold uppercase">{{ p.name }}</h3>
         </div>
         <zeus-currency-display [amount]="p.price" size="md" />

@@ -170,8 +170,8 @@ interface SharingIndicator {
       </header>
 
       <div class="relative flex min-h-0 flex-1 flex-col">
-        <main id="live-main" class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <router-outlet />
+        <main #liveMain id="live-main" class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <router-outlet (activate)="liveMain.scrollTop = 0" />
         </main>
 
         <!-- Top overlays: offline, announcement, GM prompt -->

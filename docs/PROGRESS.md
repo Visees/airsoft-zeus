@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-20 (session paused at the usage limit; resets 15:20 Europe/Warsaw).
+Last update: 2026-10-20 — first complete version.
 
 ## Stack (decided)
 
@@ -24,23 +24,25 @@ No Flutter, no Firebase. Node 24 needed locally for the Angular CLI (`fnm instal
   matching `api.service.ts`, seed data, migrations runner.
 * Docker: `docker-compose.yml` (Coolify), `docker-compose.override.yml` (local: ports, Mailpit,
   demo data), Dockerfiles, `.env.example`. Postgres + API + Mailpit verified running.
-* Tests: 41 unit tests + 12 end-to-end API tests (fresh stack) passing.
+* Tests: 41 unit tests + 13 end-to-end API tests (fresh stack) passing.
 * Docs: README (run, deploy, backups), docs/ARCHITECTURE.md.
 
-## In progress — frontend screens (5 agents stopped at the limit; partial work is on disk)
+## Frontend
 
-| Area | Last step reached | Still stubs / unfinished |
-| --- | --- | --- |
-| Account (auth, onboarding, home, notifications, profile, clubs, settings, system) | edit-profile | edit-profile?, statistics?, public-profile?, clubs/club, settings, privacy-settings, system/* |
-| Events, lobby, results | post-game stats | post-game-stats, export-results, public-results |
-| Live player | More screen | live/more.ts |
-| GM setup (wizard, editor, teams, perks, players) | event editor | event-editor, team-squad-manager, perk-editor, player-management |
-| GM map & ops | objective editor | objective-editor, poi-editor, control-center, score-manager, activity-log |
+All screens built (5 parallel feature areas), strict TypeScript + strict templates on,
+production build passes. Browser walkthrough done at 375 px and 1280 px with the demo
+accounts: welcome, login, home, live map (schematic), objectives, code capture (wrong and
+right code), store, control center, map editor, creation wizard; public results page
+server-rendered (verified with Traefik-style forwarded headers). Fixes from the walkthrough
+are in (map sizing in the control center, aria-invalid, copy, session restore, PWA updates).
 
-Stub files contain the comment `// STUB`. Run `npx ngc -p tsconfig.app.json --noEmit` in
-`frontend/` to see what does not compile yet.
+## Known limits / next ideas
 
-## Next steps
-
-1. Finish the frontend screens listed above (agents resumed); full `ng build`.
-2. Build the frontend image, run the whole stack, Playwright walkthrough at 375/1280, fix.
+* No Google Maps key configured locally: the walkthrough used the schematic renderer.
+  Test the Google renderer (markers, drawing, drag) once a key is set.
+* Background GPS with the screen locked needs a native wrapper (Capacitor) — see README.
+* UI is English only; the profile stores a preferred language for a future i18n pass.
+* Single API instance (in-process rate limits and socket rooms); scaling out needs a
+  Redis adapter for Socket.IO and a shared rate-limit store.
+* Not yet walked through in the browser: every GM editor form field by field, the QR
+  scanner with a real camera, Web Push delivery on a phone.

@@ -20,7 +20,7 @@ import { AuthLayout } from '../auth/auth-layout';
         <p class="text-muted-foreground">Airsoft Zeus cannot reach the server. Check mobile data or move to a spot with better signal.</p>
         <ul class="panel flex w-full flex-col divide-y divide-border text-sm">
           <li class="flex gap-3 p-3"><ng-icon name="lucideMap" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span><strong>In a live game?</strong> The live screens keep the last loaded map, objectives and team scores, and your GPS positions are queued and sent when the signal returns.</span></li>
+            <span><strong>During a live game</strong> the live screens keep the last loaded map, objectives and team scores, and your GPS positions are queued and sent when the signal returns.</span></li>
           <li class="flex gap-3 p-3"><ng-icon name="lucideClock" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             <span>Captures by code or QR need a connection to be confirmed. Note the code and enter it when you are back online.</span></li>
           <li class="flex gap-3 p-3"><ng-icon name="lucideSiren" size="18" class="mt-0.5 shrink-0 text-destructive" aria-hidden="true" />

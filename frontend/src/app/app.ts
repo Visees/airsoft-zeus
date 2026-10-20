@@ -5,6 +5,7 @@ import { HlmToaster } from '@spartan-ng/helm/sonner';
 import { ConfigService } from './core/api/config.service';
 import { AuthService } from './core/auth/auth.service';
 import { NotificationCenter } from './core/notifications/notification-center.service';
+import { AppUpdates } from './core/push/app-updates.service';
 import { PushService } from './core/push/push.service';
 import { ThemeService } from './core/theme/theme.service';
 import { ConfirmHost } from './shared/confirm-host';
@@ -39,6 +40,7 @@ export class App {
 
   constructor() {
     inject(NotificationCenter);
+    inject(AppUpdates).start();
     void inject(ConfigService).load();
     void this.auth.init().then(() => {
       if (this.auth.isLoggedIn()) void this.push.ensureSubscribed();

@@ -62,8 +62,11 @@ const M_PER_DEG_LNG_EQ = 111_320;
   selector: 'zeus-tactical-map',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'relative block overflow-hidden bg-muted', role: 'region', '[attr.aria-label]': 'ariaLabel()' },
+  // The host takes the consumer's sizing/positioning classes (e.g. "absolute inset-0" or "h-56");
+  // the inner wrapper is the positioning context for the map layers and controls.
+  host: { class: 'block overflow-hidden bg-muted', role: 'region', '[attr.aria-label]': 'ariaLabel()' },
   template: `
+    <div class="relative size-full min-h-40">
     <div #googleHost class="absolute inset-0" [class.invisible]="renderer() !== 'google'"></div>
 
     @if (renderer() === 'schematic') {
@@ -102,7 +105,7 @@ const M_PER_DEG_LNG_EQ = 111_320;
         <div class="pointer-events-none absolute bottom-2 left-2 flex items-center gap-2 rounded-sm bg-hud px-2 py-1 text-xs text-muted-foreground">
           <span class="inline-block h-1 border-x border-b border-current" [style.width.px]="gridPx()"></span>
           <span class="num">{{ gridMeters() }} m</span>
-          <span>· Schematic view{{ mapsState() === 'unavailable' ? ' (map tiles unavailable)' : '' }}</span>
+          <span class="hidden sm:inline">· Schematic view{{ mapsState() === 'unavailable' ? ' (map tiles unavailable)' : '' }}</span>
         </div>
       </div>
     }
@@ -134,6 +137,7 @@ const M_PER_DEG_LNG_EQ = 111_320;
           <ng-icon [name]="renderer() === 'google' ? 'lucideLayers' : 'lucideMap'" size="18" aria-hidden="true" />
         </button>
       }
+    </div>
     </div>
   `,
 })
@@ -199,8 +203,9 @@ export class TacticalMap {
   private readonly origin = signal<LatLng>({ lat: 45.0, lng: 9.0 });
   private readonly scale = signal(0.6);
   private readonly pan = signal({ x: 0, y: 0 });
-  private readonly size = signal({ w: 400, h: 400 });
+  private readonly size = signal({ w: 0, h: 0 });
   private pointers = new Map<number, { x: number; y: number }>();
+  private fitPending = false;
   private dragStart: { x: number; y: number; pan: { x: number; y: number }; moved: boolean } | null = null;
   private pinchStart: { dist: number; scale: number } | null = null;
 
@@ -307,6 +312,12 @@ export class TacticalMap {
       const b = bounds(pts)!;
       this.map.fitBounds({ north: b.north, south: b.south, east: b.east, west: b.west }, 48);
     } else if (this.renderer() === 'schematic') {
+      const { w: viewW, h: viewH } = this.size();
+      if (viewW < 80 || viewH < 80) {
+        this.fitPending = true; // not laid out yet: fit when the size is known
+        return;
+      }
+      this.fitPending = false;
       const b = bounds(pts)!;
       const center = { lat: (b.north + b.south) / 2, lng: (b.east + b.west) / 2 };
       this.origin.set(center);
@@ -315,7 +326,7 @@ export class TacticalMap {
       const widthM = Math.max(60, Math.abs(ne.x - sw.x));
       const heightM = Math.max(60, Math.abs(ne.y - sw.y));
       const { w, h } = this.size();
-      this.scale.set(Math.min((w - 64) / widthM, (h - 64) / heightM));
+      this.scale.set(Math.max(0.02, Math.min((w - 64) / widthM, (h - 64) / heightM)));
       this.pan.set({ x: w / 2, y: h / 2 });
     }
   }
@@ -348,9 +359,8 @@ export class TacticalMap {
     if (!host || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      const prev = this.size();
       this.size.set({ w: width, h: height });
-      if (prev.w === 400 && prev.h === 400 && this.renderer() === 'schematic') this.fitAll();
+      if (this.fitPending && width >= 80 && height >= 80) this.fitAll();
     });
     ro.observe(host);
     this.destroyRef.onDestroy(() => ro.disconnect());

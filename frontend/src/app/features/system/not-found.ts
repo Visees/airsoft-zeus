@@ -22,7 +22,7 @@ import { AuthLayout } from '../auth/auth-layout';
             <a hlmBtn routerLink="/home" class="h-12 text-base"><ng-icon name="lucideHouse" size="18" aria-hidden="true" /> Go home</a>
             <a hlmBtn variant="outline" routerLink="/events/mine" class="h-11"><ng-icon name="lucideCalendarDays" size="16" aria-hidden="true" /> My events</a>
             <a hlmBtn variant="outline" routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> Discover events</a>
-            <a hlmBtn variant="ghost" routerLink="/events/join" class="h-11">Have a join code?</a>
+            <a hlmBtn variant="ghost" routerLink="/events/join" class="h-11">Join with a code</a>
           } @else {
             <a hlmBtn routerLink="/welcome" class="h-12 text-base">Go to start</a>
             <a hlmBtn variant="outline" routerLink="/auth/login" class="h-11">Log in</a>

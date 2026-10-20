@@ -245,7 +245,7 @@ import { StatTiles } from '../profile/profile-ui';
             @if (!d.gm) {
               <section class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-border p-4" aria-labelledby="home-gm-cta">
                 <div>
-                  <h2 id="home-gm-cta" class="font-semibold">Running a game?</h2>
+                  <h2 id="home-gm-cta" class="font-semibold">Run your own event</h2>
                   <p class="text-sm text-muted-foreground">Create an event, draw the map and run it live as Game Master.</p>
                 </div>
                 <a hlmBtn variant="outline" routerLink="/gm/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Create event</a>

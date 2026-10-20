@@ -10,7 +10,7 @@ import { consume } from '../lib/rate-limit.js';
 import { body, playerRole, queryOf, shortText, uuid } from '../lib/validate.js';
 import { sendAccountDeletedEmail } from '../mail.js';
 import * as dto from '../domain/serialize.js';
-import { nicknameProblem } from './auth.js';
+import { clearSessionCookies, nicknameProblem } from './auth.js';
 
 export const meRouter = Router();
 
@@ -319,6 +319,6 @@ meRouter.delete('/', requireAuth, async (req, res) => {
     );
   });
   void sendAccountDeletedEmail(u.email);
-  res.clearCookie('zeus_rt', { path: '/api/auth' });
+  clearSessionCookies(res);
   res.json({ ok: true });
 });

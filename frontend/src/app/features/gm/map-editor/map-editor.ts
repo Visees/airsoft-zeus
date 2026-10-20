@@ -275,8 +275,8 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                           >
                             <span class="inline-block size-3 shrink-0 rounded-sm border border-border" [style.background]="it.color" aria-hidden="true"></span>
                             <span class="num w-4 shrink-0 text-center text-xs" aria-hidden="true">{{ it.glyph }}</span>
-                            <span class="min-w-0 flex-1 truncate">{{ it.name }}</span>
-                            <span class="num shrink-0 text-xs text-muted-foreground">{{ it.info }}</span>
+                            <span class="min-w-[5rem] flex-1 truncate">{{ it.name }}</span>
+                            <span class="num max-w-[45%] shrink truncate text-right text-xs text-muted-foreground">{{ it.info }}</span>
                           </button>
                         </li>
                       }

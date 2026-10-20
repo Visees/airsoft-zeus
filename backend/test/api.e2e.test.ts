@@ -92,6 +92,27 @@ run('API end-to-end', () => {
     expect((await c.get(`/events/${eventId}/live`)).body.error.code).toBe('not_member');
   });
 
+  it('opens a private event only with its join code', async () => {
+    const created = await gm.post('/events', {
+      name: 'Private e2e game',
+      gameMode: 'tdm',
+      visibility: 'private',
+      startAt: new Date(Date.now() + 86400_000).toISOString(),
+      endAt: new Date(Date.now() + 90000_000).toISOString(),
+    });
+    expect(created.status).toBe(201);
+    const id = created.body.id;
+    const code = created.body.joinCode;
+    await gm.post(`/events/${id}/status`, { status: 'registration_open' });
+    expect((await alpha.get(`/events/${id}`)).status).toBe(404);
+    expect((await alpha.get(`/events/${id}?code=WRONG123`)).status).toBe(404);
+    const withCode = await alpha.get(`/events/${id}?code=${code.toLowerCase()}`);
+    expect(withCode.status).toBe(200);
+    expect(withCode.body.joinCode).toBeNull();
+    expect((await alpha.post(`/events/${id}/join`, { joinCode: 'NOPE' })).status).toBe(403);
+    expect((await alpha.post(`/events/${id}/join`, { joinCode: code })).body.status).toBe('approved');
+  });
+
   it('never sends capture codes or QR tokens to players', async () => {
     const live = (await alpha.get(`/events/${eventId}/live`)).body;
     const raw = JSON.stringify(live);
