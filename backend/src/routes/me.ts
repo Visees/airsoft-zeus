@@ -226,6 +226,11 @@ meRouter.get('/notifications', requireAuth, async (req, res) => {
   res.json(page(rows, 30, dto.notification));
 });
 
+meRouter.get('/notifications/unread-count', requireAuth, async (req, res) => {
+  const row = await one<{ n: number }>('SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND read_at IS NULL', [currentUser(req).id]);
+  res.json({ unread: row?.n ?? 0 });
+});
+
 meRouter.post('/notifications/read', requireAuth, async (req, res) => {
   const me = currentUser(req);
   const b = body(req, z.object({ ids: z.array(uuid).max(200).optional(), all: z.boolean().optional() }));

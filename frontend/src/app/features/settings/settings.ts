@@ -368,7 +368,7 @@ export class SettingsScreen implements OnInit {
     this.pwSaving.set(true);
     try {
       const v = this.pwForm.getRawValue();
-      await this.api.changePassword(v.current, v.next);
+      await this.auth.changePassword(v.current, v.next);
       // The server rotates the session; the interceptor picks up the new token on the next call.
       this.pwForm.reset();
       this.toast.success('Password changed', 'Other devices were signed out.');

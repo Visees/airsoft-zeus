@@ -94,7 +94,8 @@ export class LocationTracker {
           this.onPosition(pos);
           resolve(true);
         },
-        (err) => resolve(err.code !== err.PERMISSION_DENIED),
+        // Timeout / position unavailable: permission may still be granted; ask the Permissions API.
+        (err) => (err.code === err.PERMISSION_DENIED ? resolve(false) : void this.permissionState().then((st) => resolve(st === 'granted'))),
         { enableHighAccuracy: true, timeout: 20_000, maximumAge: 10_000 },
       );
     });

@@ -110,8 +110,12 @@ export class ApiService {
   resetPassword(token: string, password: string) {
     return this.post<{ ok: true }>('/auth/reset-password', { token, password });
   }
+  /** Returns a fresh session: all other sessions are signed out. Use AuthService.changePassword. */
   changePassword(currentPassword: string, newPassword: string) {
-    return this.post<{ ok: true }>('/auth/change-password', { currentPassword, newPassword });
+    return this.post<AuthResponse>('/auth/change-password', { currentPassword, newPassword });
+  }
+  unreadCount() {
+    return this.get<{ unread: number }>('/me/notifications/unread-count');
   }
   nicknameAvailable(nickname: string) {
     return this.get<{ available: boolean; reason: string | null }>('/auth/nickname-available', { nickname });

@@ -1,10 +1,51 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NgIcon } from '@ng-icons/core';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { ConnectivityService } from '../../core/net/connectivity.service';
+import { ConnectionStatus } from '../../shared/link-status';
+import { AuthLayout } from '../auth/auth-layout';
 
-// STUB — replaced by the feature implementation.
 @Component({
   selector: 'zeus-offline-screen',
-  imports: [],
+  imports: [AuthLayout, RouterLink, NgIcon, HlmButton, ConnectionStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div class="page"><h1 class="text-2xl uppercase">Offline</h1></div>`,
+  template: `
+    <zeus-auth-layout>
+      <zeus-connection-status layoutAction />
+      <div class="flex flex-col items-start gap-3">
+        <span class="grid size-12 place-items-center rounded-md bg-destructive/10 text-destructive" aria-hidden="true"><ng-icon name="lucideWifiOff" size="24" /></span>
+        <h1 class="text-3xl uppercase">You are offline</h1>
+        <p class="text-muted-foreground">Airsoft Zeus cannot reach the server. Check mobile data or move to a spot with better signal.</p>
+        <ul class="panel flex w-full flex-col divide-y divide-border text-sm">
+          <li class="flex gap-3 p-3"><ng-icon name="lucideMap" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span><strong>In a live game?</strong> The live screens keep the last loaded map, objectives and team scores, and your GPS positions are queued and sent when the signal returns.</span></li>
+          <li class="flex gap-3 p-3"><ng-icon name="lucideClock" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span>Captures by code or QR need a connection to be confirmed. Note the code and enter it when you are back online.</span></li>
+          <li class="flex gap-3 p-3"><ng-icon name="lucideSiren" size="18" class="mt-0.5 shrink-0 text-destructive" aria-hidden="true" />
+            <span>In an emergency, do not wait for the app: use your phone or radio and follow the field safety procedure.</span></li>
+        </ul>
+        <div class="mt-2 flex w-full flex-col gap-2">
+          <button hlmBtn type="button" class="h-12 text-base" [disabled]="retrying()" (click)="retry()">
+            <ng-icon name="lucideRefreshCw" size="18" [class.animate-spin]="retrying()" aria-hidden="true" /> {{ retrying() ? 'Reloading…' : 'Try again' }}
+          </button>
+          <a hlmBtn variant="ghost" routerLink="/" class="h-11">Go to start</a>
+        </div>
+        @if (conn.browserOnline()) {
+          <p class="text-sm text-muted-foreground" role="status">Your device reports a connection again. Tap “Try again”.</p>
+        }
+      </div>
+    </zeus-auth-layout>
+  `,
 })
-export class OfflineScreen {}
+export class OfflineScreen {
+  private readonly doc = inject(DOCUMENT);
+  protected readonly conn = inject(ConnectivityService);
+  protected readonly retrying = signal(false);
+
+  protected retry(): void {
+    this.retrying.set(true);
+    this.doc.defaultView?.location.reload();
+  }
+}

@@ -18,7 +18,7 @@ const LIMITS: Record<NumKeys, [number, number]> = {
   maxAccuracyM: [5, 500],
   staleAfterSec: [10, 1800],
   hideAfterSec: [10, 7200],
-  maxSpeedMps: [1, 60],
+  maxSpeedMps: [2, 60],
   retentionDays: [0, 365],
 };
 
@@ -170,7 +170,7 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
         <h3 id="tr-g4" class="text-sm font-bold uppercase">Anti-cheat</h3>
         <div class="flex flex-col gap-1.5 sm:max-w-xs">
           <label hlmLabel for="tr-speed">Maximum realistic speed (m/s)</label>
-          <input hlmInput id="tr-speed" type="number" min="1" step="0.5" inputmode="decimal" class="num h-11" formControlName="maxSpeedMps" aria-describedby="tr-speed-h" [attr.aria-invalid]="!!err('maxSpeedMps')" />
+          <input hlmInput id="tr-speed" type="number" min="2" step="0.5" inputmode="decimal" class="num h-11" formControlName="maxSpeedMps" aria-describedby="tr-speed-h" [attr.aria-invalid]="!!err('maxSpeedMps')" />
           @if (err('maxSpeedMps'); as e) {
             <p class="field-error">{{ e }}</p>
           } @else {

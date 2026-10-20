@@ -33,8 +33,8 @@ export function createVisibilityForm(): VisibilityForm {
     enemies: c('enemies'),
     allyPrecision: c('allyPrecision'),
     enemyPrecision: c('enemyPrecision'),
-    approxRadiusM: new FormControl(50, { nonNullable: true, validators: [Validators.required, Validators.min(5), Validators.max(2000), integerValidator] }),
-    delaySec: new FormControl(30, { nonNullable: true, validators: [Validators.required, Validators.min(0), Validators.max(900), integerValidator] }),
+    approxRadiusM: new FormControl(50, { nonNullable: true, validators: [Validators.required, Validators.min(5), Validators.max(1000), integerValidator] }),
+    delaySec: new FormControl(30, { nonNullable: true, validators: [Validators.required, Validators.min(5), Validators.max(3600), integerValidator] }),
     showNicknames: c('showNicknames'),
     showRoles: c('showRoles'),
     showEnemyBases: c('showEnemyBases'),
@@ -200,7 +200,7 @@ const GROUPS: MatrixGroup[] = [
           </div>
           <div class="flex flex-col gap-1.5">
             <label hlmLabel [for]="id + '-del'">Delay (s)</label>
-            <input hlmInput [id]="id + '-del'" type="number" min="0" inputmode="numeric" class="num h-11" formControlName="delaySec" [attr.aria-invalid]="!!err('delaySec')" [attr.aria-describedby]="id + '-del-h'" />
+            <input hlmInput [id]="id + '-del'" type="number" min="5" inputmode="numeric" class="num h-11" formControlName="delaySec" [attr.aria-invalid]="!!err('delaySec')" [attr.aria-describedby]="id + '-del-h'" />
             @if (err('delaySec'); as e) {
               <p class="field-error">{{ e }}</p>
             } @else {

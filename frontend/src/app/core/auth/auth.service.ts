@@ -47,6 +47,11 @@ export class AuthService {
     return this.apply(await this.api.register(body));
   }
 
+  /** Change the password; the server signs out other sessions and returns a new one for this device. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<MeUser> {
+    return this.apply(await this.api.changePassword(currentPassword, newPassword));
+  }
+
   /** Get a fresh access token. Concurrent callers share one request. */
   refresh(): Promise<boolean> {
     this.refreshing ??= this.api

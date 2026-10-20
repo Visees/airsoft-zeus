@@ -85,11 +85,17 @@ commonRouter.patch('/clubs/:clubId', requireVerified, async (req, res) => {
   if (!c) throw notFound('Club not found.');
   if (c.owner_id !== me.id) throw forbidden('Only the club owner can edit it.');
   const b = body(req, clubInput.partial());
-  const row = await one(
-    `UPDATE clubs SET name = COALESCE($2, name), country = COALESCE($3, country), city = COALESCE($4, city), description = COALESCE($5, description),
-            logo_url = COALESCE($6, logo_url), website = COALESCE($7, website), updated_at = now() WHERE id = $1 RETURNING *`,
-    [id, b.name ?? null, b.country ?? null, b.city ?? null, b.description ?? null, b.logoUrl ?? null, b.website ?? null],
-  );
+  const cols: Record<string, string> = { name: 'name', country: 'country', city: 'city', description: 'description', logoUrl: 'logo_url', website: 'website' };
+  const sets: string[] = [];
+  const params: unknown[] = [id];
+  for (const [k, col] of Object.entries(cols)) {
+    const v = (b as Record<string, unknown>)[k];
+    if (v !== undefined) {
+      params.push(v);
+      sets.push(`${col} = $${params.length}`);
+    }
+  }
+  const row = await one(`UPDATE clubs SET ${[...sets, 'updated_at = now()'].join(', ')} WHERE id = $1 RETURNING *`, params);
   await one('UPDATE users SET club_name = $2 WHERE club_id = $1 RETURNING id', [id, row!.name]);
   const full = await one(`SELECT ${CLUB_SELECT} FROM clubs c WHERE c.id = $1`, [id]);
   res.json(dto.club(full!));

@@ -39,7 +39,7 @@ import { ConfirmService } from '../core/ui/confirm.service';
       class="border border-border bg-popover p-5 text-popover-foreground shadow-2xl"
       role="alertdialog"
       aria-labelledby="confirm-title"
-      aria-describedby="confirm-message"
+      [attr.aria-describedby]="req()?.message ? 'confirm-message' : null"
       (cancel)="close(false, $event)"
     >
       @if (req(); as r) {

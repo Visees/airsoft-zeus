@@ -29,8 +29,7 @@ export class NotificationCenter {
 
   async refresh(): Promise<void> {
     try {
-      const page = await this.api.notifications();
-      this.unread.set(page.items.filter((n) => !n.read).length);
+      this.unread.set((await this.api.unreadCount()).unread);
     } catch {
       /* keep the last count */
     }

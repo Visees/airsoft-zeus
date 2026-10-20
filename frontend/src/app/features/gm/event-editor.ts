@@ -259,9 +259,9 @@ interface NavCard {
               <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="saveTemplate()" [disabled]="moreBusy()">
                 <ng-icon name="lucideSave" size="16" aria-hidden="true" /> Save as template
               </button>
-              @if (e.status === 'draft') {
+              @if (e.status === 'draft' || e.status === 'cancelled') {
                 <button hlmBtn variant="destructive" class="h-11 justify-start" type="button" (click)="deleteDraft()" [disabled]="moreBusy()">
-                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete draft
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> {{ e.status === 'draft' ? 'Delete draft' : 'Delete event' }}
                 </button>
               }
             </section>
@@ -651,7 +651,8 @@ export class EventEditorScreen {
     const ok = await this.confirm.ask({
       title: `Delete ${e.name}?`,
       consequences: [
-        'The draft, its teams, map, objectives and perks are deleted.',
+        'The event, its teams, map, objectives and perks are deleted.',
+        'Only the event owner can do this.',
         e.approvedCount + e.pendingCount ? `${e.approvedCount + e.pendingCount} registered players lose their place.` : 'No players have registered.',
         'This cannot be undone.',
       ],

@@ -514,7 +514,7 @@ export class CreateEventWizardScreen {
   protected readonly rulesForm = createRulesForm();
   protected readonly templateForm = new FormGroup(
     {
-      name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] }),
+      name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3), Validators.maxLength(120)] }),
       date: new FormControl(this.basicsForm.controls.date.value, { nonNullable: true, validators: [Validators.required] }),
       startTime: new FormControl('09:00', { nonNullable: true, validators: [Validators.required] }),
       endTime: new FormControl('15:00', { nonNullable: true, validators: [Validators.required] }),
