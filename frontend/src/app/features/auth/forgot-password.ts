@@ -42,7 +42,8 @@ import { fieldError, focusFirstInvalid } from './form-utils';
         </a>
         <h1 class="mt-2 text-3xl uppercase">Forgot password</h1>
         <p class="mt-1 text-sm text-muted-foreground">Enter the email you signed up with. We will send you a link to choose a new password.</p>
-        <form (ngSubmit)="submit()" class="mt-6 flex flex-col gap-5" novalidate>
+        <!-- Plain (submit), not (ngSubmit): there is no [formGroup]/NgForm on this form to emit it. -->
+        <form (submit)="$event.preventDefault(); submit()" class="mt-6 flex flex-col gap-5" novalidate>
           @if (error()) {
             <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">{{ error() }}</p>
           }

@@ -215,7 +215,8 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
             <li class="flex gap-2"><span aria-hidden="true" class="text-destructive">▸</span>You leave every event you joined. Past results keep your points as “Deleted player”.</li>
             <li class="flex gap-2"><span aria-hidden="true" class="text-destructive">▸</span>This cannot be undone. Export your data first if you want a copy.</li>
           </ul>
-          <form class="mt-4 flex flex-col gap-3" (ngSubmit)="deleteAccount()" novalidate>
+          <!-- Plain (submit), not (ngSubmit): there is no [formGroup]/NgForm on this form to emit it. -->
+          <form class="mt-4 flex flex-col gap-3" (submit)="$event.preventDefault(); deleteAccount()" novalidate>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="set-del-pw">Your password</label>
               <zeus-password-input [control]="deletePw" inputId="set-del-pw" autocomplete="current-password"
