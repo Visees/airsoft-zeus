@@ -191,8 +191,9 @@ export class ApiService {
   createEvent(body: EventInput) {
     return this.post<EventDetail>('/events', body);
   }
-  event(eventId: Uuid) {
-    return this.get<EventDetail>(this.ev(eventId));
+  /** `joinCode` lets someone who received the code open a private event before joining. */
+  event(eventId: Uuid, joinCode?: string) {
+    return this.get<EventDetail>(this.ev(eventId), { code: joinCode });
   }
   updateEvent(eventId: Uuid, body: Partial<EventInput>) {
     return this.patch<EventDetail>(this.ev(eventId), body);

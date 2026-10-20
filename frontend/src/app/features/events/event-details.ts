@@ -42,6 +42,41 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
           <div class="h-32 w-full animate-pulse rounded-md bg-muted"></div>
           <span class="sr-only">Loading…</span>
         </div>
+      } @else if (error() && !event() && hiddenPrivate()) {
+        <!-- Private events are invisible to non-members (API answers 404): join blind with the code. -->
+        <zeus-page-header title="Private event" back="/events/join" backLabel="Join with a code" />
+        <section class="panel mx-auto flex max-w-md flex-col gap-3 p-4" aria-labelledby="blind-join-title">
+          <h2 id="blind-join-title" class="text-lg uppercase"><ng-icon name="lucideLock" size="18" class="mr-1 align-[-2px]" aria-hidden="true" /> Join with your code</h2>
+          <p class="text-sm text-muted-foreground">The details of this private event are shown once you are registered. The Game Master may need to approve your request.</p>
+          <form class="flex flex-col gap-3" [formGroup]="joinForm" (ngSubmit)="joinHidden()" novalidate>
+            <div class="flex flex-col gap-1.5">
+              <label hlmLabel for="blind-join-code">Join code</label>
+              <input
+                hlmInput
+                id="blind-join-code"
+                formControlName="joinCode"
+                class="num h-12 text-center text-xl font-bold tracking-[0.25em] uppercase"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                maxlength="12"
+                [attr.aria-invalid]="joinError() ? 'true' : null"
+                aria-describedby="blind-join-error"
+                (input)="onCodeInput($event)"
+              />
+              @if (joinError()) {
+                <p id="blind-join-error" class="field-error" role="alert">{{ joinError() }}</p>
+              }
+            </div>
+            <button hlmBtn type="submit" class="h-12" [disabled]="busy()">
+              @if (busy()) {
+                <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Sending…
+              } @else {
+                <ng-icon name="lucideUserPlus" size="18" aria-hidden="true" /> Join event
+              }
+            </button>
+          </form>
+        </section>
       } @else if (error() && !event()) {
         <zeus-page-header title="Event" back="/events/mine" backLabel="My events" />
         <zeus-error-state [error]="error()" [title]="errorTitle()" (retry)="load()">
@@ -415,6 +450,9 @@ export class EventDetailsScreen {
     return null;
   });
 
+  /** 404 while holding a join code: most likely a private event we are not a member of yet. */
+  protected readonly hiddenPrivate = computed(() => !!this.code() && ApiError.from(this.error()).status === 404);
+
   protected readonly statusChip = computed(() => eventStatusChip(this.event()!.status));
   protected readonly modeLabel = computed(() => {
     const e = this.event();
@@ -522,7 +560,7 @@ export class EventDetailsScreen {
     const id = ++this.requestId;
     this.loading.set(true);
     try {
-      const e = await this.api.event(this.eventId());
+      const e = await this.api.event(this.eventId(), this.code() ?? undefined);
       if (id !== this.requestId) return;
       this.event.set(e);
       this.error.set(null);
@@ -567,6 +605,29 @@ export class EventDetailsScreen {
       this.joinError.set(ae.fields['joinCode'] ?? ae.fields['code'] ?? ae.message);
       // Capacity or status may have changed: refresh what we show.
       if (ae.status === 409) void this.load();
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** Join a private event whose details we cannot see yet. */
+  protected async joinHidden(): Promise<void> {
+    if (this.busy()) return;
+    const code = normalizeCode(this.joinForm.controls.joinCode.value);
+    if (!JOIN_CODE_PATTERN.test(code)) {
+      this.joinError.set(code ? 'Codes are 6–10 letters and numbers.' : 'Enter the join code from the Game Master.');
+      return;
+    }
+    this.busy.set(true);
+    this.joinError.set(null);
+    try {
+      const res = await this.api.joinEvent(this.eventId(), code);
+      if (res.status === 'approved') this.toast.success('You joined the event', 'Open the lobby to accept the rules and get ready.');
+      else this.toast.info('Request sent', 'The Game Master reviews registrations. You will get a notification.');
+      await this.load();
+    } catch (err) {
+      const ae = ApiError.from(err);
+      this.joinError.set(ae.fields['joinCode'] ?? ae.message);
     } finally {
       this.busy.set(false);
     }

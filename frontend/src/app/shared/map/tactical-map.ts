@@ -163,6 +163,8 @@ export class TacticalMap {
   readonly allowRendererToggle = input(true);
   readonly controlsBottom = input(false);
   readonly mapType = input<'hybrid' | 'roadmap' | 'satellite' | 'terrain'>('hybrid');
+  /** 'cooperative' for small embedded previews so one-finger scrolling scrolls the page. */
+  readonly gestureHandling = input<'greedy' | 'cooperative'>('greedy');
 
   readonly objectiveClick = output<Objective>();
   readonly poiClick = output<Poi>();
@@ -361,7 +363,7 @@ export class TacticalMap {
       rotateControl: false,
       fullscreenControl: false,
       clickableIcons: false,
-      gestureHandling: 'greedy',
+      gestureHandling: this.gestureHandling(),
       colorScheme: this.theme.isDark() ? google.maps.ColorScheme.DARK : google.maps.ColorScheme.LIGHT,
     });
     this.listeners.push(

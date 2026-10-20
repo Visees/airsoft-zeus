@@ -23,7 +23,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: unknown) => {
       const canRetry =
         err instanceof HttpErrorResponse && err.status === 401 && !NO_RETRY.some((p) => req.url.startsWith(p)) && auth.token() !== null;
-      if (!canRetry) return throwError(() => ApiError.from(err));
+      if (!canRetry) {
+        // Blob downloads (exports) receive their JSON error body as a Blob: parse it for the message.
+        if (err instanceof HttpErrorResponse && err.error instanceof Blob) {
+          return from(blobError(err)).pipe(switchMap((e) => throwError(() => e)));
+        }
+        return throwError(() => ApiError.from(err));
+      }
       return from(auth.refresh()).pipe(
         switchMap((ok) => (ok ? next(withToken(req)) : throwError(() => ApiError.from(err)))),
         catchError((e: unknown) => throwError(() => ApiError.from(e))),
@@ -31,3 +37,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }),
   );
 };
+
+async function blobError(err: HttpErrorResponse): Promise<ApiError> {
+  try {
+    const body = JSON.parse(await (err.error as Blob).text());
+    return ApiError.from(new HttpErrorResponse({ error: body, status: err.status, statusText: err.statusText, url: err.url ?? undefined }));
+  } catch {
+    return ApiError.from(err);
+  }
+}

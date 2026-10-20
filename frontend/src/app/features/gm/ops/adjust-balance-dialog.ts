@@ -88,7 +88,7 @@ export interface BalanceAdjusted {
 
           <div class="flex flex-col gap-1.5">
             <label hlmLabel for="adj-reason">Reason <span aria-hidden="true">*</span></label>
-            <input hlmInput id="adj-reason" formControlName="reason" class="h-11" placeholder="e.g. Safety violation at the north gate" maxlength="200" autocomplete="off" />
+            <input hlmInput id="adj-reason" formControlName="reason" class="h-11" placeholder="e.g. Safety violation at the north gate" maxlength="500" autocomplete="off" />
             @if (err('reason', 'Reason'); as e) {
               <p class="field-error">{{ e }}</p>
             }
@@ -154,7 +154,7 @@ export class AdjustBalanceDialog {
     teamId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     kind: new FormControl<LedgerKind>('points', { nonNullable: true }),
     amount: new FormControl<number | null>(null, { validators: [Validators.required] }),
-    reason: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
+    reason: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3), Validators.maxLength(500)] }),
     penalty: new FormControl(false, { nonNullable: true }),
     userId: new FormControl('', { nonNullable: true }),
   });

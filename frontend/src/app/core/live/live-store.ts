@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../api/api.service';
 import { ApiError } from '../api/api-error';
@@ -68,6 +68,8 @@ export class LiveStore {
   readonly clock = signal<GameClock | null>(null);
   /** serverNow − deviceNow, in ms. Add to Date.now() to get server time. */
   readonly serverOffsetMs = signal(0);
+  /** Increments when the server says ledgers changed; screens showing a ledger refetch on change. */
+  readonly ledgerVersion = signal(0);
   /** Latest announcement not yet dismissed, for the banner. */
   readonly bannerAnnouncement = signal<Announcement | null>(null);
 
@@ -87,9 +89,13 @@ export class LiveStore {
   readonly isLive = computed(() => this.clock()?.status === 'live');
 
   private pending = new Set<InvalidateScope>();
+  private subscribedTo: Uuid | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    effect(() => {
+      if (this.realtime.connected() && untracked(() => this.fromCache()) && untracked(() => this.eventId())) void untracked(() => this.reload());
+    });
     this.realtime
       .on('positions')
       .pipe(takeUntilDestroyed())
@@ -142,7 +148,10 @@ export class LiveStore {
     this.eventId.set(eventId);
     this.loading.set(true);
     this.error.set(null);
-    void this.realtime.subscribe(eventId, this.destroyRef);
+    if (this.subscribedTo !== eventId) {
+      this.subscribedTo = eventId;
+      void this.realtime.subscribe(eventId, this.destroyRef);
+    }
     try {
       const snap = await this.api.live(eventId);
       this.applySnapshot(snap);
@@ -243,6 +252,7 @@ export class LiveStore {
     if (scopes.has('purchases')) run(this.api.purchases(id), (p) => this.purchases.set(p));
     if (scopes.has('effects')) run(this.api.effects(id), (e) => this.effects.set(e));
     if (scopes.has('alerts') && this.isGm()) run(this.api.alerts(id), (a) => this.alerts.set(a.items));
+    if (scopes.has('ledger')) this.ledgerVersion.update((v) => v + 1);
     await Promise.all(jobs);
     this.connectivity.markSynced();
   }

@@ -8,7 +8,7 @@ import { decodeCursor, page } from '../lib/pagination.js';
 import { consume } from '../lib/rate-limit.js';
 import { body, hexColor, idParam, isoDate, lat, lng, playerRole, queryOf, shortText, uuid } from '../lib/validate.js';
 import { hub } from '../realtime/hub.js';
-import { eventContext, FINISHED, requireGm, requireViewable, type EventContext } from '../domain/context.js';
+import { canViewEvent, eventContext, FINISHED, requireGm, requireViewable, type EventContext } from '../domain/context.js';
 import { materialize, snapshotEvent } from '../domain/copy.js';
 import { merge, scoringSchema, trackingSchema, visibilitySchema, DEFAULT_SCORING, DEFAULT_TRACKING, DEFAULT_VISIBILITY } from '../domain/defaults.js';
 import { activity, audit, eventGms, notify } from '../domain/journal.js';
@@ -177,7 +177,15 @@ eventsRouter.post('/find-by-code', async (req, res) => {
 
 eventsRouter.get('/:eventId', async (req, res) => {
   const me = currentUser(req);
-  const ctx = await requireViewable(idParam(req, 'eventId'), me.id);
+  const eventId = idParam(req, 'eventId');
+  const { code } = queryOf(req, z.object({ code: z.string().max(20).optional() }));
+  const ctx = await eventContext(eventId, me.id);
+  if (!canViewEvent(ctx)) {
+    // A private event opens for someone holding its join code (the invite link), before joining.
+    await consume('event-code', me.id, 20, 60, 'Too many code attempts. Wait a minute.');
+    const ok = !!code && !!ctx.event.join_code && !['draft', 'cancelled'].includes(ctx.event.status) && safeEqual(normalizeCode(code), ctx.event.join_code);
+    if (!ok) throw notFound('Event not found.');
+  }
   res.json(await eventDetail(ctx));
 });
 
@@ -423,7 +431,7 @@ eventsRouter.post('/:eventId/leave', async (req, res) => {
     await activity(t, eventId, { type: 'member_left', message: `${me.nickname} left the event`, scope: 'gm', userId: me.id });
   });
   hub.invalidate(eventId, ['members']);
-  void hub.refreshUser(eventId, me.id);
+  void hub.refreshUser(eventId, me.id, false);
   res.json({ ok: true });
 });
 

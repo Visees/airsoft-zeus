@@ -22,7 +22,7 @@ import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { StatusChip, objectiveStatusChip } from '../../shared/status-chip';
 import { TeamSwatch } from '../../shared/team-swatch';
 import { ColorField } from './ops/color-field';
-import { applyServerErrors, controlError, num, targetChecked, toggleIn } from './ops/forms';
+import { applyServerErrors, controlError, num, safeReturn, targetChecked, toggleIn } from './ops/forms';
 import { DEFAULT_GEOFENCE, DEFAULT_REWARDS, MAP_ICONS, escapeHtml, generateCaptureCode } from './ops/map-defaults';
 
 type SaveState = 'clean' | 'dirty' | 'saving' | 'saved' | 'failed';
@@ -269,7 +269,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   @if (e('captureCode', 'Code'); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
-                  <p class="text-sm text-muted-foreground">Never shown to players; checked on the server. Must be unique within this event. Generated codes avoid look-alike characters (0/O, 1/I/L).</p>
+                  <p class="text-sm text-muted-foreground">4–32 letters and digits, unique within this event. Never shown to players; checked on the server. Generated codes avoid look-alike characters (0/O, 1/I/L). Left empty on a new objective, the server generates one.</p>
                 </div>
               }
             </section>
@@ -593,7 +593,7 @@ export class ObjectiveEditorScreen {
       geofence: new FormControl(false, { nonNullable: true }),
     }),
     requireGeofence: new FormControl(false, { nonNullable: true }),
-    captureCode: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(32), Validators.pattern(/^[A-Za-z0-9-]*$/)] }),
+    captureCode: new FormControl('', { nonNullable: true, validators: [Validators.minLength(4), Validators.maxLength(32), Validators.pattern(/^[A-Za-z0-9]*$/)] }),
     geofence: new FormGroup({
       radiusM: new FormControl<number>(DEFAULT_GEOFENCE.radiusM, { nonNullable: true, validators: [Validators.min(3)] }),
       durationSec: new FormControl<number>(DEFAULT_GEOFENCE.durationSec, { nonNullable: true, validators: [Validators.min(0)] }),
@@ -885,12 +885,9 @@ export class ObjectiveEditorScreen {
       this.methodsError.set('Choose at least one capture method.');
       ok = false;
     }
-    if (methods.includes('code') && !v.captureCode.trim()) {
+    if (methods.includes('code') && !v.captureCode.trim() && !this.isNew() && this.objective()?.captureCode) {
       this.form.controls.captureCode.setErrors({ message: 'Enter a code or press Generate.' });
       ok = false;
-    }
-    if (v.requireGeofence && !methods.some((m) => m === 'code' || m === 'qr')) {
-      // nothing to gate; silently ignore
     }
     const start = fromLocalInput(v.availabilityStart);
     const end = fromLocalInput(v.availabilityEnd);
@@ -956,7 +953,7 @@ export class ObjectiveEditorScreen {
     if (!geofenceOn) delete body.geofence;
     // The code is only sent when the code method is on (and when it changed, for existing objectives).
     const code = v.captureCode.trim().toUpperCase();
-    if (methods.includes('code') && (this.isNew() || code !== (this.objective()?.captureCode ?? ''))) body.captureCode = code;
+    if (methods.includes('code') && code && (this.isNew() || code !== (this.objective()?.captureCode ?? ''))) body.captureCode = code;
     return body;
   }
 
@@ -994,7 +991,7 @@ export class ObjectiveEditorScreen {
       const err = ApiError.from(e);
       this.saveState.set('failed');
       const rest = applyServerErrors(this.form, err, { code: 'captureCode', 'geofence.radius': 'geofence.radiusM' });
-      if (err.status === 409 && !err.fields['captureCode']) {
+      if (err.code === 'code_taken' && !err.fields['captureCode']) {
         this.form.controls.captureCode.setErrors({ server: 'Another objective in this event already uses this code. Generate a new one.' });
         this.form.controls.captureCode.markAsTouched();
       }
@@ -1146,12 +1143,6 @@ function round6(n: number): number {
 
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'objective';
-}
-
-/** Only same-app paths are accepted as return targets. */
-export function safeReturn(url: string | undefined | null): string | null {
-  if (!url || !url.startsWith('/') || url.startsWith('//')) return null;
-  return url;
 }
 
 function blankObjective(): Objective {

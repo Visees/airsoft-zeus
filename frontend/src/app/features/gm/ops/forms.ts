@@ -55,3 +55,9 @@ export function targetValue(e: Event): string {
 export function targetChecked(e: Event): boolean {
   return (e.target as HTMLInputElement).checked;
 }
+
+/** Only same-app paths are accepted as return targets. */
+export function safeReturn(url: string | undefined | null): string | null {
+  if (!url || !url.startsWith('/') || url.startsWith('//')) return null;
+  return url;
+}

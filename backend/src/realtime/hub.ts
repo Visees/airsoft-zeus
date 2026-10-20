@@ -191,14 +191,14 @@ export const hub = {
   },
 
   /** Re-evaluate a user's rooms after their membership/team/role changed. */
-  async refreshUser(eventId: string, userId: string): Promise<void> {
+  async refreshUser(eventId: string, userId: string, notifyKick = true): Promise<void> {
     if (!io) return;
     const sockets = await io.in(`u:${userId}`).fetchSockets();
     for (const s of sockets) {
       const local = io.sockets.sockets.get(s.id);
       if (!local || !(local.data as SocketData).subs.has(eventId)) continue;
       const ok = await joinEventRooms(local, eventId);
-      if (!ok) local.emit('kicked', { eventId, reason: 'You are no longer a member of this event.' });
+      if (!ok && notifyKick) local.emit('kicked', { eventId, reason: 'You are no longer a member of this event.' });
     }
     io.to(`u:${userId}`).emit('invalidate', { eventId, scopes: ['event', 'me', 'objectives', 'pois', 'zones', 'perks', 'purchases', 'effects'] });
     dirtyPositions.add(eventId);

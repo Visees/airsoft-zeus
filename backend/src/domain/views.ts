@@ -40,6 +40,7 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
     clock: dto.clock(e),
     winnerTeamId: e.winner_team_id,
     resultsToken: e.results_published_at ? e.results_token : ctx.isGm ? e.results_token : null,
+    resultsPublished: !!e.results_published_at,
     gameMasters: gms.map((g) => ({ id: g.id, nickname: g.nickname, avatarUrl: g.avatar_url })),
     teams: teams.map((t) => dto.team(t, { showCurrency: ctx.isGm || ctx.rules.showEnemyCurrency || t.id === myTeam })),
     squads: ctx.isGm || ctx.member?.status === 'approved' ? squads.map(dto.squad) : [],

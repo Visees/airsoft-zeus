@@ -315,7 +315,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
         <!-- Map preview -->
         <section aria-label="Location">
           <div class="panel h-55 overflow-hidden">
-            <zeus-tactical-map
+            <zeus-tactical-map gestureHandling="cooperative"
               class="h-full w-full"
               [objectives]="mapObjectives()"
               [self]="fix()"

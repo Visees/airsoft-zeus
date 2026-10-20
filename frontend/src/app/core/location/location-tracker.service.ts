@@ -50,10 +50,12 @@ export class LocationTracker {
   readonly wakeLockActive = signal(false);
 
   readonly isTracking = computed(() => this.state() === 'tracking');
+  /** Ticks every 5 s so time-based states (no recent fix) update without a new fix. */
+  private readonly clock = signal(Date.now());
   /** good ≤ 15 m, fair ≤ max accuracy, poor above, none when no fix in 30 s */
   readonly gpsQuality = computed<'good' | 'fair' | 'poor' | 'none'>(() => {
     const fix = this.lastFix();
-    if (!fix || Date.now() - fix.timestamp > 30_000) return 'none';
+    if (!fix || this.clock() - fix.timestamp > 30_000) return 'none';
     if (fix.accuracy <= 15) return 'good';
     if (fix.accuracy <= (this.settings?.maxAccuracyM ?? 50)) return 'fair';
     return 'poor';
@@ -67,6 +69,10 @@ export class LocationTracker {
   private backoffMs = 0;
   private sending = false;
   private wakeLock: WakeLockSentinel | null = null;
+
+  constructor() {
+    if (this.isBrowser) setInterval(() => this.clock.set(Date.now()), 5_000);
+  }
 
   /** Check the browser permission without prompting. */
   async permissionState(): Promise<PermissionState | 'unsupported'> {

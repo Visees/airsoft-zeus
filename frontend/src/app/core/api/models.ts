@@ -345,6 +345,8 @@ export interface EventDetail extends EventSummary {
   clock: GameClock;
   winnerTeamId: Uuid | null;
   resultsToken: string | null;
+  /** The public results page at /r/:resultsToken is live. */
+  resultsPublished: boolean;
   gameMasters: { id: Uuid; nickname: string; avatarUrl: string | null }[];
   teams: Team[];
   squads: Squad[];
