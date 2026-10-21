@@ -211,6 +211,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 [center]="mapCenter()"
                 [zoom]="17"
                 [showLabels]="true"
+                [shapesClickable]="false"
                 (mapClick)="setPosition($event)"
               />
             </section>

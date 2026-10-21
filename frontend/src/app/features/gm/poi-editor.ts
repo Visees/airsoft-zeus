@@ -137,6 +137,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
               [center]="mapCenter()"
               [zoom]="17"
               [showGeofences]="false"
+              [shapesClickable]="false"
               (mapClick)="setPosition($event)"
             />
           </section>
