@@ -6,10 +6,12 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiService } from '../../../core/api/api.service';
-import { EventDetail, EventInput, GameMode } from '../../../core/api/models';
+import { EventDetail, EventInput, GameMode, LatLng } from '../../../core/api/models';
+import { MapsLoaderService } from '../../../core/maps/maps-loader.service';
 import { ToastService } from '../../../core/ui/toast.service';
 import { GAME_MODE_LABELS, toLocalInput } from '../../../core/util/format';
 import { formatLatLng, parseLatLng } from '../../../core/util/geo';
+import { DraftShape, TacticalMap } from '../../../shared/map/tactical-map';
 import { SegmentOption, SegmentedControl, SwitchRow } from './controls';
 import { controlError, copyText, formTick, integerValidator } from './form-utils';
 
@@ -159,7 +161,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
 /** Basic information form (wizard step 1 and the editor's Basics tab). */
 @Component({
   selector: 'zeus-event-basics-form',
-  imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, SegmentedControl, SwitchRow],
+  imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, SegmentedControl, SwitchRow, TacticalMap],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-6' },
   template: `
@@ -280,13 +282,30 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
             <button hlmBtn variant="outline" class="h-11" type="button" (click)="useMyLocation()" [disabled]="locating()">
               <ng-icon name="lucideLocateFixed" size="16" class="text-nav" aria-hidden="true" /> {{ locating() ? 'Locating…' : 'Use my location' }}
             </button>
+            <button hlmBtn variant="outline" class="h-11" type="button" (click)="toggleMap()" [attr.aria-expanded]="mapOpen()" aria-controls="bf-map">
+              <ng-icon name="lucideMap" size="16" aria-hidden="true" /> {{ mapOpen() ? 'Hide map' : 'Pick on map' }}
+            </button>
           </div>
           @if (err('meetingCoords'); as e) {
             <p class="field-error">{{ e }}</p>
           } @else {
-            <p id="bf-coords-h" class="text-xs text-muted-foreground">Paste from Google Maps ("45.46, 9.19") so players can navigate to the car park.</p>
+            <p id="bf-coords-h" class="text-xs text-muted-foreground">Tap the map, paste from Google Maps ("45.46, 9.19") or use your location, so players can navigate to the car park.</p>
           }
         </div>
+        @if (mapOpen()) {
+          <div id="bf-map" class="flex flex-col gap-1.5">
+            <zeus-tactical-map
+              class="h-72 rounded-md border border-border"
+              [draft]="meetingDraft()"
+              [center]="mapCenter()"
+              [zoom]="16"
+              [showLabels]="false"
+              gestureHandling="cooperative"
+              (mapClick)="pickOnMap($event)"
+            />
+            <p class="text-xs text-muted-foreground">Tap the map to set the meeting point.</p>
+          </div>
+        }
       </fieldset>
 
       <fieldset class="panel flex flex-col gap-4 p-4">
@@ -361,6 +380,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
 export class EventBasicsFormComponent {
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
+  private readonly maps = inject(MapsLoaderService);
 
   readonly form = input.required<BasicsForm>();
   readonly joinCode = input<string | null>(null);
@@ -371,6 +391,14 @@ export class EventBasicsFormComponent {
   protected readonly modes = MODE_OPTIONS;
   protected readonly uploading = signal(false);
   protected readonly locating = signal(false);
+  protected readonly mapOpen = signal(false);
+  /** Moved only when the map opens or GPS sets the point, so taps don't reset the zoom. */
+  protected readonly mapCenter = signal<LatLng | null>(null);
+  protected readonly meetingDraft = computed<DraftShape | null>(() => {
+    this.tick();
+    const p = parseLatLng(this.form().controls.meetingCoords.value);
+    return p ? { geometry: 'point', points: [p], color: '#E6B04F' } : null;
+  });
   protected readonly visibilityOptions: SegmentOption<'public' | 'private'>[] = [
     { value: 'public', label: 'Public', hint: 'Listed in Discover; anyone can register.' },
     { value: 'private', label: 'Private', hint: 'Hidden from Discover; players need the join code or an invitation.' },
@@ -430,8 +458,10 @@ export class EventBasicsFormComponent {
       (pos) => {
         this.locating.set(false);
         const c = this.form().controls.meetingCoords;
-        c.setValue(formatLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }));
+        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        c.setValue(formatLatLng(p));
         c.markAsDirty();
+        this.mapCenter.set(p);
         this.toast.success('Meeting point set to your location', `Accuracy ±${Math.round(pos.coords.accuracy)} m`);
       },
       (err) => {
@@ -440,6 +470,33 @@ export class EventBasicsFormComponent {
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
     );
+  }
+
+  protected async toggleMap(): Promise<void> {
+    if (this.mapOpen()) {
+      this.mapOpen.set(false);
+      return;
+    }
+    const v = this.form().getRawValue();
+    this.mapCenter.set(parseLatLng(v.meetingCoords));
+    this.mapOpen.set(true);
+    // No coordinates yet: start the map at the address, when it can be found.
+    const address = v.meetingAddress.trim();
+    if (this.mapCenter() || !address || !(await this.maps.load())) return;
+    try {
+      const res = await new google.maps.Geocoder().geocode({ address });
+      const loc = res.results[0]?.geometry.location;
+      if (loc && !this.mapCenter()) this.mapCenter.set({ lat: loc.lat(), lng: loc.lng() });
+    } catch {
+      /* the map stays on its default view */
+    }
+  }
+
+  protected pickOnMap(p: LatLng): void {
+    const c = this.form().controls.meetingCoords;
+    c.setValue(formatLatLng(p));
+    c.markAsDirty();
+    c.markAsTouched();
   }
 
   protected async copy(code: string): Promise<void> {
