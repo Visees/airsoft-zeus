@@ -361,12 +361,17 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       <section aria-labelledby="h-objs">
         <div class="mb-2 flex items-center justify-between gap-2">
           <h2 id="h-objs" class="label-caps">Objectives · {{ activeObjectiveCount() }} active</h2>
-          <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status">
-            <option value="">All statuses</option>
-            @for (s of objStatuses; track s) {
-              <option [value]="s">{{ objStatusLabels[s] }}</option>
-            }
-          </select>
+          <div class="flex items-center gap-1.5">
+            <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status">
+              <option value="">All statuses</option>
+              @for (s of objStatuses; track s) {
+                <option [value]="s">{{ objStatusLabels[s] }}</option>
+              }
+            </select>
+            <a hlmBtn variant="outline" class="h-10 shrink-0" [routerLink]="['/gm/events', eventId(), 'objectives', 'new']" [queryParams]="{ returnTo: controlUrl() }">
+              <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> New
+            </a>
+          </div>
         </div>
         @if (!filteredObjectives().length) {
           <zeus-empty-state icon="lucideFlag" [title]="statusFilter() ? 'No objectives with this status' : 'No objectives'" />
