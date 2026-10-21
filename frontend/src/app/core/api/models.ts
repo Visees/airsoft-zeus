@@ -16,14 +16,12 @@ export type EventStatus =
   | 'cancelled';
 
 export type GameMode =
-  | 'domination'
-  | 'conquest'
-  | 'ctf'
-  | 'search_destroy'
-  | 'koth'
-  | 'escort'
-  | 'extraction'
-  | 'tdm'
+  | 'sunday'
+  | 'milsim'
+  | 'scenario'
+  | 'championship'
+  | 'plr'
+  | 'pcr'
   | 'custom';
 
 export type PlayerRole =
@@ -461,7 +459,16 @@ export interface UpdateMyMembershipRequest {
 
 export type CaptureMethod = 'code' | 'qr' | 'geofence';
 export type ObjectiveStatus = 'inactive' | 'active' | 'locked' | 'contested' | 'captured' | 'disabled' | 'completed';
-export type ObjectiveType = 'control_point' | 'intel' | 'sabotage' | 'flag' | 'extraction' | 'custom';
+export type ObjectiveType =
+  | 'domination'
+  | 'ctf'
+  | 'vip'
+  | 'search_destroy'
+  | 'bomb_defusal'
+  | 'attack_defense'
+  | 'recon'
+  | 'intel'
+  | 'custom';
 
 export interface GeofenceConfig {
   radiusM: number;

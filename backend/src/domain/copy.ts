@@ -126,7 +126,7 @@ export async function insertObjective(t: Tx, eventId: string, o: Row, map = new 
      VALUES (COALESCE($1, gen_random_uuid()),$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) RETURNING id`,
     [
       o.id ?? null, eventId, o.name, o.description ?? '', o.instructions ?? '', o.sort_order ?? 0, o.lat, o.lng, o.icon ?? 'flag', o.color ?? '#E0A84A',
-      o.type ?? 'control_point', o.image_url ?? null, o.document_url ?? null, o.methods ?? ['code'], o.require_geofence ?? false,
+      o.type ?? 'domination', o.image_url ?? null, o.document_url ?? null, o.methods ?? ['code'], o.require_geofence ?? false,
       JSON.stringify(o.geofence ?? {}), JSON.stringify(remapIds(o.rewards ?? {}, map)), o.availability_start ?? null, o.availability_end ?? null,
       o.cooldown_sec ?? 0, o.max_captures ?? 0, ((o.allowed_team_ids as string[]) ?? []).map((id) => map.get(id)).filter(Boolean),
       JSON.stringify(remapIds(o.visibility ?? { mode: 'all' }, map)), o.enabled ?? true,

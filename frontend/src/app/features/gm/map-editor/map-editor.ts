@@ -856,7 +856,7 @@ export class MapEditorScreen implements OnInit {
 
   protected readonly objForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
-    type: new FormControl<ObjectiveType>('control_point', { nonNullable: true }),
+    type: new FormControl<ObjectiveType>('domination', { nonNullable: true }),
     color: new FormControl('#E6B04F', { nonNullable: true }),
     enabled: new FormControl(true, { nonNullable: true }),
   });

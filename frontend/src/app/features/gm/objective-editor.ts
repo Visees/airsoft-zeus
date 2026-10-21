@@ -592,7 +592,7 @@ export class ObjectiveEditorScreen {
 
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
-    type: new FormControl<ObjectiveType>('control_point', { nonNullable: true }),
+    type: new FormControl<ObjectiveType>('domination', { nonNullable: true }),
     description: new FormControl('', { nonNullable: true }),
     instructions: new FormControl('', { nonNullable: true }),
     color: new FormControl('#E6B04F', { nonNullable: true }),
@@ -1172,7 +1172,7 @@ function blankObjective(): Objective {
     lng: 0,
     icon: 'flag',
     color: '#E6B04F',
-    type: 'control_point',
+    type: 'domination',
     imageUrl: null,
     documentUrl: null,
     methods: ['code'],

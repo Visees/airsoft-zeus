@@ -721,13 +721,11 @@ export class EventDetailsScreen {
 }
 
 const MODE_HINTS: Record<EventDetail['gameMode'], string> = {
-  domination: 'Capture and hold control points. Points accumulate while your team holds them.',
-  conquest: 'Take objectives in sequence to push the front line.',
-  ctf: 'Steal the enemy flag and bring it back to your base.',
-  search_destroy: 'Attackers sabotage the target; defenders stop them.',
-  koth: 'Hold the central objective longer than the other teams.',
-  escort: 'Move the VIP or payload through the route to the extraction point.',
-  extraction: 'Recover intel and reach the extraction zone.',
-  tdm: 'Teams score by eliminations, tracked by the Game Master.',
+  sunday: 'A regular Sunday game at the field. Objectives and rules are explained at the briefing.',
+  milsim: 'Military simulation: long sessions, chain of command and realistic rules of engagement.',
+  scenario: 'A story-driven event with objectives that unlock as the scenario unfolds.',
+  championship: 'A competitive match that counts towards the championship standings.',
+  plr: 'PLR event. The Game Master explains the format at the briefing.',
+  pcr: 'PCR event. The Game Master explains the format at the briefing.',
   custom: 'The Game Master explains the scenario at the briefing.',
 };

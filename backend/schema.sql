@@ -147,8 +147,8 @@ CREATE TABLE events (
   name                 text NOT NULL,
   cover_url            text,
   description          text NOT NULL DEFAULT '',
-  game_mode            text NOT NULL DEFAULT 'domination'
-                         CHECK (game_mode IN ('domination','conquest','ctf','search_destroy','koth','escort','extraction','tdm','custom')),
+  game_mode            text NOT NULL DEFAULT 'sunday'
+                         CHECK (game_mode IN ('sunday','milsim','scenario','championship','plr','pcr','custom')),
   custom_mode_name     text,
   custom_mode_rules    text,
   start_at             timestamptz NOT NULL,
@@ -275,8 +275,8 @@ CREATE TABLE objectives (
   lng                   double precision NOT NULL,
   icon                  text NOT NULL DEFAULT 'flag',
   color                 text NOT NULL DEFAULT '#E0A84A',
-  type                  text NOT NULL DEFAULT 'control_point'
-                          CHECK (type IN ('control_point','intel','sabotage','flag','extraction','custom')),
+  type                  text NOT NULL DEFAULT 'domination'
+                          CHECK (type IN ('domination','ctf','vip','search_destroy','bomb_defusal','attack_defense','recon','intel','custom')),
   image_url             text,
   document_url          text,
   methods               text[] NOT NULL DEFAULT ARRAY['code']::text[],

@@ -75,7 +75,7 @@ export function createBasicsForm(): BasicsForm {
       name: nn('', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]),
       coverUrl: new FormControl<string | null>(null),
       description: nn('', [Validators.maxLength(5000)]),
-      gameMode: nn<GameMode>('domination'),
+      gameMode: nn<GameMode>('sunday'),
       customModeName: nn('', [Validators.maxLength(80)]),
       customModeRules: nn('', [Validators.maxLength(5000)]),
       date: nn(defaultDate(), [Validators.required]),

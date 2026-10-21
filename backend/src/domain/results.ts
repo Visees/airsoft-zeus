@@ -10,15 +10,13 @@ export interface ResultsOptions {
 }
 
 const MODE_LABELS: Record<string, string> = {
-  domination: 'Domination',
-  conquest: 'Conquest',
-  ctf: 'Capture the Flag',
-  search_destroy: 'Search and Destroy',
-  koth: 'King of the Hill',
-  escort: 'Escort',
-  extraction: 'Extraction',
-  tdm: 'Team Deathmatch',
-  custom: 'Custom scenario',
+  sunday: 'Sunday game',
+  milsim: 'Milsim',
+  scenario: 'Scenario event',
+  championship: 'Championship',
+  plr: 'PLR',
+  pcr: 'PCR',
+  custom: 'Custom',
 };
 
 export async function computeResults(eventId: string, opts: ResultsOptions = {}) {

@@ -95,7 +95,7 @@ run('API end-to-end', () => {
   it('opens a private event only with its join code', async () => {
     const created = await gm.post('/events', {
       name: 'Private e2e game',
-      gameMode: 'tdm',
+      gameMode: 'championship',
       visibility: 'private',
       startAt: new Date(Date.now() + 86400_000).toISOString(),
       endAt: new Date(Date.now() + 90000_000).toISOString(),

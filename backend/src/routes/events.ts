@@ -18,7 +18,7 @@ import { eventDetail, membersFor } from '../domain/views.js';
 
 export const eventsRouter = Router();
 
-const gameMode = z.enum(['domination', 'conquest', 'ctf', 'search_destroy', 'koth', 'escort', 'extraction', 'tdm', 'custom']);
+const gameMode = z.enum(['sunday', 'milsim', 'scenario', 'championship', 'plr', 'pcr', 'custom']);
 const status = z.enum(['draft', 'published', 'registration_open', 'lobby', 'live', 'paused', 'completed', 'cancelled']);
 
 const eventInput = z.object({

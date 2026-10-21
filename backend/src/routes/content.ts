@@ -32,7 +32,7 @@ const objectiveInput = z.object({
   lng,
   icon: shortText(40),
   color: hexColor,
-  type: z.enum(['control_point', 'intel', 'sabotage', 'flag', 'extraction', 'custom']),
+  type: z.enum(['domination', 'ctf', 'vip', 'search_destroy', 'bomb_defusal', 'attack_defense', 'recon', 'intel', 'custom']),
   imageUrl: z.string().max(500).startsWith('/api/files/').nullable(),
   documentUrl: z.string().max(500).startsWith('/api/files/').nullable(),
   methods: z.array(z.enum(['code', 'qr', 'geofence'])).min(1, 'Choose at least one capture method').max(3),

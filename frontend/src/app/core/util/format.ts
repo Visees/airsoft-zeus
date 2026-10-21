@@ -14,15 +14,13 @@ import {
 } from '../api/models';
 
 export const GAME_MODE_LABELS: Record<GameMode, string> = {
-  domination: 'Domination',
-  conquest: 'Conquest',
-  ctf: 'Capture the Flag',
-  search_destroy: 'Search and Destroy',
-  koth: 'King of the Hill',
-  escort: 'Escort',
-  extraction: 'Extraction',
-  tdm: 'Team Deathmatch',
-  custom: 'Custom scenario',
+  sunday: 'Sunday game',
+  milsim: 'Milsim',
+  scenario: 'Scenario event',
+  championship: 'Championship',
+  plr: 'PLR',
+  pcr: 'PCR',
+  custom: 'Custom',
 };
 
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
@@ -81,11 +79,14 @@ export const OBJECTIVE_STATUS_GLYPHS: Record<ObjectiveStatus, string> = {
 };
 
 export const OBJECTIVE_TYPE_LABELS: Record<ObjectiveType, string> = {
-  control_point: 'Control point',
-  intel: 'Intel',
-  sabotage: 'Sabotage',
-  flag: 'Flag',
-  extraction: 'Extraction',
+  domination: 'Domination',
+  ctf: 'Capture the flag',
+  vip: 'VIP',
+  search_destroy: 'Search and destroy',
+  bomb_defusal: 'Bomb defusal',
+  attack_defense: 'Attack and defend',
+  recon: 'Recon',
+  intel: 'Intel gathering',
   custom: 'Custom',
 };
 

@@ -71,21 +71,21 @@ export async function seed(): Promise<void> {
     status: 'lobby',
     start: new Date(now - 45 * 60_000),
     end: new Date(now + 2.25 * 3600_000),
-    mode: 'domination',
+    mode: 'scenario',
   });
   const upcoming = await createEvent(gmId, {
     name: 'Night Raid at Quarry 7',
     status: 'registration_open',
     start: new Date(now + 6 * 86400_000),
     end: new Date(now + 6 * 86400_000 + 4 * 3600_000),
-    mode: 'search_destroy',
+    mode: 'milsim',
   });
   const past = await createEvent(gmId, {
     name: 'Spring Offensive',
     status: 'lobby',
     start: new Date(now - 30 * 86400_000),
     end: new Date(now - 30 * 86400_000 + 3 * 3600_000),
-    mode: 'conquest',
+    mode: 'sunday',
   });
 
   for (const ev of [live, past]) {
