@@ -19,6 +19,30 @@ export const TRANSITIONS: Record<EventStatus, EventStatus[]> = {
   cancelled: ['draft'],
 };
 
+/**
+ * A public event was published: tell every other player (in-app only, no push to everyone).
+ * Users already told about this event (e.g. it went back to draft and was republished) are skipped.
+ */
+async function announceNewEvent(t: Tx, ev: EventContext['event']): Promise<void> {
+  const rows = await many<{ id: string }>(
+    `SELECT u.id FROM users u
+      WHERE u.deleted_at IS NULL AND u.email_verified_at IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = $1 AND m.user_id = u.id)
+        AND NOT EXISTS (SELECT 1 FROM notifications n WHERE n.user_id = u.id AND n.event_id = $1 AND n.type = 'event_published')`,
+    [ev.id],
+    t,
+  );
+  const when = new Date(ev.start_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Rome' });
+  await notify(t, rows.map((r) => r.id), {
+    type: 'event_published',
+    title: `New event: ${ev.name}`,
+    body: `${when}${ev.meeting_address ? ` · ${ev.meeting_address}` : ''}`,
+    eventId: ev.id,
+    url: `/events/${ev.id}`,
+    push: false,
+  });
+}
+
 export function canTransition(from: EventStatus, to: EventStatus): boolean {
   return TRANSITIONS[from]?.includes(to) ?? false;
 }
@@ -98,7 +122,7 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
   } else if (to === 'cancelled') {
     await t.query(`UPDATE events SET status = 'cancelled', updated_at = now() WHERE id = $1`, [eventId]);
     await notify(t, await eventPlayers(t, eventId), {
-      type: 'announcement',
+      type: 'event_cancelled',
       title: `${ev.name} was cancelled`,
       body: reason ?? '',
       priority: 'high',
@@ -107,6 +131,7 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
     });
   } else {
     await t.query('UPDATE events SET status = $2, updated_at = now() WHERE id = $1', [eventId, to]);
+    if (from === 'draft' && ev.visibility === 'public') await announceNewEvent(t, ev);
     if (to === 'lobby') {
       await notify(t, await eventPlayers(t, eventId), {
         type: 'event_starting_soon',

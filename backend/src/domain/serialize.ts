@@ -3,6 +3,7 @@
  * Secrets (capture codes, QR tokens, join codes, personal data) are only emitted where the
  * caller explicitly asks for the GM/owner variant.
  */
+import { isAdminEmail } from '../auth/middleware.js';
 import type { Row } from '../db.js';
 import { geofence, rewards, scoring, tracking, visibility } from './defaults.js';
 import type { CaptureBlockReason, ObjectiveStatus } from './rules.js';
@@ -53,6 +54,7 @@ export function meUser(u: Row, badges: Row[]) {
     termsAccepted: !!u.terms_accepted_at,
     stats: { ...DEFAULT_STATS, ...(u.stats ?? {}) },
     badges: badges.map(badge),
+    isAdmin: isAdminEmail(u.email),
     createdAt: iso(u.created_at)!,
   };
 }
@@ -106,6 +108,24 @@ export function notification(n: Row) {
     data: n.data ?? {},
     read: !!n.read_at,
     createdAt: iso(n.created_at)!,
+  };
+}
+
+export function news(n: Row) {
+  return {
+    id: n.id,
+    title: n.title,
+    summary: n.summary,
+    body: n.body,
+    category: n.category,
+    imageUrl: n.image_url,
+    linkUrl: n.link_url,
+    linkLabel: n.link_label,
+    pinned: n.pinned,
+    publishedAt: iso(n.published_at),
+    authorNickname: n.author_nickname ?? null,
+    createdAt: iso(n.created_at)!,
+    updatedAt: iso(n.updated_at)!,
   };
 }
 

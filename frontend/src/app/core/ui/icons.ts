@@ -2,6 +2,11 @@
 // Add new icons here; the build fails for names that don't exist.
 import {
   lucideHouse,
+  lucidePin,
+  lucideHandshake,
+  lucideCalendarX,
+  lucideCalendarPlus,
+  lucideNewspaper,
   lucideMap,
   lucideMapPin,
   lucideMapPinned,
@@ -154,6 +159,11 @@ import {
 
 export const APP_ICONS = {
   lucideHouse,
+  lucidePin,
+  lucideHandshake,
+  lucideCalendarX,
+  lucideCalendarPlus,
+  lucideNewspaper,
   lucideMap,
   lucideMapPin,
   lucideMapPinned,

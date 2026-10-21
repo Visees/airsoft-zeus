@@ -78,6 +78,10 @@ export const routes: Routes = [
       { path: 'events/:eventId/results', title: 'Results', loadComponent: () => import('./features/results/event-results').then((m) => m.EventResultsScreen) },
       { path: 'events/:eventId/results/stats', title: 'Post-game statistics', loadComponent: () => import('./features/results/post-game-stats').then((m) => m.PostGameStatsScreen) },
       { path: 'events/:eventId/results/export', title: 'Export results', loadComponent: () => import('./features/results/export-results').then((m) => m.ExportResultsScreen) },
+      { path: 'news', title: 'News', loadComponent: () => import('./features/news/news-list').then((m) => m.NewsListScreen) },
+      /** newsId may be 'new' (admins only) */
+      { path: 'news/:newsId/edit', title: 'Edit news', loadComponent: () => import('./features/news/news-editor').then((m) => m.NewsEditorScreen) },
+      { path: 'news/:newsId', title: 'News', loadComponent: () => import('./features/news/news-detail').then((m) => m.NewsDetailScreen) },
       { path: 'notifications', title: 'Notifications', loadComponent: () => import('./features/notifications/notifications').then((m) => m.NotificationsScreen) },
       { path: 'profile', title: 'Profile', loadComponent: () => import('./features/profile/profile').then((m) => m.ProfileScreen) },
       { path: 'profile/edit', title: 'Edit profile', loadComponent: () => import('./features/profile/edit-profile').then((m) => m.EditProfileScreen) },

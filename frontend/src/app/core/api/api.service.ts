@@ -35,6 +35,8 @@ import {
   Member,
   MeUser,
   MyStats,
+  News,
+  NewsInput,
   Objective,
   ObjectiveInput,
   ObjectiveQr,
@@ -175,7 +177,7 @@ export class ApiService {
   updateClub(id: Uuid, body: Partial<Club>) {
     return this.patch<Club>(`/clubs/${id}`, body);
   }
-  upload(file: File, purpose: 'avatar' | 'cover' | 'team_icon' | 'objective_image' | 'objective_document' | 'poi_image' | 'club_logo') {
+  upload(file: File, purpose: 'avatar' | 'cover' | 'team_icon' | 'objective_image' | 'objective_document' | 'poi_image' | 'club_logo' | 'news_image') {
     const form = new FormData();
     form.append('file', file);
     form.append('purpose', purpose);
@@ -183,6 +185,24 @@ export class ApiService {
   }
   report(body: { eventId?: Uuid; targetUserId?: Uuid; reason: string; details?: string }) {
     return this.post<{ ok: true }>('/reports', body);
+  }
+
+  // --- news -----------------------------------------------------------------
+  /** Published news; `all` (admins only) also returns drafts and scheduled posts. */
+  news(cursor?: string | null, all = false) {
+    return this.get<Page<News>>('/news', { cursor, all: all || null });
+  }
+  newsItem(id: Uuid) {
+    return this.get<News>(`/news/${encodeURIComponent(id)}`);
+  }
+  createNews(body: NewsInput) {
+    return this.post<News>('/news', body);
+  }
+  updateNews(id: Uuid, body: Partial<NewsInput>) {
+    return this.patch<News>(`/news/${encodeURIComponent(id)}`, body);
+  }
+  deleteNews(id: Uuid) {
+    return this.delete<{ ok: true }>(`/news/${encodeURIComponent(id)}`);
   }
 
   // --- events ---------------------------------------------------------------

@@ -45,6 +45,7 @@ services:
       SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
       SEED_PASSWORD: ${SEED_PASSWORD:-zeus-demo-2026}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     volumes:
       - uploads:/app/uploads
     expose:

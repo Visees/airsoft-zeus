@@ -44,6 +44,16 @@ const schema = z.object({
   /** Positions broadcast interval while a game is live. */
   POSITIONS_BROADCAST_MS: z.coerce.number().int().default(2000),
   LOG_LEVEL: z.string().default('info'),
+  /** Comma-separated emails of the platform admins (they write the News on the home page). */
+  ADMIN_EMAILS: z
+    .string()
+    .default('')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   /** Seed demo data (flagged is_test_data) on start when the database is empty. */
   SEED_DEMO_DATA: bool,
 });

@@ -11,6 +11,7 @@ import { body, playerRole, queryOf, shortText, uuid } from '../lib/validate.js';
 import { sendAccountDeletedEmail } from '../mail.js';
 import * as dto from '../domain/serialize.js';
 import { clearSessionCookies, nicknameProblem } from './auth.js';
+import { latestNews } from './news.js';
 
 export const meRouter = Router();
 
@@ -144,6 +145,24 @@ meRouter.post('/consents', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * Notifications shown on the home page: about events (new, invitations, registrations, starting,
+ * live, ended, cancelled). In-game ones (captures, perks, GM messages…) stay in the live screens
+ * and on the notifications page.
+ */
+const HOME_NOTIFICATION_TYPES = [
+  'event_published',
+  'event_invitation',
+  'registration_approved',
+  'registration_rejected',
+  'team_assigned',
+  'event_starting_soon',
+  'game_started',
+  'game_ended',
+  'event_cancelled',
+  'removed_from_event',
+];
+
 meRouter.get('/home', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const rows = await many(
@@ -162,8 +181,11 @@ meRouter.get('/home', requireVerified, async (req, res) => {
   const nextEvent =
     playing.find((e) => ['published', 'registration_open', 'lobby'].includes(e.status) && Date.parse(e.endAt) > now && e.id !== activeEvent?.id) ?? null;
   const user = await one('SELECT stats FROM users WHERE id = $1', [me.id]);
-  const notes = await many('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 5', [me.id]);
-  const unread = await one<{ n: number }>('SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND read_at IS NULL', [me.id]);
+  const notes = await many('SELECT * FROM notifications WHERE user_id = $1 AND type = ANY($2::text[]) ORDER BY created_at DESC LIMIT 5', [me.id, HOME_NOTIFICATION_TYPES]);
+  const unread = await one<{ n: number }>('SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND type = ANY($2::text[]) AND read_at IS NULL', [
+    me.id,
+    HOME_NOTIFICATION_TYPES,
+  ]);
   const gmEvents = events.filter((e) => e.isGm);
   const pending = await many<{ event_id: string; name: string; n: number }>(
     `SELECT e.id AS event_id, e.name, count(*)::int AS n FROM event_members m JOIN events e ON e.id = m.event_id
@@ -178,6 +200,7 @@ meRouter.get('/home', requireVerified, async (req, res) => {
     stats: { gamesPlayed: 0, objectivesCaptured: 0, totalPoints: 0, wins: 0, losses: 0, draws: 0, ...(user?.stats ?? {}) },
     unreadNotifications: unread?.n ?? 0,
     latestNotifications: notes.map(dto.notification),
+    news: await latestNews(3),
     gm: gmEvents.length
       ? {
           drafts: gmEvents.filter((e) => e.status === 'draft'),

@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { config } from '../config.js';
 import { one } from '../db.js';
 import { forbidden, unauthorized } from '../errors.js';
 import { verifyAccessToken } from './tokens.js';
@@ -58,4 +59,19 @@ export async function requireVerified(req: Request, _res: Response, next: NextFu
 export function currentUser(req: Request): AuthUser {
   if (!req.user) throw unauthorized();
   return req.user;
+}
+
+/** Platform admin: the email is listed in ADMIN_EMAILS. */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  return !!email && config.ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+/** Verified user listed in ADMIN_EMAILS. */
+export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+  await requireVerified(req, res, async (err?: unknown) => {
+    if (err) return next(err);
+    const row = await one<{ email: string }>('SELECT email FROM users WHERE id = $1', [req.user!.id]);
+    if (!isAdminEmail(row?.email)) return next(forbidden('Only platform admins can do that.', 'not_admin'));
+    next();
+  });
 }

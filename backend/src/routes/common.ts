@@ -114,7 +114,7 @@ function sniff(buf: Buffer): { ext: string; mime: string } | null {
   return null;
 }
 
-const PURPOSES = ['avatar', 'cover', 'team_icon', 'objective_image', 'objective_document', 'poi_image', 'club_logo'] as const;
+const PURPOSES = ['avatar', 'cover', 'team_icon', 'objective_image', 'objective_document', 'poi_image', 'club_logo', 'news_image'] as const;
 
 commonRouter.post('/uploads', requireVerified, upload.single('file'), async (req, res) => {
   const me = currentUser(req);

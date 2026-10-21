@@ -29,6 +29,8 @@ export function notificationLink(n: AppNotification): string | null {
 }
 
 const TYPE_ICONS: Partial<Record<NotificationType, string>> = {
+  event_published: 'lucideCalendarPlus',
+  event_cancelled: 'lucideCalendarX',
   event_invitation: 'lucideMail',
   registration_approved: 'lucideUserCheck',
   registration_rejected: 'lucideUserX',

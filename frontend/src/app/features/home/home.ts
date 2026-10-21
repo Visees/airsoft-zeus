@@ -14,6 +14,7 @@ import { GameTimer, nowSignal } from '../../shared/game-timer';
 import { ConnectionStatus } from '../../shared/link-status';
 import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { StatusChip, eventStatusChip } from '../../shared/status-chip';
+import { NewsCard } from '../news/news-ui';
 import { NotificationRow, notificationLink } from '../notifications/notification-ui';
 import { StatTiles } from '../profile/profile-ui';
 
@@ -33,6 +34,7 @@ import { StatTiles } from '../profile/profile-ui';
     GameTimer,
     StatTiles,
     NotificationRow,
+    NewsCard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -155,6 +157,27 @@ import { StatTiles } from '../profile/profile-ui';
               </section>
             }
 
+            <!-- News -->
+            @if (d.news.length || isAdmin()) {
+              <section aria-labelledby="home-news">
+                <div class="mb-2 flex items-baseline justify-between gap-2">
+                  <h2 id="home-news" class="label-caps">News</h2>
+                  <a routerLink="/news" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">{{ isAdmin() ? 'Manage news' : 'All news' }}</a>
+                </div>
+                @if (d.news.length) {
+                  <ul class="flex flex-col gap-2">
+                    @for (n of d.news; track n.id) {
+                      <li><zeus-news-card [news]="n" /></li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    No news published. <a routerLink="/news/new/edit" class="font-semibold text-primary underline-offset-2 hover:underline">Write the first one</a>.
+                  </p>
+                }
+              </section>
+            }
+
             <!-- Game Master -->
             @if (d.gm; as gm) {
               <section class="flex flex-col gap-4 rounded-md border border-border p-4" aria-labelledby="home-gm">
@@ -265,9 +288,9 @@ import { StatTiles } from '../profile/profile-ui';
 
             <section aria-labelledby="home-notif">
               <div class="mb-2 flex items-baseline justify-between gap-2">
-                <h2 id="home-notif" class="label-caps">Notifications
-                  @if (unread()) {
-                    · <span class="num">{{ unread() }}</span> unread
+                <h2 id="home-notif" class="label-caps">Event updates
+                  @if (d.unreadNotifications) {
+                    · <span class="num">{{ d.unreadNotifications }}</span> unread
                   }
                 </h2>
                 <a routerLink="/notifications" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">See all</a>
@@ -279,7 +302,7 @@ import { StatTiles } from '../profile/profile-ui';
                   }
                 </ul>
               } @else {
-                <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">No notifications yet.</p>
+                <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">New events, invitations and games starting show up here.</p>
               }
             </section>
           </div>
@@ -305,7 +328,7 @@ export class HomeScreen implements OnInit {
   protected readonly now = nowSignal(30_000);
 
   protected readonly title = computed(() => this.auth.user()?.nickname ?? 'Home');
-  protected readonly unread = computed(() => Math.max(this.center.unread(), 0));
+  protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
   protected readonly nextEvent = computed(() => {
     const d = this.data();
     if (!d?.nextEvent || d.nextEvent.id === d.activeEvent?.id) return null;
@@ -406,7 +429,15 @@ export class HomeScreen implements OnInit {
 
   protected async openNotification(n: AppNotification): Promise<void> {
     if (!n.read) {
-      this.data.update((d) => (d ? { ...d, latestNotifications: d.latestNotifications.map((x) => (x.id === n.id ? { ...x, read: true } : x)) } : d));
+      this.data.update((d) =>
+        d
+          ? {
+              ...d,
+              unreadNotifications: Math.max(0, d.unreadNotifications - 1),
+              latestNotifications: d.latestNotifications.map((x) => (x.id === n.id ? { ...x, read: true } : x)),
+            }
+          : d,
+      );
       this.center.unread.update((c) => Math.max(0, c - 1));
       void this.api.markNotificationsRead([n.id]).catch(() => undefined);
     }

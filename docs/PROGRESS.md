@@ -36,6 +36,17 @@ right code), store, control center, map editor, creation wizard; public results 
 server-rendered (verified with Traefik-style forwarded headers). Fixes from the walkthrough
 are in (map sizing in the control center, aria-invalid, copy, session restore, PWA updates).
 
+## News and home notifications (2026-10-21)
+
+* News: `news` table (migration 0002), `/api/news` (read: verified users; write: admins),
+  screens `/news`, `/news/:id`, `/news/:id/edit` ('new' allowed). Admins = emails in
+  `ADMIN_EMAILS` (env, comma-separated); `MeUser.isAdmin`. Drafts and scheduled posts
+  (future `publishedAt`) are visible to admins only. Home shows the latest 3, pinned first.
+* Home "Event updates" shows only event-level notification types (`HOME_NOTIFICATION_TYPES`
+  in routes/me.ts); in-game ones stay on /notifications and in the live screens.
+* New types: `event_published` (public event leaves draft → every other verified user,
+  in-app only, once per event) and `event_cancelled` (was `announcement`).
+
 ## Known limits / next ideas
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.

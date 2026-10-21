@@ -120,6 +120,8 @@ export interface MeUser {
   termsAccepted: boolean;
   stats: PlayerStats;
   badges: Badge[];
+  /** Platform admin (ADMIN_EMAILS on the server): can publish News. */
+  isAdmin: boolean;
   createdAt: IsoDate;
 }
 
@@ -218,6 +220,8 @@ export interface AppNotification {
 }
 
 export type NotificationType =
+  | 'event_published'
+  | 'event_cancelled'
   | 'event_invitation'
   | 'registration_approved'
   | 'registration_rejected'
@@ -1005,7 +1009,10 @@ export interface HomeDashboard {
   recentEvents: EventSummary[];
   stats: PlayerStats;
   unreadNotifications: number;
+  /** Event-related only (new events, invitations, registrations, start/end); no in-game ones. */
   latestNotifications: AppNotification[];
+  /** Latest published News, pinned first. */
+  news: News[];
   gm: {
     drafts: EventSummary[];
     published: EventSummary[];
@@ -1056,3 +1063,30 @@ export interface EventResults {
 }
 
 export type ExportKind = 'leaderboard' | 'players' | 'captures' | 'ledger' | 'perks';
+
+// ---------------------------------------------------------------------------
+// News (written by the platform admins)
+// ---------------------------------------------------------------------------
+
+export type NewsCategory = 'update' | 'sponsor' | 'announcement' | 'event';
+
+export interface News {
+  id: Uuid;
+  title: string;
+  summary: string;
+  /** Plain text; blank lines separate paragraphs. */
+  body: string;
+  category: NewsCategory;
+  imageUrl: string | null;
+  /** https://… or an app path like /events/discover */
+  linkUrl: string | null;
+  linkLabel: string | null;
+  pinned: boolean;
+  /** null = draft; in the future = scheduled. */
+  publishedAt: IsoDate | null;
+  authorNickname: string | null;
+  createdAt: IsoDate;
+  updatedAt: IsoDate;
+}
+
+export type NewsInput = Pick<News, 'title' | 'summary' | 'body' | 'category' | 'imageUrl' | 'linkUrl' | 'linkLabel' | 'pinned' | 'publishedAt'>;
