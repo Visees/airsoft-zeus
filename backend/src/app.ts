@@ -14,6 +14,7 @@ import { eventsRouter, templateInstantiateRouter } from './routes/events.js';
 import { liveRouter } from './routes/live.js';
 import { meRouter } from './routes/me.js';
 import { newsRouter } from './routes/news.js';
+import { supportRouter } from './routes/support.js';
 
 export function createApp() {
   const app = express();
@@ -48,6 +49,7 @@ export function createApp() {
   app.use('/api/auth', authRouter);
   app.use('/api/me', meRouter);
   app.use('/api/news', newsRouter);
+  app.use('/api/support', supportRouter);
   app.use('/api', commonRouter);
   app.use('/api', templateInstantiateRouter);
   app.use('/api/events', requireVerified, eventsRouter, contentRouter, liveRouter);

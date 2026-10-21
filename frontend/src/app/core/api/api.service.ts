@@ -39,6 +39,10 @@ import {
   NewsInput,
   Objective,
   ObjectiveInput,
+  SupportStatus,
+  SupportTicket,
+  SupportTicketDetail,
+  SupportTicketInput,
   ObjectiveQr,
   Page,
   Perk,
@@ -203,6 +207,24 @@ export class ApiService {
   }
   deleteNews(id: Uuid) {
     return this.delete<{ ok: true }>(`/news/${encodeURIComponent(id)}`);
+  }
+
+  // --- support --------------------------------------------------------------
+  /** My conversations; `all` (admins only) returns every ticket. */
+  supportTickets(opts: { cursor?: string | null; all?: boolean; status?: SupportStatus | null } = {}) {
+    return this.get<Page<SupportTicket>>('/support', { cursor: opts.cursor, all: opts.all || null, status: opts.status });
+  }
+  supportTicket(id: Uuid) {
+    return this.get<SupportTicketDetail>(`/support/${encodeURIComponent(id)}`);
+  }
+  createSupportTicket(body: SupportTicketInput) {
+    return this.post<SupportTicketDetail>('/support', body);
+  }
+  replySupportTicket(id: Uuid, body: string) {
+    return this.post<SupportTicketDetail>(`/support/${encodeURIComponent(id)}/messages`, { body });
+  }
+  setSupportStatus(id: Uuid, status: SupportStatus) {
+    return this.patch<SupportTicketDetail>(`/support/${encodeURIComponent(id)}`, { status });
   }
 
   // --- events ---------------------------------------------------------------

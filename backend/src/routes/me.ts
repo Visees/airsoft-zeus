@@ -161,6 +161,7 @@ const HOME_NOTIFICATION_TYPES = [
   'game_ended',
   'event_cancelled',
   'removed_from_event',
+  'support_reply',
 ];
 
 meRouter.get('/home', requireVerified, async (req, res) => {

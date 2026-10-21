@@ -47,6 +47,19 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * New types: `event_published` (public event leaves draft → every other verified user,
   in-app only, once per event) and `event_cancelled` (was `announcement`).
 
+## Help & feedback (2026-10-21)
+
+* Players write to the platform admins from Profile → Help & feedback (`/support`): category
+  bug / report / general, subject, message; bug reports can attach device details (page,
+  browser, screen). Player abuse reports stay on the profile Report dialog (`/api/reports`).
+* `support_tickets` + `support_messages` (migration 0003), `/api/support`. Each ticket is a
+  private thread between its author and the admins (others get 404). Status: open (waiting
+  for the team) → answered (admin replied) → closed; the author can close and reopen.
+* Admins (`ADMIN_EMAILS`) get an email for every new message and player reply, and an Inbox
+  tab with status filters on `/support`. An admin reply sends the `support_reply`
+  notification (in-app + push, shown on the home page) linking to `/support/:id`.
+* Rate limits: 5 new conversations and 30 replies per user per hour.
+
 ## Known limits / next ideas
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.

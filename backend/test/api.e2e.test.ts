@@ -277,4 +277,31 @@ run('API end-to-end', () => {
     expect(err.message).toBe('unauthorized');
     bad.disconnect();
   });
+  it('keeps support conversations private between the author and the admins', async () => {
+    const created = await alpha.post('/support', { category: 'bug', subject: 'E2E map does not load', body: 'Steps: open the lobby.', context: { page: '/home' } });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const id = created.body.id;
+    expect(created.body.status).toBe('open');
+    expect(created.body.messages).toHaveLength(1);
+    expect(created.body.userNickname).toBeNull();
+    expect((await alpha2.get(`/support/${id}`)).status).toBe(404);
+    expect((await alpha2.post(`/support/${id}/messages`, { body: 'hi' })).status).toBe(404);
+    expect((await alpha2.get('/support?all=true')).body.items.some((t: Json) => t.id === id)).toBe(false);
+    expect((await alpha.get('/support')).body.items[0].id).toBe(id);
+
+    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    if (!(await gm.get('/me')).body.isAdmin) return;
+    const inbox = await gm.get('/support?all=true&status=open');
+    const row = inbox.body.items.find((t: Json) => t.id === id);
+    expect(row.userNickname).toBe('Kestrel');
+    const answered = await gm.post(`/support/${id}/messages`, { body: 'Fixed in the next release.' });
+    expect(answered.body.status).toBe('answered');
+    expect(answered.body.asStaff).toBe(true);
+    expect(answered.body.messages[1]).toMatchObject({ fromAdmin: true, authorNickname: null });
+    const notes = (await alpha.get('/me/notifications')).body.items;
+    expect(notes.find((n: Json) => n.type === 'support_reply' && n.data.ticketId === id)).toBeTruthy();
+    expect((await alpha.post(`/support/${id}/messages`, { body: 'Thanks!' })).body.status).toBe('open');
+    expect((await alpha.patch(`/support/${id}`, { status: 'answered' })).status).toBe(403);
+    expect((await alpha.patch(`/support/${id}`, { status: 'closed' })).body.status).toBe('closed');
+  });
 });

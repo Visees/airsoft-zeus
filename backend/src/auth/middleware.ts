@@ -66,12 +66,16 @@ export function isAdminEmail(email: string | null | undefined): boolean {
   return !!email && config.ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
+export async function userIsAdmin(userId: string): Promise<boolean> {
+  const row = await one<{ email: string }>('SELECT email FROM users WHERE id = $1', [userId]);
+  return isAdminEmail(row?.email);
+}
+
 /** Verified user listed in ADMIN_EMAILS. */
 export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   await requireVerified(req, res, async (err?: unknown) => {
     if (err) return next(err);
-    const row = await one<{ email: string }>('SELECT email FROM users WHERE id = $1', [req.user!.id]);
-    if (!isAdminEmail(row?.email)) return next(forbidden('Only platform admins can do that.', 'not_admin'));
+    if (!(await userIsAdmin(req.user!.id))) return next(forbidden('Only platform admins can do that.', 'not_admin'));
     next();
   });
 }

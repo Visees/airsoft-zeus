@@ -82,6 +82,10 @@ export const routes: Routes = [
       /** newsId may be 'new' (admins only) */
       { path: 'news/:newsId/edit', title: 'Edit news', loadComponent: () => import('./features/news/news-editor').then((m) => m.NewsEditorScreen) },
       { path: 'news/:newsId', title: 'News', loadComponent: () => import('./features/news/news-detail').then((m) => m.NewsDetailScreen) },
+      { path: 'support', title: 'Help & feedback', loadComponent: () => import('./features/support/support-list').then((m) => m.SupportListScreen) },
+      /** ?category=bug|report|general preselects the kind; ?from=/path is attached to bug reports */
+      { path: 'support/new', title: 'New message', loadComponent: () => import('./features/support/support-new').then((m) => m.SupportNewScreen) },
+      { path: 'support/:ticketId', title: 'Help & feedback', loadComponent: () => import('./features/support/support-thread').then((m) => m.SupportThreadScreen) },
       { path: 'notifications', title: 'Notifications', loadComponent: () => import('./features/notifications/notifications').then((m) => m.NotificationsScreen) },
       { path: 'profile', title: 'Profile', loadComponent: () => import('./features/profile/profile').then((m) => m.ProfileScreen) },
       { path: 'profile/edit', title: 'Edit profile', loadComponent: () => import('./features/profile/edit-profile').then((m) => m.EditProfileScreen) },

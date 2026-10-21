@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { currentUser, isAdminEmail, requireAdmin, requireVerified } from '../auth/middleware.js';
+import { currentUser, requireAdmin, requireVerified, userIsAdmin } from '../auth/middleware.js';
 import { many, one } from '../db.js';
 import { notFound } from '../errors.js';
 import { decodeCursor, encodeCursor } from '../lib/pagination.js';
@@ -17,11 +17,6 @@ const PUBLISHED = `n.published_at IS NOT NULL AND n.published_at <= now()`;
 export async function latestNews(limit: number) {
   const rows = await many(`SELECT ${NEWS_SELECT} ${FROM} WHERE ${PUBLISHED} ORDER BY n.pinned DESC, n.published_at DESC LIMIT $1`, [limit]);
   return rows.map(dto.news);
-}
-
-async function viewerIsAdmin(userId: string): Promise<boolean> {
-  const row = await one<{ email: string }>('SELECT email FROM users WHERE id = $1', [userId]);
-  return isAdminEmail(row?.email);
 }
 
 const link = z
@@ -65,7 +60,7 @@ async function newsById(id: string) {
 newsRouter.get('/', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const q = queryOf(req, z.object({ cursor: z.string().optional(), all: z.enum(['true', 'false']).optional() }));
-  const all = q.all === 'true' && (await viewerIsAdmin(me.id));
+  const all = q.all === 'true' && (await userIsAdmin(me.id));
   const c = decodeCursor(q.cursor);
   // Drafts have no published_at: they sort by creation time.
   const at = 'coalesce(n.published_at, n.created_at)';
@@ -85,7 +80,7 @@ newsRouter.get('/:newsId', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const n = await newsById(idParam(req, 'newsId'));
   const live = n.publishedAt !== null && Date.parse(n.publishedAt) <= Date.now();
-  if (!live && !(await viewerIsAdmin(me.id))) throw notFound('News not found.');
+  if (!live && !(await userIsAdmin(me.id))) throw notFound('News not found.');
   res.json(n);
 });
 

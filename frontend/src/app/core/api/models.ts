@@ -243,7 +243,9 @@ export type NotificationType =
   | 'gm_message'
   | 'announcement'
   | 'emergency'
-  | 'removed_from_event';
+  | 'removed_from_event'
+  /** An admin answered a support message; data.ticketId. */
+  | 'support_reply';
 
 // ---------------------------------------------------------------------------
 // Events
@@ -1090,3 +1092,54 @@ export interface News {
 }
 
 export type NewsInput = Pick<News, 'title' | 'summary' | 'body' | 'category' | 'imageUrl' | 'linkUrl' | 'linkLabel' | 'pinned' | 'publishedAt'>;
+
+// ---------------------------------------------------------------------------
+// Support (players write to the platform admins)
+// ---------------------------------------------------------------------------
+
+export type SupportCategory = 'bug' | 'report' | 'general';
+/** open = waiting for the team, answered = waiting for the player, closed = done. */
+export type SupportStatus = 'open' | 'answered' | 'closed';
+
+/** Device details attached to a bug report, only when the player agrees. */
+export interface SupportContext {
+  page?: string;
+  userAgent?: string;
+  screen?: string;
+}
+
+export interface SupportTicket {
+  id: Uuid;
+  category: SupportCategory;
+  subject: string;
+  status: SupportStatus;
+  /** Author nickname, admins only. */
+  userNickname: string | null;
+  context: SupportContext;
+  messageCount: number;
+  createdAt: IsoDate;
+  lastMessageAt: IsoDate;
+}
+
+export interface SupportMessage {
+  id: Uuid;
+  /** Written by the Airsoft Zeus team. */
+  fromAdmin: boolean;
+  /** Player nickname; null for admin messages. */
+  authorNickname: string | null;
+  body: string;
+  createdAt: IsoDate;
+}
+
+export interface SupportTicketDetail extends SupportTicket {
+  /** The viewer is an admin answering someone else's conversation. */
+  asStaff: boolean;
+  messages: SupportMessage[];
+}
+
+export interface SupportTicketInput {
+  category: SupportCategory;
+  subject: string;
+  body: string;
+  context?: SupportContext;
+}

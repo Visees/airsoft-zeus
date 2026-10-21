@@ -129,6 +129,31 @@ export function news(n: Row) {
   };
 }
 
+export function supportTicket(t: Row, admin = false) {
+  return {
+    id: t.id,
+    category: t.category,
+    subject: t.subject,
+    status: t.status,
+    /** Author nickname: admins only (players only ever see their own tickets). */
+    userNickname: admin ? (t.user_nickname ?? null) : null,
+    context: t.context ?? {},
+    messageCount: t.message_count ?? 0,
+    createdAt: iso(t.created_at)!,
+    lastMessageAt: iso(t.last_message_at)!,
+  };
+}
+
+export function supportMessage(m: Row) {
+  return {
+    id: m.id,
+    fromAdmin: m.from_admin,
+    authorNickname: m.from_admin ? null : (m.author_nickname ?? null),
+    body: m.body,
+    createdAt: iso(m.created_at)!,
+  };
+}
+
 export function clock(e: Row, now = new Date()) {
   return {
     status: e.status,

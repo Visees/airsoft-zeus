@@ -148,6 +148,7 @@ export class ProfileScreen implements OnInit {
     { label: 'Statistics', hint: 'Game history, results and badges', icon: 'lucideChartColumn', link: '/profile/stats' },
     { label: 'Settings', hint: 'Theme, notifications, password, data', icon: 'lucideSettings', link: '/settings' },
     { label: 'Privacy', hint: 'What other players and Game Masters see', icon: 'lucideShieldCheck', link: '/settings/privacy' },
+    { label: 'Help & feedback', hint: 'Report a bug, flag a problem, write to the team', icon: 'lucideLifeBuoy', link: '/support' },
   ];
 
   ngOnInit(): void {

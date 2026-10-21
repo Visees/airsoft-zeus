@@ -71,3 +71,16 @@ export async function sendAccountDeletedEmail(to: string): Promise<void> {
     'Your Airsoft Zeus account and personal data were deleted.',
   );
 }
+
+/** New support message (or a reply from the player): tell the platform admins. */
+export async function sendSupportEmail(to: string[], ticket: { id: string; subject: string; category: string }, from: string, text: string): Promise<void> {
+  if (!to.length) return;
+  const url = `${config.SITE_URL}/support/${ticket.id}`;
+  const excerpt = text.length > 600 ? `${text.slice(0, 600)}…` : text;
+  await send(
+    to.join(', '),
+    `[Support · ${ticket.category}] ${ticket.subject}`,
+    layout(ticket.subject, [`${from} wrote:`, excerpt], { label: 'Open the conversation', url }),
+    `${from} wrote (${ticket.category}): ${ticket.subject}\n\n${excerpt}\n\n${url}`,
+  );
+}

@@ -23,6 +23,7 @@ const GAME_TIME_TYPES: ReadonlySet<NotificationType> = new Set<NotificationType>
 
 /** Where tapping a notification goes, or null when it has no target. */
 export function notificationLink(n: AppNotification): string | null {
+  if (n.type === 'support_reply' && typeof n.data['ticketId'] === 'string') return `/support/${encodeURIComponent(n.data['ticketId'])}`;
   if (!n.eventId) return null;
   const id = encodeURIComponent(n.eventId);
   return GAME_TIME_TYPES.has(n.type) ? `/events/${id}/live` : `/events/${id}`;
@@ -53,6 +54,7 @@ const TYPE_ICONS: Partial<Record<NotificationType, string>> = {
   announcement: 'lucideMegaphone',
   emergency: 'lucideSiren',
   removed_from_event: 'lucideUserMinus',
+  support_reply: 'lucideLifeBuoy',
 };
 
 /**
@@ -118,7 +120,11 @@ export class NotificationRow {
 
   protected readonly icon = computed(() => TYPE_ICONS[this.notification().type] ?? 'lucideBell');
   protected readonly link = computed(() => notificationLink(this.notification()));
-  protected readonly linkLabel = computed(() => (this.link()?.endsWith('/live') ? 'Open live game' : 'Open event'));
+  protected readonly linkLabel = computed(() => {
+    const link = this.link();
+    if (link?.startsWith('/support/')) return 'Open conversation';
+    return link?.endsWith('/live') ? 'Open live game' : 'Open event';
+  });
   protected readonly relative = computed(() => formatRelative(this.notification().createdAt, this.now()));
   protected readonly absolute = computed(() => formatDateTime(this.notification().createdAt));
   protected readonly aria = computed(() => {

@@ -44,7 +44,7 @@ const schema = z.object({
   /** Positions broadcast interval while a game is live. */
   POSITIONS_BROADCAST_MS: z.coerce.number().int().default(2000),
   LOG_LEVEL: z.string().default('info'),
-  /** Comma-separated emails of the platform admins (they write the News on the home page). */
+  /** Comma-separated emails of the platform admins (they write the News and answer support messages). */
   ADMIN_EMAILS: z
     .string()
     .default('')
