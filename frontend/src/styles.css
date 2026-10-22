@@ -7,6 +7,9 @@
 @import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
 
+/* A phone held sideways (COMPACT_LANDSCAPE_QUERY in core/ui/media.ts): live screens use a side rail and a one-line HUD. */
+@custom-variant compact (@media (orientation: landscape) and (max-height: 500px));
+
 /* Spartan helm components live outside src/ */
 @source '../libs/ui';
 

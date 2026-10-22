@@ -16,7 +16,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
-import { DESKTOP_QUERY, mediaQuery } from './media';
+import { DESKTOP_QUERY, mediaQuery } from '../../../core/ui/media';
 
 let uid = 0;
 export function nextId(prefix: string): string {

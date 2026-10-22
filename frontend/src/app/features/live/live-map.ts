@@ -28,26 +28,34 @@ import {
   formatNumber,
   formatRelative,
 } from '../../core/util/format';
+import { COMPACT_LANDSCAPE_QUERY, mediaQuery } from '../../core/ui/media';
+import { setImmersive } from '../../core/native/native-app';
 import { CaptureBar, showCaptureBar, zoneCanAccrue } from '../../shared/capture-bar';
-import { nowSignal } from '../../shared/game-timer';
+import { GameTimer, nowSignal } from '../../shared/game-timer';
+import { GpsStatus } from '../../shared/link-status';
 import { TacticalMap } from '../../shared/map/tactical-map';
 import { StatusChip, objectiveStatusChip } from '../../shared/status-chip';
 import { TeamBadge } from '../../shared/team-badge';
+import { LiveSession } from './live-session';
 import { bearingLabel, distanceFrom, liveLink, positionKindLabel, positionStatusChip, remaining } from './live-util';
 
 type Selection = { kind: 'objective'; id: string } | { kind: 'player'; id: string; posKind: VisiblePosition['kind'] } | { kind: 'poi'; id: string };
 
 const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!b && a.lat === b.lat && a.lng === b.lng);
 
-/** Full-bleed tactical map with perk chips, recent activity and a preview panel for the tapped marker. */
+/**
+ * Full-bleed tactical map with perk chips, recent activity and a preview panel for the tapped marker.
+ * Map-only view (button with the map controls) hides everything but the map, the timer and GPS.
+ */
 @Component({
   selector: 'zeus-live-map',
-  imports: [NgIcon, HlmButton, TacticalMap, StatusChip, TeamBadge, CaptureBar],
+  imports: [NgIcon, HlmButton, TacticalMap, StatusChip, TeamBadge, CaptureBar, GameTimer, GpsStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block h-full' },
   template: `
     <h2 class="sr-only" i18n>Map</h2>
-    <div class="absolute inset-0">
+    <!-- isolate: marker z-indexes stay inside the map, under the panels below -->
+    <div class="absolute inset-0 isolate">
       <zeus-tactical-map
         #map
         class="h-full w-full"
@@ -64,11 +72,30 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         (playerClick)="select({ kind: 'player', id: $event.userId, posKind: $event.kind })"
         (poiClick)="select({ kind: 'poi', id: $event.id })"
         (mapClick)="clearSelection()"
-      />
+      >
+        <button
+          mapControl
+          type="button"
+          class="hud grid size-11 place-items-center"
+          (click)="toggleMapOnly()"
+          [attr.aria-pressed]="session.mapOnly()"
+          [attr.aria-label]="session.mapOnly() ? txt.showInterface : txt.mapOnly"
+        >
+          <ng-icon [name]="session.mapOnly() ? 'lucideShrink' : 'lucideFullscreen'" size="18" aria-hidden="true" />
+        </button>
+      </zeus-tactical-map>
     </div>
 
+    @if (session.mapOnly()) {
+      <!-- Map-only view: just the clock and GPS -->
+      <div class="hud pointer-events-none absolute top-2 z-[2] flex items-center gap-3 px-2.5 py-1" [style.left]="'max(0.5rem, env(safe-area-inset-left))'">
+        <zeus-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="sm" [showCaption]="false" />
+        <zeus-gps-status [showTracking]="false" />
+      </div>
+    }
+
     <!-- Active effects -->
-    @if (effects().length) {
+    @if (effects().length && !session.mapOnly()) {
       <ul class="pointer-events-none absolute top-2 left-2 z-[2] flex max-w-[calc(100%-4.5rem)] flex-col items-start gap-1.5" aria-label="Active perks" i18n-aria-label>
         @for (e of effects(); track e.id) {
           <li class="hud pointer-events-auto flex items-center gap-1.5 px-2 py-1.5 text-xs font-bold" [class.border-destructive]="e.hostile">
@@ -86,8 +113,13 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
     }
 
     <!-- Recent activity -->
-    @if (activity().length && !selection()) {
-      <section class="hud absolute bottom-12 left-2 z-[2] w-[min(22rem,calc(100%-4.5rem))]" aria-label="Recent activity" i18n-aria-label>
+    @if (activity().length && !selection() && !session.mapOnly()) {
+      <section
+        class="hud absolute bottom-12 left-2 z-[2] w-[min(22rem,calc(100%-4.5rem))]"
+        [class.!w-auto]="compact() && !activityOpen()"
+        aria-label="Recent activity"
+        i18n-aria-label
+      >
         <button
           type="button"
           class="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left"
@@ -98,6 +130,10 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
           <ng-icon name="lucideActivity" size="16" class="shrink-0 text-muted-foreground" aria-hidden="true" />
           @if (activityOpen()) {
             <span class="label-caps flex-1" i18n>Activity · {{ activity().length }}</span>
+          } @else if (compact()) {
+            <!-- Phone held sideways: just the count, so the strip doesn't cover the map -->
+            <span class="num text-sm font-bold">{{ activity().length }}</span>
+            <span class="sr-only">{{ activity()[0].message }}</span>
           } @else {
             <span class="min-w-0 flex-1 truncate text-sm font-semibold">{{ activity()[0].message }}</span>
           }
@@ -120,7 +156,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
     @if (selection()) {
       <section
         #panel
-        class="hud absolute inset-x-2 bottom-2 z-[3] mx-auto max-w-lg p-4"
+        class="hud absolute inset-x-2 bottom-2 z-[3] mx-auto max-w-lg p-4 compact:right-auto compact:mx-0 compact:max-h-[calc(100%-1rem)] compact:w-[min(22rem,55%)] compact:overflow-y-auto"
         aria-labelledby="map-preview-title"
         (keydown.escape)="clearSelection()"
       >
@@ -231,10 +267,13 @@ export class LiveMapScreen {
   /** UI text used inside template expressions. */
   protected readonly txt = {
     unknownPlayer: $localize`Unknown player`,
+    mapOnly: $localize`Map only: hide the interface`,
+    showInterface: $localize`Show the interface`,
   };
 
   protected readonly store = inject(LiveStore);
   protected readonly tracker = inject(LocationTracker);
+  protected readonly session = inject(LiveSession);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -246,6 +285,8 @@ export class LiveMapScreen {
 
   protected readonly selection = signal<Selection | null>(null);
   protected readonly activityOpen = signal(false);
+  /** Phone held sideways. */
+  protected readonly compact = mediaQuery(COMPACT_LANDSCAPE_QUERY);
   private readonly focusCenter = signal<LatLng | null>(null, { equal: sameLatLng });
   /** Latest ?focus=<objectiveId> request; seq makes repeated requests for the same id distinct. */
   private readonly focusRequest = signal<{ id: string; seq: number } | null>(null);
@@ -318,6 +359,8 @@ export class LiveMapScreen {
       const shown = this.host.nativeElement.isConnected;
       if (shown && !wasShown) this.mapRef()?.reattach();
       wasShown = shown;
+      // The other tabs need the HUD and the tab bar: leaving the map ends the map-only view.
+      if (!shown && this.session.mapOnly()) this.setMapOnly(false);
       const id: unknown = this.router.routerState.snapshot.root.queryParams['focus'];
       if (typeof id === 'string' && id) this.focusRequest.set({ id, seq: ++seq });
     });
@@ -346,6 +389,15 @@ export class LiveMapScreen {
 
   protected clearSelection(): void {
     this.selection.set(null);
+  }
+
+  protected toggleMapOnly(): void {
+    this.setMapOnly(!this.session.mapOnly());
+  }
+
+  private setMapOnly(on: boolean): void {
+    this.session.mapOnly.set(on);
+    setImmersive(on);
   }
 
   protected openObjective(o: Objective): void {

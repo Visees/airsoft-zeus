@@ -74,7 +74,7 @@ const M_PER_DEG_LNG_EQ = 111_320;
     @if (renderer() === 'schematic') {
       <div
         #schematicHost
-        class="absolute inset-0 touch-none select-none overflow-hidden"
+        class="absolute inset-0 touch-none select-none overflow-clip"
         [style.background]="'var(--background)'"
         (pointerdown)="onPointerDown($event)"
         (pointermove)="onPointerMove($event)"
@@ -116,7 +116,13 @@ const M_PER_DEG_LNG_EQ = 111_320;
       <div class="absolute inset-0 grid place-items-center text-sm text-muted-foreground" role="status" i18n>Loading map…</div>
     }
 
-    <div class="absolute right-2 top-2 z-[1] flex flex-col gap-1.5" [class.!top-auto]="controlsBottom()" [class.!bottom-24]="controlsBottom()">
+    <!-- Map buttons; screens add their own with the mapControl attribute. Smaller on a phone held sideways so they fit. -->
+    <div
+      class="absolute right-2 top-2 z-[1] flex flex-col gap-1.5 compact:gap-1 compact:[&>button]:size-10"
+      [class.!top-auto]="controlsBottom()"
+      [class.!bottom-24]="controlsBottom()"
+    >
+      <ng-content select="[mapControl]" />
       @if (renderer() === 'schematic') {
         <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1.4)" aria-label="Zoom in" i18n-aria-label>
           <ng-icon name="lucidePlus" size="18" aria-hidden="true" />
@@ -854,7 +860,6 @@ export class TacticalMap {
   }
 
   protected onPointerDown(e: PointerEvent): void {
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (this.pointers.size === 1) {
       this.dragStart = { x: e.clientX, y: e.clientY, pan: this.pan(), moved: false };
@@ -876,7 +881,12 @@ export class TacticalMap {
     } else if (this.dragStart) {
       const dx = e.clientX - this.dragStart.x;
       const dy = e.clientY - this.dragStart.y;
-      if (Math.abs(dx) + Math.abs(dy) > 4) this.dragStart.moved = true;
+      if (!this.dragStart.moved && Math.abs(dx) + Math.abs(dy) > 4) {
+        this.dragStart.moved = true;
+        // Captured only once it is a drag: a capture from pointerdown sends a tap's click to the
+        // map instead of the marker under the finger.
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      }
       this.pan.set({ x: this.dragStart.pan.x + dx, y: this.dragStart.pan.y + dy });
     }
   }
@@ -885,7 +895,8 @@ export class TacticalMap {
     const wasTap = this.dragStart && !this.dragStart.moved && this.pointers.size === 1;
     this.pointers.delete(e.pointerId);
     if (this.pointers.size < 2) this.pinchStart = null;
-    if (wasTap && e.type === 'pointerup') {
+    // A tap on a marker is the marker's click, not a tap on the empty map.
+    if (wasTap && e.type === 'pointerup' && !(e.target as Element).closest('button, [role="button"]')) {
       const rect = this.schematicHost()!.nativeElement.getBoundingClientRect();
       this.mapClick.emit(this.unproject(e.clientX - rect.left, e.clientY - rect.top));
     }

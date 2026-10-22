@@ -171,7 +171,7 @@ cd android; .\gradlew assembleRelease     # → app/build/outputs/apk/release/ap
 ```
 
 Players install it over the old one (same signing key, higher versionCode). The release key is
-`%USERPROFILE%\.airsofthubirsofthub-release.jks` with its passwords in `keystore.properties`
+`%USERPROFILE%\.airsofthub\airsofthub-release.jks` with its passwords in `keystore.properties`
 (copy in `frontend/android/keystore.properties`, not in git). Back both up: without them, installed
 apps can't be updated and players must uninstall first. Debug builds (Android Studio ▶) use a
 different key, so a phone with a debug build must uninstall it before installing a release APK.

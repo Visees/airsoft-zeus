@@ -23,7 +23,7 @@ import { ChipSpec, StatusChip } from '../../shared/status-chip';
 import { TeamBadge } from '../../shared/team-badge';
 import { GmPanel } from './common/controls';
 import { staticFormTick } from './common/form-utils';
-import { DESKTOP_QUERY, mediaQuery } from './common/media';
+import { DESKTOP_QUERY, mediaQuery } from '../../core/ui/media';
 import { MemberAssign, isRunning } from './common/member-assign';
 
 type StatusFilter = 'pending' | 'approved' | 'invited' | 'rejected' | 'removed';

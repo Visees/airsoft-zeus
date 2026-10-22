@@ -102,3 +102,18 @@ function blobToBase64(blob: Blob): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
+
+/**
+ * Hide or show the phone's status and navigation bars (the live map's map-only view). In the app:
+ * Capacitor's SystemBars; in a browser: the Fullscreen API (Android Chrome; not on iPhones). Call
+ * it from the tap itself: browsers allow fullscreen only during a user gesture.
+ */
+export function setImmersive(on: boolean): void {
+  if (isNativeApp()) {
+    void import('@capacitor/core').then(({ SystemBars }) => (on ? SystemBars.hide() : SystemBars.show())).catch(() => undefined);
+    return;
+  }
+  if (typeof document === 'undefined') return;
+  if (on && document.fullscreenEnabled && !document.fullscreenElement) void document.documentElement.requestFullscreen().catch(() => undefined);
+  else if (!on && document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+}

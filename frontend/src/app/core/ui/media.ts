@@ -14,3 +14,9 @@ export function mediaQuery(query: string): Signal<boolean> {
 
 /** ≥1024px: GM screens switch to tables and side panels. */
 export const DESKTOP_QUERY = '(min-width: 1024px)';
+
+/**
+ * A phone held sideways: little height, so the live screens use a side rail and a one-line HUD.
+ * Same query as the `compact:` Tailwind variant in styles.css.
+ */
+export const COMPACT_LANDSCAPE_QUERY = '(orientation: landscape) and (max-height: 500px)';

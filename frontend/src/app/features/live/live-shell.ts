@@ -7,6 +7,7 @@ import { ApiService } from '../../core/api/api.service';
 import { LiveStore } from '../../core/live/live-store';
 import { PlayerViewService } from '../../core/live/player-view';
 import { LocationTracker } from '../../core/location/location-tracker.service';
+import { isNativeApp, setImmersive } from '../../core/native/native-app';
 import { ConnectivityService } from '../../core/net/connectivity.service';
 import { KeepAliveRouteStrategy, LIVE_MAP_KEEP_ALIVE } from '../../core/routing/keep-alive-route-strategy';
 import { RealtimeService } from '../../core/realtime/realtime.service';
@@ -71,7 +72,8 @@ interface SharingIndicator {
     LiveSheet,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex h-dvh flex-col overflow-hidden bg-background text-foreground' },
+  // Phone held sideways (compact:): the tab bar becomes a rail on the left and the HUD one line.
+  host: { class: 'flex h-dvh flex-col overflow-hidden bg-background text-foreground compact:grid compact:grid-cols-[auto_1fr] compact:grid-rows-[auto_1fr]' },
   styles: `
     .nav-item {
       position: relative;
@@ -102,18 +104,28 @@ interface SharingIndicator {
     .nav-item:focus-visible {
       outline-offset: -3px;
     }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .nav-item.is-active::before {
+        inset-inline: auto;
+        inset-block: 22%;
+        left: 0;
+        width: 3px;
+        height: auto;
+        border-radius: 0 2px 2px 0;
+      }
+    }
   `,
   template: `
     @if (!store.event()) {
       @if (store.loading()) {
-        <div class="flex flex-1 items-center justify-center p-6">
+        <div class="flex flex-1 items-center justify-center p-6 compact:col-span-2 compact:row-span-2">
           <div class="w-full max-w-md">
             <p class="label-caps mb-3" i18n>Joining the game…</p>
             <zeus-loading-skeleton [rows]="4" />
           </div>
         </div>
       } @else {
-        <div class="flex flex-1 items-center justify-center p-6">
+        <div class="flex flex-1 items-center justify-center p-6 compact:col-span-2 compact:row-span-2">
           <div class="w-full max-w-md">
             <zeus-error-state [error]="store.error()" title="Could not load the game" (retry)="store.reload()" i18n-title>
               <a hlmBtn variant="ghost" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to event</a>
@@ -125,18 +137,21 @@ interface SharingIndicator {
       @let ev = store.event()!;
       <!-- HUD strip -->
       <header
-        class="hud z-20 shrink-0 rounded-none border-x-0 border-t-0 pb-2"
+        class="hud z-20 shrink-0 rounded-none border-x-0 border-t-0 pb-2 compact:col-start-2 compact:row-start-1 compact:pb-1"
+        [class.hidden]="session.mapOnly()"
         [style.padding-top]="'calc(var(--safe-top) + 0.5rem)'"
         [style.padding-left]="'max(0.75rem, env(safe-area-inset-left))'"
         [style.padding-right]="'max(0.75rem, env(safe-area-inset-right))'"
       >
         <h1 class="sr-only" i18n>{{ ev.name }} — live game</h1>
-        <div class="flex items-center justify-between gap-3">
-          <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
+        <!-- Compact: one line, timer · GPS and sharing · team, the first row's children joining the line -->
+        <div class="flex flex-col compact:flex-row compact:items-center compact:gap-3">
+        <div class="flex items-center justify-between gap-3 compact:contents">
+          <zeus-game-timer class="compact:order-1" [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
           @if (store.isGm()) {
-            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary" i18n>GAME MASTER</span>
+            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary compact:order-3" i18n>GAME MASTER</span>
           } @else if (store.myTeam(); as team) {
-            <div class="flex min-w-0 items-center gap-3">
+            <div class="flex min-w-0 items-center gap-3 compact:order-3">
               <span class="flex min-w-0 items-center gap-1.5">
                 <zeus-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
                 <span class="hidden max-w-28 truncate text-sm font-bold sm:inline">{{ team.name }}</span>
@@ -148,16 +163,16 @@ interface SharingIndicator {
               }
             </div>
           } @else {
-            <span class="text-sm font-bold text-warning" i18n>○ No team</span>
+            <span class="text-sm font-bold text-warning compact:order-3" i18n>○ No team</span>
           }
         </div>
-        <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 compact:order-2 compact:mt-0 compact:min-w-0 compact:flex-1">
           <zeus-gps-status [showTracking]="false" />
           <zeus-connection-status [compact]="true" [showSync]="false" />
           @if (sharing(); as s) {
             <button
               type="button"
-              class="-my-2 inline-flex h-11 items-center gap-1 rounded-sm px-1.5 text-xs font-bold"
+              class="-my-2 inline-flex h-11 items-center gap-1 rounded-sm px-1.5 text-xs font-bold compact:my-0 compact:h-8"
               [class]="s.tone"
               [disabled]="!s.action"
               (click)="onSharingTap(s.action)"
@@ -170,9 +185,10 @@ interface SharingIndicator {
             <zeus-status-chip [spec]="pausedChip" />
           }
         </div>
+        </div>
       </header>
 
-      <div class="relative flex min-h-0 flex-1 flex-col">
+      <div class="relative flex min-h-0 flex-1 flex-col compact:col-start-2 compact:row-start-2">
         <main #liveMain id="live-main" class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <router-outlet (activate)="liveMain.scrollTop = 0" />
         </main>
@@ -241,8 +257,14 @@ interface SharingIndicator {
       </div>
 
       <!-- Bottom navigation -->
-      <nav class="z-20 shrink-0 border-t border-border bg-card" aria-label="Game sections" [style.padding-bottom]="'var(--safe-bottom)'" i18n-aria-label>
-        <ul class="mx-auto flex h-16 max-w-3xl">
+      <nav
+        class="z-20 shrink-0 border-t border-border bg-card compact:col-start-1 compact:row-span-2 compact:row-start-1 compact:border-t-0 compact:border-r compact:pl-[env(safe-area-inset-left)]"
+        [class.hidden]="session.mapOnly()"
+        aria-label="Game sections"
+        [style.padding-bottom]="'var(--safe-bottom)'"
+        i18n-aria-label
+      >
+        <ul class="mx-auto flex h-16 max-w-3xl compact:h-full compact:w-14 compact:flex-col">
           @for (item of navItems(); track item.label) {
             <li class="min-w-0 flex-1">
               <a
@@ -262,7 +284,7 @@ interface SharingIndicator {
                     >
                   }
                 </span>
-                <span class="text-xs font-bold tracking-wide">{{ item.label }}</span>
+                <span class="text-xs font-bold tracking-wide compact:sr-only">{{ item.label }}</span>
                 @if (item.badge > 0) {
                   <span class="sr-only">, {{ item.badge }} {{ item.badgeLabel }}</span>
                 }
@@ -467,6 +489,21 @@ export class LiveShell {
     // The live map is kept alive across tabs (one billed map load per game); drop it with the shell.
     const reuse = inject(KeepAliveRouteStrategy);
     destroyRef.onDestroy(() => reuse.release(LIVE_MAP_KEEP_ALIVE));
+
+    // Map-only view: leaving the live screens brings the phone's bars back; leaving browser
+    // fullscreen (Esc, back gesture) ends the view.
+    destroyRef.onDestroy(() => {
+      if (!this.session.mapOnly()) return;
+      this.session.mapOnly.set(false);
+      setImmersive(false);
+    });
+    if (typeof document !== 'undefined') {
+      const onFullscreen = () => {
+        if (!document.fullscreenElement && this.session.mapOnly() && !isNativeApp()) this.session.mapOnly.set(false);
+      };
+      document.addEventListener('fullscreenchange', onFullscreen);
+      destroyRef.onDestroy(() => document.removeEventListener('fullscreenchange', onFullscreen));
+    }
 
     // A Game Master on a team sees these screens as their team does (see PlayerViewService),
     // unless the shell was opened with ?view=gm: then it keeps the Game Master view until it closes.

@@ -21,6 +21,9 @@ export class LiveSession {
   /** The shell renders the consent / permission sheet while this is true. */
   readonly sheetOpen = signal(false);
 
+  /** Map-only view: the shell hides the HUD and the tab bar, the map hides its overlays. */
+  readonly mapOnly = signal(false);
+
   isStopped(eventId: Uuid | null): boolean {
     return !!eventId && !!this.stopped()[eventId];
   }
