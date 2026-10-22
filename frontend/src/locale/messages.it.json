@@ -3273,6 +3273,18 @@
     "535465883532661114": "{$START_TAG_STRONG}Android:{$CLOSE_TAG_STRONG} Impostazioni → App → Chrome (o il browser con cui giochi) → Autorizzazioni → Posizione → attiva {$START_TAG_STRONG}Usa posizione precisa{$CLOSE_TAG_STRONG}. ",
     "5099376726613484460": "Controlla anche Impostazioni → Posizione → Servizi di localizzazione → {$START_TAG_STRONG}Precisione posizione Google{$CLOSE_TAG_STRONG} sia attiva.",
     "5299168730935033869": "{$START_TAG_STRONG}iPhone:{$CLOSE_TAG_STRONG} Impostazioni → Privacy e sicurezza → Localizzazione → il tuo browser → attiva {$START_TAG_STRONG}Posizione esatta{$CLOSE_TAG_STRONG}.",
-    "4911539652061620331": "Poi ricarica questa pagina."
+    "4911539652061620331": "Poi ricarica questa pagina.",
+    "6293578527693962748": "permesso",
+    "5969723086081461872": "continua",
+    "6644710328206737187": "singola",
+    "720074083786027884": "Diagnostica GPS",
+    "4707526591346351045": "Alta precisione richiesta: {$START_TAG_SPAN}{$INTERPOLATION}{$CLOSE_TAG_SPAN}",
+    "8691920320483720007": "Ricevuta",
+    "9155608366859514313": "Origine",
+    "8453978291702921277": "Età fix",
+    "5549273698624569676": "Tenuta",
+    "1517101429326805089": "Nessuna posizione ricevuta.",
+    "6286037250766429054": "sì",
+    "2420525563530770652": "no"
   }
 }

@@ -4,7 +4,7 @@ import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiService } from '../../core/api/api.service';
 import { LiveStore } from '../../core/live/live-store';
-import { LocationTracker, TrackerState } from '../../core/location/location-tracker.service';
+import { FixSource, LocationTracker, TrackerState } from '../../core/location/location-tracker.service';
 import { ConnectivityService } from '../../core/net/connectivity.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
@@ -33,6 +33,12 @@ const FLAG_LABELS: Record<string, string> = {
   speed: $localize`Movement looked too fast`,
   mock: $localize`A mock location app was detected`,
   stale: $localize`Position is stale`,
+};
+
+const FIX_SOURCE_LABELS: Record<FixSource, string> = {
+  permission: $localize`:GPS fix source|:permission`,
+  watch: $localize`:GPS fix source|:continuous`,
+  poll: $localize`:GPS fix source|:one-off`,
 };
 
 /** Location sharing controls, sync status, rules, messages, links, theme, leave event. */
@@ -103,6 +109,40 @@ const FLAG_LABELS: Record<string, string> = {
               <li>◐ {{ f }}</li>
             }
           </ul>
+        }
+        @if (mine()) {
+          <details class="rounded-sm border border-border text-xs">
+            <summary class="flex min-h-10 cursor-pointer items-center px-3 font-semibold" i18n>GPS diagnostics</summary>
+            <div class="flex flex-col gap-2 border-t border-border px-3 py-2">
+              <p i18n>High accuracy requested: <span class="font-bold">{{ highAccuracyLabel() }}</span></p>
+              @if (fixRows().length) {
+                <table class="num w-full text-left">
+                  <thead class="text-muted-foreground">
+                    <tr>
+                      <th class="font-normal" i18n>Received</th>
+                      <th class="font-normal" i18n>Source</th>
+                      <th class="font-normal" i18n>Accuracy</th>
+                      <th class="font-normal" i18n>Fix age</th>
+                      <th class="font-normal" i18n>Kept</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of fixRows(); track $index) {
+                      <tr [class.text-muted-foreground]="!r.accepted">
+                        <td>-{{ r.receivedAgoS }} s</td>
+                        <td>{{ r.source }}</td>
+                        <td>±{{ r.accuracy }} m</td>
+                        <td>{{ r.ageS }} s</td>
+                        <td>{{ r.accepted ? txt.yes : txt.no }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="text-muted-foreground" i18n>No positions received yet.</p>
+              }
+            </div>
+          </details>
         }
         @if (!isPlayer()) {
           <p class="text-sm text-muted-foreground" i18n>Only players share their location. Game Masters see players from the control center.</p>
@@ -259,6 +299,8 @@ export class LiveMoreScreen {
     everyone: $localize`Everyone`,
     leaving: $localize`Leaving…`,
     leaveEvent: $localize`Leave event`,
+    yes: $localize`yes`,
+    no: $localize`no`,
   };
 
   protected readonly store = inject(LiveStore);
@@ -319,6 +361,20 @@ export class LiveMoreScreen {
     this.tick();
     const at = this.connectivity.lastSyncAt();
     return at ? formatRelative(new Date(at).toISOString()) : $localize`never`;
+  });
+  protected readonly highAccuracyLabel = computed(() => {
+    const h = this.tracker.highAccuracyRequested();
+    return h === null ? '—' : h ? this.txt.yes : this.txt.no;
+  });
+  protected readonly fixRows = computed(() => {
+    const now = this.tick();
+    return this.tracker.fixLog().map((e) => ({
+      receivedAgoS: Math.max(0, Math.round((now - e.receivedAt) / 1000)),
+      source: FIX_SOURCE_LABELS[e.source],
+      accuracy: Math.round(e.accuracy),
+      ageS: Math.round(e.ageMs / 1000),
+      accepted: e.accepted,
+    }));
   });
   protected readonly flags = computed(() => (this.mine() ? this.tracker.lastFlags().map((f) => FLAG_LABELS[f] ?? f) : []));
 

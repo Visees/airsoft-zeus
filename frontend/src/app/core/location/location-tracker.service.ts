@@ -18,6 +18,21 @@ export interface Fix {
   timestamp: number;
 }
 
+/** Which call delivered a fix: the permission check, watchPosition, or the per-interval getCurrentPosition. */
+export type FixSource = 'permission' | 'watch' | 'poll';
+
+/** One raw fix as the browser delivered it, for the GPS diagnostics in More. */
+export interface FixLogEntry {
+  receivedAt: number;
+  source: FixSource;
+  accuracy: number;
+  /** receivedAt minus the fix's own timestamp: large = a cached position */
+  ageMs: number;
+  accepted: boolean;
+}
+
+const MAX_FIX_LOG = 15;
+
 function iosWithoutWakeLock(): boolean {
   const m = /(?:iPhone|iPad|iPod).* OS (\d+)_(\d+)/.exec(navigator.userAgent);
   if (!m) return false;
@@ -60,6 +75,10 @@ export class LocationTracker {
   /** Objective whose detail screen is open; required by some geofence objectives. */
   readonly screenObjectiveId = signal<Uuid | null>(null);
   readonly wakeLockActive = signal(false);
+  /** Newest first. */
+  readonly fixLog = signal<FixLogEntry[]>([]);
+  /** enableHighAccuracy of the running watch; null when not tracking. */
+  readonly highAccuracyRequested = signal<boolean | null>(null);
   /**
    * iPhones where the app can't keep the screen on: no Screen Wake Lock before iOS 16.4, and in a
    * Home Screen app it silently fails until 18.4 (WebKit bug 254545). A locked screen stops GPS, so
@@ -117,7 +136,7 @@ export class LocationTracker {
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.onPosition(pos);
+          this.onPosition(pos, 'permission');
           resolve(true);
         },
         // Timeout / position unavailable: permission may still be granted; ask the Permissions API.
@@ -146,11 +165,12 @@ export class LocationTracker {
     // Battery saver only stretches the interval: without high accuracy Android answers with Wi-Fi/cell
     // estimates, kilometres wide outdoors, and no zone can count the player.
     const highAccuracy = settings.highAccuracy;
+    this.highAccuracyRequested.set(highAccuracy);
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => {
         // 'error' too: a first fix slower than the timeout (cold start under trees) reports an error, then fixes arrive
         if (this.state() === 'requesting' || this.state() === 'error') this.state.set('tracking');
-        this.onPosition(pos);
+        this.onPosition(pos, 'watch');
       },
       (err) => {
         if (err.code === err.PERMISSION_DENIED) {
@@ -173,6 +193,7 @@ export class LocationTracker {
     const eventId = this.eventId();
     if (this.watchId !== null && this.isBrowser) navigator.geolocation.clearWatch(this.watchId);
     this.watchId = null;
+    this.highAccuracyRequested.set(null);
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (this.isBrowser) document.removeEventListener('visibilitychange', this.onVisibility);
@@ -219,7 +240,7 @@ export class LocationTracker {
 
   /** Queue a fix from getCurrentPosition (no distance filter; only newer than the last queued one). */
   private queueSample(sample: LocationSample): void {
-    if (!this.outliers.accept(sample)) return;
+    if (!this.logFix('poll', sample, this.outliers.accept(sample))) return;
     this.showFix(sample);
     if (this.lastQueued && sample.timestamp <= this.lastQueued.timestamp) return;
     this.queue.push(sample);
@@ -234,9 +255,17 @@ export class LocationTracker {
     this.lastFix.set({ lat, lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp });
   }
 
-  private onPosition(pos: GeolocationPosition): void {
+  /** Record a raw fix for the diagnostics; returns `accepted`. */
+  private logFix(source: FixSource, sample: LocationSample, accepted: boolean): boolean {
+    const now = Date.now();
+    const entry = { receivedAt: now, source, accuracy: sample.accuracy, ageMs: now - sample.timestamp, accepted };
+    this.fixLog.update((log) => [entry, ...log].slice(0, MAX_FIX_LOG));
+    return accepted;
+  }
+
+  private onPosition(pos: GeolocationPosition, source: FixSource): void {
     const sample = this.toSample(pos);
-    if (!this.outliers.accept(sample)) return;
+    if (!this.logFix(source, sample, this.outliers.accept(sample))) return;
     this.showFix(sample);
     if (!this.settings || this.watchId === null) return;
     const last = this.lastQueued;
