@@ -265,6 +265,10 @@ and the notes below.
   no wake lock; off → foreground only + wake lock. Changing the setting mid-game restarts the
   watcher. A report the WebView's timers held back goes out with the next fix. `isMocked` is sent
   for simulated positions. Tests: `location-tracker.native.spec.ts`.
+* Capacitor plugins are proxies that forward every property, `then` included, to native code:
+  never resolve a promise with a plugin (it hangs, logging "then() is not implemented"). The
+  loaders in `native-app.ts` resolve to `{ plugin }` and `NativeLocation` calls the methods.
+  Found on a Galaxy S10e (GPS stuck on "Starting GPS"); unit tests use plain fakes and can't catch it.
 * `ApiService.reportLocation` in the app uses native HTTP (Android throttles WebView requests
   after ~5 min in the background) and adds what the interceptors would: bearer token,
   Accept-Language, `X-Zeus-View`, one refresh + retry on 401.

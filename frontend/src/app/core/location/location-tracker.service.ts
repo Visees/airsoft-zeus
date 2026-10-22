@@ -151,7 +151,7 @@ export class LocationTracker {
   async permissionState(): Promise<PermissionState | 'unsupported'> {
     if (this.native) {
       try {
-        const { location } = await (await this.nativeLocation.geolocation()).checkPermissions();
+        const { location } = await this.nativeLocation.checkPermissions();
         return location === 'prompt-with-rationale' ? 'prompt' : location;
       } catch {
         return 'prompt'; // throws while the phone's location services are off
@@ -185,11 +185,10 @@ export class LocationTracker {
 
   private async requestNativePermission(): Promise<boolean> {
     try {
-      const geo = await this.nativeLocation.geolocation();
-      const { location } = await geo.requestPermissions({ permissions: ['location'] });
+      const { location } = await this.nativeLocation.requestPermissions();
       if (location !== 'granted') return false;
       // a first fix for the own marker, as the browser's permission prompt gives one
-      geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 20_000, maximumAge: 10_000 }).then(
+      this.nativeLocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 20_000, maximumAge: 10_000 }).then(
         (pos) => this.onPosition(pos, 'permission'),
         () => undefined,
       );
@@ -252,17 +251,12 @@ export class LocationTracker {
     const notification = background
       ? { backgroundTitle: $localize`AirsoftHub is sharing your location`, backgroundMessage: $localize`Your team sees you on the map until you leave the game.` }
       : {};
-    const watch: Promise<string | null> = this.nativeLocation.background()
-      .then((bg) =>
-        bg.addWatcher(
-          { ...notification, requestPermissions: true, stale: false, distanceFilter: 0 },
-          (loc, err) => {
-            if (this.nativeWatch !== watch) return; // a removed watcher can still deliver
-            if (loc) this.onWatchFix(fromBackground(loc));
-            else if (err) this.onWatchError(err.code === 'NOT_AUTHORIZED', err.message);
-          },
-        ),
-      )
+    const watch: Promise<string | null> = this.nativeLocation
+      .addWatcher({ ...notification, requestPermissions: true, stale: false, distanceFilter: 0 }, (loc, err) => {
+        if (this.nativeWatch !== watch) return; // a removed watcher can still deliver
+        if (loc) this.onWatchFix(fromBackground(loc));
+        else if (err) this.onWatchError(err.code === 'NOT_AUTHORIZED', err.message);
+      })
       .catch((err: { code?: string; message?: string } | undefined) => {
         if (this.nativeWatch === watch) this.onWatchError(err?.code === 'NOT_AUTHORIZED', err?.message);
         return null;
@@ -275,9 +269,7 @@ export class LocationTracker {
     this.nativeWatch = null;
     this.backgroundTracking.set(false);
     if (!watch) return;
-    void Promise.all([watch, this.nativeLocation.background()])
-      .then(([id, bg]) => (id ? bg.removeWatcher({ id }) : undefined))
-      .catch(() => undefined);
+    void watch.then((id) => (id ? this.nativeLocation.removeWatcher(id) : undefined)).catch(() => undefined);
   }
 
   private onWatchFix(pos: PositionLike): void {
@@ -348,8 +340,8 @@ export class LocationTracker {
   private currentPosition(): Promise<PositionLike | null> {
     const s = this.settings;
     if (this.native) {
-      return this.nativeLocation.geolocation()
-        .then((geo) => geo.getCurrentPosition({ enableHighAccuracy: !!s?.highAccuracy, maximumAge: 1_000, timeout: Math.min(10_000, this.intervalMs()) }))
+      return this.nativeLocation
+        .getCurrentPosition({ enableHighAccuracy: !!s?.highAccuracy, maximumAge: 1_000, timeout: Math.min(10_000, this.intervalMs()) })
         .catch(() => null);
     }
     return new Promise((resolve) =>

@@ -16,30 +16,43 @@ export function isNativeApp(): boolean {
   );
 }
 
-let bgGeo: Promise<BackgroundGeolocationPlugin> | null = null;
+/*
+ * A plugin is a proxy that sends every property to the native side, `then` included, so it must
+ * never be what a promise resolves to: the promise would call `plugin.then()`, which fails with
+ * "then() is not implemented". The loaders resolve to `{ plugin }` instead.
+ */
+let bgGeo: Promise<{ plugin: BackgroundGeolocationPlugin }> | null = null;
 
 /** GPS that keeps running with the screen off (Android shows a notification while it runs). */
-export function backgroundGeolocation(): Promise<BackgroundGeolocationPlugin> {
-  bgGeo ??= import('@capacitor/core').then(({ registerPlugin }) =>
-    registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation'),
-  );
+function backgroundGeolocation(): Promise<{ plugin: BackgroundGeolocationPlugin }> {
+  bgGeo ??= import('@capacitor/core').then(({ registerPlugin }) => ({ plugin: registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation') }));
   return bgGeo;
 }
 
 /** Location permission and one-off fixes from the OS (the WebView's own geolocation prompts per site). */
-export function nativeGeolocation(): Promise<GeolocationPlugin> {
-  return import('@capacitor/geolocation').then((m) => m.Geolocation);
+function nativeGeolocation(): Promise<{ plugin: GeolocationPlugin }> {
+  return import('@capacitor/geolocation').then((m) => ({ plugin: m.Geolocation }));
 }
 
 /** The app's location plugins, injectable so tests can replace them. */
 @Injectable({ providedIn: 'root' })
 export class NativeLocation {
   readonly available = isNativeApp();
-  background(): Promise<BackgroundGeolocationPlugin> {
-    return backgroundGeolocation();
+
+  async addWatcher(...args: Parameters<BackgroundGeolocationPlugin['addWatcher']>): Promise<string> {
+    return (await backgroundGeolocation()).plugin.addWatcher(...args);
   }
-  geolocation(): Promise<GeolocationPlugin> {
-    return nativeGeolocation();
+  async removeWatcher(id: string): Promise<void> {
+    return (await backgroundGeolocation()).plugin.removeWatcher({ id });
+  }
+  async checkPermissions(): ReturnType<GeolocationPlugin['checkPermissions']> {
+    return (await nativeGeolocation()).plugin.checkPermissions();
+  }
+  async requestPermissions(): ReturnType<GeolocationPlugin['requestPermissions']> {
+    return (await nativeGeolocation()).plugin.requestPermissions({ permissions: ['location'] });
+  }
+  async getCurrentPosition(options: Parameters<GeolocationPlugin['getCurrentPosition']>[0]): ReturnType<GeolocationPlugin['getCurrentPosition']> {
+    return (await nativeGeolocation()).plugin.getCurrentPosition(options);
   }
 }
 

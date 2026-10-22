@@ -18,29 +18,15 @@ const native = {
 
 const fakeNativeLocation = {
   available: true,
-  background: async () => ({
-    addWatcher: async (
-      options: Record<string, unknown>,
-      cb: (loc?: unknown, err?: unknown) => void,
-    ) => {
-      const id = `w${native.watchers.length}`;
-      native.watchers.push({ id, options, cb });
-      return id;
-    },
-    removeWatcher: async ({ id }: { id: string }) => void native.removed.push(id),
-  }),
-  geolocation: async () => ({
-    getCurrentPosition: async () => ({
-      timestamp: Date.now(),
-      coords: {
-        latitude: 45.5,
-        longitude: 9.2,
-        accuracy: 6,
-        heading: null,
-        speed: null,
-        altitude: null,
-      },
-    }),
+  addWatcher: async (options: Record<string, unknown>, cb: (loc?: unknown, err?: unknown) => void) => {
+    const id = `w${native.watchers.length}`;
+    native.watchers.push({ id, options, cb });
+    return id;
+  },
+  removeWatcher: async (id: string) => void native.removed.push(id),
+  getCurrentPosition: async () => ({
+    timestamp: Date.now(),
+    coords: { latitude: 45.5, longitude: 9.2, accuracy: 6, heading: null, speed: null, altitude: null },
   }),
 };
 
