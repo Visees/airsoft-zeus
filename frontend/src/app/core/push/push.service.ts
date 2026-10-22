@@ -13,6 +13,8 @@ export class PushService {
   private readonly config = inject(ConfigService);
   private readonly router = inject(Router);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  /** The Android app's WebView runs the service worker but has no Push API. */
+  private readonly swPushEnabled = this.isBrowser && this.swPush.isEnabled && 'PushManager' in window;
 
   readonly permission = signal<NotificationPermission | 'unsupported'>('default');
   readonly subscribed = signal(false);
@@ -20,7 +22,7 @@ export class PushService {
   constructor() {
     if (!this.isBrowser) return;
     this.permission.set('Notification' in window ? Notification.permission : 'unsupported');
-    if (this.swPush.isEnabled) {
+    if (this.swPushEnabled) {
       this.swPush.subscription.subscribe((s) => this.subscribed.set(!!s));
       this.swPush.notificationClicks.subscribe(({ notification }) => {
         const url = (notification.data as { url?: string } | undefined)?.url;
@@ -30,7 +32,7 @@ export class PushService {
   }
 
   get supported(): boolean {
-    return this.isBrowser && 'Notification' in window && this.swPush.isEnabled;
+    return this.swPushEnabled && 'Notification' in window;
   }
 
   /** Ask permission (must be called from a user gesture) and register the subscription. */
@@ -58,7 +60,7 @@ export class PushService {
   }
 
   async disable(): Promise<void> {
-    if (!this.swPush.isEnabled) return;
+    if (!this.swPushEnabled) return;
     const sub = await new Promise<PushSubscription | null>((resolve) => {
       const s = this.swPush.subscription.subscribe((v) => {
         resolve(v);
