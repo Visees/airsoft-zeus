@@ -81,7 +81,8 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
             <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy()" (click)="setStatus('open')">Reopen</button>
           </div>
         } @else {
-          <form class="mt-6 flex flex-col gap-2" (ngSubmit)="send()" novalidate>
+          <!-- Plain (submit), not (ngSubmit): there is no [formGroup]/NgForm on this form to emit it. -->
+          <form class="mt-6 flex flex-col gap-2" (submit)="$event.preventDefault(); send()" novalidate>
             <label hlmLabel for="sup-reply">{{ staff() ? 'Answer' : 'Add a message' }}</label>
             <textarea hlmTextarea id="sup-reply" [formControl]="reply" rows="4" maxlength="5000"
               [placeholder]="staff() ? 'The player gets a notification with your answer.' : 'More details, a follow-up, a thank you…'"></textarea>
