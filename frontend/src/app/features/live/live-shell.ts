@@ -306,9 +306,13 @@ interface SharingIndicator {
                   </span>
                 </li>
               </ul>
-              <p class="text-muted-foreground" i18n>
-                Without it you can still play, but objectives you capture by holding a zone will not count your presence. The app keeps the
-                screen awake while sharing.
+              <p class="text-muted-foreground">
+                <ng-container i18n>Without it you can still play, but objectives you capture by holding a zone will not count your presence.</ng-container>
+                @if (tracker.native && ev.tracking.background) {
+                  <ng-container i18n>Sharing continues with the screen off; a notification shows while it runs.</ng-container>
+                } @else {
+                  <ng-container i18n>The app keeps the screen awake while sharing.</ng-container>
+                }
               </p>
               <div class="flex flex-col gap-2">
                 <button hlmBtn type="button" class="h-12" (click)="shareLocation()" [disabled]="consentSaving()">
@@ -368,7 +372,7 @@ export class LiveShell {
 
   protected readonly store = inject(LiveStore);
   protected readonly session = inject(LiveSession);
-  private readonly tracker = inject(LocationTracker);
+  protected readonly tracker = inject(LocationTracker);
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);

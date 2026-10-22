@@ -114,8 +114,39 @@ tick, which is also guarded by a Postgres advisory lock).
 
 ## Mobile apps and background tracking
 
-The app is an installable PWA (Android, iOS, desktop). Browsers stop GPS when the screen
-is locked, so during a game the app keeps the screen awake (Screen Wake Lock) and tells
-players to keep it open. True background tracking needs a native shell: wrap the built
-frontend with Capacitor and add a background-geolocation plugin feeding the same
-`POST /api/events/:id/locations` endpoint — no backend change needed.
+The web app is an installable PWA (Android, iOS, desktop). Browsers stop GPS when the screen
+is locked, so during a game it keeps the screen awake (Screen Wake Lock) and tells players
+to keep it open.
+
+The Android and iOS apps (`frontend/android`, `frontend/ios`, Capacitor 8) keep sharing
+with the screen off. They are a native shell that loads the live site, so a web deploy
+updates them too; only a change to the native projects or plugins needs a new store build.
+In the app, `LocationTracker` takes fixes from
+`@capacitor-community/background-geolocation` (on Android a foreground service with a
+notification, so no "allow all the time" permission) and sends reports through native HTTP,
+which Android doesn't throttle in the background. It does so only when the event's tracking
+setting "Background tracking" is on (default); otherwise the app keeps the screen awake like
+the browser. Files to download open the share sheet. No backend change was needed.
+
+Not in the app yet: push notifications (WebViews have no Web Push; needs FCM/APNs and a
+backend sender) and printing QR codes from the objective editor (GMs use the website).
+
+Build (from `frontend/`):
+
+```bash
+npm install
+npx cap sync                                  # loads https://airsoftzeus.visedev.it; other site: APP_URL=https://… npx cap sync
+npm run app:android                           # opens Android Studio: Run, or Build > Generate Signed App Bundle/APK
+npm run app:ios                               # macOS only: opens Xcode
+```
+
+* The site URL (`APP_URL`, default the production site) is baked into the native projects at
+  `cap sync` (`capacitor.config.ts`); run it
+  again after changing it or after adding a plugin. To test against a dev machine, use its LAN
+  address (e.g. `http://192.168.1.20:4200`, served with `ng serve --host 0.0.0.0`).
+* App id `app.airsofthub` (`capacitor.config.ts`) is permanent once published.
+* Android: Android Studio (bundles the SDK) and JDK 21. An APK can be shared directly; Google
+  Play needs the foreground-service (location) declaration in Play Console.
+* iOS: a Mac with Xcode and an Apple Developer account. Location and camera texts are in
+  `ios/App/App/Info.plist` (English only for now); background mode `location` is on.
+* App icons and splash: still Capacitor's defaults (replace with `@capacitor/assets`).

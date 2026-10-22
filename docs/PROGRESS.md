@@ -207,7 +207,7 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.
   Test the Google renderer (markers, drawing, drag) once a key is set.
-* Background GPS with the screen locked needs a native wrapper (Capacitor) — see README.
+* Background GPS with the screen locked: Android/iOS app (Capacitor), see "Native apps" below.
 * Single API instance (in-process rate limits and socket rooms); scaling out needs a
   Redis adapter for Socket.IO and a shared rate-limit store.
 * Not yet walked through in the browser: every GM editor form field by field, the QR
@@ -248,3 +248,30 @@ and the notes below.
 * Checked: frontend type check and build, i18n checks, backend unit tests, E2E suite on a fresh
   isolated stack, browser walkthrough at 390 px (home, settings language switch both ways, control
   center, sign-in, shared results page with an English browser).
+
+## Native apps (2026-10-22)
+
+* Capacitor 8 in `frontend/` (`capacitor.config.ts`, `android/`, `ios/`). The apps load the live
+  site (`server.url` = `APP_URL` at `cap sync`) instead of bundling it: same origin, so the
+  refresh cookie, Socket.IO, SSR and the service worker work unchanged and web deploys update
+  the apps. Offline start shows `native/www/index.html` (errorPath).
+* `core/native/native-app.ts`: `isNativeApp()` (the bridge's `window.Capacitor`), plugins loaded
+  with dynamic imports (not in the web bundle), `NativeLocation` (injectable for tests),
+  `nativePost` (CapacitorHttp), `shareFile` (Filesystem + Share).
+* `LocationTracker` in the app: background watcher (`@capacitor-community/background-geolocation`,
+  1 Hz, best accuracy) instead of `watchPosition`; one-off fixes and the permission check/prompt
+  from `@capacitor/geolocation`. With the event's `tracking.background` on (default) it runs with
+  the screen off (Android foreground service + notification, `android.useLegacyBridge`) and takes
+  no wake lock; off → foreground only + wake lock. Changing the setting mid-game restarts the
+  watcher. A report the WebView's timers held back goes out with the next fix. `isMocked` is sent
+  for simulated positions. Tests: `location-tracker.native.spec.ts`.
+* `ApiService.reportLocation` in the app uses native HTTP (Android throttles WebView requests
+  after ~5 min in the background) and adds what the interceptors would: bearer token,
+  Accept-Language, `X-Zeus-View`, one refresh + retry on 401.
+* `downloadBlob` opens the share sheet in the app (attachments, exports, QR PNG).
+* `APP_URL` defaults to the production site https://airsoftzeus.visedev.it. The app runs the
+  deployed frontend, so the native code works only once this frontend is deployed. App id
+  `app.airsofthub` (not final until published). Icons/splash are Capacitor defaults.
+* Not done: native push (FCM/APNs; Web Push doesn't exist in WebViews, the app shows push as
+  unsupported), QR print window in the app, Italian Info.plist texts. Not yet built or run on a
+  device (no Android SDK on the dev machine; iOS needs a Mac).

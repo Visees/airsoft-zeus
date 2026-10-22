@@ -1,6 +1,11 @@
-import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpEventType, HttpParams } from '@angular/common/http';
+import { Injectable, Injector, inject } from '@angular/core';
 import { filter, firstValueFrom, map, tap, timeout } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
+import { activeLanguage } from '../i18n/language';
+import { PlayerViewService } from '../live/player-view';
+import { NativeResponse, isNativeApp, nativePost } from '../native/native-app';
+import { ApiError } from './api-error';
 import {
   ActivityItem,
   AdjustBalanceRequest,
@@ -79,6 +84,7 @@ const LOCATION_REPORT_TIMEOUT_MS = 8_000;
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
+  private readonly injector = inject(Injector);
   private readonly base = '/api';
 
   private get<T>(path: string, params?: Record<string, string | number | boolean | null | undefined>): Promise<T> {
@@ -504,8 +510,32 @@ export class ApiService {
    * With a timeout: on a bad mobile connection a request can hang for a minute or more (browsers set
    * no limit), which would hold back every later report. The tracker keeps the batch and retries.
    */
-  reportLocation(eventId: Uuid, body: LocationReportRequest) {
+  reportLocation(eventId: Uuid, body: LocationReportRequest): Promise<LocationReportResponse> {
+    if (isNativeApp()) return this.reportLocationNative(eventId, body);
     return firstValueFrom(this.http.post<LocationReportResponse>(this.base + this.ev(eventId, '/locations'), body).pipe(timeout(LOCATION_REPORT_TIMEOUT_MS)));
+  }
+  /**
+   * reportLocation in the Android/iOS app, where reports keep going with the screen off: native HTTP
+   * isn't throttled in the background, but skips the interceptors, so the token, language and
+   * player-view headers are added here (and an expired token is refreshed once).
+   */
+  private async reportLocationNative(eventId: Uuid, body: LocationReportRequest, retried = false): Promise<LocationReportResponse> {
+    // injected lazily: AuthService depends on this service
+    const auth = this.injector.get(AuthService);
+    const token = auth.token();
+    const headers: Record<string, string> = { 'Accept-Language': activeLanguage() };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (this.injector.get(PlayerViewService).has(eventId)) headers['X-Zeus-View'] = 'player';
+    const url = this.base + this.ev(eventId, '/locations');
+    let res: NativeResponse;
+    try {
+      res = await nativePost(url, body, headers, LOCATION_REPORT_TIMEOUT_MS);
+    } catch {
+      throw ApiError.from(new HttpErrorResponse({ status: 0, url }));
+    }
+    if (res.status === 401 && token && !retried && (await auth.refresh())) return this.reportLocationNative(eventId, body, true);
+    if (res.status >= 400) throw ApiError.from(new HttpErrorResponse({ error: res.data, status: res.status, url }));
+    return res.data as LocationReportResponse;
   }
   stopTracking(eventId: Uuid) {
     return this.post<{ ok: true }>(this.ev(eventId, '/tracking/stop'));

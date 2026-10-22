@@ -1,8 +1,10 @@
+import type { Location as BackgroundLocation } from '@capacitor-community/background-geolocation';
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../api/api.service';
 import { ApiError } from '../api/api-error';
 import { GeofenceStatus, LocationReportResponse, LocationSample, TrackingSettings, Uuid } from '../api/models';
+import { NativeLocation } from '../native/native-app';
 import { ConnectivityService } from '../net/connectivity.service';
 import { distanceM } from '../util/geo';
 import { OutlierFilter, PositionSmoother } from './fix-filter';
@@ -33,6 +35,22 @@ export interface FixLogEntry {
 
 const MAX_FIX_LOG = 15;
 
+/** What a fix is read from: the browser's GeolocationPosition or a native plugin's position. */
+interface PositionLike {
+  timestamp: number;
+  coords: { latitude: number; longitude: number; accuracy: number; heading: number | null; speed: number | null; altitude: number | null };
+  /** Native app only: the OS says the position is simulated (mock location app). */
+  mocked?: boolean;
+}
+
+function fromBackground(l: BackgroundLocation): PositionLike {
+  return {
+    timestamp: l.time ?? Date.now(),
+    coords: { latitude: l.latitude, longitude: l.longitude, accuracy: l.accuracy, heading: l.bearing, speed: l.speed, altitude: l.altitude },
+    mocked: l.simulated,
+  };
+}
+
 function iosWithoutWakeLock(): boolean {
   const m = /(?:iPhone|iPad|iPod).* OS (\d+)_(\d+)/.exec(navigator.userAgent);
   if (!m) return false;
@@ -54,13 +72,17 @@ const MAX_BATCH = 20;
  * - When a send fails the samples stay queued and are retried with backoff; the server
  *   uses late samples for history only, never for geofence captures.
  * - Browsers stop GPS when the screen locks, so a Screen Wake Lock keeps it on while
- *   tracking. Background tracking needs the native wrapper (see README).
+ *   tracking. The Android/iOS app (see README) instead gets fixes from a background location
+ *   plugin, which keeps running with the screen off, and sends reports over native HTTP.
  */
 @Injectable({ providedIn: 'root' })
 export class LocationTracker {
   private readonly api = inject(ApiService);
   private readonly connectivity = inject(ConnectivityService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly nativeLocation = inject(NativeLocation);
+  /** Inside the Android/iOS app, where GPS can keep running with the screen off. */
+  readonly native = this.isBrowser && this.nativeLocation.available;
 
   readonly state = signal<TrackerState>('idle');
   readonly eventId = signal<Uuid | null>(null);
@@ -75,6 +97,8 @@ export class LocationTracker {
   /** Objective whose detail screen is open; required by some geofence objectives. */
   readonly screenObjectiveId = signal<Uuid | null>(null);
   readonly wakeLockActive = signal(false);
+  /** The app is tracking with the screen off allowed (no wake lock). */
+  readonly backgroundTracking = signal(false);
   /** Newest first. */
   readonly fixLog = signal<FixLogEntry[]>([]);
   /** enableHighAccuracy of the running watch; null when not tracking. */
@@ -84,7 +108,7 @@ export class LocationTracker {
    * Home Screen app it silently fails until 18.4 (WebKit bug 254545). A locked screen stops GPS, so
    * these players must turn Auto-Lock off themselves.
    */
-  readonly wakeLockUnreliable = this.isBrowser && iosWithoutWakeLock();
+  readonly wakeLockUnreliable = this.isBrowser && !this.native && iosWithoutWakeLock();
 
   readonly isTracking = computed(() => this.state() === 'tracking');
   /** Ticks every 5 s so time-based states (no recent fix) update without a new fix. */
@@ -106,6 +130,10 @@ export class LocationTracker {
 
   private settings: TrackingSettings | null = null;
   private watchId: number | null = null;
+  /** The app's background watcher; resolves to its id (null when it could not start). */
+  private nativeWatch: Promise<string | null> | null = null;
+  /** When the last report started; in the app a late report goes out with the next fix. */
+  private lastFlushAt = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private queue: LocationSample[] = [];
   private lastQueued: LocationSample | null = null;
@@ -121,6 +149,14 @@ export class LocationTracker {
 
   /** Check the browser permission without prompting. */
   async permissionState(): Promise<PermissionState | 'unsupported'> {
+    if (this.native) {
+      try {
+        const { location } = await (await this.nativeLocation.geolocation()).checkPermissions();
+        return location === 'prompt-with-rationale' ? 'prompt' : location;
+      } catch {
+        return 'prompt'; // throws while the phone's location services are off
+      }
+    }
     if (!this.isBrowser || !('geolocation' in navigator)) return 'unsupported';
     try {
       const res = await navigator.permissions.query({ name: 'geolocation' });
@@ -132,6 +168,7 @@ export class LocationTracker {
 
   /** Ask for permission by requesting one position. Resolves true when granted. */
   requestPermission(): Promise<boolean> {
+    if (this.native) return this.requestNativePermission();
     if (!this.isBrowser || !('geolocation' in navigator)) return Promise.resolve(false);
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
@@ -146,14 +183,36 @@ export class LocationTracker {
     });
   }
 
+  private async requestNativePermission(): Promise<boolean> {
+    try {
+      const geo = await this.nativeLocation.geolocation();
+      const { location } = await geo.requestPermissions({ permissions: ['location'] });
+      if (location !== 'granted') return false;
+      // a first fix for the own marker, as the browser's permission prompt gives one
+      geo.getCurrentPosition({ enableHighAccuracy: true, timeout: 20_000, maximumAge: 10_000 }).then(
+        (pos) => this.onPosition(pos, 'permission'),
+        () => undefined,
+      );
+      return true;
+    } catch {
+      return false; // location services off
+    }
+  }
+
   start(eventId: Uuid, settings: TrackingSettings): void {
     if (!this.isBrowser) return;
-    if (!('geolocation' in navigator)) {
+    if (!this.native && !('geolocation' in navigator)) {
       this.state.set('unavailable');
       return;
     }
-    if (this.eventId() === eventId && this.watchId !== null) {
+    if (this.eventId() === eventId && this.watching()) {
+      const wasBackground = this.settings?.background;
       this.settings = settings;
+      if (this.native && settings.background !== wasBackground) {
+        this.removeNativeWatch();
+        this.startNativeWatch();
+        void (settings.background ? this.releaseWakeLock() : this.acquireWakeLock());
+      }
       return;
     }
     this.stop(false);
@@ -166,26 +225,83 @@ export class LocationTracker {
     // estimates, kilometres wide outdoors, and no zone can count the player.
     const highAccuracy = settings.highAccuracy;
     this.highAccuracyRequested.set(highAccuracy);
-    this.watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        // 'error' too: a first fix slower than the timeout (cold start under trees) reports an error, then fixes arrive
-        if (this.state() === 'requesting' || this.state() === 'error') this.state.set('tracking');
-        this.onPosition(pos, 'watch');
-      },
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          this.state.set('denied');
-          this.stop(false);
-        } else {
-          this.lastError.set(err.message || $localize`GPS unavailable`);
-          if (this.state() !== 'tracking') this.state.set('error');
-        }
-      },
-      { enableHighAccuracy: highAccuracy, maximumAge: 2_000, timeout: 30_000 },
-    );
+    if (this.native) {
+      this.startNativeWatch();
+    } else {
+      this.watchId = navigator.geolocation.watchPosition(
+        (pos) => this.onWatchFix(pos),
+        (err) => this.onWatchError(err.code === err.PERMISSION_DENIED, err.message),
+        { enableHighAccuracy: highAccuracy, maximumAge: 2_000, timeout: 30_000 },
+      );
+    }
+    this.lastFlushAt = Date.now();
     this.schedule(this.intervalMs());
     void this.acquireWakeLock();
     document.addEventListener('visibilitychange', this.onVisibility);
+  }
+
+  /**
+   * The app's watcher always uses the best accuracy (the plugin has no lower setting); battery saver
+   * still doubles the report interval. With the event's background setting on it keeps running with
+   * the screen off (on Android as a foreground service with a notification); without it, the app
+   * keeps the screen awake like the browser.
+   */
+  private startNativeWatch(): void {
+    const background = !!this.settings?.background;
+    this.backgroundTracking.set(background);
+    const notification = background
+      ? { backgroundTitle: $localize`AirsoftHub is sharing your location`, backgroundMessage: $localize`Your team sees you on the map until you leave the game.` }
+      : {};
+    const watch: Promise<string | null> = this.nativeLocation.background()
+      .then((bg) =>
+        bg.addWatcher(
+          { ...notification, requestPermissions: true, stale: false, distanceFilter: 0 },
+          (loc, err) => {
+            if (this.nativeWatch !== watch) return; // a removed watcher can still deliver
+            if (loc) this.onWatchFix(fromBackground(loc));
+            else if (err) this.onWatchError(err.code === 'NOT_AUTHORIZED', err.message);
+          },
+        ),
+      )
+      .catch((err: { code?: string; message?: string } | undefined) => {
+        if (this.nativeWatch === watch) this.onWatchError(err?.code === 'NOT_AUTHORIZED', err?.message);
+        return null;
+      });
+    this.nativeWatch = watch;
+  }
+
+  private removeNativeWatch(): void {
+    const watch = this.nativeWatch;
+    this.nativeWatch = null;
+    this.backgroundTracking.set(false);
+    if (!watch) return;
+    void Promise.all([watch, this.nativeLocation.background()])
+      .then(([id, bg]) => (id ? bg.removeWatcher({ id }) : undefined))
+      .catch(() => undefined);
+  }
+
+  private onWatchFix(pos: PositionLike): void {
+    // 'error' too: a first fix slower than the timeout (cold start under trees) reports an error, then fixes arrive
+    if (this.state() === 'requesting' || this.state() === 'error') this.state.set('tracking');
+    this.onPosition(pos, 'watch');
+    // With the screen off the app's fixes keep arriving, but the WebView's timers can be held back:
+    // a report that is late goes out with the next fix.
+    const due = this.lastFlushAt + (this.backoffMs || this.intervalMs()) + 1_000;
+    if (this.native && !this.sending && this.timer !== null && Date.now() >= due) this.flushNow();
+  }
+
+  private onWatchError(denied: boolean, message: string | undefined): void {
+    if (denied) {
+      this.state.set('denied');
+      this.stop(false);
+    } else {
+      this.lastError.set(message || $localize`GPS unavailable`);
+      if (this.state() !== 'tracking') this.state.set('error');
+    }
+  }
+
+  private watching(): boolean {
+    return this.watchId !== null || this.nativeWatch !== null;
   }
 
   /** Stop tracking. With notifyServer the server marks tracking inactive and hides the marker. */
@@ -193,6 +309,7 @@ export class LocationTracker {
     const eventId = this.eventId();
     if (this.watchId !== null && this.isBrowser) navigator.geolocation.clearWatch(this.watchId);
     this.watchId = null;
+    this.removeNativeWatch();
     this.highAccuracyRequested.set(null);
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
@@ -213,8 +330,9 @@ export class LocationTracker {
     void this.flush();
   }
 
-  private toSample(pos: GeolocationPosition): LocationSample {
+  private toSample(pos: PositionLike): LocationSample {
     return {
+      ...(pos.mocked ? { isMocked: true } : {}),
       lat: pos.coords.latitude,
       lng: pos.coords.longitude,
       accuracy: pos.coords.accuracy,
@@ -227,8 +345,13 @@ export class LocationTracker {
   }
 
   /** One fresh fix, or null on error/timeout. */
-  private currentPosition(): Promise<GeolocationPosition | null> {
+  private currentPosition(): Promise<PositionLike | null> {
     const s = this.settings;
+    if (this.native) {
+      return this.nativeLocation.geolocation()
+        .then((geo) => geo.getCurrentPosition({ enableHighAccuracy: !!s?.highAccuracy, maximumAge: 1_000, timeout: Math.min(10_000, this.intervalMs()) }))
+        .catch(() => null);
+    }
     return new Promise((resolve) =>
       navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
         enableHighAccuracy: !!s?.highAccuracy,
@@ -263,11 +386,11 @@ export class LocationTracker {
     return accepted;
   }
 
-  private onPosition(pos: GeolocationPosition, source: FixSource): void {
+  private onPosition(pos: PositionLike, source: FixSource): void {
     const sample = this.toSample(pos);
     if (!this.logFix(source, sample, this.outliers.accept(sample))) return;
     this.showFix(sample);
-    if (!this.settings || this.watchId === null) return;
+    if (!this.settings || !this.watching()) return;
     const last = this.lastQueued;
     const moved = last ? distanceM(last, sample) : Infinity;
     const elapsed = last ? sample.timestamp - last.timestamp : Infinity;
@@ -290,6 +413,7 @@ export class LocationTracker {
     // Reports go out on a fixed rhythm (start to start): a slow GPS fix or request must not push the
     // next report later, or the server stops counting a player who is standing in a zone.
     const startedAt = Date.now();
+    this.lastFlushAt = startedAt;
     if (!this.queue.length) {
       // A phone standing still often gets no watchPosition callbacks, and resending the last fix is
       // useless (the server drops samples whose timestamp is not newer). Ask for a fresh fix, so a
@@ -347,7 +471,7 @@ export class LocationTracker {
 
   private schedule(ms: number): void {
     if (this.timer) clearTimeout(this.timer);
-    if (this.watchId === null) return;
+    if (!this.watching()) return;
     this.timer = setTimeout(() => void this.flush(), ms);
   }
 
@@ -365,6 +489,7 @@ export class LocationTracker {
   };
 
   private async acquireWakeLock(): Promise<void> {
+    if (this.backgroundTracking()) return; // the app keeps tracking with the screen off
     try {
       if ('wakeLock' in navigator && document.visibilityState === 'visible') {
         this.wakeLock = await navigator.wakeLock.request('screen');

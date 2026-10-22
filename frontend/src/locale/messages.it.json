@@ -864,9 +864,7 @@
     "6797735996807373115": "Risparmio batteria",
     "6131944963876988904": "I telefoni inviano meno spesso quando sono fermi e quando la batteria è scarica.",
     "3133672970181484233": "Blocco schermo e pause",
-    "5154217361744357966": " I browser mettono in pausa il GPS quando lo schermo si blocca. Durante la partita l'app tiene invece lo schermo acceso. Il vero tracciamento in background funziona solo nell'app mobile; questa impostazione lo attiva lì. ",
     "1966859801393461548": "Tracciamento in background",
-    "963932920864713410": "Continua a inviare con lo schermo bloccato (solo app mobile).",
     "5708080176623414370": "Interrompi il tracciamento durante le pause",
     "8402625138990028129": "Nessuna posizione viene raccolta mentre la partita è in pausa.",
     "3168087902509229477": "Posizioni vecchie",
@@ -2102,7 +2100,6 @@
     "4752576761181984011": "{$START_TAG_STRONG}Si ferma{$CLOSE_TAG_STRONG} quando esci dalle schermate live, quando la partita finisce o quando tocchi “Interrompi condivisione” in Altro.",
     "3933098142030091802": "Il tuo percorso viene conservato per {$START_TAG_SPAN}{$INTERPOLATION}{$CLOSE_TAG_SPAN} giorni.",
     "7204202961087815428": "Non viene conservato lo storico del percorso.",
-    "5144761733435561376": " Senza condivisione puoi comunque giocare, ma negli obiettivi da conquistare tenendo una zona la tua presenza non conterà. Durante la condivisione l'app tiene lo schermo acceso. ",
     "5161411570094992408": "Non ora",
     "5027705276757641309": "Il browser blocca la posizione per questo sito, quindi la tua squadra e il Game Master non ti vedono e le conquiste di zona non ti contano.",
     "2958221088900411900": "Tocca l'icona del lucchetto o delle impostazioni accanto alla barra degli indirizzi (oppure apri le impostazioni del sito dell'app).",
@@ -3335,6 +3332,14 @@
     "2026354237471860983": "Solo il team di AirsoftHub e i redattori News possono scrivere News.",
     "3139580940888064546": "Cerca tra i club esistenti o scrivi un nome.",
     "4225802185823951518": "Utenti, ticket di supporto e News",
-    "5493286341562156763": "I messaggi al team sono disattivati per il tuo account."
+    "5493286341562156763": "I messaggi al team sono disattivati per il tuo account.",
+    "1676097038196431284": "AirsoftHub sta condividendo la tua posizione",
+    "7474091896225649438": "La tua squadra ti vede sulla mappa finché non lasci la partita.",
+    "3884748406922963569": " I browser mettono in pausa il GPS quando lo schermo si blocca. Durante la partita la web app tiene invece lo schermo acceso. Chi usa l'app AirsoftHub per Android o iPhone continua a condividere a schermo spento quando questa impostazione è attiva. ",
+    "8037690592292800853": "Continua a inviare con lo schermo bloccato (solo app AirsoftHub).",
+    "4382672958897255346": "Senza condivisione puoi comunque giocare, ma negli obiettivi da conquistare tenendo una zona la tua presenza non conterà.",
+    "6108110639361573199": "La condivisione continua a schermo spento; mentre è attiva vedi una notifica.",
+    "4259755400607340894": "Durante la condivisione l'app tiene lo schermo acceso.",
+    "5770500312034601995": "Può spegnersi: l'app continua a condividere la tua posizione"
   }
 }

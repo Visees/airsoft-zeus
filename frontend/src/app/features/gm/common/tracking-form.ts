@@ -129,12 +129,12 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
         <div class="flex gap-2 rounded-sm border border-border bg-muted p-3 text-xs text-muted-foreground">
           <ng-icon name="lucideSmartphone" size="16" class="mt-0.5 shrink-0" aria-hidden="true" />
           <p i18n>
-            Browsers pause GPS when the screen locks. During the game the app keeps the screen awake instead.
-            True background tracking only works in the mobile app wrapper; this setting lets it run there.
+            Browsers pause GPS when the screen locks. During the game the web app keeps the screen awake instead.
+            Players with the AirsoftHub app for Android or iPhone keep sharing with the screen off when this setting is on.
           </p>
         </div>
         <div class="divide-y divide-border">
-          <zeus-switch-row formControlName="background" label="Background tracking" description="Keep reporting with the screen locked (mobile app wrapper only)." i18n-label i18n-description />
+          <zeus-switch-row formControlName="background" label="Background tracking" description="Keep reporting with the screen locked (AirsoftHub app only)." i18n-label i18n-description />
           <zeus-switch-row formControlName="stopWhenPaused" label="Stop tracking while paused" description="No positions are collected while the game is paused." i18n-label i18n-description />
         </div>
       </section>

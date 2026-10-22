@@ -16,7 +16,7 @@ import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Objective, Objectiv
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { activeLanguage } from '../../core/i18n/language';
-import { OBJECTIVE_TYPE_LABELS, fromLocalInput, toLocalInput } from '../../core/util/format';
+import { OBJECTIVE_TYPE_LABELS, downloadBlob, fromLocalInput, toLocalInput } from '../../core/util/format';
 import { formatLatLng } from '../../core/util/geo';
 import { TacticalMap } from '../../shared/map/tactical-map';
 import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
@@ -1142,12 +1142,9 @@ export class ObjectiveEditorScreen {
     const q = this.qr();
     const o = this.objective();
     if (!q || !o) return;
-    const a = document.createElement('a');
-    a.href = q.pngDataUrl;
-    a.download = `${slug(o.name)}-qr-v${q.qrVersion}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    // decoded here: the CSP doesn't allow fetch() on data: URLs
+    const bytes = Uint8Array.from(atob(q.pngDataUrl.split(',')[1] ?? ''), (c) => c.charCodeAt(0));
+    downloadBlob(new Blob([bytes], { type: 'image/png' }), `${slug(o.name)}-qr-v${q.qrVersion}.png`);
   }
 
   protected printQr(): void {

@@ -1,3 +1,4 @@
+import { isNativeApp, shareFile } from '../native/native-app';
 import {
   CaptureBlockReason,
   EventStatus,
@@ -303,8 +304,13 @@ export function initials(nickname: string | null | undefined): string {
   return (clean.slice(0, 2) || nickname.slice(0, 2)).toUpperCase();
 }
 
-/** Save a Blob as a file download. */
+/** Save a Blob as a file download (in the native app: the share sheet, to save or open it). */
 export function downloadBlob(blob: Blob, filename: string): void {
+  if (isNativeApp()) {
+    // rejects when the player closes the share sheet
+    void shareFile(blob, filename).catch(() => undefined);
+    return;
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

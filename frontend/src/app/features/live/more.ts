@@ -90,7 +90,15 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
           <div class="col-span-2">
             <dt class="text-xs text-muted-foreground" i18n>Screen</dt>
             <dd class="font-semibold" [class.text-warning]="tracker.wakeLockUnreliable">
-              {{ tracker.wakeLockUnreliable ? txt.thisIphoneCanT : tracker.wakeLockActive() ? txt.keptAwakeWhileSharing : txt.mayTurnOffKeep }}
+              {{
+                tracker.backgroundTracking()
+                  ? txt.sharesWithScreenOff
+                  : tracker.wakeLockUnreliable
+                    ? txt.thisIphoneCanT
+                    : tracker.wakeLockActive()
+                      ? txt.keptAwakeWhileSharing
+                      : txt.mayTurnOffKeep
+              }}
             </dd>
           </div>
           @if (tracker.lastError() && mine()) {
@@ -291,6 +299,7 @@ export class LiveMoreScreen {
   protected readonly txt = {
     thisIphoneCanT: $localize`This iPhone can’t keep it on — set Settings › Display & Brightness › Auto-Lock to Never`,
     keptAwakeWhileSharing: $localize`Kept awake while sharing`,
+    sharesWithScreenOff: $localize`Can turn off — the app keeps sharing your location`,
     mayTurnOffKeep: $localize`May turn off — keep the app open`,
     refreshing: $localize`Refreshing…`,
     refreshNow: $localize`Refresh now`,

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AirsoftHub</string>
+    <string name="title_activity_main">AirsoftHub</string>
+    <string name="package_name">app.airsofthub</string>
+    <string name="custom_url_scheme">app.airsofthub</string>
+    <!-- Notification shown while location sharing runs with the screen off (background geolocation plugin) -->
+    <string name="capacitor_background_geolocation_notification_channel_name">Location sharing</string>
+    <string name="capacitor_background_geolocation_notification_icon">drawable/ic_tracking</string>
+</resources>
