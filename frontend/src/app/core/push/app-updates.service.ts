@@ -30,7 +30,15 @@ export class AppUpdates {
         action: { label: $localize`Reload`, onClick: () => this.doc.location.reload() },
       });
     });
-    // Check for a new version every 10 minutes while the app is open.
-    setInterval(() => void this.sw.checkForUpdate().catch(() => undefined), 10 * 60_000);
+    // Check for a new version every 10 minutes while the app is open, and when it comes back to the
+    // foreground (phones keep the Android app and installed PWAs in the background for days).
+    const check = () => void this.sw.checkForUpdate().catch(() => undefined);
+    setInterval(check, 10 * 60_000);
+    let lastCheck = 0;
+    this.doc.addEventListener('visibilitychange', () => {
+      if (this.doc.visibilityState !== 'visible' || Date.now() - lastCheck < 60_000) return;
+      lastCheck = Date.now();
+      check();
+    });
   }
 }

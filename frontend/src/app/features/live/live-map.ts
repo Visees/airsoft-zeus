@@ -156,7 +156,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
     @if (selection()) {
       <section
         #panel
-        class="hud absolute inset-x-2 bottom-2 z-[3] mx-auto max-w-lg p-4 compact:right-auto compact:mx-0 compact:max-h-[calc(100%-1rem)] compact:w-[min(22rem,55%)] compact:overflow-y-auto"
+        class="hud absolute inset-x-2 bottom-2 z-[3] mx-auto max-w-lg p-4 compact:right-auto compact:left-[max(0.5rem,env(safe-area-inset-left))] compact:mx-0 compact:max-h-[calc(100%-1rem)] compact:w-[min(22rem,55%)] compact:overflow-y-auto"
         aria-labelledby="map-preview-title"
         (keydown.escape)="clearSelection()"
       >

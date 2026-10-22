@@ -118,12 +118,12 @@ const M_PER_DEG_LNG_EQ = 111_320;
 
     <!-- Map buttons; screens add their own with the mapControl attribute. Smaller on a phone held sideways so they fit. -->
     <div
-      class="absolute right-2 top-2 z-[1] flex flex-col gap-1.5 compact:gap-1 compact:[&>button]:size-10"
+      class="absolute top-2 right-[max(0.5rem,env(safe-area-inset-right))] z-[1] flex flex-col gap-1.5 compact:gap-1 compact:[&>button]:size-10"
       [class.!top-auto]="controlsBottom()"
       [class.!bottom-24]="controlsBottom()"
     >
       <ng-content select="[mapControl]" />
-      @if (renderer() === 'schematic') {
+      @if (renderer() !== 'loading') {
         <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1.4)" aria-label="Zoom in" i18n-aria-label>
           <ng-icon name="lucidePlus" size="18" aria-hidden="true" />
         </button>
@@ -459,9 +459,12 @@ export class TacticalMap {
       zoom: this.zoom(),
       mapId: this.loader.mapId ?? 'DEMO_MAP_ID',
       mapTypeId: this.mapType(),
+      // Google's own controls off (zoom, scale, keyboard shortcuts): the map's buttons do this.
+      // The logo, map data credits and Terms link stay: the Maps terms require them.
       disableDefaultUI: true,
-      zoomControl: true,
-      scaleControl: true,
+      zoomControl: false,
+      scaleControl: false,
+      keyboardShortcuts: false,
       rotateControl: false,
       fullscreenControl: false,
       clickableIcons: false,
@@ -910,6 +913,10 @@ export class TacticalMap {
   }
 
   protected zoomBy(f: number): void {
+    if (this.renderer() === 'google' && this.map) {
+      this.map.setZoom((this.map.getZoom() ?? 17) + (f > 1 ? 1 : -1));
+      return;
+    }
     const { w, h } = this.size();
     this.zoomAround(this.scale() * f, w / 2, h / 2);
   }
