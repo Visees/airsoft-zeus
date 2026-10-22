@@ -1377,5 +1377,6 @@ function blankObjective(): Objective {
     shieldedTeamId: null,
     canCapture: false,
     blockedReason: null,
+    capture: null,
   };
 }

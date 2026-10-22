@@ -87,7 +87,7 @@ async function gmObjective(ctx: EventContext, objectiveId: string) {
   const set = await loadObjectives(ctx.event.id);
   const row = set.rows.find((r) => r.id === objectiveId);
   if (!row) throw notFound(tr`Objective not found.`);
-  return objectiveDto(ctx, row, statusOf(row, set.counts), set.armed.get(row.id) ?? {});
+  return objectiveDto(ctx, row, statusOf(row, set.counts), set);
 }
 
 contentRouter.get('/:eventId/objectives', async (req, res) => {
@@ -103,7 +103,7 @@ contentRouter.get('/:eventId/objectives/:objectiveId', async (req, res) => {
   const status = row ? statusOf(row, set.counts) : null;
   if (!row || !status || !objectiveVisible(row, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) throw notFound(tr`Objective not found.`);
   const captures = await many(`SELECT ${dto.CAPTURE_SELECT} WHERE c.objective_id = $1 ORDER BY c.created_at DESC LIMIT 30`, [objectiveId]);
-  res.json({ objective: objectiveDto(ctx, row, status, set.armed.get(row.id) ?? {}), captures: captures.map(dto.capture) });
+  res.json({ objective: objectiveDto(ctx, row, status, set), captures: captures.map(dto.capture) });
 });
 
 contentRouter.post('/:eventId/objectives', async (req, res) => {

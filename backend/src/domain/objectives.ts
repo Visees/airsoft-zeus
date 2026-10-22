@@ -3,6 +3,7 @@ import { conflict, notFound } from '../errors.js';
 import { hub } from '../realtime/hub.js';
 import type { EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf } from './defaults.js';
+import { captureSummary, fromRow, type GeofenceState } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import {
@@ -27,15 +28,18 @@ export interface ObjectiveSet {
   rows: ObjRow[];
   counts: Map<string, number>;
   armed: Map<string, Record<string, boolean>>;
+  /** geofence capture state per objective */
+  zones: Map<string, GeofenceState>;
 }
 
 export async function loadObjectives(eventId: string, q: Queryable = pool): Promise<ObjectiveSet> {
   const rows = await many<ObjRow>(`SELECT ${OBJECTIVE_SELECT} WHERE o.event_id = $1 ORDER BY o.sort_order, o.created_at`, [eventId], q);
-  const states = await many<{ objective_id: string; armed: Record<string, boolean> }>('SELECT objective_id, armed FROM capture_states WHERE event_id = $1', [eventId], q);
+  const states = await many('SELECT * FROM capture_states WHERE event_id = $1', [eventId], q);
   return {
     rows,
     counts: new Map(rows.map((r) => [r.id, r.capture_count])),
     armed: new Map(states.map((s) => [s.objective_id, s.armed ?? {}])),
+    zones: new Map(states.map((s) => [s.objective_id, fromRow(s)])),
   };
 }
 
@@ -49,14 +53,16 @@ export function objectiveDtos(ctx: EventContext, set: ObjectiveSet, now = Date.n
   for (const row of set.rows) {
     const status = statusOf(row, set.counts, now);
     if (!objectiveVisible(row, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) continue;
-    out.push(objectiveDto(ctx, row, status, set.armed.get(row.id) ?? {}, now));
+    out.push(objectiveDto(ctx, row, status, set, now));
   }
   return out;
 }
 
-export function objectiveDto(ctx: EventContext, row: ObjRow, status: ObjectiveStatus, armed: Record<string, boolean>, now = Date.now()) {
+export function objectiveDto(ctx: EventContext, row: ObjRow, status: ObjectiveStatus, set: ObjectiveSet, now = Date.now()) {
   const teamId = ctx.viewer.teamId;
-  const blocked: CaptureBlockReason | null = ctx.isGm ? null : captureBlock(row, status, ctx.event.status, teamId, now, 'any', armed);
+  const blocked: CaptureBlockReason | null = ctx.isGm ? null : captureBlock(row, status, ctx.event.status, teamId, now, 'any', set.armed.get(row.id) ?? {});
+  const zone = set.zones.get(row.id);
+  const capture = zone ? captureSummary(zone, geofenceOf(row.geofence), now) : null;
   return dto.objective(
     row,
     {
@@ -66,6 +72,9 @@ export function objectiveDto(ctx: EventContext, row: ObjRow, status: ObjectiveSt
       cooldownUntil: cooldownUntil(row),
       viewerTeamId: teamId,
       lastCapturedByNickname: (row.last_captured_by_nickname as string | null) ?? null,
+      // nothing accrues while the game is not live, so clients must not run the fill on
+      capture: capture && ctx.event.status !== 'live' ? { ...capture, rate: 0 } : capture,
+      now,
     },
     ctx.isGm,
   );

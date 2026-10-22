@@ -8,6 +8,7 @@ import { isAdminEmail } from '../auth/middleware.js';
 import type { Row } from '../db.js';
 import { geofence, rewards, scoring, tracking, visibility } from './defaults.js';
 import type { CaptureBlockReason, ObjectiveStatus } from './rules.js';
+import type { CaptureSummary } from './geofence.js';
 import { pick, tr } from '../i18n/index.js';
 
 export const iso = (d: Date | string | null | undefined): string | null => (d ? new Date(d).toISOString() : null);
@@ -276,6 +277,9 @@ export interface ObjectiveComputed {
   cooldownUntil: number | null;
   viewerTeamId: string | null;
   lastCapturedByNickname: string | null;
+  capture: CaptureSummary | null;
+  /** server time the capture progress was taken at */
+  now: number;
 }
 
 export function objective(o: Row, c: ObjectiveComputed, gm: boolean) {
@@ -324,6 +328,7 @@ export function objective(o: Row, c: ObjectiveComputed, gm: boolean) {
     shieldedTeamId: o.shielded_until && new Date(o.shielded_until).getTime() > now ? o.shielded_team_id : null,
     canCapture: c.canCapture,
     blockedReason: c.blockedReason,
+    capture: c.capture ? { ...c.capture, progressSec: Math.round(c.capture.progressSec * 10) / 10, at: new Date(c.now).toISOString() } : null,
     ...(gm ? { captureCode: o.capture_code ?? null, qrVersion: o.qr_version } : {}),
   };
 }

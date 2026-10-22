@@ -1,4 +1,4 @@
-import { Objective, Poi, PoiType, Team, VisiblePosition } from '../api/models';
+import { Objective, ObjectiveCapture, Poi, PoiType, Team, VisiblePosition } from '../api/models';
 import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_STATUS_LABELS, PLAYER_ROLE_TAGS, initials } from '../util/format';
 
 /**
@@ -66,8 +66,19 @@ function wrap(children: HTMLElement[], title: string): HTMLElement {
   return w;
 }
 
-export function objectiveMarker(o: Objective, owner: Team | null, selected: boolean, showLabel = true): HTMLElement {
+/** Capture progress (0–100) of a zone capture at server time `serverNow`, extrapolated while it runs. */
+export function capturePct(c: ObjectiveCapture, serverNow: number): number {
+  const sec = c.progressSec + (c.rate * Math.max(0, serverNow - Date.parse(c.at))) / 1000;
+  return c.requiredSec > 0 ? Math.max(0, Math.min(100, (sec / c.requiredSec) * 100)) : 0;
+}
+
+/**
+ * Objective diamond. While a team captures the zone (`capturing`), its colour rises from the bottom
+ * point by `fillPct`; setCaptureFill moves it later without rebuilding the marker.
+ */
+export function objectiveMarker(o: Objective, owner: Team | null, selected: boolean, showLabel = true, capturing: Team | null = null, fillPct = 0): HTMLElement {
   const fill = owner?.color ?? 'var(--card)';
+  const glyphColor = owner ? textOn(owner.color) : o.color;
   const box = el(
     'div',
     {
@@ -78,7 +89,8 @@ export function objectiveMarker(o: Objective, owner: Team | null, selected: bool
       transform: 'rotate(45deg)',
       borderRadius: '4px',
       border: `3px solid ${o.status === 'contested' ? 'var(--destructive)' : o.color}`,
-      background: fill,
+      // "to top left" in the rotated box runs from the bottom point straight up to the top one
+      background: capturing ? `linear-gradient(to top left, ${capturing.color} var(--zeus-fill), ${fill} var(--zeus-fill))` : fill,
       boxShadow: selected ? '0 0 0 3px var(--nav)' : '0 2px 6px rgba(0,0,0,.45)',
       opacity: o.status === 'disabled' || o.status === 'completed' ? '0.55' : '1',
     },
@@ -89,14 +101,34 @@ export function objectiveMarker(o: Objective, owner: Team | null, selected: bool
     {
       transform: 'rotate(-45deg)',
       font: '700 14px/1 var(--font-mono)',
-      color: owner ? textOn(owner.color) : o.color,
+      color: glyphColor,
     },
     o.jammedUntil ? '⌁' : OBJECTIVE_STATUS_GLYPHS[o.status],
   );
   box.appendChild(glyph);
   const parts = [box];
   if (showLabel) parts.push(el('div', { ...LABEL_STYLE, top: 'calc(100% + 8px)' }, o.name));
-  return wrap(parts, owner ? $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:, held by ${owner.name}:owner:` : $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:`);
+  let title = owner ? $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:, held by ${owner.name}:owner:` : $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:`;
+  if (capturing) {
+    title += $localize`, being captured by ${capturing.name}:team:`;
+    box.dataset['captureFill'] = o.id;
+    box.dataset['glyphOff'] = glyphColor;
+    box.dataset['glyphOn'] = textOn(capturing.color);
+    // the fill animates between ticks (--zeus-fill is a registered <percentage>, see styles.css)
+    box.style.transition = '--zeus-fill 1s linear';
+    setCaptureFill(box, fillPct);
+  }
+  return wrap(parts, title);
+}
+
+/** Move the capture fill of a diamond built by objectiveMarker (the box itself or any ancestor). */
+export function setCaptureFill(node: HTMLElement, pct: number): void {
+  const box = node.dataset['captureFill'] ? node : node.querySelector<HTMLElement>('[data-capture-fill]');
+  if (!box) return;
+  box.style.setProperty('--zeus-fill', `${pct.toFixed(1)}%`);
+  const glyph = box.firstElementChild as HTMLElement | null;
+  // the glyph sits in the middle: switch its colour once the fill covers it
+  if (glyph) glyph.style.color = (pct >= 50 ? box.dataset['glyphOn'] : box.dataset['glyphOff']) ?? '';
 }
 
 export function poiMarker(p: Poi, selected: boolean, showLabel = true): HTMLElement {

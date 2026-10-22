@@ -21,8 +21,10 @@ import type { GeoJSONSource, Map as MlMap, Marker as MlMarker } from 'maplibre-g
 import { LatLng, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
 import { MapEngine, MapEngineService } from '../../core/maps/map-engine.service';
 import type { BaseLayer } from '../../core/maps/map-style';
-import { objectiveMarker, playerMarker, poiMarker, selfMarker, zoneLabel } from '../../core/maps/markers';
+import { LiveStore } from '../../core/live/live-store';
+import { capturePct, objectiveMarker, playerMarker, poiMarker, selfMarker, setCaptureFill, zoneLabel } from '../../core/maps/markers';
 import { ThemeService } from '../../core/theme/theme.service';
+import { nowSignal } from '../game-timer';
 import { bounds, distanceM } from '../../core/util/geo';
 
 const SELF_GLIDE_MS = 800;
@@ -207,6 +209,10 @@ export class TacticalMap {
   private readonly engines = inject(MapEngineService);
   private readonly theme = inject(ThemeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  /** Live screens provide it: server time for running captures (editors show the fill as loaded). */
+  private readonly live = inject(LiveStore, { optional: true });
+  private readonly tick = nowSignal(1000);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly objectives = input<Objective[]>([]);
@@ -346,6 +352,20 @@ export class TacticalMap {
       this.draft();
       untracked(() => this.syncSchematicOverlay());
     });
+    // Running zone captures: move the diamond fills every second (markers are rebuilt only on changes)
+    effect(() => {
+      const capturing = this.objectives().filter((o) => o.capture);
+      if (!capturing.length) return;
+      if (capturing.some((o) => o.capture!.rate > 0)) this.tick();
+      this.renderer();
+      untracked(() => {
+        const now = this.serverNow();
+        for (const o of capturing) {
+          const pct = capturePct(o.capture!, now);
+          this.host.nativeElement.querySelectorAll<HTMLElement>(`[data-capture-fill="${o.id}"]`).forEach((n) => setCaptureFill(n, pct));
+        }
+      });
+    });
     // Re-fit when asked
     effect(() => {
       this.fitKey();
@@ -364,6 +384,10 @@ export class TacticalMap {
       this.markers.forEach((m) => m.marker.remove());
       this.map?.remove();
     });
+  }
+
+  private serverNow(): number {
+    return this.live?.now() ?? Date.now();
   }
 
   // ------------------------------------------------------------------ public API
@@ -737,9 +761,11 @@ export class TacticalMap {
     // objectives + geofence rings
     for (const o of d.objectives) {
       const owner = o.ownerTeamId ? (teamById.get(o.ownerTeamId) ?? null) : null;
+      const capturing = o.capture ? (teamById.get(o.capture.teamId) ?? null) : null;
       const selected = d.selected === o.id;
-      const sig = JSON.stringify([o.status, o.ownerTeamId, o.color, o.name, o.jammedUntil, selected, d.labels, owner?.color]);
-      upsertMarker(`o:${o.id}`, { lat: o.lat, lng: o.lng }, sig, () => objectiveMarker(o, owner, selected, d.labels), {
+      const sig = JSON.stringify([o.status, o.ownerTeamId, o.color, o.name, o.jammedUntil, selected, d.labels, owner?.color, capturing?.id, capturing?.color]);
+      const build = () => objectiveMarker(o, owner, selected, d.labels, capturing, o.capture ? capturePct(o.capture, this.serverNow()) : 0);
+      upsertMarker(`o:${o.id}`, { lat: o.lat, lng: o.lng }, sig, build, {
         z: 300,
         onClick: () => this.objectiveClick.emit(this.objectives().find((x) => x.id === o.id) ?? o),
         draggable: d.editable,
@@ -961,7 +987,8 @@ export class TacticalMap {
     }
     for (const o of this.objectives()) {
       const owner = o.ownerTeamId ? (teamById.get(o.ownerTeamId) ?? null) : null;
-      const node = objectiveMarker(o, owner, this.selectedId() === o.id, labels);
+      const capturing = o.capture ? (teamById.get(o.capture.teamId) ?? null) : null;
+      const node = objectiveMarker(o, owner, this.selectedId() === o.id, labels, capturing, o.capture ? capturePct(o.capture, this.serverNow()) : 0);
       node.addEventListener('click', (e) => {
         e.stopPropagation();
         this.objectiveClick.emit(o);

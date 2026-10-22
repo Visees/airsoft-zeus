@@ -4,7 +4,7 @@ import { logger } from '../logger.js';
 import { hub } from '../realtime/hub.js';
 import { eventContext } from './context.js';
 import { geofence as geofenceOf } from './defaults.js';
-import { advance, fromRow, presenceTtlMs, toRow } from './geofence.js';
+import { advance, captureChanged, captureSummary, fromRow, presenceTtlMs, toRow } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { transition } from './lifecycle.js';
 import { loadObjectives, settleRecurring, statusOf, type ObjRow } from './objectives.js';
@@ -125,9 +125,11 @@ async function tickEvent(eventId: string): Promise<void> {
       const o = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1', [s.objective_id], t);
       if (!row || !o) return;
       const status = statusOf(o, set.counts, now);
-      const adv = advance(fromRow(row), {
+      const cfg = geofenceOf(o.geofence);
+      const before = fromRow(row);
+      const adv = advance(before, {
         now,
-        cfg: geofenceOf(o.geofence),
+        cfg,
         presenceTtlMs: ttl,
         maxGapMs: ttl,
         canAccrue: (team) => captureBlock(o, status, 'live', team, now, 'geofence') === null,
@@ -141,10 +143,12 @@ async function tickEvent(eventId: string): Promise<void> {
         JSON.stringify(r.armed),
         r.contested,
       ]);
+      let refresh = captureChanged(captureSummary(before, cfg, now), captureSummary(adv.state, cfg, now));
       if (o.contested !== r.contested) {
         await t.query('UPDATE objectives SET contested = $2 WHERE id = $1', [o.id, r.contested]);
-        t.afterCommit(() => hub.invalidate(eventId, ['objectives']));
+        refresh = true;
       }
+      if (refresh) t.afterCommit(() => hub.invalidate(eventId, ['objectives']));
     });
   }
 

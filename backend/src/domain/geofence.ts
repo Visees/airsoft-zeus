@@ -173,6 +173,40 @@ export function presenceTtlMs(tracking: Pick<Tracking, 'intervalSec' | 'batteryS
   return Math.max(3.5 * intervalMs, 30_000);
 }
 
+/** The capture shown to everyone on the map: the team holding the zone now, else the one furthest along. */
+export interface CaptureSummary {
+  teamId: string;
+  /** hold seconds at `now` */
+  progressSec: number;
+  requiredSec: number;
+  /** hold seconds gained per second while it runs; 0 = paused */
+  rate: number;
+}
+
+export function captureSummary(s: GeofenceState, cfg: Geofence, now: number): CaptureSummary | null {
+  let best: CaptureSummary | null = null;
+  for (const [teamId, entry] of Object.entries(s.progress)) {
+    const present = s.present[teamId];
+    const rate = entry.at !== null && present && !s.contested ? multiplierFor(cfg, Object.keys(present).length) : 0;
+    const progressSec = Math.min(cfg.durationSec, entry.s + (rate && now > entry.at! ? ((now - entry.at!) / 1000) * rate : 0));
+    if (progressSec <= 0 && !rate) continue;
+    if (!best || (rate > 0 && best.rate === 0) || ((rate > 0) === (best.rate > 0) && progressSec > best.progressSec)) {
+      best = { teamId, progressSec, requiredSec: cfg.durationSec, rate };
+    }
+  }
+  return best;
+}
+
+/**
+ * Must viewers refetch to see the capture right? Clients extrapolate a running capture, so only a
+ * different team or rate, or a jump away from the extrapolation (lost hold time), counts.
+ * Both summaries must be taken at the same `now`.
+ */
+export function captureChanged(a: CaptureSummary | null, b: CaptureSummary | null): boolean {
+  if (!a || !b) return a !== b;
+  return a.teamId !== b.teamId || a.rate !== b.rate || Math.abs(a.progressSec - b.progressSec) > 2;
+}
+
 /** A silent team's paused progress is kept this long (at least 2 presence TTLs) before "reset on exit" applies. */
 const SILENCE_RESET_MS = 120_000;
 

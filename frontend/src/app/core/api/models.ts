@@ -572,9 +572,21 @@ export interface Objective {
   /** Can the viewer's team capture it right now, and if not why. */
   canCapture: boolean;
   blockedReason: CaptureBlockReason | null;
+  /** Zone capture under way (any team, everyone sees it on the map). */
+  capture: ObjectiveCapture | null;
   /** GM only */
   captureCode?: string | null;
   qrVersion?: number;
+}
+
+export interface ObjectiveCapture {
+  teamId: Uuid;
+  /** hold seconds at `at` (server time) */
+  progressSec: number;
+  requiredSec: number;
+  /** hold seconds gained per second while it runs; 0 = paused */
+  rate: number;
+  at: IsoDate;
 }
 
 export type CaptureBlockReason =

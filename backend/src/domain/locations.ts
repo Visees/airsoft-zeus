@@ -6,7 +6,7 @@ import { hub } from '../realtime/hub.js';
 import { FRESH_MS, toServerClock, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
 import { eventContext, playsIn, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
-import { advance, fromRow, majorityLeader, presenceTtlMs, readZone, toRow, type Report, type ZoneFix } from './geofence.js';
+import { advance, captureChanged, captureSummary, fromRow, majorityLeader, presenceTtlMs, readZone, toRow, type Report, type ZoneFix } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
@@ -182,7 +182,8 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
       const live = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1', [o.id], t);
       if (!live) return null;
       const liveStatus = statusOf(live, counts, now);
-      const adv = advance(fromRow(row), {
+      const before = fromRow(row);
+      const adv = advance(before, {
         now,
         cfg,
         presenceTtlMs: ttl,
@@ -211,6 +212,8 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
         }
       }
       if (!captured && adv.changed) await saveState(t, o.id, adv.state);
+      // everyone's map shows who is capturing
+      let refresh = captureChanged(captureSummary(before, cfg, now), captureSummary(adv.state, cfg, now));
       // contest started / ended
       if (adv.state.contested !== live.contested) {
         await t.query('UPDATE objectives SET contested = $2, updated_at = now() WHERE id = $1', [o.id, adv.state.contested]);
@@ -226,8 +229,9 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
             url: `/events/${eventId}/live/objectives/${o.id}`,
           });
         }
-        t.afterCommit(() => hub.invalidate(eventId, ['objectives']));
+        refresh = true;
       }
+      if (refresh) t.afterCommit(() => hub.invalidate(eventId, ['objectives']));
       if (adv.contestEndedAfterMs !== null && adv.contestEndedAfterMs >= 20_000 && live.owner_team_id && adv.state.present[live.owner_team_id]) {
         const r = rewardsOf(live.rewards);
         if (r.defenseBonus) {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GEOFENCE, DEFAULT_TRACKING, DEFAULT_VISIBILITY, merge, type VisibilityRules } from '../src/domain/defaults.js';
 import { toServerClock, validateSamples } from '../src/domain/anticheat.js';
-import { advance, emptyState, exitMarginM, presenceTtlMs, readZone } from '../src/domain/geofence.js';
+import { advance, captureChanged, captureSummary, emptyState, exitMarginM, presenceTtlMs, readZone } from '../src/domain/geofence.js';
 import {
   captureBlock,
   contentVisible,
@@ -434,6 +434,33 @@ describe('geofence', () => {
       r = step(r.state, 1_000, { userId: 'b1', teamId: 'B', inside: true }, off);
       expect(r.leader).toBeNull();
       expect(r.state.contested).toBe(false);
+    });
+  });
+  describe('capture summary (map fill)', () => {
+    const solo = { ...cfg, multiPlayerBoost: false };
+    it('reports the running hold extrapolated to now', () => {
+      let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true }, solo);
+      r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true }, solo);
+      expect(captureSummary(r.state, solo, 14_000)).toEqual({ teamId: 'A', progressSec: 14, requiredSec: 30, rate: 1 });
+      expect(captureSummary(emptyState(), solo, 0)).toBeNull();
+    });
+    it('is paused while contested and prefers the running team', () => {
+      let r = step(emptyState(), 0, { userId: 'a1', teamId: 'A', inside: true }, solo);
+      r = step(r.state, 10_000, { userId: 'a1', teamId: 'A', inside: true }, solo);
+      r = step(r.state, 12_000, { userId: 'b1', teamId: 'B', inside: true }, solo);
+      expect(captureSummary(r.state, solo, 15_000)).toMatchObject({ teamId: 'A', progressSec: 12, rate: 0 });
+      r = step(r.state, 13_000, { userId: 'a1', teamId: 'A', inside: false }, solo);
+      r = step(r.state, 14_000, { userId: 'b1', teamId: 'B', inside: true }, solo);
+      expect(captureSummary(r.state, solo, 15_000)).toMatchObject({ teamId: 'B', rate: 1 });
+    });
+    it('changes only when clients cannot extrapolate it', () => {
+      let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true }, solo);
+      const before = r.state;
+      r = step(before, 10_000, { userId: 'u1', teamId: 'A', inside: true }, solo);
+      expect(captureChanged(captureSummary(before, solo, 10_000), captureSummary(r.state, solo, 10_000))).toBe(false);
+      const late = step(r.state, 50_000, { userId: 'u1', teamId: 'A', inside: true }, solo); // gap lost
+      expect(captureChanged(captureSummary(r.state, solo, 50_000), captureSummary(late.state, solo, 50_000))).toBe(true);
+      expect(captureChanged(null, captureSummary(before, solo, 0))).toBe(true);
     });
   });
 });
