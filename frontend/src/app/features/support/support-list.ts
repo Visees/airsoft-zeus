@@ -20,7 +20,9 @@ import { SupportTicketCard } from './support-ui';
   template: `
     <div class="page-narrow">
       <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile" i18n-title i18n-subtitle>
-        <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New message</ng-container></a>
+        @if (auth.can('support')) {
+          <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New message</ng-container></a>
+        }
       </zeus-page-header>
 
       @if (isAdmin()) {
@@ -66,7 +68,7 @@ export class SupportListScreen implements OnInit {
   };
 
   private readonly api = inject(ApiService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
   protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);

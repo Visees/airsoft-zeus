@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { requireFeature } from '../auth/features.js';
 import { currentUser, requireVerified, userIsAdmin } from '../auth/middleware.js';
 import { config } from '../config.js';
 import { many, one, tx } from '../db.js';
@@ -98,7 +99,7 @@ supportRouter.get('/', async (req, res) => {
   res.json({ items: items.map((r) => dto.supportTicket(r, all)), nextCursor: hasMore && last ? encodeCursor(last.last_message_at, last.id) : null });
 });
 
-supportRouter.post('/', async (req, res) => {
+supportRouter.post('/', requireFeature('support'), async (req, res) => {
   const me = currentUser(req);
   const b = body(req, ticketInput);
   await consume('support', me.id, 5, 3600, tr`You sent several messages in the last hour. Try again later, or add to an open conversation.`);
@@ -125,7 +126,7 @@ supportRouter.get('/:ticketId', async (req, res) => {
  * Reply in the thread. An admin reply marks the ticket answered and notifies the author;
  * a reply from the author (re)opens it and emails the admins.
  */
-supportRouter.post('/:ticketId/messages', async (req, res) => {
+supportRouter.post('/:ticketId/messages', requireFeature('support'), async (req, res) => {
   const me = currentUser(req);
   const { row, admin } = await visibleTicket(idParam(req, 'ticketId'), me.id);
   const b = body(req, z.object({ body: message }));

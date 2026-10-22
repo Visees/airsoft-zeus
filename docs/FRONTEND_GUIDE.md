@@ -28,7 +28,8 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
 
 | Need | Use |
 | --- | --- |
-| Session, current user | `AuthService` (`user()`, `isLoggedIn()`, `login()`, `register()`, `logout()`, `reloadUser()`, `setUser()`) |
+| Session, current user | `AuthService` (`user()`, `isLoggedIn()`, `login()`, `register()`, `logout()`, `reloadUser()`, `setUser()`, `can(feature)`) |
+| Per-user features | `auth.can('create_events')` in templates/computed to hide entries; `featureGuard(feature, unless?)` on routes. Keys: `Feature` in models.ts, labels `FEATURE_LABELS`/`FEATURE_HINTS` in format.ts; the server list and defaults are in `backend/src/auth/features.ts` |
 | Runtime config (Maps key, VAPID, terms version) | `ConfigService.load()` / `config()` |
 | Live event state | `LiveStore` (`core/live/live-store.ts`) — provided on the live and control-center routes; `inject(LiveStore)` in children. `load(eventId)`, signals for event/teams/members/objectives/pois/zones/perks/purchases/effects/announcements/positions/alerts/activity/clock, `now()` = server time, `refresh(...scopes)` after an action |
 | Realtime | `RealtimeService.on('notification' \| 'positions' \| …)`, `subscribe(eventId, destroyRef)` |

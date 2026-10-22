@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { currentUser, requireAdmin, requireVerified, userIsAdmin } from '../auth/middleware.js';
+import { requireFeature } from '../auth/features.js';
+import { currentUser, requireVerified } from '../auth/middleware.js';
 import { many, one } from '../db.js';
 import { notFound } from '../errors.js';
 import { decodeCursor, encodeCursor } from '../lib/pagination.js';
@@ -57,11 +58,11 @@ async function newsById(id: string) {
   return dto.news(row);
 }
 
-/** Published news, newest first. Admins with ?all=true also get drafts and scheduled posts. */
+/** Published news, newest first. News editors (manage_news) with ?all=true also get drafts and scheduled posts. */
 newsRouter.get('/', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const q = queryOf(req, z.object({ cursor: z.string().optional(), all: z.enum(['true', 'false']).optional() }));
-  const all = q.all === 'true' && (await userIsAdmin(me.id));
+  const all = q.all === 'true' && me.features.manage_news;
   const c = decodeCursor(q.cursor);
   // Drafts have no published_at: they sort by creation time.
   const at = 'coalesce(n.published_at, n.created_at)';
@@ -81,11 +82,11 @@ newsRouter.get('/:newsId', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const n = await newsById(idParam(req, 'newsId'));
   const live = n.publishedAt !== null && Date.parse(n.publishedAt) <= Date.now();
-  if (!live && !(await userIsAdmin(me.id))) throw notFound(tr`News not found.`);
+  if (!live && !me.features.manage_news) throw notFound(tr`News not found.`);
   res.json(n);
 });
 
-newsRouter.post('/', requireAdmin, async (req, res) => {
+newsRouter.post('/', requireVerified, requireFeature('manage_news'), async (req, res) => {
   const me = currentUser(req);
   const b = body(req, newsInput);
   const row = await one<{ id: string }>(
@@ -96,7 +97,7 @@ newsRouter.post('/', requireAdmin, async (req, res) => {
   res.status(201).json(await newsById(row!.id));
 });
 
-newsRouter.patch('/:newsId', requireAdmin, async (req, res) => {
+newsRouter.patch('/:newsId', requireVerified, requireFeature('manage_news'), async (req, res) => {
   const id = idParam(req, 'newsId');
   const b = body(req, newsInput.partial());
   const sets: string[] = [];
@@ -113,7 +114,7 @@ newsRouter.patch('/:newsId', requireAdmin, async (req, res) => {
   res.json(await newsById(id));
 });
 
-newsRouter.delete('/:newsId', requireAdmin, async (req, res) => {
+newsRouter.delete('/:newsId', requireVerified, requireFeature('manage_news'), async (req, res) => {
   const r = await many('DELETE FROM news WHERE id = $1 RETURNING id', [idParam(req, 'newsId')]);
   if (!r.length) throw notFound(tr`News not found.`);
   res.json({ ok: true });

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, gmGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
+import { adminGuard, authGuard, featureGuard, gmGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
 import { LiveStore } from './core/live/live-store';
 import { LIVE_MAP_KEEP_ALIVE } from './core/routing/keep-alive-route-strategy';
 import { AppShell } from './layout/app-shell';
@@ -68,7 +68,7 @@ export const routes: Routes = [
     canActivate: [verifiedGuard],
     children: [
       { path: 'home', title: $localize`Home`, loadComponent: () => import('./features/home/home').then((m) => m.HomeScreen) },
-      { path: 'events/discover', title: $localize`Discover events`, loadComponent: () => import('./features/events/discover').then((m) => m.DiscoverScreen) },
+      { path: 'events/discover', canActivate: [featureGuard('discover_events')], title: $localize`Discover events`, loadComponent: () => import('./features/events/discover').then((m) => m.DiscoverScreen) },
       /** ?tab=upcoming|past|gm|invitations */
       { path: 'events/mine', title: $localize`My events`, loadComponent: () => import('./features/events/my-events').then((m) => m.MyEventsScreen) },
       /** ?code=ABC123 prefills the code (deep link from an invitation QR) */
@@ -80,26 +80,28 @@ export const routes: Routes = [
       { path: 'events/:eventId/results/export', title: $localize`Export results`, loadComponent: () => import('./features/results/export-results').then((m) => m.ExportResultsScreen) },
       { path: 'news', title: $localize`News`, loadComponent: () => import('./features/news/news-list').then((m) => m.NewsListScreen) },
       /** newsId may be 'new' (admins only) */
-      { path: 'news/:newsId/edit', title: $localize`Edit news`, loadComponent: () => import('./features/news/news-editor').then((m) => m.NewsEditorScreen) },
+      { path: 'news/:newsId/edit', canActivate: [featureGuard('manage_news')], title: $localize`Edit news`, loadComponent: () => import('./features/news/news-editor').then((m) => m.NewsEditorScreen) },
       { path: 'news/:newsId', title: $localize`News`, loadComponent: () => import('./features/news/news-detail').then((m) => m.NewsDetailScreen) },
       { path: 'support', title: $localize`Help & feedback`, loadComponent: () => import('./features/support/support-list').then((m) => m.SupportListScreen) },
       /** ?category=bug|report|general preselects the kind; ?from=/path is attached to bug reports */
-      { path: 'support/new', title: $localize`New message`, loadComponent: () => import('./features/support/support-new').then((m) => m.SupportNewScreen) },
+      { path: 'support/new', canActivate: [featureGuard('support')], title: $localize`New message`, loadComponent: () => import('./features/support/support-new').then((m) => m.SupportNewScreen) },
       { path: 'support/:ticketId', title: $localize`Help & feedback`, loadComponent: () => import('./features/support/support-thread').then((m) => m.SupportThreadScreen) },
-      /** Platform admins (ADMIN_EMAILS): tab = tickets | news */
+      /** Platform admins (ADMIN_EMAILS): tab = tickets | news | users */
       { path: 'admin', pathMatch: 'full', redirectTo: 'admin/tickets' },
+      { path: 'admin/users/:userId', canActivate: [adminGuard], title: $localize`User`, loadComponent: () => import('./features/admin/admin-user').then((m) => m.AdminUserScreen) },
       { path: 'admin/:tab', canActivate: [adminGuard], title: $localize`Admin`, loadComponent: () => import('./features/admin/admin-dashboard').then((m) => m.AdminDashboardScreen) },
       { path: 'notifications', title: $localize`Notifications`, loadComponent: () => import('./features/notifications/notifications').then((m) => m.NotificationsScreen) },
       { path: 'profile', title: $localize`Profile`, loadComponent: () => import('./features/profile/profile').then((m) => m.ProfileScreen) },
       { path: 'profile/edit', title: $localize`Edit profile`, loadComponent: () => import('./features/profile/edit-profile').then((m) => m.EditProfileScreen) },
       { path: 'profile/stats', title: $localize`Statistics`, loadComponent: () => import('./features/profile/statistics').then((m) => m.StatisticsScreen) },
       { path: 'players/:userId', title: $localize`Player`, loadComponent: () => import('./features/profile/public-profile').then((m) => m.PublicProfileScreen) },
-      /** clubId may be 'new' */
-      { path: 'clubs/:clubId', title: $localize`Club`, loadComponent: () => import('./features/clubs/club').then((m) => m.ClubScreen) },
+      /** clubId may be 'new' (create_clubs) */
+      { path: 'clubs/:clubId', canActivate: [featureGuard('create_clubs', (r) => r.paramMap.get('clubId') !== 'new')], title: $localize`Club`, loadComponent: () => import('./features/clubs/club').then((m) => m.ClubScreen) },
       { path: 'settings', title: $localize`Settings`, loadComponent: () => import('./features/settings/settings').then((m) => m.SettingsScreen) },
       { path: 'settings/privacy', title: $localize`Privacy`, loadComponent: () => import('./features/settings/privacy-settings').then((m) => m.PrivacySettingsScreen) },
 
-      { path: 'gm/new', title: $localize`Create event`, loadComponent: () => import('./features/gm/wizard/create-event-wizard').then((m) => m.CreateEventWizardScreen) },
+      /** ?eventId=&step= reopens an existing event in the wizard (no create_events needed) */
+      { path: 'gm/new', canActivate: [featureGuard('create_events', (r) => r.queryParamMap.has('eventId'))], title: $localize`Create event`, loadComponent: () => import('./features/gm/wizard/create-event-wizard').then((m) => m.CreateEventWizardScreen) },
       { path: 'gm/events/:eventId', canActivate: [gmGuard], title: $localize`Event editor`, loadComponent: () => import('./features/gm/event-editor').then((m) => m.EventEditorScreen) },
       { path: 'gm/events/:eventId/teams', canActivate: [gmGuard], title: $localize`Teams and squads`, loadComponent: () => import('./features/gm/team-squad-manager').then((m) => m.TeamSquadManagerScreen) },
       /** objectiveId may be 'new' (?lat=&lng= prefill) */

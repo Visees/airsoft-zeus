@@ -18,7 +18,7 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
   template: `
     <div class="page-narrow">
       <zeus-page-header title="News" back="/news" backLabel="All news" i18n-title i18n-backLabel>
-        @if (isAdmin() && news(); as n) {
+        @if (isEditor() && news(); as n) {
           <a hlmBtn variant="outline" [routerLink]="['/news', n.id, 'edit']" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit</ng-container></a>
         }
       </zeus-page-header>
@@ -84,7 +84,8 @@ export class NewsDetailScreen {
   protected readonly news = signal<News | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<unknown>(null);
-  protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
+  /** News editor: platform admins and users with the manage_news feature. */
+  protected readonly isEditor = computed(() => this.auth.can('manage_news'));
   protected readonly paragraphs = computed(() =>
     (this.news()?.body ?? '')
       .split(/\n\s*\n/)

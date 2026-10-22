@@ -35,6 +35,11 @@ export type PlayerRole =
   | 'custom';
 
 export type MemberRole = 'gm' | 'player';
+/**
+ * Parts of the app admins switch on or off per user (backend/src/auth/features.ts has the defaults).
+ * Labels: FEATURE_LABELS in core/util/format.ts. Check with `AuthService.can()` / `featureGuard()`.
+ */
+export type Feature = 'discover_events' | 'create_events' | 'create_clubs' | 'support' | 'manage_news';
 export type MemberStatus = 'invited' | 'pending' | 'approved' | 'rejected' | 'removed' | 'banned' | 'left';
 export type PermissionState = 'unknown' | 'granted' | 'denied' | 'prompt';
 export type TeamPattern = 'solid' | 'stripes' | 'dots' | 'chevron' | 'cross' | 'grid';
@@ -121,8 +126,10 @@ export interface MeUser {
   termsAccepted: boolean;
   stats: PlayerStats;
   badges: Badge[];
-  /** Platform admin (ADMIN_EMAILS on the server): can publish News. */
+  /** Platform admin (ADMIN_EMAILS on the server): every feature, the admin dashboard. */
   isAdmin: boolean;
+  /** What this account may use (admins: everything). */
+  features: Record<Feature, boolean>;
   createdAt: IsoDate;
 }
 
@@ -1168,6 +1175,59 @@ export interface SupportTicketInput {
 // ---------------------------------------------------------------------------
 
 export interface AdminOverview {
+  users: { total: number; newThisWeek: number };
   tickets: { open: number; answered: number; closed: number; openBugs: number };
   news: { drafts: number; scheduled: number; published: number };
+}
+
+export type AdminUserFilter = 'all' | 'unverified' | 'admins' | 'custom';
+
+export interface AdminUserSummary {
+  id: Uuid;
+  nickname: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  emailVerified: boolean;
+  /** In ADMIN_EMAILS: every feature, can't be changed here. */
+  isAdmin: boolean;
+  /** At least one feature differs from the default. */
+  customAccess: boolean;
+  createdAt: IsoDate;
+  /** Last session refresh (the app refreshes on start and while open). */
+  lastActiveAt: IsoDate | null;
+}
+
+export interface AdminUserFeature {
+  key: Feature;
+  enabled: boolean;
+  /** What users without an override get. */
+  default: boolean;
+  /** Set for this user (differs from the default). */
+  custom: boolean;
+}
+
+export interface AdminUserEvent {
+  id: Uuid;
+  name: string;
+  status: EventStatus;
+  startAt: IsoDate;
+  role: MemberRole;
+  memberStatus: MemberStatus;
+}
+
+export interface AdminUserDetail extends AdminUserSummary {
+  country: string | null;
+  language: string;
+  clubId: Uuid | null;
+  clubName: string | null;
+  playerRole: PlayerRole;
+  termsAccepted: boolean;
+  onboardingDone: boolean;
+  stats: PlayerStats;
+  counts: { eventsPlayed: number; eventsRun: number; supportTickets: number };
+  features: AdminUserFeature[];
+  /** Latest 10 events the user joined, ran or was invited to. */
+  recentEvents: AdminUserEvent[];
 }

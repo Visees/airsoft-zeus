@@ -21,6 +21,7 @@ import { HlmLabel } from '@spartan-ng/helm/label';
 import type { IScannerControls } from '@zxing/browser';
 import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { PageHeader } from '../../shared/states';
 import { JOIN_CODE_PATTERN, codeFromQr, normalizeCode } from './share-utils';
 
@@ -33,7 +34,7 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." back="/events/discover" backLabel="Discover" i18n-title i18n-subtitle i18n-backLabel />
+      <zeus-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." [back]="auth.can('discover_events') ? '/events/discover' : '/events/mine'" [backLabel]="auth.can('discover_events') ? txt.discover : txt.myEvents" i18n-title i18n-subtitle />
 
       <form class="panel flex flex-col gap-4 p-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="flex flex-col gap-1.5">
@@ -122,9 +123,11 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
         }
       </section>
 
-      <p class="mt-6 text-center text-sm text-muted-foreground" i18n>
-        Looking for a public game? <a routerLink="/events/discover" class="font-semibold text-primary underline-offset-4 hover:underline">Discover events</a>
-      </p>
+      @if (auth.can('discover_events')) {
+        <p class="mt-6 text-center text-sm text-muted-foreground" i18n>
+          Looking for a public game? <a routerLink="/events/discover" class="font-semibold text-primary underline-offset-4 hover:underline">Discover events</a>
+        </p>
+      }
     </div>
   `,
 })
@@ -134,9 +137,12 @@ export class JoinEventScreen {
     theCameraCouldNot: $localize`The camera could not start.`,
     scanInvitationQr: $localize`Scan invitation QR`,
     tryTheCameraAgain: $localize`Try the camera again`,
+    discover: $localize`Discover`,
+    myEvents: $localize`My events`,
   };
 
   private readonly api = inject(ApiService);
+  protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));

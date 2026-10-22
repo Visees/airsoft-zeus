@@ -37,6 +37,10 @@ import {
   MeUser,
   MyStats,
   AdminOverview,
+  AdminUserDetail,
+  AdminUserFilter,
+  AdminUserSummary,
+  Feature,
   News,
   NewsInput,
   Objective,
@@ -197,7 +201,7 @@ export class ApiService {
   }
 
   // --- news -----------------------------------------------------------------
-  /** Published news; `all` (admins only) also returns drafts and scheduled posts. */
+  /** Published news; `all` (news editors only) also returns drafts and scheduled posts. */
   news(cursor?: string | null, all = false) {
     return this.get<Page<News>>('/news', { cursor, all: all || null });
   }
@@ -236,6 +240,16 @@ export class ApiService {
   /** Counters for the admin dashboard (admins only). */
   adminOverview() {
     return this.get<AdminOverview>('/admin/overview');
+  }
+  adminUsers(params: { q?: string; filter?: AdminUserFilter; cursor?: string | null } = {}) {
+    return this.get<Page<AdminUserSummary>>('/admin/users', params);
+  }
+  adminUser(userId: Uuid) {
+    return this.get<AdminUserDetail>(`/admin/users/${encodeURIComponent(userId)}`);
+  }
+  /** true/false sets the feature for this user; null (or the default value) goes back to the default. */
+  setUserFeatures(userId: Uuid, features: Partial<Record<Feature, boolean | null>>) {
+    return this.patch<AdminUserDetail>(`/admin/users/${encodeURIComponent(userId)}/features`, { features });
   }
 
   // --- events ---------------------------------------------------------------

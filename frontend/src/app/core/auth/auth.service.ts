@@ -3,7 +3,7 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, take } from 'rxjs';
 import { ApiService } from '../api/api.service';
-import { AuthResponse, MeUser, RegisterRequest } from '../api/models';
+import { AuthResponse, Feature, MeUser, RegisterRequest } from '../api/models';
 import { activeLanguage, isUiLanguage, rememberLanguage } from '../i18n/language';
 
 /**
@@ -30,6 +30,14 @@ export class AuthService {
   readonly ready = this._ready.asReadonly();
   readonly isLoggedIn = computed(() => this._user() !== null);
   readonly isVerified = computed(() => this._user()?.emailVerified === true);
+
+  /**
+   * The signed-in user may use this part of the app (set per user in Admin → Users). Reads a
+   * signal, so it is reactive in templates and computed(). The server checks it on every call too.
+   */
+  can(feature: Feature): boolean {
+    return this._user()?.features?.[feature] === true;
+  }
 
   /** Restore the session from the refresh cookie. Safe to call many times. */
   init(): Promise<void> {

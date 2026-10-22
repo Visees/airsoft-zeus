@@ -3,6 +3,7 @@
  * Secrets (capture codes, QR tokens, join codes, personal data) are only emitted where the
  * caller explicitly asks for the GM/owner variant.
  */
+import { effectiveFeatures } from '../auth/features.js';
 import { isAdminEmail } from '../auth/middleware.js';
 import type { Row } from '../db.js';
 import { geofence, rewards, scoring, tracking, visibility } from './defaults.js';
@@ -56,6 +57,7 @@ export function meUser(u: Row, badges: Row[]) {
     stats: { ...DEFAULT_STATS, ...(u.stats ?? {}) },
     badges: badges.map(badge),
     isAdmin: isAdminEmail(u.email),
+    features: effectiveFeatures(u.features, isAdminEmail(u.email)),
     createdAt: iso(u.created_at)!,
   };
 }

@@ -1,7 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { ApiService } from '../api/api.service';
 import { ApiError } from '../api/api-error';
+import { Feature } from '../api/models';
 import { ToastService } from '../ui/toast.service';
 import { AuthService } from './auth.service';
 
@@ -33,6 +34,22 @@ export const adminGuard: CanActivateFn = async () => {
   await auth.init();
   return auth.user()?.isAdmin ? true : router.createUrlTree(['/home']);
 };
+
+/**
+ * The user has this feature (Admin → Users). Goes inside the shell, after verifiedGuard.
+ * `unless` lets a route through without the feature (e.g. clubs/:id when the id isn't 'new').
+ */
+export const featureGuard =
+  (feature: Feature, unless?: (route: ActivatedRouteSnapshot) => boolean): CanActivateFn =>
+  async (route) => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    const toast = inject(ToastService);
+    await auth.init();
+    if (auth.can(feature) || unless?.(route)) return true;
+    toast.warning($localize`This part of the app is not enabled for your account`);
+    return router.createUrlTree(['/home']);
+  };
 
 /** `userId:eventId` pairs already confirmed as GM, so hopping between GM screens skips the request. */
 const confirmedGm = new Set<string>();

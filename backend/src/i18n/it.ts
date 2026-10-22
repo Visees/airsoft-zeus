@@ -10,6 +10,8 @@ export const it: Record<string, string> = {
   "Verify your email address first.": "Prima verifica il tuo indirizzo email.",
   "Accept the terms of service first.": "Prima accetta i termini di servizio.",
   "Only platform admins can do that.": "Solo gli admin della piattaforma possono farlo.",
+  "This part of the app is not enabled for your account.": "Questa parte dell'app non è attiva per il tuo account.",
+  "Platform admins always have every feature.": "Gli admin della piattaforma hanno sempre tutte le funzioni.",
   "JWT_SECRET must be at least 32 characters": "JWT_SECRET deve avere almeno 32 caratteri",
   "Sign in to continue.": "Accedi per continuare.",
   "You do not have permission to do that.": "Non hai il permesso di farlo.",

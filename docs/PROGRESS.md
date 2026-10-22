@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-22 — Italian translation.
+Last update: 2026-10-22 — Admin users and per-user features.
 
 ## Stack (decided)
 
@@ -174,6 +174,34 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   selectors, demo accounts `@airsoftzeus.test` and their password, repo/folder name.
 * PWA icons in `frontend/public/icons` are still the Angular placeholder: replace with an
   AirsoftHub icon.
+
+## Admin: users and per-user features (2026-10-22)
+
+* Admin → Users (`/admin/users`): every account (deleted ones hidden), search by nickname, email
+  or name, filters all / custom access / not verified / admins, newest first. "Last active" is the
+  latest refresh-token rotation. Dashboard tiles: users, new this week.
+* User page (`/admin/users/:userId`): account details, events played / run, support count,
+  latest 10 events, stats, and a switch per feature, saved at once (`PATCH
+  /api/admin/users/:id/features`, audit log action `user.features`).
+* Features (`backend/src/auth/features.ts`, mirrored by `Feature` in models.ts): each has a
+  default for everyone; `users.features` (migration 0007) stores only the overrides that differ
+  from it, so changing a default later applies to everyone not set by hand. ADMIN_EMAILS users
+  always have every feature and can't be changed (409). Current list:
+  - `discover_events` (on) — Discover tab and `GET /events/discover`; without it, join by code or invitation.
+  - `create_events` (on) — create, duplicate, create from template. Events already run stay editable
+    (the wizard with `?eventId=` is allowed).
+  - `create_clubs` (on) — `POST /clubs` and `/clubs/new`; joining a club is always allowed.
+  - `support` (on) — new conversations and replies; the history stays readable.
+  - `manage_news` (off) — News editor: write/edit/delete News and see drafts (was admins only).
+* The server checks on every request (`requireFeature(key)`; the user row is already loaded
+  for the token check, so no extra query) and answers 403 `feature_disabled`. The app hides
+  entries with `auth.can(key)` and guards routes with `featureGuard(key)`; it sees a change at
+  its next session refresh (app start or within minutes).
+* Adding a feature (e.g. a field-manager dashboard): key + default in `features.ts`, key in
+  `Feature` + labels in `FEATURE_LABELS` / `FEATURE_HINTS` (format.ts), `requireFeature` on its
+  routes, `can()` / `featureGuard` in the UI. It shows up on the admin user page by itself.
+* Not done: roles (named bundles of features, e.g. "Field manager") — worth adding once several
+  users need the same set; admin rights still come only from ADMIN_EMAILS.
 
 ## Known limits / next ideas
 

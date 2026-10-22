@@ -1,6 +1,7 @@
 import {
   CaptureBlockReason,
   EventStatus,
+  Feature,
   GameMode,
   LedgerType,
   ObjectiveStatus,
@@ -162,6 +163,22 @@ export const PRECISION_LABELS: Record<Precision, string> = {
   approximate: $localize`:location precision|:Approximate`,
   delayed: $localize`:location precision|:Delayed`,
   area: $localize`Area only`,
+};
+
+export const FEATURE_LABELS: Record<Feature, string> = {
+  discover_events: $localize`Discover events`,
+  create_events: $localize`Create events`,
+  create_clubs: $localize`Create clubs`,
+  support: $localize`Help & feedback`,
+  manage_news: $localize`News editor`,
+};
+
+export const FEATURE_HINTS: Record<Feature, string> = {
+  discover_events: $localize`Browse public events. Without it, players join only with a code or an invitation.`,
+  create_events: $localize`Create, duplicate and copy events from templates. Events they already run stay theirs.`,
+  create_clubs: $localize`Start a new club. Joining an existing club is always allowed.`,
+  support: $localize`Write to the platform team from Profile → Help & feedback.`,
+  manage_news: $localize`Write, schedule and delete the News shown on everyone's home page.`,
 };
 
 export const LEDGER_TYPE_LABELS: Record<LedgerType, string> = {

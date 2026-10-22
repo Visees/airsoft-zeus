@@ -61,7 +61,7 @@ let nextId = 0;
         <ng-content />
       </span>
       <span class="flex items-center gap-2 pt-0.5">
-        <span class="label-caps w-6 text-right" aria-hidden="true">{{ value() ? txt.on : txt.off }}</span>
+        <span class="label-caps whitespace-nowrap text-right" aria-hidden="true">{{ value() ? txt.on : txt.off }}</span>
         <input
           type="checkbox"
           role="switch"

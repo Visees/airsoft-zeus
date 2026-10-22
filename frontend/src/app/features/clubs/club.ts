@@ -34,7 +34,9 @@ import { ClubForm } from './club-form';
         } @else if (notFound()) {
           <zeus-page-header title="Club" i18n-title />
           <zeus-empty-state icon="lucideShield" title="Club not found" message="It may have been removed, or the link is wrong." i18n-title i18n-message>
-            <a hlmBtn routerLink="/clubs/new" class="h-11" i18n>Create a club</a>
+            @if (auth.can('create_clubs')) {
+              <a hlmBtn routerLink="/clubs/new" class="h-11" i18n>Create a club</a>
+            }
           </zeus-empty-state>
         } @else if (error() && !club()) {
           <zeus-page-header title="Club" i18n-title />
@@ -141,7 +143,7 @@ import { ClubForm } from './club-form';
 })
 export class ClubScreen {
   private readonly api = inject(ApiService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);

@@ -130,7 +130,9 @@ import { StatTiles } from '../profile/profile-ui';
             @if (!d.activeEvent && !nextEvent()) {
               <zeus-empty-state icon="lucideCalendarDays" title="No upcoming events"
                 message="Find a public game near you, or enter the code a Game Master gave you." i18n-title i18n-message>
-                <a hlmBtn routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
+                @if (auth.can('discover_events')) {
+                  <a hlmBtn routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
+                }
                 <a hlmBtn variant="outline" routerLink="/events/join" class="h-11" i18n>Join with code</a>
               </zeus-empty-state>
             }
@@ -158,11 +160,11 @@ import { StatTiles } from '../profile/profile-ui';
             }
 
             <!-- News -->
-            @if (d.news.length || isAdmin()) {
+            @if (d.news.length || auth.can('manage_news')) {
               <section aria-labelledby="home-news">
                 <div class="mb-2 flex items-baseline justify-between gap-2">
                   <h2 id="home-news" class="label-caps" i18n>News</h2>
-                  <a [routerLink]="isAdmin() ? '/admin/news' : '/news'" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">{{ isAdmin() ? txt.manageNews : txt.allNews }}</a>
+                  <a [routerLink]="isAdmin() ? '/admin/news' : '/news'" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">{{ auth.can('manage_news') ? txt.manageNews : txt.allNews }}</a>
                 </div>
                 @if (d.news.length) {
                   <ul class="flex flex-col gap-2">
@@ -186,7 +188,9 @@ import { StatTiles } from '../profile/profile-ui';
                     <h2 id="home-gm" class="text-xl uppercase" i18n>Game Master</h2>
                     <p class="text-sm text-muted-foreground" i18n>Events you run.</p>
                   </div>
-                  <a hlmBtn routerLink="/gm/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
+                  @if (auth.can('create_events')) {
+                    <a hlmBtn routerLink="/gm/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
+                  }
                 </div>
 
                 @if (gm.pendingApprovals.length) {
@@ -265,7 +269,7 @@ import { StatTiles } from '../profile/profile-ui';
               }
             </section>
 
-            @if (!d.gm) {
+            @if (!d.gm && auth.can('create_events')) {
               <section class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-border p-4" aria-labelledby="home-gm-cta">
                 <div>
                   <h2 id="home-gm-cta" class="font-semibold" i18n>Run your own event</h2>
@@ -319,7 +323,7 @@ export class HomeScreen implements OnInit {
   };
 
   private readonly api = inject(ApiService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly center = inject(NotificationCenter);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);

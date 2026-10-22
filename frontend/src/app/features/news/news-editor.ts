@@ -31,8 +31,8 @@ type PublishMode = 'draft' | 'now' | 'schedule';
     <div class="page-narrow">
       <zeus-page-header eyebrow="News" [title]="isNew() ? txt.writeNews : txt.editNews" [back]="backUrl()" i18n-eyebrow />
 
-      @if (!isAdmin()) {
-        <zeus-empty-state icon="lucideLock" title="Admins only" message="Only the AirsoftHub team can write News." i18n-title i18n-message />
+      @if (!isEditor()) {
+        <zeus-empty-state icon="lucideLock" title="News editors only" message="Only the AirsoftHub team and the News editors can write News." i18n-title i18n-message />
       } @else if (loading()) {
         <zeus-loading-skeleton [rows]="6" />
       } @else if (loadError()) {
@@ -184,7 +184,8 @@ export class NewsEditorScreen {
   protected readonly news = signal<News | null>(null);
   private patching = false;
 
-  protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
+  /** News editor: platform admins and users with the manage_news feature. */
+  protected readonly isEditor = computed(() => this.auth.can('manage_news'));
   protected readonly isNew = computed(() => this.newsId() === 'new');
   protected readonly backUrl = computed(() => (this.isNew() ? '/admin/news' : `/news/${this.newsId()}`));
 
@@ -216,7 +217,7 @@ export class NewsEditorScreen {
     });
     effect(() => {
       this.newsId();
-      if (!this.isAdmin()) return;
+      if (!this.isEditor()) return;
       untracked(() => void this.load());
     });
   }

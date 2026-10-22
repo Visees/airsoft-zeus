@@ -17,7 +17,7 @@ import { NewsCard } from './news-ui';
   template: `
     <div class="page-narrow">
       <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home" i18n-title i18n-subtitle>
-        @if (isAdmin()) {
+        @if (isEditor()) {
           <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Write news</ng-container></a>
         }
       </zeus-page-header>
@@ -61,11 +61,12 @@ export class NewsListScreen {
   protected readonly loading = signal(true);
   protected readonly loadingMore = signal(false);
   protected readonly error = signal<unknown>(null);
-  protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
+  /** News editor: platform admins and users with the manage_news feature. */
+  protected readonly isEditor = computed(() => this.auth.can('manage_news'));
 
   constructor() {
     effect(() => {
-      this.isAdmin();
+      this.isEditor();
       untracked(() => void this.load());
     });
   }
@@ -74,7 +75,7 @@ export class NewsListScreen {
     this.loading.set(!this.items().length);
     this.error.set(null);
     try {
-      const page = await this.api.news(null, this.isAdmin());
+      const page = await this.api.news(null, this.isEditor());
       this.items.set(page.items);
       this.nextCursor.set(page.nextCursor);
     } catch (e) {
@@ -89,7 +90,7 @@ export class NewsListScreen {
     if (!cursor) return;
     this.loadingMore.set(true);
     try {
-      const page = await this.api.news(cursor, this.isAdmin());
+      const page = await this.api.news(cursor, this.isEditor());
       const seen = new Set(this.items().map((n) => n.id));
       this.items.update((list) => [...list, ...page.items.filter((n) => !seen.has(n.id))]);
       this.nextCursor.set(page.nextCursor);

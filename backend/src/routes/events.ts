@@ -1,5 +1,6 @@
 import { Router, type Request } from 'express';
 import { z } from 'zod';
+import { requireFeature } from '../auth/features.js';
 import { currentUser, requireVerified, userIsAdmin } from '../auth/middleware.js';
 import { many, one, tx, type Tx } from '../db.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
@@ -96,7 +97,7 @@ async function detail(eventId: string, userId: string) {
 
 // ------------------------------------------------------------------ listing
 
-eventsRouter.get('/discover', async (req, res) => {
+eventsRouter.get('/discover', requireFeature('discover_events'), async (req, res) => {
   const me = currentUser(req);
   const q = queryOf(req, z.object({ q: z.string().max(80).optional(), mode: gameMode.optional(), from: z.string().optional(), cursor: z.string().optional() }));
   const c = decodeCursor(q.cursor);
@@ -139,7 +140,7 @@ eventsRouter.get('/mine', async (req, res) => {
 
 // ------------------------------------------------------------------ create / read / update
 
-eventsRouter.post('/', async (req, res) => {
+eventsRouter.post('/', requireFeature('create_events'), async (req, res) => {
   const me = currentUser(req);
   const b = body(req, eventInput);
   validateTimes(b.startAt, b.endAt, b.minPlayers, b.maxPlayers);
@@ -318,7 +319,7 @@ eventsRouter.post('/:eventId/join-code/regenerate', async (req, res) => {
 
 // ------------------------------------------------------------------ copies & templates
 
-eventsRouter.post('/:eventId/duplicate', async (req, res) => {
+eventsRouter.post('/:eventId/duplicate', requireFeature('create_events'), async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
   const id = await tx(async (t) => {
@@ -346,7 +347,7 @@ eventsRouter.post('/:eventId/template', async (req, res) => {
 });
 
 export const templateInstantiateRouter = Router();
-templateInstantiateRouter.post('/templates/events/:id/instantiate', requireVerified, async (req, res) => {
+templateInstantiateRouter.post('/templates/events/:id/instantiate', requireVerified, requireFeature('create_events'), async (req, res) => {
   const me = currentUser(req);
   const b = body(req, z.object({ name: shortText(120).min(3), startAt: isoDate, endAt: isoDate }));
   validateTimes(b.startAt, b.endAt);

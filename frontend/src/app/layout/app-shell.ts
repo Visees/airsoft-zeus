@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
+import { Feature } from '../core/api/models';
 import { AuthService } from '../core/auth/auth.service';
 import { NotificationCenter } from '../core/notifications/notification-center.service';
 import { initials } from '../core/util/format';
@@ -32,7 +33,7 @@ interface NavItem {
         <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
       <ul class="flex flex-col gap-0.5 px-3">
-        @for (item of items; track item.link) {
+        @for (item of items(); track item.link) {
           <li>
             <a [routerLink]="item.link" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold" [routerLinkActiveOptions]="{ exact: !!item.exact }"
               class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
@@ -47,12 +48,14 @@ interface NavItem {
       </ul>
       <p class="label-caps mt-6 px-6" i18n>Game Master</p>
       <ul class="mt-1 flex flex-col gap-0.5 px-3">
-        <li>
-          <a routerLink="/gm/new" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold"
-            class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
-            <ng-icon name="lucidePlus" size="18" aria-hidden="true" /> <ng-container i18n>Create event</ng-container>
-          </a>
-        </li>
+        @if (auth.can('create_events')) {
+          <li>
+            <a routerLink="/gm/new" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold"
+              class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
+              <ng-icon name="lucidePlus" size="18" aria-hidden="true" /> <ng-container i18n>Create event</ng-container>
+            </a>
+          </li>
+        }
         <li>
           <a routerLink="/events/mine" [queryParams]="{ tab: 'gm' }"
             class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
@@ -104,8 +107,8 @@ interface NavItem {
 
     <!-- Phone bottom nav -->
     <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/97 backdrop-blur lg:hidden" aria-label="Main" style="padding-bottom: var(--safe-bottom)" i18n-aria-label>
-      <ul class="grid grid-cols-5">
-        @for (item of items; track item.link) {
+      <ul class="grid" [style.grid-template-columns]="'repeat(' + items().length + ', minmax(0, 1fr))'">
+        @for (item of items(); track item.link) {
           <li>
             <a [routerLink]="item.link" routerLinkActive="!text-primary" [routerLinkActiveOptions]="{ exact: !!item.exact }" #rla="routerLinkActive"
               [attr.aria-current]="rla.isActive ? 'page' : null"
@@ -123,16 +126,18 @@ interface NavItem {
   `,
 })
 export class AppShell {
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   protected readonly notif = inject(NotificationCenter);
   protected readonly user = this.auth.user;
   protected readonly userInitials = computed(() => initials(this.user()?.nickname));
 
-  protected readonly items: (NavItem & { short?: string })[] = [
+  private readonly allItems: (NavItem & { short?: string; feature?: Feature })[] = [
     { label: $localize`Home`, icon: 'lucideHouse', link: '/home', exact: true },
-    { label: $localize`Discover events`, short: $localize`Discover`, icon: 'lucideSearch', link: '/events/discover' },
+    { label: $localize`Discover events`, short: $localize`Discover`, icon: 'lucideSearch', link: '/events/discover', feature: 'discover_events' },
     { label: $localize`My events`, short: $localize`My events`, icon: 'lucideCalendarDays', link: '/events/mine' },
     { label: $localize`Notifications`, short: $localize`Alerts`, icon: 'lucideBell', link: '/notifications' },
     { label: $localize`Profile`, icon: 'lucideUser', link: '/profile' },
   ];
+  /** Entries for the features this user has (Admin → Users). */
+  protected readonly items = computed(() => this.allItems.filter((i) => !i.feature || this.auth.can(i.feature)));
 }

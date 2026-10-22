@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { GameHistoryItem, MyStats } from '../../core/api/models';
 import { formatDate, formatNumber } from '../../core/util/format';
 import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
@@ -104,7 +105,9 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
               </ul>
             } @else {
               <zeus-empty-state icon="lucideHistory" title="No games played yet" message="Finished games appear here with your team, result, points and captures." i18n-title i18n-message>
-                <a hlmBtn routerLink="/events/discover" class="h-11" i18n>Discover events</a>
+                @if (auth.can('discover_events')) {
+                  <a hlmBtn routerLink="/events/discover" class="h-11" i18n>Discover events</a>
+                }
               </zeus-empty-state>
             }
           </section>
@@ -123,6 +126,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
 })
 export class StatisticsScreen implements OnInit {
   private readonly api = inject(ApiService);
+  protected readonly auth = inject(AuthService);
 
   protected readonly data = signal<MyStats | null>(null);
   protected readonly loading = signal(true);

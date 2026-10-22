@@ -21,7 +21,9 @@ import { AuthLayout } from '../auth/auth-layout';
           @if (auth.isLoggedIn()) {
             <a hlmBtn routerLink="/home" class="h-12 text-base"><ng-icon name="lucideHouse" size="18" aria-hidden="true" /> <ng-container i18n>Go home</ng-container></a>
             <a hlmBtn variant="outline" routerLink="/events/mine" class="h-11"><ng-icon name="lucideCalendarDays" size="16" aria-hidden="true" /> <ng-container i18n>My events</ng-container></a>
-            <a hlmBtn variant="outline" routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
+            @if (auth.can('discover_events')) {
+              <a hlmBtn variant="outline" routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
+            }
             <a hlmBtn variant="ghost" routerLink="/events/join" class="h-11" i18n>Join with a code</a>
           } @else {
             <a hlmBtn routerLink="/welcome" class="h-12 text-base" i18n>Go to start</a>

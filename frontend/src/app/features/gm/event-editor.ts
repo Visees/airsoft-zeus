@@ -263,9 +263,11 @@ interface NavCard {
 
             <section class="panel flex flex-col gap-2 p-3" aria-labelledby="more-h">
               <h2 id="more-h" class="label-caps" i18n>More actions</h2>
-              <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="duplicate()" [disabled]="moreBusy()">
-                <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Duplicate event</ng-container>
-              </button>
+              @if (auth.can('create_events')) {
+                <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="duplicate()" [disabled]="moreBusy()">
+                  <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Duplicate event</ng-container>
+                </button>
+              }
               <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="saveTemplate()" [disabled]="moreBusy()">
                 <ng-icon name="lucideSave" size="16" aria-hidden="true" /> <ng-container i18n>Save as template</ng-container>
               </button>
@@ -310,7 +312,7 @@ export class EventEditorScreen {
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
   private readonly realtime = inject(RealtimeService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly lifecycle = injectLifecycle();
 

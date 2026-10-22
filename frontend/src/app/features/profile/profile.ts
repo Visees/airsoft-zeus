@@ -156,8 +156,10 @@ export class ProfileScreen implements OnInit {
     { label: $localize`Statistics`, hint: $localize`Game history, results and badges`, icon: 'lucideChartColumn', link: '/profile/stats' },
     { label: $localize`Settings`, hint: $localize`Theme, notifications, password, data`, icon: 'lucideSettings', link: '/settings' },
     { label: $localize`Privacy`, hint: $localize`What other players and Game Masters see`, icon: 'lucideShieldCheck', link: '/settings/privacy' },
-    { label: $localize`Help & feedback`, hint: $localize`Report a bug, flag a problem, write to the team`, icon: 'lucideLifeBuoy', link: '/support' },
-    ...(this.user()?.isAdmin ? [{ label: $localize`Admin`, hint: $localize`Answer support tickets, publish News`, icon: 'lucideShield', link: '/admin' }] : []),
+    ...(this.auth.can('support')
+      ? [{ label: $localize`Help & feedback`, hint: $localize`Report a bug, flag a problem, write to the team`, icon: 'lucideLifeBuoy', link: '/support' }]
+      : []),
+    ...(this.user()?.isAdmin ? [{ label: $localize`Admin`, hint: $localize`Users, support tickets and News`, icon: 'lucideShield', link: '/admin' }] : []),
   ]);
 
   ngOnInit(): void {

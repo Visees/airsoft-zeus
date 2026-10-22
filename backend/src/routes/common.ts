@@ -3,6 +3,7 @@ import multer from 'multer';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { requireFeature } from '../auth/features.js';
 import { currentUser, requireVerified } from '../auth/middleware.js';
 import { config } from '../config.js';
 import { many, one } from '../db.js';
@@ -66,7 +67,7 @@ const clubInput = z.object({
   website: z.string().url().max(300).nullable().optional().or(z.literal('').transform(() => null)),
 });
 
-commonRouter.post('/clubs', requireVerified, async (req, res) => {
+commonRouter.post('/clubs', requireVerified, requireFeature('create_clubs'), async (req, res) => {
   const me = currentUser(req);
   const b = body(req, clubInput);
   await consume('club-create', me.id, 5, 86400);

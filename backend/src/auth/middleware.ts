@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { config } from '../config.js';
 import { one } from '../db.js';
 import { forbidden, unauthorized } from '../errors.js';
+import { effectiveFeatures, type Feature } from './features.js';
 import { verifyAccessToken } from './tokens.js';
 import { tr } from '../i18n/index.js';
 
@@ -10,6 +11,9 @@ export interface AuthUser {
   nickname: string;
   emailVerified: boolean;
   termsAccepted: boolean;
+  isAdmin: boolean;
+  /** What this account may use (see auth/features.ts). */
+  features: Record<Feature, boolean>;
 }
 
 declare module 'express-serve-static-core' {
@@ -31,12 +35,26 @@ export async function authenticate(req: Request): Promise<AuthUser | null> {
 }
 
 export async function userForClaims(userId: string, version: number): Promise<AuthUser | null> {
-  const row = await one<{ id: string; nickname: string; email_verified_at: Date | null; terms_accepted_at: Date | null; token_version: number; deleted_at: Date | null }>(
-    'SELECT id, nickname, email_verified_at, terms_accepted_at, token_version, deleted_at FROM users WHERE id = $1',
-    [userId],
-  );
+  const row = await one<{
+    id: string;
+    nickname: string;
+    email: string;
+    email_verified_at: Date | null;
+    terms_accepted_at: Date | null;
+    token_version: number;
+    deleted_at: Date | null;
+    features: unknown;
+  }>('SELECT id, nickname, email, email_verified_at, terms_accepted_at, token_version, deleted_at, features FROM users WHERE id = $1', [userId]);
   if (!row || row.deleted_at || row.token_version !== version) return null;
-  return { id: row.id, nickname: row.nickname, emailVerified: !!row.email_verified_at, termsAccepted: !!row.terms_accepted_at };
+  const isAdmin = isAdminEmail(row.email);
+  return {
+    id: row.id,
+    nickname: row.nickname,
+    emailVerified: !!row.email_verified_at,
+    termsAccepted: !!row.terms_accepted_at,
+    isAdmin,
+    features: effectiveFeatures(row.features, isAdmin),
+  };
 }
 
 /** Signed in (any verification state). */
@@ -76,7 +94,7 @@ export async function userIsAdmin(userId: string): Promise<boolean> {
 export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   await requireVerified(req, res, async (err?: unknown) => {
     if (err) return next(err);
-    if (!(await userIsAdmin(req.user!.id))) return next(forbidden(tr`Only platform admins can do that.`, 'not_admin'));
+    if (!req.user!.isAdmin) return next(forbidden(tr`Only platform admins can do that.`, 'not_admin'));
     next();
   });
 }

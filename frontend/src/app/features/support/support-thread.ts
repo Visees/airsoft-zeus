@@ -5,6 +5,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { SupportStatus, SupportTicketDetail } from '../../core/api/models';
 import { ToastService } from '../../core/ui/toast.service';
 import { formatDate, formatDateTime } from '../../core/util/format';
@@ -75,7 +76,9 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
           }
         </ol>
 
-        @if (t.status === 'closed') {
+        @if (!staff() && !auth.can('support')) {
+          <p class="panel mt-6 p-3 text-sm text-muted-foreground" i18n>Messages to the team are turned off for your account.</p>
+        } @else if (t.status === 'closed') {
           <div class="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-3">
             <p class="text-sm text-muted-foreground" i18n>This conversation is closed.</p>
             <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy()" (click)="setStatus('open')" i18n>Reopen</button>
@@ -121,6 +124,7 @@ export class SupportThreadScreen {
 
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
+  protected readonly auth = inject(AuthService);
 
   readonly ticketId = input.required<string>();
 

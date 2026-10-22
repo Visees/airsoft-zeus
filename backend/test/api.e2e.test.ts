@@ -384,6 +384,51 @@ run('API end-to-end', () => {
     expect(notes.find((n: Json) => n.type === 'event_removed' && n.title.includes('E2E event to moderate'))).toBeTruthy();
   });
 
+  it('lets admins list users and switch features on or off per user, enforced by the server', async () => {
+    const me = (await bravo.get('/me')).body;
+    expect(me.features).toMatchObject({ discover_events: true, create_events: true, create_clubs: true, support: true, manage_news: false });
+    expect((await bravo.get('/admin/users')).status).toBe(403);
+    expect((await bravo.post('/news', {})).status).toBe(403);
+
+    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    if (!(await gm.get('/me')).body.isAdmin) return;
+    const list = await gm.get('/admin/users?q=viper');
+    expect(list.status).toBe(200);
+    const row = list.body.items.find((u: Json) => u.nickname === 'Viper');
+    expect(row).toMatchObject({ isAdmin: false, customAccess: false });
+    const self = (await gm.get('/admin/users?filter=admins')).body.items;
+    expect(self.some((u: Json) => u.email === 'overwatch@airsoftzeus.test')).toBe(true);
+
+    try {
+      const changed = await gm.patch(`/admin/users/${row.id}/features`, { features: { create_events: false, discover_events: false, manage_news: true } });
+      expect(changed.status, JSON.stringify(changed.body)).toBe(200);
+      expect(changed.body.customAccess).toBe(true);
+      const byKey = Object.fromEntries(changed.body.features.map((f: Json) => [f.key, f]));
+      expect(byKey.create_events).toMatchObject({ enabled: false, default: true, custom: true });
+      expect(byKey.manage_news).toMatchObject({ enabled: true, default: false, custom: true });
+      expect(byKey.support).toMatchObject({ enabled: true, custom: false });
+
+      const start = new Date(Date.now() + 86400_000).toISOString();
+      const end = new Date(Date.now() + 90000_000).toISOString();
+      const denied = await bravo.post('/events', { name: 'E2E not allowed', gameMode: 'sunday', startAt: start, endAt: end });
+      expect(denied.status).toBe(403);
+      expect(denied.body.error.code).toBe('feature_disabled');
+      expect((await bravo.get('/events/discover')).status).toBe(403);
+      expect((await bravo.get('/news?all=true')).status).toBe(200);
+      expect((await bravo.get('/me')).body.features).toMatchObject({ create_events: false, discover_events: false, manage_news: true });
+
+      // Admins can't be restricted; unknown features are rejected.
+      const admin = self.find((u: Json) => u.email === 'overwatch@airsoftzeus.test');
+      expect((await gm.patch(`/admin/users/${admin.id}/features`, { features: { support: false } })).status).toBe(409);
+      expect((await gm.patch(`/admin/users/${row.id}/features`, { features: { fly: true } })).status).toBe(400);
+    } finally {
+      // Back to the defaults: null and the default value both drop the override.
+      const reset = await gm.patch(`/admin/users/${row.id}/features`, { features: { create_events: null, discover_events: true, manage_news: null } });
+      expect(reset.body.customAccess).toBe(false);
+    }
+    expect((await bravo.get('/events/discover')).status).toBe(200);
+  });
+
   it('lets removed players join again, but not banned ones until they are invited', async () => {
     const created = await alpha.post('/events', {
       name: 'E2E remove and ban',

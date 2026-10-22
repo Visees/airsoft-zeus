@@ -4,6 +4,7 @@ import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { EventSummary } from '../../core/api/models';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
@@ -36,8 +37,10 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
     <div class="page">
       <zeus-page-header title="My events" i18n-title>
         @if (activeTab() === 'gm') {
-          <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
-        } @else {
+          @if (auth.can('create_events')) {
+            <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
+          }
+        } @else if (auth.can('discover_events')) {
           <a hlmBtn variant="outline" class="tap" routerLink="/events/discover"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover</ng-container></a>
         }
       </zeus-page-header>
@@ -76,13 +79,19 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
         <zeus-empty-state [icon]="empty().icon" [title]="empty().title" [message]="empty().message">
           @switch (activeTab()) {
             @case ('gm') {
-              <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
+              @if (auth.can('create_events')) {
+                <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
+              }
             }
             @case ('invitations') {
               <a hlmBtn variant="outline" class="tap" routerLink="/events/join" i18n>Join with a code</a>
             }
             @default {
-              <a hlmBtn class="tap" routerLink="/events/discover" i18n>Discover events</a>
+              @if (auth.can('discover_events')) {
+                <a hlmBtn class="tap" routerLink="/events/discover" i18n>Discover events</a>
+              } @else {
+                <a hlmBtn variant="outline" class="tap" routerLink="/events/join" i18n>Join with a code</a>
+              }
             }
           }
         </zeus-empty-state>
@@ -111,6 +120,7 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
 })
 export class MyEventsScreen {
   private readonly api = inject(ApiService);
+  protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);

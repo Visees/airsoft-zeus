@@ -208,6 +208,8 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
                 <span class="text-primary" i18n>✓ Linked to a club page.</span>
                 <a [routerLink]="['/clubs', form.controls.clubId.value]" class="font-semibold text-primary underline-offset-2 hover:underline" i18n>View</a> ·
                 <button type="button" class="font-semibold underline-offset-2 hover:underline" (click)="unlinkClub()" i18n>Unlink</button>
+              } @else if (!auth.can('create_clubs')) {
+                <ng-container i18n>Search existing clubs or type a name.</ng-container>
               } @else if (form.controls.clubName.value.trim()) {
                 <ng-container i18n>Not linked: saved as plain text. Pick a club from the list to link it, or
                 <a routerLink="/clubs/new" class="font-semibold text-primary underline-offset-2 hover:underline">create a club</a></ng-container>.
@@ -303,7 +305,7 @@ export class EditProfileScreen {
   };
 
   private readonly api = inject(ApiService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly config = inject(ConfigService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
