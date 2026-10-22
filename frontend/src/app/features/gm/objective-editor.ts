@@ -316,6 +316,11 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.durationSec, id: 'g-dur', label: 'Required time (s)', min: 0, path: 'geofence.durationSec' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxAccuracyM, id: 'g-acc', label: 'Max GPS accuracy (m)', min: 1, path: 'geofence.maxAccuracyM' }" />
               </div>
+              @if (geofenceUsed()) {
+                @for (w of geofenceWarnings(); track w) {
+                  <p class="text-sm text-warning" role="status">▲ {{ w }}</p>
+                }
+              }
               <div class="flex flex-col" [class.opacity-60]="!geofenceUsed()">
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="resetOnExit" class="mt-1 size-5 accent-primary" />
@@ -664,6 +669,28 @@ export class ObjectiveEditorScreen {
     return null;
   });
 
+  /**
+   * Phone GPS is typically 2–5 m off in the open and 5–20 m under trees (field studies), and the
+   * reported accuracy is only a ~68% radius; zones much smaller than that can't be held reliably.
+   */
+  protected readonly geofenceWarnings = computed(() => {
+    const g = this.value().geofence;
+    const radius = Number(g?.radiusM);
+    const acc = Number(g?.maxAccuracyM);
+    const out: string[] = [];
+    if (radius > 0 && radius < 10) {
+      out.push('Too small for GPS: phones are often 5 m off even in the open, so players inside will drop in and out. Use 20 m or more, or capture by code or QR.');
+    } else if (radius >= 10 && radius < 20) {
+      out.push('Reliable only in open ground. Under trees phones are often 10 m or more off and players inside may drop out; use 20–30 m there.');
+    }
+    if (acc > 0 && radius > 0 && acc > radius) {
+      out.push(`Max GPS accuracy (±${acc} m) is larger than the zone: a fix that rough can't tell inside from outside. Keep it at or below the radius.`);
+    } else if (acc > 0 && acc < 10) {
+      out.push('Under trees phones often report ±10 m or worse, so players there may never be counted.');
+    }
+    return out;
+  });
+
   protected readonly mapObjectives = computed<Objective[]>(() => {
     const v = this.value();
     const me = this.objective();
@@ -679,7 +706,7 @@ export class ObjectiveEditorScreen {
       color: v.color ?? '#E6B04F',
       methods,
       requireGeofence: !!v.requireGeofence,
-      geofence: { ...DEFAULT_GEOFENCE, ...(me?.geofence ?? {}), radiusM: num(v.geofence?.radiusM ?? null, 15) },
+      geofence: { ...DEFAULT_GEOFENCE, ...(me?.geofence ?? {}), radiusM: num(v.geofence?.radiusM ?? null, DEFAULT_GEOFENCE.radiusM) },
       ownerTeamId: null,
     };
     return [...others, current];

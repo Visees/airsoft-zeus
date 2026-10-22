@@ -160,6 +160,7 @@ const HOME_NOTIFICATION_TYPES = [
   'game_started',
   'game_ended',
   'event_cancelled',
+  'event_removed',
   'removed_from_event',
   'support_reply',
 ];

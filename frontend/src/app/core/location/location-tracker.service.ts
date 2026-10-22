@@ -18,6 +18,14 @@ export interface Fix {
   timestamp: number;
 }
 
+function iosWithoutWakeLock(): boolean {
+  const m = /(?:iPhone|iPad|iPod).* OS (\d+)_(\d+)/.exec(navigator.userAgent);
+  if (!m) return false;
+  const version = Number(m[1]) + Number(m[2]) / 100;
+  const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true || matchMedia('(display-mode: standalone)').matches;
+  return version < 16.04 || (standalone && version < 18.04);
+}
+
 const MAX_QUEUE = 120;
 const MAX_BATCH = 20;
 
@@ -52,6 +60,12 @@ export class LocationTracker {
   /** Objective whose detail screen is open; required by some geofence objectives. */
   readonly screenObjectiveId = signal<Uuid | null>(null);
   readonly wakeLockActive = signal(false);
+  /**
+   * iPhones where the app can't keep the screen on: no Screen Wake Lock before iOS 16.4, and in a
+   * Home Screen app it silently fails until 18.4 (WebKit bug 254545). A locked screen stops GPS, so
+   * these players must turn Auto-Lock off themselves.
+   */
+  readonly wakeLockUnreliable = this.isBrowser && iosWithoutWakeLock();
 
   readonly isTracking = computed(() => this.state() === 'tracking');
   /** Ticks every 5 s so time-based states (no recent fix) update without a new fix. */
@@ -247,7 +261,7 @@ export class LocationTracker {
     }
     const batch = this.queue.slice(0, MAX_BATCH);
     try {
-      const res = await this.api.reportLocation(eventId, { samples: batch, screenObjectiveId: this.screenObjectiveId() });
+      const res = await this.api.reportLocation(eventId, { samples: batch, screenObjectiveId: this.screenObjectiveId(), sentAt: Date.now() });
       this.queue.splice(0, batch.length);
       this.pendingCount.set(this.queue.length);
       this.geofence.set(res.geofence);

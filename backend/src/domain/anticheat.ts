@@ -40,6 +40,19 @@ const MAX_AGE_MS = 15 * 60_000;
 export const FRESH_MS = 30_000;
 
 /**
+ * Move device timestamps onto the server clock. Fix times come from the phone's clock
+ * (Location.getTime() on Android, CLLocation on iOS); most phones are within a couple of seconds,
+ * but one set by hand can be minutes off, and its samples would then look stale (never counting
+ * for zones) or from the future (flagged as spoofing). The client sends its clock at sending time
+ * (`sentAt`), so server time ≈ device time + (now − sentAt), give or take the network latency.
+ */
+export function toServerClock<T extends { timestamp: number }>(samples: T[], sentAt: number | undefined, now: number): T[] {
+  if (sentAt === undefined) return samples;
+  const skew = now - sentAt;
+  return samples.map((s) => ({ ...s, timestamp: Math.round(s.timestamp + skew) }));
+}
+
+/**
  * Validate a batch of device samples against the previous accepted position.
  * - timestamps must be plausible relative to server time
  * - impossible speeds (teleports) are rejected, allowing for GPS accuracy

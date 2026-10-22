@@ -91,6 +91,7 @@ export class CaptureBar {
     if (s.outnumbered) return '▲ Outnumbered — your team needs more players inside';
     if (s.blocked === 'low_accuracy') return '▲ GPS too imprecise to count';
     if (s.blocked === 'screen_closed') return '▲ Open the objective to hold the zone';
+    if (s.blocked === 'confirming') return '◌ Confirming your position…';
     if (!s.inside) return '○ Outside the zone — paused';
     if (!this.canAccrue()) return 'Your team cannot capture this now';
     const mult = s.multiplier > 1 ? ` · ×${s.multiplier.toFixed(1)}` : '';

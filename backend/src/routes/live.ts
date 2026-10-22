@@ -126,8 +126,8 @@ const sample = z.object({
 
 liveRouter.post('/:eventId/locations', async (req, res) => {
   const me = currentUser(req);
-  const b = body(req, z.object({ samples: z.array(sample).min(1).max(20), screenObjectiveId: uuid.nullable().optional() }));
-  res.json(await reportLocation(idParam(req, 'eventId'), me.id, b.samples, b.screenObjectiveId ?? null));
+  const b = body(req, z.object({ samples: z.array(sample).min(1).max(20), screenObjectiveId: uuid.nullable().optional(), sentAt: z.number().int().positive().optional() }));
+  res.json(await reportLocation(idParam(req, 'eventId'), me.id, b.samples, b.screenObjectiveId ?? null, b.sentAt));
 });
 
 liveRouter.post('/:eventId/tracking/stop', async (req, res) => {

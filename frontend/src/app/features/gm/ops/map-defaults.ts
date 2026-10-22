@@ -70,7 +70,8 @@ export function mapIconName(value: string | null | undefined): string {
 }
 
 export const DEFAULT_GEOFENCE: GeofenceConfig = {
-  radiusM: 15,
+  // 15 m and less is only reliable in open ground (see the objective editor's warnings)
+  radiusM: 25,
   durationSec: 60,
   resetOnExit: true,
   multiPlayerBoost: false,

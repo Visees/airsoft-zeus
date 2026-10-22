@@ -82,7 +82,9 @@ const FLAG_LABELS: Record<string, string> = {
           </div>
           <div class="col-span-2">
             <dt class="text-xs text-muted-foreground">Screen</dt>
-            <dd class="font-semibold">{{ tracker.wakeLockActive() ? 'Kept awake while sharing' : 'May turn off — keep the app open' }}</dd>
+            <dd class="font-semibold" [class.text-warning]="tracker.wakeLockUnreliable">
+              {{ tracker.wakeLockUnreliable ? 'This iPhone can’t keep it on — set Settings › Display & Brightness › Auto-Lock to Never' : tracker.wakeLockActive() ? 'Kept awake while sharing' : 'May turn off — keep the app open' }}
+            </dd>
           </div>
           @if (tracker.lastError() && mine()) {
             <div class="col-span-2">

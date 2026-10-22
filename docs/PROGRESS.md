@@ -79,18 +79,44 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 
 ## GPS stability (2026-10-22)
 
-* Geofence hysteresis (`processGeofences` in `domain/locations.ts`): entering needs the fix
-  inside the radius; a counted player leaves only past `exitMarginM` (fix accuracy, 5–15 m,
-  ≤ radius). A fix worse than the objective's `maxAccuracyM` sends no report, so a counted
-  player stays until presence expires. A non-firm outside report removes a player only after
-  `exitGraceMs` (≈ 1.5 intervals) without an inside report — one stray fix is forgiven and the
-  time credited; screen closed or far away (> radius + 3 margins) is firm. `GeofenceStatus.inside`
-  now means "counted by the server".
+* Zone decisions (`readZone` in `domain/geofence.ts`, used by `processGeofences`): the last 3
+  precise fixes (accuracy ≤ objective `maxAccuracyM`, within the presence TTL, from
+  `player_locations.ring`) vote; the state changes only when 2 agree, so one stray fix never
+  brings a player in (no false contests) or throws one out. A counted player votes outside only
+  past `exitMarginM` (fix accuracy, 5–10 m, ≤ radius). A newest fix that is too imprecise sends no
+  report (counted players stay until presence expires). New `blocked: 'confirming'` = one fix
+  inside, waiting for the second. `GeofenceStatus.inside` means "counted by the server".
+* Why these numbers: phone `accuracy` is a ~68% radius (Android `getAccuracy`, passed through
+  unscaled by Chrome; iOS similar), field studies give 2–5 m error in the open and 5–11 m RMSE
+  under leaf-on canopy, and the error is time-correlated (minutes) when standing still. Seeded
+  simulations (Gaussian noise, with and without correlation) chose the 10 m margin cap and show
+  the vote cuts in/out flips 20–100× — but it can't remove slow drift, so zone size matters most:
+  the objective editor warns under 20 m (open ground only) and 10 m (too small), and when max
+  accuracy > radius. Defaults: radius 25 m (editor was 15), max accuracy 25 m (server was 30).
+  No "far away = out at once" rule: a live test showed a single 20 m spike removing a holder.
 * Client (`core/location/fix-filter.ts`): `OutlierFilter` drops coarse fixes right after a good
   one and impossible jumps (gives up after 15 s); `PositionSmoother` (Kalman) smooths the
   displayed position only — samples sent to the server stay raw. The own marker glides between
   fixes in both renderers (`glideSelf`/`moveSelf` in `TacticalMap`).
-* Not yet tested on a phone in the field, and the E2E suite was not rerun for this change.
+* Capture screen shows the live ±m and, when the error is over half the radius, sky-view advice
+  (standing still doesn't help: the error is correlated over minutes).
+* Phone clock: fix timestamps follow the phone's clock (Chrome passes `Location.getTime()`), so a
+  phone set minutes off had its samples dropped as stale or flagged as spoofing. The client now
+  sends `sentAt` with each batch and the server shifts samples onto its clock (`toServerClock` in
+  `domain/anticheat.ts`); old clients without `sentAt` are unchanged.
+* iPhones without a working Screen Wake Lock (iOS < 16.4, or a Home Screen app before 18.4 —
+  WebKit bug 254545) can't keep the screen on and GPS stops when it locks:
+  `LocationTracker.wakeLockUnreliable` shows an "Auto-Lock → Never" warning on the capture
+  screen and in More.
+* Checked with a simulation of the whole pipeline (2 Hz fixes with drift and multipath spikes →
+  client OutlierFilter/queue → server speed check → `readZone`): under trees a holder 7 m inside
+  is counted 98% of the time with ~5 flips/h (newest-fix-only: 84%, ~60 flips/h). Spacing the
+  votes apart in time made it no better. Cost: in dense forest an enemy standing on the exit line
+  is counted more often (8% → 17%).
+* Verified through the HTTP API on temporary live games ("GPS check (temp)", "GPS check 2
+  (temp)", left completed in the local DB): entering, a stray 45 m fix, an imprecise fix, jitter
+  around the edge, leaving, and a phone clock 5 minutes slow. Not yet tested on a phone in the
+  field; E2E suite not rerun.
 
 ## Known limits / next ideas
 

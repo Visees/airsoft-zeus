@@ -222,6 +222,7 @@ export interface AppNotification {
 export type NotificationType =
   | 'event_published'
   | 'event_cancelled'
+  | 'event_removed'
   | 'event_invitation'
   | 'registration_approved'
   | 'registration_rejected'
@@ -872,6 +873,8 @@ export interface LocationSample {
 export interface LocationReportRequest {
   samples: LocationSample[];
   screenObjectiveId?: Uuid | null;
+  /** Device clock (epoch ms) when sent; the server uses it to correct a wrong phone clock. */
+  sentAt?: number;
 }
 
 export interface GeofenceStatus {
@@ -884,8 +887,8 @@ export interface GeofenceStatus {
   armed: boolean;
   captured: boolean;
   multiplier: number;
-  /** Why a player who may be in the zone is not counted. */
-  blocked: 'low_accuracy' | 'screen_closed' | null;
+  /** Why a player who may be in the zone is not counted; 'confirming' = one fix inside, waiting for a second. */
+  blocked: 'low_accuracy' | 'screen_closed' | 'confirming' | null;
   /** Worst GPS accuracy (m) this objective accepts. */
   maxAccuracyM: number;
   /** Majority rule: another team has more players inside, so this team's hold is paused. */

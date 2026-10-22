@@ -39,6 +39,7 @@ class Client {
   get = (p: string) => this.call('GET', p);
   post = (p: string, b: unknown = {}) => this.call('POST', p, b);
   patch = (p: string, b: unknown) => this.call('PATCH', p, b);
+  del = (p: string) => this.call('DELETE', p);
   async login(email: string, password = PASSWORD) {
     const r = await this.post('/auth/login', { email, password });
     expect(r.status, JSON.stringify(r.body)).toBe(200);
@@ -359,5 +360,27 @@ run('API end-to-end', () => {
     expect((await alpha.post(`/support/${id}/messages`, { body: 'Thanks!' })).body.status).toBe('open');
     expect((await alpha.patch(`/support/${id}`, { status: 'answered' })).status).toBe(403);
     expect((await alpha.patch(`/support/${id}`, { status: 'closed' })).body.status).toBe('closed');
+  });
+
+  it('lets platform admins delete any event, and only them', async () => {
+    const created = await alpha.post('/events', {
+      name: 'E2E event to moderate',
+      gameMode: 'sunday',
+      startAt: new Date(Date.now() + 86400_000).toISOString(),
+      endAt: new Date(Date.now() + 90000_000).toISOString(),
+    });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const id = created.body.id;
+    await alpha.post(`/events/${id}/status`, { status: 'registration_open' });
+    expect((await alpha2.post(`/events/${id}/join`, {})).body.status).toBe('approved');
+    expect((await alpha2.del(`/events/${id}`)).status).toBe(403);
+    expect((await alpha.del(`/events/${id}`)).body.error.code).toBe('invalid_state');
+
+    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    if (!(await gm.get('/me')).body.isAdmin) return;
+    expect((await gm.del(`/events/${id}`)).status).toBe(200);
+    expect((await alpha2.get(`/events/${id}`)).status).toBe(404);
+    const notes = (await alpha2.get('/me/notifications')).body.items;
+    expect(notes.find((n: Json) => n.type === 'event_removed' && n.title.includes('E2E event to moderate'))).toBeTruthy();
   });
 });

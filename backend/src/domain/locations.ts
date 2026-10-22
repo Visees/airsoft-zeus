@@ -3,10 +3,10 @@ import { forbidden, precondition } from '../errors.js';
 import { distanceM } from '../lib/geo.js';
 import { consume } from '../lib/rate-limit.js';
 import { hub } from '../realtime/hub.js';
-import { FRESH_MS, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
+import { FRESH_MS, toServerClock, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
 import { eventContext, playsIn, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
-import { advance, exitMarginM, fromRow, majorityLeader, toRow, type Report } from './geofence.js';
+import { advance, fromRow, majorityLeader, readZone, toRow, type Report, type ZoneFix } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
@@ -25,8 +25,8 @@ export interface GeofenceStatusDto {
   armed: boolean;
   captured: boolean;
   multiplier: number;
-  /** Why a player who may be in the zone is not counted (shown on the capture screen). */
-  blocked: 'low_accuracy' | 'screen_closed' | null;
+  /** Why a player who may be in the zone is not counted (shown on the capture screen); 'confirming' = waiting for a second fix inside. */
+  blocked: 'low_accuracy' | 'screen_closed' | 'confirming' | null;
   /** Worst GPS accuracy (m) this objective accepts. */
   maxAccuracyM: number;
   /** Majority rule: another team has more players inside, so this team's hold is paused. */
@@ -45,12 +45,8 @@ export function presenceTtlMs(intervalSec: number): number {
   return Math.max(2.5 * intervalSec * 1000, 20_000);
 }
 
-/** How long a counted player survives outside reports near the edge (about one missed report). */
-export function exitGraceMs(intervalSec: number): number {
-  return Math.max(1.5 * intervalSec * 1000, 8_000);
-}
-
-export async function reportLocation(eventId: string, userId: string, samples: InSample[], screenObjectiveId: string | null): Promise<ReportResult> {
+/** `sentAt`: the device clock when the batch was sent, to correct a wrong phone clock (see toServerClock). */
+export async function reportLocation(eventId: string, userId: string, deviceSamples: InSample[], screenObjectiveId: string | null, sentAt?: number): Promise<ReportResult> {
   const ctx = await eventContext(eventId, userId);
   const m = ctx.member;
   if (!m || !playsIn(m)) throw forbidden('Only players of this event share their location.', 'tracking_not_allowed');
@@ -62,15 +58,17 @@ export async function reportLocation(eventId: string, userId: string, samples: I
   await consume('loc', `${eventId}:${userId}`, 1, Math.max(1, Math.floor(ctx.tracking.intervalSec / 2)), 'Location updates are too frequent.');
 
   const now = Date.now();
+  const samples = toServerClock(deviceSamples, sentAt, now);
   const prevRow = await one('SELECT * FROM player_locations WHERE event_id = $1 AND user_id = $2', [eventId, userId]);
   const prev = prevRow ? { lat: prevRow.lat, lng: prevRow.lng, accuracy: prevRow.accuracy, t: new Date(prevRow.sample_at).getTime() } : null;
   const v = validateSamples(prev, samples, now, ctx.tracking);
 
   let newest: Accepted | null = null;
+  let ring: Sample[] = [];
   await tx(async (t) => {
     if (v.accepted.length) {
       newest = v.accepted[v.accepted.length - 1];
-      const ring: Sample[] = [...((prevRow?.ring ?? []) as Sample[]), ...v.accepted.filter((a) => !a.lowAccuracy).map((a) => ({ lat: a.lat, lng: a.lng, accuracy: a.accuracy, t: a.t }))]
+      ring = [...((prevRow?.ring ?? []) as Sample[]), ...v.accepted.filter((a) => !a.lowAccuracy).map((a) => ({ lat: a.lat, lng: a.lng, accuracy: a.accuracy, t: a.t }))]
         .filter((s) => now - s.t <= RING_WINDOW_MS)
         .slice(-RING_MAX);
       await t.query(
@@ -116,13 +114,14 @@ export async function reportLocation(eventId: string, userId: string, samples: I
   let geofence: GeofenceStatusDto[] = [];
   const fix = newest as Accepted | null;
   if (fix && v.fresh && status === 'live' && m.team_id && now - fix.t <= FRESH_MS) {
-    geofence = await processGeofences(ctx, userId, m.team_id, fix, screenObjectiveId, now);
+    geofence = await processGeofences(ctx, userId, m.team_id, fix, ring, screenObjectiveId, now);
     await writeIntel(ctx, userId, m.team_id, now);
   }
   return { accepted: v.accepted.length, rejected: v.rejected, flags: v.flags, geofence, serverNow: new Date().toISOString() };
 }
 
-async function processGeofences(ctx: EventContext, userId: string, teamId: string, fix: Accepted, screenObjectiveId: string | null, now: number): Promise<GeofenceStatusDto[]> {
+/** `recent`: the player's recent precise fixes (oldest first, the newest one included unless it is low accuracy). */
+async function processGeofences(ctx: EventContext, userId: string, teamId: string, fix: Accepted, recent: ZoneFix[], screenObjectiveId: string | null, now: number): Promise<GeofenceStatusDto[]> {
   const eventId = ctx.event.id;
   const objectives = await many<ObjRow>(`SELECT * FROM objectives WHERE event_id = $1 AND ('geofence' = ANY(methods) OR require_geofence)`, [eventId]);
   if (!objectives.length) return [];
@@ -130,7 +129,6 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
   const states = new Map((await many('SELECT * FROM capture_states WHERE event_id = $1', [eventId])).map((s) => [s.objective_id as string, s]));
   const out: GeofenceStatusDto[] = [];
   const ttl = presenceTtlMs(ctx.tracking.intervalSec);
-  const grace = exitGraceMs(ctx.tracking.intervalSec);
 
   for (const o of objectives) {
     const status = statusOf(o, counts, now);
@@ -141,23 +139,26 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
     const wasPresent = !!prev.present[teamId]?.[userId];
     const accuracyOk = fix.accuracy <= cfg.maxAccuracyM && !fix.lowAccuracy;
     const screenOk = !cfg.requireScreenOpen || screenObjectiveId === o.id;
-    // Hysteresis: entering needs the fix inside the radius, a player already counted leaves only past a margin.
-    const margin = exitMarginM(cfg.radiusM, fix.accuracy);
-    const inRange = d <= cfg.radiusM + (wasPresent ? margin : 0);
-    const inside = inRange && accuracyOk && screenOk;
+    // A fix too poor to judge says nothing either way ('hold'): a counted player stays until presence expires.
+    const reading = !screenOk ? 'outside' : accuracyOk ? readZone(recent, o, cfg, wasPresent, ttl) : 'hold';
+    const report: Report | undefined = reading === 'inside' || reading === 'outside' ? { userId, teamId, inside: reading === 'inside' } : undefined;
     // With a poor fix the player may really be inside even when the reported point is not.
     const maybeInside = d <= cfg.radiusM + fix.accuracy;
-    // A fix too poor to judge says nothing either way: a counted player stays (no report) until presence expires.
-    const report: Report | undefined = inside
-      ? { userId, teamId, inside: true }
-      : wasPresent && !accuracyOk && screenOk
-        ? undefined
-        : { userId, teamId, inside: false, firm: !screenOk || d > cfg.radiusM + 3 * margin };
     const near = d <= cfg.radiusM * 3 + 50 || maybeInside;
     const dto = (s: typeof prev, captured: boolean, multiplier = 1): GeofenceStatusDto => {
       const leader = majorityLeader(s.present, cfg);
       const counted = !!s.present[teamId]?.[userId];
-      const blocked = !maybeInside || counted ? null : !accuracyOk ? 'low_accuracy' : inRange && !screenOk ? 'screen_closed' : null;
+      const blocked = counted
+        ? null
+        : reading === 'confirming'
+          ? 'confirming'
+          : !maybeInside
+            ? null
+            : !accuracyOk
+              ? 'low_accuracy'
+              : d <= cfg.radiusM && !screenOk
+                ? 'screen_closed'
+                : null;
       return {
         objectiveId: o.id,
         inside: counted,
@@ -173,7 +174,7 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
         outnumbered: !!s.present[teamId] && leader !== null && leader !== teamId,
       };
     };
-    if (!inside && !wasPresent) {
+    if (reading !== 'inside' && !wasPresent) {
       if (near) out.push(dto(prev, false));
       continue;
     }
@@ -189,7 +190,6 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
         cfg,
         presenceTtlMs: ttl,
         maxGapMs: ttl,
-        exitGraceMs: grace,
         canAccrue: (team) => captureBlock(live, liveStatus, ctx.event.status, team, now, 'geofence') === null,
         report,
       });

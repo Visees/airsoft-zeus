@@ -5,6 +5,7 @@
  * team (gaps longer than maxGapMs restart the clock), so replayed or queued samples and
  * clients that go silent cannot complete a capture.
  */
+import { distanceM } from '../lib/geo.js';
 import type { Geofence } from './defaults.js';
 
 export interface TeamProgress {
@@ -51,8 +52,6 @@ export interface Report {
   userId: string;
   teamId: string;
   inside: boolean;
-  /** Outside for sure (screen closed, far from the zone): skip the exit grace period. */
-  firm?: boolean;
 }
 
 export interface AdvanceInput {
@@ -64,11 +63,6 @@ export interface AdvanceInput {
   presenceTtlMs: number;
   /** Max server-time gap between accruals that still counts. */
   maxGapMs: number;
-  /**
-   * A non-firm outside report only removes a player who has not been inside for this long, so one
-   * stray GPS fix doesn't throw them out (the time is credited when they report inside again).
-   */
-  exitGraceMs?: number;
   report?: Report;
 }
 
@@ -86,10 +80,65 @@ export interface AdvanceResult {
 
 /**
  * How far past the edge a player who is already counted may drift before leaving (hysteresis
- * against GPS jitter): the fix accuracy, kept within 5–15 m and never more than the radius.
+ * against GPS jitter): the fix accuracy, kept within 5–10 m and never more than the radius.
+ * Simulated against Gaussian noise: a larger cap keeps few more real holders under very poor GPS
+ * but counts many more players standing 5–10 m outside.
  */
 export function exitMarginM(radiusM: number, accuracyM: number): number {
-  return Math.min(radiusM, Math.max(5, Math.min(accuracyM, 15)));
+  return Math.min(radiusM, Math.max(5, Math.min(accuracyM, 10)));
+}
+
+export interface ZoneFix {
+  lat: number;
+  lng: number;
+  accuracy: number;
+  /** device time (ms) */
+  t: number;
+}
+
+/**
+ * - inside / outside: report it
+ * - confirming: one fix says inside, waiting for a second before the player counts
+ * - hold: the fixes disagree or are too poor; leave the player as they are (no report)
+ */
+export type ZoneReading = 'inside' | 'outside' | 'confirming' | 'hold';
+
+/** Fixes that vote on inside/outside. */
+const VOTES = 3;
+
+/**
+ * Is the player in the zone, judged on their recent fixes rather than the newest one alone?
+ * Phone fixes jump around (the reported accuracy is a ~68% radius, so a third of fixes land
+ * outside their own circle), so:
+ * - only fixes within this zone's max accuracy vote, and the newest fix must be one of them;
+ * - the state changes only when 2 of the last 3 votes agree, so a single stray fix never brings a
+ *   player in (or an enemy in to contest) and never throws one out;
+ * - a counted player votes outside only past radius + exitMarginM (hysteresis).
+ * There is deliberately no "far away = out at once" shortcut: multipath spikes of 20+ m with a
+ * small reported accuracy happen, and a player who really runs off sends a fix every few metres
+ * (minDistanceM), so two outside votes arrive quickly anyway.
+ * It filters spikes, not slow drift (under trees the error stays similar for minutes): the zone
+ * must still be large compared with the GPS error.
+ */
+export function readZone(
+  fixes: ZoneFix[],
+  center: { lat: number; lng: number },
+  cfg: Pick<Geofence, 'radiusM' | 'maxAccuracyM'>,
+  wasPresent: boolean,
+  windowMs: number,
+): ZoneReading {
+  const newest = fixes[fixes.length - 1];
+  if (!newest || newest.accuracy > cfg.maxAccuracyM) return 'hold';
+  const votes = fixes.filter((f) => f.accuracy <= cfg.maxAccuracyM && newest.t - f.t <= windowMs).slice(-VOTES);
+  const isIn = (f: ZoneFix) => distanceM(f, center) <= cfg.radiusM + (wasPresent ? exitMarginM(cfg.radiusM, f.accuracy) : 0);
+  const ins = votes.filter(isIn).length;
+  const outs = votes.length - ins;
+  if (wasPresent) {
+    if (outs >= 2) return 'outside';
+    return ins > outs ? 'inside' : 'hold';
+  }
+  if (!isIn(newest)) return 'outside';
+  return ins >= 2 && ins > outs ? 'inside' : 'confirming';
 }
 
 export function multiplierFor(cfg: Geofence, playersPresent: number): number {
@@ -119,9 +168,8 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
   // 1. presence
   if (report) {
     const team = (s.present[report.teamId] ??= {});
-    const lastInside = team[report.userId];
     if (report.inside) team[report.userId] = now;
-    else if (report.firm || lastInside === undefined || now - lastInside >= (input.exitGraceMs ?? 0)) delete team[report.userId];
+    else delete team[report.userId];
   }
   for (const [teamId, users] of Object.entries(s.present)) {
     for (const [uid, at] of Object.entries(users)) if (now - at > input.presenceTtlMs) delete users[uid];

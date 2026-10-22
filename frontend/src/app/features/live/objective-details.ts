@@ -224,6 +224,18 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
                   ◐ GPS accuracy ±<span class="num">{{ fixAccuracy() }}</span> m — this zone needs ±<span class="num">{{ o.geofence.maxAccuracyM }}</span> m
                   or better. Move into the open.
                 </p>
+              } @else if (fix() && usesZone()) {
+                <p class="mt-2 text-sm text-muted-foreground" [class.text-warning]="roughForZone()">
+                  GPS ±<span class="num">{{ fixAccuracy() }}</span> m
+                  @if (roughForZone()) {
+                    — rough for a <span class="num">{{ o.geofence.radiusM }}</span> m zone. Open sky gives the best fix: step out from under trees or away from walls.
+                  }
+                </p>
+              }
+              @if (tracker.wakeLockUnreliable) {
+                <p class="mt-2 text-sm font-semibold text-warning">
+                  ▲ This iPhone can't keep the screen on from the app, and GPS stops when it locks. Set Settings › Display &amp; Brightness › Auto-Lock to Never during the game.
+                </p>
               }
               <p class="mt-2 text-xs text-muted-foreground">
                 Hold for <span class="num">{{ holdLabel() }}</span>.
@@ -445,6 +457,12 @@ export class ObjectiveDetailsScreen {
     const o = this.objective();
     const f = this.fix();
     return !!o && !!f && this.usesZone() && o.geofence.maxAccuracyM > 0 && f.accuracy > o.geofence.maxAccuracyM;
+  });
+  /** Error comparable to the zone: players near the edge will drop in and out. */
+  protected readonly roughForZone = computed(() => {
+    const o = this.objective();
+    const f = this.fix();
+    return !!o && !!f && f.accuracy > o.geofence.radiusM / 2;
   });
   protected readonly holdLabel = computed(() => formatDuration((this.objective()?.geofence.durationSec ?? 0) * 1000));
 

@@ -42,6 +42,8 @@ import { useHoldEstimate } from './capture-bar';
       <dd class="font-semibold" [class.text-primary]="status()?.inside" [class.text-muted-foreground]="!status()?.inside">
         @if (status()?.inside) {
           ● Inside
+        } @else if (status()?.blocked === 'confirming') {
+          ◌ Confirming your position…
         } @else {
           ○ Outside
         }

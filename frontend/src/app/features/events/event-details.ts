@@ -8,6 +8,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { EventDetail, MemberStatus, Team } from '../../core/api/models';
 import { LocationTracker } from '../../core/location/location-tracker.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
@@ -410,6 +411,15 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                 </button>
               </section>
             }
+
+            @if (isAdmin()) {
+              <section class="panel flex flex-col gap-2 p-4" aria-labelledby="admin-title">
+                <h2 id="admin-title" class="label-caps"><ng-icon name="lucideShield" size="14" class="mr-1 align-[-2px]" aria-hidden="true" /> Admin</h2>
+                <button hlmBtn variant="destructive" class="h-11 justify-start" type="button" (click)="adminDelete()" [disabled]="busy()">
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete event
+                </button>
+              </section>
+            }
           </aside>
         </div>
       }
@@ -418,6 +428,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
 })
 export class EventDetailsScreen {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
@@ -435,6 +446,7 @@ export class EventDetailsScreen {
   protected readonly busy = signal(false);
   protected readonly joinError = signal<string | null>(null);
   protected readonly copied = signal<'code' | 'link' | null>(null);
+  protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
 
   protected readonly joinForm = this.fb.group({ joinCode: this.fb.control('') });
   protected readonly initialsOf = initials;
@@ -691,6 +703,36 @@ export class EventDetailsScreen {
       if (accept) this.toast.success(res.status === 'approved' ? `You joined ${e.name}` : 'Invitation accepted — waiting for approval');
       else this.toast.info('Invitation declined');
       await this.load();
+    } catch (err) {
+      this.toast.error(err);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async adminDelete(): Promise<void> {
+    const e = this.event();
+    if (!e) return;
+    const registered = e.approvedCount + e.pendingCount;
+    const ok = await this.confirm.ask({
+      title: `Delete ${e.name}?`,
+      consequences: [
+        'You are deleting this event as a platform admin.',
+        'The event, its teams, map, objectives, perks and results are deleted.',
+        registered ? `${registered} registered players lose their place and get a notification.` : 'No players have registered.',
+        'This cannot be undone.',
+      ],
+      destructive: true,
+      requireText: 'DELETE',
+      confirmLabel: 'Delete event',
+    });
+    if (!ok) return;
+    this.busy.set(true);
+    try {
+      await this.api.deleteEvent(e.id);
+      if (this.tracker.eventId() === e.id) this.tracker.stop();
+      this.toast.success('Event deleted');
+      void this.router.navigate(['/home']);
     } catch (err) {
       this.toast.error(err);
     } finally {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GEOFENCE, DEFAULT_TRACKING, DEFAULT_VISIBILITY, merge, type VisibilityRules } from '../src/domain/defaults.js';
-import { validateSamples } from '../src/domain/anticheat.js';
-import { advance, emptyState, exitMarginM } from '../src/domain/geofence.js';
+import { toServerClock, validateSamples } from '../src/domain/anticheat.js';
+import { advance, emptyState, exitMarginM, readZone } from '../src/domain/geofence.js';
 import {
   captureBlock,
   contentVisible,
@@ -273,45 +273,85 @@ describe('geofence', () => {
     r = step(r.state, 15_000, { userId: 'u1', teamId: 'A', inside: false });
     expect(r.state.progress.A).toBeUndefined();
   });
-  describe('GPS jitter', () => {
-    const long = { ...cfg, durationSec: 120 };
-    const jitter = (s: ReturnType<typeof emptyState>, now: number, report?: { userId: string; teamId: string; inside: boolean; firm?: boolean }) =>
-      advance(s, { now, cfg: long, canAccrue: () => true, presenceTtlMs: 25_000, maxGapMs: 25_000, exitGraceMs: 15_000, report });
+  it('keeps a player without a report (fix too poor to judge) until presence expires', () => {
+    let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+    r = step(r.state, 20_000);
+    expect(r.state.present.A.u1).toBe(0);
+    r = step(r.state, 30_000);
+    expect(r.state.present.A).toBeUndefined();
+  });
+  describe('reading the zone from recent fixes', () => {
+    const c = { lat: 45.5, lng: 9.2 };
+    const zone = { radiusM: 25, maxAccuracyM: 25 };
+    /** fix `m` metres east of the centre at second `s` */
+    const fx = (m: number, s: number, accuracy = 8) => ({ ...offset(c, m, 90), accuracy, t: s * 1000 });
+    const read = (fixes: ReturnType<typeof fx>[], present: boolean) => readZone(fixes, c, zone, present, 25_000);
 
-    it('forgives one stray outside fix and credits the time', () => {
-      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
-      r = jitter(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true });
-      r = jitter(r.state, 20_000, { userId: 'u1', teamId: 'A', inside: false });
-      expect(r.state.present.A.u1).toBe(10_000);
-      expect(r.state.progress.A.s).toBeCloseTo(10);
-      r = jitter(r.state, 30_000, { userId: 'u1', teamId: 'A', inside: true });
-      expect(r.state.progress.A.s).toBeCloseTo(30);
+    it('needs two fixes inside before a player counts', () => {
+      expect(read([fx(10, 0)], false)).toBe('confirming');
+      expect(read([fx(10, 0), fx(12, 10)], false)).toBe('inside');
+      expect(read([fx(40, 0), fx(10, 10)], false)).toBe('confirming');
+      expect(read([fx(10, 0), fx(40, 10)], false)).toBe('outside');
     });
-    it('removes the player after a second outside report', () => {
-      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
-      r = jitter(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: false });
-      r = jitter(r.state, 20_000, { userId: 'u1', teamId: 'A', inside: false });
-      expect(r.state.present.A).toBeUndefined();
-      expect(r.state.progress.A).toBeUndefined(); // resetOnExit
+    it('ignores a single stray fix into the zone (no false contest)', () => {
+      expect(read([fx(40, 0), fx(45, 10), fx(10, 20)], false)).toBe('confirming');
+      expect(read([fx(45, 10), fx(10, 20), fx(42, 30)], false)).toBe('outside');
     });
-    it('removes the player at once on a firm outside report', () => {
-      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
-      r = jitter(r.state, 5_000, { userId: 'u1', teamId: 'A', inside: false, firm: true });
-      expect(r.state.present.A).toBeUndefined();
+    it('keeps a counted player through one stray fix out, and lets them go on the second', () => {
+      expect(read([fx(10, 0), fx(12, 10), fx(40, 20)], true)).toBe('inside');
+      expect(read([fx(12, 10), fx(40, 20), fx(42, 30)], true)).toBe('outside');
+      expect(read([fx(12, 10), fx(40, 20)], true)).toBe('hold');
     });
-    it('keeps a player without a report (fix too poor to judge) until presence expires', () => {
-      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
-      r = jitter(r.state, 20_000);
-      expect(r.state.present.A.u1).toBe(0);
-      r = jitter(r.state, 30_000);
-      expect(r.state.present.A).toBeUndefined();
+    it('a counted player leaves only past the margin', () => {
+      expect(read([fx(30, 0), fx(31, 10)], true)).toBe('inside'); // 25 m + 8 m margin
+      expect(read([fx(30, 0), fx(31, 10)], false)).toBe('outside');
     });
-    it('exit margin follows accuracy within 5–15 m and the radius', () => {
-      expect(exitMarginM(25, 2)).toBe(5);
-      expect(exitMarginM(25, 9)).toBe(9);
-      expect(exitMarginM(25, 40)).toBe(15);
-      expect(exitMarginM(4, 10)).toBe(4);
+    it('a single precise spike far outside does not remove a counted player', () => {
+      expect(read([fx(10, 0), fx(12, 10), fx(60, 20, 5)], true)).toBe('inside');
+      expect(read([fx(12, 10), fx(60, 20, 5), fx(70, 22, 5)], true)).toBe('outside');
     });
+    it('only precise, recent fixes vote', () => {
+      expect(read([fx(10, 0), fx(12, 10, 40)], true)).toBe('hold'); // newest too imprecise
+      expect(read([fx(10, 0, 40), fx(40, 10, 40), fx(12, 20)], false)).toBe('confirming');
+      expect(read([fx(40, 0), fx(42, 10), fx(10, 40)], true)).toBe('inside'); // the two outs are older than the window
+    });
+    it('flips far less often than the newest fix alone for a player near the edge', () => {
+      // player standing 18 m from the centre of a 25 m zone, fixes with ~6 m noise per axis
+      let seed = 42; // mulberry32
+      const rnd = () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+        return (((x ^ (x >>> 14)) >>> 0) + 0.5) / 2 ** 32;
+      };
+      const gauss = () => Math.sqrt(-2 * Math.log(rnd())) * Math.cos(2 * Math.PI * rnd());
+      const truth = offset(c, 18, 90);
+      const fixes: ReturnType<typeof fx>[] = [];
+      let present = false;
+      let rawFlips = 0;
+      let voteFlips = 0;
+      let rawIn = false;
+      for (let i = 0; i < 2000; i++) {
+        const p = offset(offset(truth, gauss() * 6, 0), gauss() * 6, 90);
+        fixes.push({ ...p, accuracy: 9, t: i * 10_000 });
+        const nowIn = distanceM(p, c) <= 25;
+        if (i > 0 && nowIn !== rawIn) rawFlips++;
+        rawIn = nowIn;
+        const r = read(fixes.slice(-3), present);
+        if (r === 'inside' || r === 'outside') {
+          if (i > 0 && (r === 'inside') !== present) voteFlips++;
+          present = r === 'inside';
+        }
+      }
+      expect(rawFlips).toBeGreaterThan(200);
+      expect(voteFlips).toBeLessThan(rawFlips / 10);
+    });
+  });
+  it('exit margin follows accuracy within 5–10 m and the radius', () => {
+    expect(exitMarginM(25, 2)).toBe(5);
+    expect(exitMarginM(25, 9)).toBe(9);
+    expect(exitMarginM(25, 40)).toBe(10);
+    expect(exitMarginM(4, 10)).toBe(4);
   });
   it('pauses while contested and reports the end of a contest', () => {
     let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
@@ -363,6 +403,32 @@ describe('geofence', () => {
       expect(r.leader).toBeNull();
       expect(r.state.contested).toBe(false);
     });
+  });
+});
+
+describe('phone clock correction', () => {
+  const s = { lat: 45.5, lng: 9.2, accuracy: 5 };
+  it('a phone 5 minutes slow would look stale; corrected, its fix counts as fresh', () => {
+    const slow = NOW - 5 * 60_000;
+    const raw = [{ ...s, timestamp: slow - 2_000 }];
+    expect(validateSamples(null, raw, NOW, DEFAULT_TRACKING).fresh).toBe(false);
+    const fixed = toServerClock(raw, slow, NOW);
+    expect(fixed[0].timestamp).toBe(NOW - 2_000);
+    expect(validateSamples(null, fixed, NOW, DEFAULT_TRACKING).fresh).toBe(true);
+  });
+  it('a phone 2 minutes fast is not flagged as spoofing once corrected', () => {
+    const fast = NOW + 2 * 60_000;
+    const raw = [{ ...s, timestamp: fast - 1_000 }];
+    expect(validateSamples(null, raw, NOW, DEFAULT_TRACKING).suspicious[0]?.flag).toBe('future_timestamp');
+    const r = validateSamples(null, toServerClock(raw, fast, NOW), NOW, DEFAULT_TRACKING);
+    expect(r.suspicious).toHaveLength(0);
+    expect(r.accepted).toHaveLength(1);
+  });
+  it('keeps old clients (no sentAt) and the order inside a batch unchanged', () => {
+    const raw = [{ ...s, timestamp: NOW - 3_000 }, { ...s, timestamp: NOW - 1_000 }];
+    expect(toServerClock(raw, undefined, NOW)).toBe(raw);
+    const fixed = toServerClock(raw, NOW - 400, NOW); // 400 ms network latency
+    expect(fixed.map((x) => x.timestamp)).toEqual([NOW - 2_600, NOW - 600]);
   });
 });
 

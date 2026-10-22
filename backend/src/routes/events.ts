@@ -1,6 +1,6 @@
 import { Router, type Request } from 'express';
 import { z } from 'zod';
-import { currentUser, requireVerified } from '../auth/middleware.js';
+import { currentUser, requireVerified, userIsAdmin } from '../auth/middleware.js';
 import { many, one, tx, type Tx } from '../db.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
 import { normalizeCode, readableCode, safeEqual } from '../lib/ids.js';
@@ -257,13 +257,22 @@ function pickKeys(ctx: EventContext, keys: string[]) {
 eventsRouter.delete('/:eventId', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
+  // Platform admins can remove any event they can see, in any state (moderation).
+  const admin = await userIsAdmin(me.id);
   await tx(async (t) => {
-    const ctx = await requireGm(eventId, me.id, t, true);
-    if (ctx.event.owner_id !== me.id) throw forbidden('Only the event owner can delete it.');
-    if (!['draft', 'cancelled'].includes(ctx.event.status)) throw conflict('Only drafts and cancelled events can be deleted. Cancel it first.', 'invalid_state');
+    const ctx = admin ? await requireViewable(eventId, me.id, t) : await requireGm(eventId, me.id, t, true);
+    if (!admin) {
+      if (ctx.event.owner_id !== me.id) throw forbidden('Only the event owner can delete it.');
+      if (!['draft', 'cancelled'].includes(ctx.event.status)) throw conflict('Only drafts and cancelled events can be deleted. Cancel it first.', 'invalid_state');
+    }
+    const members = admin
+      ? (await many<{ user_id: string }>(`SELECT user_id FROM event_members WHERE event_id = $1 AND user_id <> $2 AND status IN ('invited','pending','approved')`, [eventId, me.id], t)).map((r) => r.user_id)
+      : [];
     await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
     await t.query('DELETE FROM events WHERE id = $1', [eventId]);
+    await notify(t, members, { type: 'event_removed', title: `${ctx.event.name} was removed`, body: 'A platform admin removed this event.', url: '/notifications' });
   });
+  if (admin) hub.invalidate(eventId, ['event']);
   res.json({ ok: true });
 });
 

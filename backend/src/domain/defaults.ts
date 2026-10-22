@@ -111,7 +111,8 @@ export const DEFAULT_GEOFENCE: Geofence = {
   contestable: true,
   contestRule: 'pause',
   requireScreenOpen: false,
-  maxAccuracyM: 30,
+  // at most the radius: a rougher fix can't tell inside from outside
+  maxAccuracyM: 25,
 };
 
 const amount = z.number().int().min(-1_000_000).max(1_000_000);
