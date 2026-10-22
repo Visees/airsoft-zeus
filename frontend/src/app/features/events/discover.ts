@@ -112,7 +112,7 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
       } @else {
         <ul class="grid grid-cols-1 gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
           @for (e of items(); track e.id) {
-            <li><zeus-event-card [event]="e" /></li>
+            <li><zeus-event-card [event]="e" from="/events/discover" /></li>
           }
         </ul>
         @if (moreError()) {

@@ -85,7 +85,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
           <a hlmBtn variant="ghost" class="tap" routerLink="/events/join" i18n>Enter a join code</a>
         </zeus-error-state>
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" [eyebrow]="modeLabel()" [back]="e.isGm ? '/events/mine?tab=gm' : '/events/mine'" backLabel="My events" i18n-backLabel>
+        <zeus-page-header [title]="e.name" [eyebrow]="modeLabel()" [back]="backLink().url" [backLabel]="backLink().label">
           <zeus-status-chip [spec]="statusChip()" />
         </zeus-page-header>
 
@@ -471,6 +471,8 @@ export class EventDetailsScreen {
     copy: $localize`Copy`,
     linkCopied: $localize`Link copied`,
     shareInviteLink: $localize`Share invite link`,
+    discover: $localize`Discover`,
+    myEvents: $localize`My events`,
   };
 
   private readonly api = inject(ApiService);
@@ -511,6 +513,13 @@ export class EventDetailsScreen {
   /** 404 while holding a join code: most likely a private event we are not a member of yet. */
   protected readonly hiddenPrivate = computed(() => !!this.code() && ApiError.from(this.error()).status === 404);
 
+  /** Opened from Discover → back to Discover; otherwise My events (GM tab for GMs). */
+  private readonly from: unknown = this.router.currentNavigation()?.extras.state?.['from'] ?? this.doc.defaultView?.history.state?.from;
+  protected readonly backLink = computed(() =>
+    this.from === '/events/discover'
+      ? { url: '/events/discover', label: this.txt.discover }
+      : { url: this.event()?.isGm ? '/events/mine?tab=gm' : '/events/mine', label: this.txt.myEvents },
+  );
   protected readonly statusChip = computed(() => eventStatusChip(this.event()!.status));
   protected readonly modeLabel = computed(() => {
     const e = this.event();

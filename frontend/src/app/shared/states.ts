@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiError } from '../core/api/api-error';
 
@@ -105,7 +105,7 @@ export class ErrorState {
   template: `
     <div class="min-w-0">
       @if (back()) {
-        <a [routerLink]="back()" class="tap -ml-2 mb-1 inline-flex items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground">
+        <a [routerLink]="backUrl()" class="tap -ml-2 mb-1 inline-flex items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground">
           <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> {{ backLabel() }}
         </a>
       }
@@ -124,7 +124,13 @@ export class PageHeader {
   readonly title = input.required<string>();
   readonly subtitle = input<string | null>(null);
   readonly eyebrow = input<string | null>(null);
-  /** Router URL for the back link. */
+  /** Router URL for the back link; may carry a query string (`/events/mine?tab=gm`). */
   readonly back = input<string | null>(null);
   readonly backLabel = input($localize`Back`);
+  private readonly router = inject(Router);
+  /** Parsed, so `?` and `#` are not escaped into the path as a plain string link would. */
+  protected readonly backUrl = computed(() => {
+    const back = this.back();
+    return back ? this.router.parseUrl(back) : null;
+  });
 }

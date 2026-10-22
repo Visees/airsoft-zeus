@@ -35,6 +35,7 @@ import { TeamBadge } from './team-badge';
     @let e = event();
     <a
       [routerLink]="link() ?? ['/events', e.id]"
+      [state]="from() ? { from: from() } : undefined"
       class="panel group flex overflow-hidden transition-colors hover:border-primary/60 focus-visible:border-primary"
       [attr.aria-label]="e.name + ', ' + dateLabel()"
     >
@@ -92,6 +93,8 @@ export class EventCard {
   readonly event = input.required<EventSummary>();
   /** Override target route (e.g. GM editor). */
   readonly link = input<unknown[] | string | null>(null);
+  /** List URL the opened screen links back to (navigation state `from`). */
+  readonly from = input<string | null>(null);
   protected readonly statusChip = computed(() => eventStatusChip(this.event().status));
   protected readonly modeLabel = computed(() => this.event().customModeName || GAME_MODE_LABELS[this.event().gameMode]);
   protected readonly dayLabel = computed(() =>
