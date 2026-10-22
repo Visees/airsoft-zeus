@@ -289,6 +289,8 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                     }
                     @if (lobbyStatus()) {
                       <a hlmBtn [variant]="e.status === 'lobby' ? 'outline' : 'default'" class="h-12" [routerLink]="['/events', e.id, 'lobby']"><ng-icon name="lucideUsers" size="18" aria-hidden="true" /> <ng-container i18n>Open lobby</ng-container></a>
+                    } @else if (e.status === 'live' || e.status === 'paused') {
+                      <a hlmBtn variant="outline" class="h-11" [routerLink]="['/events', e.id, 'lobby']"><ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Play in a team</ng-container></a>
                     }
                     @if (e.status === 'completed') {
                       <a hlmBtn class="h-12" [routerLink]="['/events', e.id, 'results']"><ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> <ng-container i18n>View results</ng-container></a>
