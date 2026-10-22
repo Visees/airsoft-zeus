@@ -184,7 +184,7 @@ async function completeGame(t: Tx, ctx: EventContext, now: number): Promise<void
 
   // Player stats and badges
   const members = await many<{ user_id: string; team_id: string | null; points: number; captures: number }>(
-    `SELECT user_id, team_id, points, captures FROM event_members WHERE event_id = $1 AND status = 'approved' AND role = 'player' AND team_id IS NOT NULL`,
+    `SELECT user_id, team_id, points, captures FROM event_members WHERE event_id = $1 AND status = 'approved' AND team_id IS NOT NULL`,
     [eventId],
     t,
   );

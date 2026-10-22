@@ -6,6 +6,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { provideIcons } from '@ng-icons/core';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { playerViewInterceptor } from './core/live/player-view';
 import { KeepAliveRouteStrategy } from './core/routing/keep-alive-route-strategy';
 import { APP_ICONS } from './core/ui/icons';
 
@@ -20,7 +21,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
     ),
     { provide: RouteReuseStrategy, useExisting: KeepAliveRouteStrategy },
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, playerViewInterceptor])),
     provideClientHydration(withEventReplay()),
     provideIcons(APP_ICONS),
     provideServiceWorker('ngsw-worker.js', {

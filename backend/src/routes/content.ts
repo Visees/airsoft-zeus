@@ -10,7 +10,7 @@ import { decodeCursor, page } from '../lib/pagination.js';
 import { consume, remaining } from '../lib/rate-limit.js';
 import { body, clientTxId, hexColor, idParam, isoDate, lat, lng, playerRole, queryOf, shortText, uuid } from '../lib/validate.js';
 import { hub } from '../realtime/hub.js';
-import { eventContext, FINISHED, requireGm, requireMember, type EventContext } from '../domain/context.js';
+import { eventContext, FINISHED, playsIn, requireGm, requireMember, type EventContext } from '../domain/context.js';
 import { copyMapContent, insertObjective } from '../domain/copy.js';
 import { geofenceSchema, merge, rewardsSchema, DEFAULT_GEOFENCE, DEFAULT_REWARDS } from '../domain/defaults.js';
 import { alert, audit } from '../domain/journal.js';
@@ -291,7 +291,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/capture', async (req, res)
   const objectiveId = idParam(req, 'objectiveId');
   const b = body(req, z.object({ method: z.enum(['code', 'qr']), code: z.string().max(64).optional(), qrPayload: z.string().max(300).optional(), clientTxId }));
   const ctx = await requireMember(eventId, me.id);
-  if (ctx.isGm || ctx.member?.role !== 'player') throw forbidden('Game Masters capture objectives from the control center.', 'not_player');
+  if (ctx.isGm || !ctx.member || !playsIn(ctx.member)) throw forbidden('Game Masters capture objectives from the control center.', 'not_player');
   if (!ctx.member.team_id) throw conflict('You are not on a team.', 'no_team');
 
   const attemptKey = `${me.id}:${objectiveId}`;

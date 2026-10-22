@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-20 — first complete version.
+Last update: 2026-10-22 — Game Masters can play on a team.
 
 ## Stack (decided)
 
@@ -59,6 +59,23 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   tab with status filters on `/support`. An admin reply sends the `support_reply`
   notification (in-app + push, shown on the home page) linking to `/support/:id`.
 * Rate limits: 5 new conversations and 30 replies per user per hour.
+
+## Game Masters can play (2026-10-22)
+
+* A GM joins a team from the lobby panel "Play in a team" (uses `POST /members/:me/assign`;
+  `assign` now accepts approved GM rows). Role stays `gm`; "plays" = approved and
+  (`role = 'player'` or `team_id IS NOT NULL`) — `playsIn()` in `domain/context.ts` and
+  `core/util/members.ts`. Playing GMs capture, buy perks, share GPS, score and get stats;
+  they don't take a player place (max players, ready counts) and can't be removed as players.
+* Fair player view: the live shell marks its event in `PlayerViewService`; requests to
+  `/api/events/<id>/…` then carry `X-Zeus-View: player` and the socket subscribes with
+  `{ view: 'player' }`. For a GM on a team the server builds the context with `isGm = false`
+  (request-scoped via AsyncLocalStorage, `runWithView` in app.ts), so they see what the team
+  sees. The control center (no header) keeps the full GM view. System work (tick) and socket
+  re-joins pass the view explicitly so they never inherit a request's view.
+* Removing a co-GM keeps their team (results), stops tracking and squad leadership.
+* E2E: new test "lets a GM play on a team…". The capture-ledger test can fail when run
+  within 60 s of seeding (it counts the seed's own captures) — wait a minute or ignore.
 
 ## Known limits / next ideas
 

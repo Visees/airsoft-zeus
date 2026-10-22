@@ -10,6 +10,7 @@ import { ThemeService } from '../../core/theme/theme.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { formatRelative, formatTime } from '../../core/util/format';
+import { playsIn } from '../../core/util/members';
 import { nowSignal } from '../../shared/game-timer';
 import { ConnectionStatus } from '../../shared/link-status';
 import { LiveSession } from './live-session';
@@ -198,7 +199,7 @@ const FLAG_LABELS: Record<string, string> = {
           <ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> Results
           <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
         </a>
-        @if (store.isGm()) {
+        @if (gameMaster()) {
           <a [routerLink]="['/gm/events', eventId(), 'control']" class="flex min-h-12 items-center gap-3 px-4 font-semibold hover:bg-muted">
             <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> Control center
             <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
@@ -221,7 +222,7 @@ const FLAG_LABELS: Record<string, string> = {
       </section>
 
       <!-- Leave -->
-      @if (!store.isGm()) {
+      @if (!gameMaster()) {
         <section class="flex flex-col gap-2" aria-labelledby="leave-title">
           <h3 id="leave-title" class="label-caps">Leave</h3>
           <button hlmBtn variant="destructive" type="button" class="h-12" (click)="leave()" [disabled]="leaving()">
@@ -247,7 +248,9 @@ export class LiveMoreScreen {
   protected readonly leaving = signal(false);
 
   protected readonly eventId = computed(() => this.store.eventId() ?? '');
-  protected readonly isPlayer = computed(() => this.store.me()?.role === 'player' && this.store.me()?.status === 'approved');
+  protected readonly isPlayer = computed(() => playsIn(this.store.me()));
+  /** Also true for a Game Master playing on a team (the player view reports isGm false then). */
+  protected readonly gameMaster = computed(() => this.store.isGm() || this.store.me()?.role === 'gm');
   protected readonly mine = computed(() => this.tracker.eventId() === this.store.eventId());
   protected readonly consented = computed(() => !!this.store.me()?.trackingConsented || this.session.hasConsented(this.store.eventId()));
   protected readonly stopped = computed(() => this.session.isStopped(this.store.eventId()));

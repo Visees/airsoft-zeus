@@ -20,11 +20,17 @@ type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-ex
 
 class Client {
   token = '';
+  /** 'player': requests carry X-Zeus-View like the live player screens */
+  view: 'gm' | 'player' = 'gm';
   constructor(readonly name: string) {}
   async call(method: string, path: string, body?: unknown): Promise<{ status: number; body: Json }> {
     const res = await fetch(`${API}/api${path}`, {
       method,
-      headers: { 'content-type': 'application/json', ...(this.token ? { authorization: `Bearer ${this.token}` } : {}) },
+      headers: {
+        'content-type': 'application/json',
+        ...(this.token ? { authorization: `Bearer ${this.token}` } : {}),
+        ...(this.view === 'player' ? { 'x-zeus-view': 'player' } : {}),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const text = await res.text();
@@ -277,6 +283,50 @@ run('API end-to-end', () => {
     expect(err.message).toBe('unauthorized');
     bad.disconnect();
   });
+  it('lets a GM play on a team, seeing only what the team sees in the player view', async () => {
+    const gmId = gmLive.event.me.userId;
+    const alphaTeam = gmLive.event.teams.find((t: Json) => t.name === 'Alpha').id;
+    const radio = gmLive.objectives.find((o: Json) => o.name === 'Radio mast');
+    const joined = await gm.post(`/events/${eventId}/members/${gmId}/assign`, { teamId: alphaTeam });
+    expect(joined.status, JSON.stringify(joined.body)).toBe(200);
+    expect(joined.body).toMatchObject({ role: 'gm', teamId: alphaTeam });
+
+    // Control center: still the full GM view.
+    const full = (await gm.get(`/events/${eventId}/live`)).body;
+    expect(full.event.isGm).toBe(true);
+    expect(full.alerts).toBeDefined();
+    expect(full.objectives.some((o: Json) => typeof o.captureCode === 'string')).toBe(true);
+    // Capturing needs the player view.
+    expect((await gm.post(`/events/${eventId}/objectives/${radio.id}/capture`, { method: 'code', code: 'NOPE99', clientTxId: tx() })).body.error.code).toBe('not_player');
+
+    const player = new Client('Overwatch (player view)');
+    player.token = gm.token;
+    player.view = 'player';
+    const live = (await player.get(`/events/${eventId}/live`)).body;
+    expect(live.event.isGm).toBe(false);
+    expect(live.event.me).toMatchObject({ role: 'gm', teamId: alphaTeam });
+    expect(live.event.joinCode).toBeNull();
+    expect(live.alerts).toBeUndefined();
+    expect(live.objectives.every((o: Json) => !('captureCode' in o))).toBe(true);
+    expect(live.positions.length).toBeGreaterThan(0);
+    expect(live.positions.every((p: Json) => p.teamId === alphaTeam)).toBe(true);
+    expect(live.event.teams.filter((t: Json) => t.id !== alphaTeam).every((t: Json) => t.currency === null)).toBe(true);
+    expect((await player.get(`/events/${eventId}/alerts`)).status).toBe(403);
+    expect((await player.post(`/events/${eventId}/objectives/${radio.id}/capture`, { method: 'code', code: 'NOPE99', clientTxId: tx() })).body.error.code).toBe('wrong_code');
+
+    const socket = io(API!, { path: '/socket.io', transports: ['websocket'], auth: { token: gm.token } });
+    const ack = await new Promise<Json>((resolve) => socket.on('connect', () => socket.emit('subscribe', eventId, { view: 'player' }, resolve)));
+    expect(ack).toMatchObject({ ok: true, role: 'player' });
+    const msg = await new Promise<Json>((resolve) => socket.once('positions', resolve));
+    expect(msg.positions.every((p: Json) => p.teamId === alphaTeam)).toBe(true);
+    socket.disconnect();
+
+    // Off the team, the player view header changes nothing: a GM who does not play sees everything.
+    await gm.post(`/events/${eventId}/members/${gmId}/assign`, { teamId: null });
+    expect((await player.get(`/events/${eventId}/live`)).body.event.isGm).toBe(true);
+    expect((await alpha.post(`/events/${eventId}/members/${gmId}/assign`, { teamId: alphaTeam })).status).toBe(403);
+  });
+
   it('keeps support conversations private between the author and the admins', async () => {
     const created = await alpha.post('/support', { category: 'bug', subject: 'E2E map does not load', body: 'Steps: open the lobby.', context: { page: '/home' } });
     expect(created.status, JSON.stringify(created.body)).toBe(201);

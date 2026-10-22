@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { one, pool, type Queryable, type Row } from '../db.js';
 import { forbidden, notFound } from '../errors.js';
 import { scoring, tracking, visibility, type Scoring, type Tracking, type VisibilityRules } from './defaults.js';
@@ -39,11 +40,28 @@ export interface MemberRow extends Row {
 export interface EventContext {
   event: EventRow;
   member: MemberRow | null;
+  /** false for a Game Master who plays on a team and asked for the player view */
   isGm: boolean;
   viewer: Viewer;
   tracking: Tracking;
   rules: VisibilityRules;
   scoring: Scoring;
+}
+
+/**
+ * A Game Master can also play on a team. Requests sent with `X-Zeus-View: player` (the live
+ * player screens) then see the game as their team does: the context is built without GM rights.
+ * Set per request by the middleware in app.ts; realtime subscriptions pass it explicitly.
+ */
+const view = new AsyncLocalStorage<{ asPlayer: boolean }>();
+
+export function runWithView<T>(asPlayer: boolean, fn: () => T): T {
+  return view.run({ asPlayer }, fn);
+}
+
+/** Takes part in the game: an approved player, or a Game Master who joined a team. */
+export function playsIn(m: Pick<MemberRow, 'role' | 'status' | 'team_id'> | null | undefined): boolean {
+  return !!m && m.status === 'approved' && (m.role === 'player' || !!m.team_id);
 }
 
 export async function loadEvent(eventId: string, q: Queryable = pool, lock = false): Promise<EventRow> {
@@ -75,10 +93,17 @@ export function viewerFrom(userId: string, member: MemberRow | null, isGm: boole
   };
 }
 
-export async function eventContext(eventId: string, userId: string, q: Queryable = pool, lockEvent = false): Promise<EventContext> {
+export async function eventContext(
+  eventId: string,
+  userId: string,
+  q: Queryable = pool,
+  lockEvent = false,
+  asPlayer = view.getStore()?.asPlayer ?? false,
+): Promise<EventContext> {
   const event = await loadEvent(eventId, q, lockEvent);
   const member = await loadMember(eventId, userId, q);
-  const isGm = (member?.role === 'gm' && member.status === 'approved') || event.owner_id === userId;
+  const playingAsPlayer = asPlayer && member?.role === 'gm' && playsIn(member);
+  const isGm = !playingAsPlayer && ((member?.role === 'gm' && member.status === 'approved') || event.owner_id === userId);
   const alliance = member?.team_id ? await teamAllianceOf(member.team_id, q) : null;
   return {
     event,

@@ -605,7 +605,9 @@ eventsRouter.post('/:eventId/members/:userId/remove', async (req, res) => {
 async function assign(t: Tx, ctx: EventContext, userId: string, teamId: string | null, squadId: string | null | undefined, leader: boolean | undefined, actorId: string) {
   const eventId = ctx.event.id;
   const m = await one('SELECT * FROM event_members WHERE event_id = $1 AND user_id = $2 FOR UPDATE', [eventId, userId], t);
-  if (!m || m.role !== 'player' || !['approved', 'pending', 'invited'].includes(m.status)) throw notFound('Player not found in this event.');
+  // Game Masters can be put on a team too, to play the game.
+  const assignable = m?.role === 'gm' ? m.status === 'approved' : ['approved', 'pending', 'invited'].includes(m?.status);
+  if (!m || !assignable) throw notFound('Player not found in this event.');
   if (teamId) {
     const team = await one('SELECT id, capacity, name, (SELECT count(*)::int FROM event_members x WHERE x.team_id = teams.id AND x.status = \'approved\' AND x.user_id <> $3) AS n FROM teams WHERE id = $1 AND event_id = $2', [teamId, eventId, userId], t);
     if (!team) throw badRequest('Unknown team.', 'invalid_argument', { teamId: 'Unknown team' });
@@ -625,14 +627,20 @@ async function assign(t: Tx, ctx: EventContext, userId: string, teamId: string |
   } else if (m.is_squad_leader && m.squad_id) {
     await t.query('UPDATE squads SET leader_id = NULL WHERE id = $1 AND leader_id = $2', [m.squad_id, userId]);
   }
-  await t.query('UPDATE event_members SET team_id = $3, squad_id = $4, is_squad_leader = $5, updated_at = now() WHERE event_id = $1 AND user_id = $2', [
-    eventId,
-    userId,
-    teamId,
-    squad,
-    isLeader,
-  ]);
-  if (teamId !== m.team_id && teamId) {
+  // A Game Master taken off their team stops playing, so their location is no longer shared.
+  await t.query(
+    `UPDATE event_members SET team_id = $3, squad_id = $4, is_squad_leader = $5,
+            tracking_active = CASE WHEN role = 'gm' AND $3::uuid IS NULL THEN false ELSE tracking_active END, updated_at = now()
+      WHERE event_id = $1 AND user_id = $2`,
+    [
+      eventId,
+      userId,
+      teamId,
+      squad,
+      isLeader,
+    ],
+  );
+  if (teamId !== m.team_id && teamId && userId !== actorId) {
     const team = await one('SELECT name FROM teams WHERE id = $1', [teamId], t);
     await notify(t, [userId], {
       type: 'team_assigned',
@@ -735,7 +743,11 @@ eventsRouter.delete('/:eventId/game-masters/:userId', async (req, res) => {
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     if (userId === ctx.event.owner_id) throw conflict('The owner is always a Game Master.', 'is_owner');
-    await t.query(`UPDATE event_members SET status = 'left' WHERE event_id = $1 AND user_id = $2 AND role = 'gm'`, [eventId, userId]);
+    await t.query(
+      `UPDATE event_members SET status = 'left', tracking_active = false, is_squad_leader = false, updated_at = now() WHERE event_id = $1 AND user_id = $2 AND role = 'gm'`,
+      [eventId, userId],
+    );
+    await t.query('UPDATE squads SET leader_id = NULL WHERE event_id = $1 AND leader_id = $2', [eventId, userId]);
     await audit(t, eventId, me.id, 'gm.remove', { type: 'user', id: userId });
   });
   hub.invalidate(eventId, ['event', 'members']);

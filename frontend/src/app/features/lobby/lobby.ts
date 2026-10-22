@@ -20,6 +20,7 @@ import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { StatusChip, eventStatusChip } from '../../shared/status-chip';
 import { LobbyChecklist } from './lobby-checklist';
 import { LobbyGmControls } from './lobby-gm-controls';
+import { LobbyGmPlay } from './lobby-gm-play';
 import { LobbyRoster } from './lobby-roster';
 
 /** Pre-game room: checklist, roster, announcements; GM tools to run the start. */
@@ -38,6 +39,7 @@ import { LobbyRoster } from './lobby-roster';
     StatusChip,
     LobbyChecklist,
     LobbyGmControls,
+    LobbyGmPlay,
     LobbyRoster,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -164,6 +166,9 @@ import { LobbyRoster } from './lobby-roster';
                 (announcementSent)="addAnnouncement($event)"
                 (membersChanged)="refresh(['members', 'event'])"
               />
+            }
+            @if (e.isGm && e.me && e.status !== 'completed' && e.status !== 'cancelled') {
+              <zeus-lobby-gm-play [event]="e" (memberChange)="onMemberChange($event)" />
             }
 
             <section aria-labelledby="ann-list-title">

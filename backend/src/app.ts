@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { requireVerified } from './auth/middleware.js';
 import { pool } from './db.js';
+import { runWithView } from './domain/context.js';
 import { errorHandler, notFound } from './errors.js';
 import { logger } from './logger.js';
 import { authRouter } from './routes/auth.js';
@@ -32,9 +33,9 @@ export function createApp() {
   );
   app.use(express.json({ limit: '2.5mb' }));
   app.use(cookieParser());
-  app.use('/api', (_req, res, next) => {
+  app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
-    next();
+    runWithView(req.get('x-zeus-view') === 'player', next);
   });
 
   app.get('/api/health', async (_req, res) => {

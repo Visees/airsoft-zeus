@@ -4,7 +4,7 @@ import { distanceM } from '../lib/geo.js';
 import { consume } from '../lib/rate-limit.js';
 import { hub } from '../realtime/hub.js';
 import { FRESH_MS, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
-import { eventContext, type EventContext } from './context.js';
+import { eventContext, playsIn, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
 import { advance, fromRow, majorityLeader, toRow } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
@@ -48,7 +48,7 @@ export function presenceTtlMs(intervalSec: number): number {
 export async function reportLocation(eventId: string, userId: string, samples: InSample[], screenObjectiveId: string | null): Promise<ReportResult> {
   const ctx = await eventContext(eventId, userId);
   const m = ctx.member;
-  if (!m || m.status !== 'approved' || m.role !== 'player') throw forbidden('Only players of this event share their location.', 'tracking_not_allowed');
+  if (!m || !playsIn(m)) throw forbidden('Only players of this event share their location.', 'tracking_not_allowed');
   if (!m.tracking_consent_at) throw forbidden('Turn on location sharing for this event first.', 'tracking_not_allowed');
   const status = ctx.event.status;
   if (status === 'paused' && ctx.tracking.stopWhenPaused) throw precondition('The game is paused; location sharing resumes with the game.', 'tracking_paused');

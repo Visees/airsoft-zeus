@@ -220,7 +220,7 @@ meRouter.get('/stats', requireAuth, async (req, res) => {
   const history = await many(
     `SELECT e.id, e.name, e.ended_at, e.winner_team_id, t.name AS team_name, t.color AS team_color, m.team_id, m.points, m.captures
        FROM event_members m JOIN events e ON e.id = m.event_id LEFT JOIN teams t ON t.id = m.team_id
-      WHERE m.user_id = $1 AND m.role = 'player' AND e.status = 'completed' ORDER BY e.ended_at DESC LIMIT 100`,
+      WHERE m.user_id = $1 AND (m.role = 'player' OR m.team_id IS NOT NULL) AND e.status = 'completed' ORDER BY e.ended_at DESC LIMIT 100`,
     [me.id],
   );
   res.json({

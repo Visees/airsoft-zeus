@@ -65,13 +65,14 @@ async function tickEvent(eventId: string): Promise<void> {
     await expireEffects(t, eventId);
   });
 
-  const ctx = await eventContext(eventId, owner.owner_id);
+  // System work: always the full GM context, whatever request scheduled it.
+  const ctx = await eventContext(eventId, owner.owner_id, undefined, false, false);
   if (ctx.event.status !== 'live') return;
 
   // Auto end
   if (ctx.event.auto_end && ctx.event.ends_at && new Date(ctx.event.ends_at).getTime() <= now) {
     await tx(async (t) => {
-      const locked = await eventContext(eventId, owner.owner_id, t, true);
+      const locked = await eventContext(eventId, owner.owner_id, t, true, false);
       if (locked.event.status === 'live') await transition(t, locked, 'completed', null, 'Time is up');
     });
     return;
@@ -150,7 +151,7 @@ async function tickEvent(eventId: string): Promise<void> {
   // Players who stopped sending positions
   const lost = await many<{ user_id: string; nickname: string; last_location_at: Date }>(
     `SELECT m.user_id, u.nickname, m.last_location_at FROM event_members m JOIN users u ON u.id = m.user_id
-      WHERE m.event_id = $1 AND m.status = 'approved' AND m.role = 'player' AND m.tracking_active
+      WHERE m.event_id = $1 AND m.status = 'approved' AND (m.role = 'player' OR m.team_id IS NOT NULL) AND m.tracking_active
         AND m.last_location_at < now() - make_interval(secs => $2)`,
     [eventId, Math.max(120, ctx.tracking.staleAfterSec * 2)],
   );

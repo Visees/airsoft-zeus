@@ -39,6 +39,8 @@ export type Target = 'all' | 'gm' | { teamId: string | null } | { userId: string
 
 interface Sub {
   isGm: boolean;
+  /** subscribed from the player screens: a Game Master on a team gets their team's view */
+  asPlayer: boolean;
 }
 
 interface SocketData {
@@ -84,11 +86,14 @@ export function initRealtime(server: HttpServer): Server {
     void socket.join(`u:${data.userId}`);
     online.set(data.userId, (online.get(data.userId) ?? 0) + 1);
 
-    socket.on('subscribe', async (eventId: unknown, ack?: (res: { ok: boolean; error?: string; role?: 'gm' | 'player' }) => void) => {
-      const reply = typeof ack === 'function' ? ack : () => undefined;
+    socket.on('subscribe', async (eventId: unknown, ...args: unknown[]) => {
+      // subscribe(eventId, ack) or subscribe(eventId, { view }, ack)
+      const ack = args.find((a) => typeof a === 'function') as ((res: { ok: boolean; error?: string; role?: 'gm' | 'player' }) => void) | undefined;
+      const opts = args.find((a) => typeof a === 'object' && a !== null) as { view?: unknown } | undefined;
+      const reply = ack ?? (() => undefined);
       try {
         if (typeof eventId !== 'string' || !/^[0-9a-f-]{36}$/i.test(eventId)) return reply({ ok: false, error: 'invalid_event' });
-        const ok = await joinEventRooms(socket, eventId);
+        const ok = await joinEventRooms(socket, eventId, opts?.view === 'player');
         if (!ok) return reply({ ok: false, error: 'not_member' });
         reply({ ok: true, role: data.subs.get(eventId)?.isGm ? 'gm' : 'player' });
         dirtyPositions.add(eventId);
@@ -120,9 +125,9 @@ export function closeRealtime(): Promise<void> {
   return new Promise((resolve) => (io ? io.close(() => resolve()) : resolve()));
 }
 
-async function joinEventRooms(socket: Socket, eventId: string): Promise<boolean> {
+async function joinEventRooms(socket: Socket, eventId: string, asPlayer: boolean): Promise<boolean> {
   const data = socket.data as SocketData;
-  const ctx = await eventContext(eventId, data.userId);
+  const ctx = await eventContext(eventId, data.userId, undefined, false, asPlayer);
   const allowed = ctx.isGm || ctx.member?.status === 'approved';
   leaveEventRooms(socket, eventId);
   if (!allowed) return false;
@@ -130,7 +135,7 @@ async function joinEventRooms(socket: Socket, eventId: string): Promise<boolean>
   if (ctx.isGm) rooms.push(`e:${eventId}:gm`);
   else rooms.push(`e:${eventId}:t:${ctx.member?.team_id ?? 'none'}`);
   await socket.join(rooms);
-  data.subs.set(eventId, { isGm: ctx.isGm });
+  data.subs.set(eventId, { isGm: ctx.isGm, asPlayer });
   let set = subscribers.get(eventId);
   if (!set) subscribers.set(eventId, (set = new Set()));
   set.add(socket.id);
@@ -196,8 +201,9 @@ export const hub = {
     const sockets = await io.in(`u:${userId}`).fetchSockets();
     for (const s of sockets) {
       const local = io.sockets.sockets.get(s.id);
-      if (!local || !(local.data as SocketData).subs.has(eventId)) continue;
-      const ok = await joinEventRooms(local, eventId);
+      const sub = local ? (local.data as SocketData).subs.get(eventId) : undefined;
+      if (!local || !sub) continue;
+      const ok = await joinEventRooms(local, eventId, sub.asPlayer);
       if (!ok && notifyKick) local.emit('kicked', { eventId, reason: 'You are no longer a member of this event.' });
     }
     io.to(`u:${userId}`).emit('invalidate', { eventId, scopes: ['event', 'me', 'objectives', 'pois', 'zones', 'perks', 'purchases', 'effects'] });
@@ -215,7 +221,8 @@ export const hub = {
     if (!io) return;
     for (const id of subscribers.get(eventId) ?? []) {
       const s = io.sockets.sockets.get(id);
-      if (s) await joinEventRooms(s, eventId).catch(() => undefined);
+      const sub = s ? (s.data as SocketData).subs.get(eventId) : undefined;
+      if (s && sub) await joinEventRooms(s, eventId, sub.asPlayer).catch(() => undefined);
     }
     dirtyPositions.add(eventId);
   },
@@ -304,7 +311,10 @@ async function loadProjection(eventId: string): Promise<ProjectionData | null> {
   const alliance = new Map(teams.map((t) => [t.id, t.alliance_id]));
   const teamAlliance = (teamId: string) => alliance.get(teamId) ?? null;
   const locs: PosLocation[] = locations
-    .filter((l) => memberMap.get(l.user_id)?.role === 'player')
+    .filter((l) => {
+      const m = memberMap.get(l.user_id);
+      return !!m && (m.role === 'player' || !!m.teamId);
+    })
     .map((l) => ({
       userId: l.user_id,
       lat: l.lat,

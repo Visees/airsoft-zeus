@@ -112,10 +112,10 @@ export async function notify(t: Tx, userIds: string[], n: NotifyInput): Promise<
   });
 }
 
-/** Approved player ids of an event, optionally limited to a team. */
+/** Ids of who plays in an event (players and GMs on a team), optionally limited to a team. */
 export async function eventPlayers(t: Tx, eventId: string, teamId?: string | null): Promise<string[]> {
   const rows = await many<{ user_id: string }>(
-    `SELECT user_id FROM event_members WHERE event_id = $1 AND status = 'approved' AND role = 'player'${teamId ? ' AND team_id = $2' : ''}`,
+    `SELECT user_id FROM event_members WHERE event_id = $1 AND status = 'approved' AND (role = 'player' OR team_id IS NOT NULL)${teamId ? ' AND team_id = $2' : ''}`,
     teamId ? [eventId, teamId] : [eventId],
     t,
   );

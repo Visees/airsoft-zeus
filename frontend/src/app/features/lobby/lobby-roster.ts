@@ -5,6 +5,7 @@ import { ApiService } from '../../core/api/api.service';
 import { EventDetail, Member, Squad, Team } from '../../core/api/models';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
+import { playsIn } from '../../core/util/members';
 import { PlayerListItem } from '../../shared/cards';
 import { SquadBadge } from '../../shared/squad-badge';
 import { TeamBadge } from '../../shared/team-badge';
@@ -72,12 +73,14 @@ interface TeamGroup {
                   @for (m of s.members; track m.userId) {
                     <li>
                       <zeus-player-list-item [member]="m" [team]="g.team" [squad]="s.squad" [isSelf]="m.userId === selfId()" [showPresence]="true">
-                        @if (m.ready) {
+                        @if (m.role === 'gm') {
+                          <!-- A Game Master playing on this team: no checklist. -->
+                        } @else if (m.ready) {
                           <span class="inline-flex items-center gap-1 rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">✓ <span class="hidden sm:inline">Ready</span><span class="sr-only sm:hidden">Ready</span></span>
                         } @else {
                           <span class="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-xs text-muted-foreground">○ <span class="hidden sm:inline">Not ready</span><span class="sr-only sm:hidden">Not ready</span></span>
                         }
-                        @if (isGm()) {
+                        @if (isGm() && m.role === 'player') {
                           @if (!m.rulesAccepted) {
                             <span class="hidden text-xs text-warning md:inline" title="Rules not accepted">▲ Rules</span>
                           }
@@ -100,9 +103,11 @@ interface TeamGroup {
                               <option [value]="t.id" [selected]="t.id === m.teamId">{{ t.name }} ({{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }})</option>
                             }
                           </select>
-                          <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" [attr.aria-label]="'Remove ' + m.nickname">
-                            <ng-icon name="lucideUserMinus" size="18" aria-hidden="true" />
-                          </button>
+                          @if (m.role === 'player') {
+                            <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" [attr.aria-label]="'Remove ' + m.nickname">
+                              <ng-icon name="lucideUserMinus" size="18" aria-hidden="true" />
+                            </button>
+                          }
                         </div>
                       }
                     </li>
@@ -135,9 +140,11 @@ export class LobbyRoster {
   protected readonly sortedTeams = computed(() => [...this.event().teams].sort((a, b) => a.sortOrder - b.sortOrder));
   protected readonly players = computed(() => this.members().filter((m) => m.status === 'approved' && m.role === 'player'));
   protected readonly readyCount = computed(() => this.players().filter((m) => m.ready).length);
+  /** Players plus Game Masters who play on a team (they don't take a player place). */
+  private readonly lineUp = computed(() => this.members().filter(playsIn));
 
   protected readonly groups = computed<TeamGroup[]>(() => {
-    const players = [...this.players()].sort((a, b) => a.nickname.localeCompare(b.nickname));
+    const players = [...this.lineUp()].sort((a, b) => a.nickname.localeCompare(b.nickname));
     const squads = this.event().squads;
     const build = (team: Team | null): TeamGroup => {
       const inTeam = players.filter((m) => (team ? m.teamId === team.id : !m.teamId || !this.event().teams.some((t) => t.id === m.teamId)));

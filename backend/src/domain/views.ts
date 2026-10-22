@@ -20,6 +20,8 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
   const myTeam = ctx.viewer.teamId;
   return {
     ...dto.eventSummary(summary!),
+    // A GM playing in the player view gets the player's event (ctx.isGm is false then).
+    isGm: ctx.isGm,
     description: e.description,
     customModeRules: e.custom_mode_rules,
     requiresApproval: e.requires_approval,

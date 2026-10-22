@@ -55,6 +55,7 @@ export interface SubscribeAck {
 }
 
 export interface ClientToServerEvents {
-  subscribe: (eventId: Uuid, ack: (res: SubscribeAck) => void) => void;
+  /** `view: 'player'`: a Game Master playing on a team gets their team's view (see PlayerViewService). */
+  subscribe: (eventId: Uuid, opts: { view: 'gm' | 'player' }, ack: (res: SubscribeAck) => void) => void;
   unsubscribe: (eventId: Uuid) => void;
 }

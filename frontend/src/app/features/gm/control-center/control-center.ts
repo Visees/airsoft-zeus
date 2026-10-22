@@ -38,6 +38,7 @@ import {
   formatRelative,
   formatTime,
 } from '../../../core/util/format';
+import { playsIn } from '../../../core/util/members';
 import { CurrencyDisplay } from '../../../shared/currency-display';
 import { GameTimer, nowSignal } from '../../../shared/game-timer';
 import { ConnectionStatus } from '../../../shared/link-status';
@@ -569,9 +570,11 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAdjust(p.member.teamId, p.member.userId)" [disabled]="!p.member.teamId">
             <ng-icon name="lucideSlidersHorizontal" size="14" aria-hidden="true" /> Team score
           </button>
-          <button hlmBtn type="button" variant="destructive" class="h-10" (click)="removePlayer(p.member)">
-            <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> Remove
-          </button>
+          @if (p.member.role === 'player') {
+            <button hlmBtn type="button" variant="destructive" class="h-10" (click)="removePlayer(p.member)">
+              <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> Remove
+            </button>
+          }
         </div>
         <div class="flex gap-1.5">
           <label class="sr-only" for="cc-move-team">Move {{ p.member.nickname }} to team</label>
@@ -1016,7 +1019,7 @@ export class ControlCenterScreen {
     const teams = this.teamById();
     return this.store
       .members()
-      .filter((m) => m.role === 'player' && m.status === 'approved')
+      .filter(playsIn)
       .map((m) => {
         const pos = posById.get(m.userId) ?? null;
         const presence: PositionStatus = pos?.status ?? (m.online ? 'stale' : 'offline');

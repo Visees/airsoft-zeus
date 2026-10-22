@@ -3,6 +3,7 @@ import { DestroyRef, Injectable, NgZone, PLATFORM_ID, effect, inject, signal } f
 import { Observable, Subject, filter, map } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from '../auth/auth.service';
+import { PlayerViewService } from '../live/player-view';
 import { ConnectivityService } from '../net/connectivity.service';
 import { ClientToServerEvents, ServerToClientEvents, SubscribeAck } from './realtime-events';
 
@@ -18,6 +19,7 @@ export class RealtimeService {
   private readonly auth = inject(AuthService);
   private readonly connectivity = inject(ConnectivityService);
   private readonly zone = inject(NgZone);
+  private readonly playerView = inject(PlayerViewService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
@@ -31,6 +33,10 @@ export class RealtimeService {
       const token = this.auth.token();
       if (token && !this.socket) this.connect();
       if (!token && this.socket) this.disconnect();
+    });
+    // The player screens opened or closed: join the rooms of the new view.
+    this.playerView.changes.subscribe((eventId) => {
+      if (this.subscriptions.has(eventId)) void this.emitSubscribe(eventId);
     });
   }
 
@@ -66,7 +72,8 @@ export class RealtimeService {
     const socket = this.socket;
     if (!socket || !socket.connected) return Promise.resolve({ ok: false, error: 'not_connected' });
     return new Promise((resolve) => {
-      socket.timeout(8000).emit('subscribe', eventId, (err: Error | null, res: SubscribeAck) => {
+      const view = this.playerView.has(eventId) ? 'player' : 'gm';
+      socket.timeout(8000).emit('subscribe', eventId, { view }, (err: Error | null, res: SubscribeAck) => {
         resolve(err ? { ok: false, error: 'timeout' } : res);
       });
     });

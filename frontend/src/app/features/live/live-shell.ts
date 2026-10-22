@@ -5,6 +5,7 @@ import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiService } from '../../core/api/api.service';
 import { LiveStore } from '../../core/live/live-store';
+import { PlayerViewService } from '../../core/live/player-view';
 import { LocationTracker } from '../../core/location/location-tracker.service';
 import { ConnectivityService } from '../../core/net/connectivity.service';
 import { KeepAliveRouteStrategy, LIVE_MAP_KEEP_ALIVE } from '../../core/routing/keep-alive-route-strategy';
@@ -12,6 +13,7 @@ import { RealtimeService } from '../../core/realtime/realtime.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { formatTime } from '../../core/util/format';
+import { playsIn } from '../../core/util/members';
 import { AnnouncementBanner } from '../../shared/announcement-banner';
 import { CurrencyDisplay } from '../../shared/currency-display';
 import { GameTimer } from '../../shared/game-timer';
@@ -196,7 +198,8 @@ interface SharingIndicator {
               <p class="label-caps">Game Master</p>
               <h2 id="gm-prompt-title" class="text-lg uppercase">You are not on a team</h2>
               <p class="mt-1 text-sm text-muted-foreground">
-                The player view shows what a team member sees. To run the game, open the control center.
+                To run the game, open the control center. To play, join a team from the event lobby: this view then shows only
+                what your team sees.
               </p>
               <div class="mt-3 flex flex-col gap-2 sm:flex-row">
                 <a hlmBtn class="h-12 flex-1" [routerLink]="['/gm/events', eventId(), 'control']">
@@ -356,6 +359,7 @@ export class LiveShell {
   private readonly theme = inject(ThemeService);
   private readonly connectivity = inject(ConnectivityService);
   private readonly realtime = inject(RealtimeService);
+  private readonly playerView = inject(PlayerViewService);
 
   protected readonly pausedChip = eventStatusChip('paused');
   protected readonly gmPromptDismissed = signal(false);
@@ -371,9 +375,8 @@ export class LiveShell {
   protected readonly running = computed(() => this.status() === 'live' || this.status() === 'paused');
   protected readonly ended = computed(() => this.status() === 'completed' || this.status() === 'cancelled');
   private readonly me = this.store.me;
-  private readonly isMember = computed(() => this.me()?.status === 'approved');
-  /** Only players share a position (the server rejects Game Master reports with tracking_not_allowed). */
-  private readonly isPlayer = computed(() => this.isMember() && this.me()?.role === 'player');
+  /** Only players (and Game Masters on a team) share a position; the server rejects other reports with tracking_not_allowed. */
+  private readonly isPlayer = computed(() => playsIn(this.me()));
   protected readonly consented = computed(() => !!this.me()?.trackingConsented || this.session.hasConsented(this.eventId()));
   private readonly stoppedByUser = computed(() => this.session.isStopped(this.eventId()));
 
@@ -445,10 +448,19 @@ export class LiveShell {
     const reuse = inject(KeepAliveRouteStrategy);
     destroyRef.onDestroy(() => reuse.release(LIVE_MAP_KEEP_ALIVE));
 
+    // A Game Master on a team sees these screens as their team does (see PlayerViewService).
+    let viewing: string | null = null;
+    destroyRef.onDestroy(() => viewing && this.playerView.leave(viewing));
+
     // Load (and reload if the route is reused for another event).
     effect(() => {
       const id = this.eventId();
       untracked(() => {
+        if (viewing !== id) {
+          if (viewing) this.playerView.leave(viewing);
+          this.playerView.enter(id);
+          viewing = id;
+        }
         this.redirected = false;
         this.autoSheetShown = false;
         this.endDismissed.set(false);

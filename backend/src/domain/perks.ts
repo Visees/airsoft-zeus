@@ -1,7 +1,7 @@
 import { many, one, type Queryable, type Row, type Tx } from '../db.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
 import { hub } from '../realtime/hub.js';
-import type { EventContext } from './context.js';
+import { playsIn, type EventContext } from './context.js';
 import { DEFAULT_PERK_CONFIG, type Precision } from './defaults.js';
 import { activity, alert, eventGms, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
@@ -92,7 +92,7 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
   const { ctx, now } = p;
   const eventId = ctx.event.id;
   const m = ctx.member;
-  if (!m || m.status !== 'approved' || m.role !== 'player' || !m.team_id) throw forbidden('Only players on a team can buy perks.', 'no_team');
+  if (!m || !playsIn(m) || !m.team_id) throw forbidden('Only players on a team can buy perks.', 'no_team');
   const teamId = m.team_id;
   const perk = await one('SELECT * FROM perks WHERE id = $1 AND event_id = $2 FOR UPDATE', [p.perkId, eventId], t);
   if (!perk) throw notFound('Perk not found.');
@@ -234,7 +234,7 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
       // Snapshot of current positions of the target team(s) — never earlier positions than now.
       const targets = await many(
         `SELECT pl.* FROM player_locations pl JOIN event_members m ON m.event_id = pl.event_id AND m.user_id = pl.user_id
-          WHERE pl.event_id = $1 AND m.status = 'approved' AND m.role = 'player' AND m.tracking_active
+          WHERE pl.event_id = $1 AND m.status = 'approved' AND m.tracking_active
             AND m.team_id IS NOT NULL AND m.team_id <> $2 AND ($3::uuid IS NULL OR m.team_id = $3)
             AND pl.received_at > now() - make_interval(secs => $4)`,
         [eventId, teamId, pp.target_team_id, ctx.tracking.hideAfterSec],

@@ -12,6 +12,7 @@ import { ConfirmService } from '../../../core/ui/confirm.service';
 import { ToastService } from '../../../core/ui/toast.service';
 import { formatNumber, formatSigned } from '../../../core/util/format';
 import { newClientTxId } from '../../../core/util/ids';
+import { playsIn } from '../../../core/util/members';
 import { TeamBadge } from '../../../shared/team-badge';
 import { applyServerErrors, controlError, num } from './forms';
 import { OpsDialog } from './ops-dialog';
@@ -164,7 +165,7 @@ export class AdjustBalanceDialog {
 
   protected readonly teamMembers = computed(() => {
     const teamId = this.value().teamId;
-    return this.members().filter((m) => m.teamId === teamId && m.role === 'player' && m.status === 'approved');
+    return this.members().filter((m) => m.teamId === teamId && playsIn(m));
   });
 
   protected readonly preview = computed(() => {

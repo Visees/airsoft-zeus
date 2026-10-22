@@ -8,6 +8,7 @@ import { EventDetail, Member, Squad, Team } from '../../core/api/models';
 import { RealtimeService } from '../../core/realtime/realtime.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
+import { playsIn } from '../../core/util/members';
 import { PlayerListItem } from '../../shared/cards';
 import { ConnectionStatus } from '../../shared/link-status';
 import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
@@ -138,7 +139,8 @@ export class TeamSquadManagerScreen {
 
   protected readonly running = computed(() => isRunning(this.event()?.status));
   protected readonly sortedTeams = computed(() => [...(this.event()?.teams ?? [])].sort((a, b) => a.sortOrder - b.sortOrder));
-  protected readonly players = computed(() => this.members().filter((m) => m.role === 'player' && m.status === 'approved'));
+  /** Includes Game Masters who play on a team, so they can be put in a squad. */
+  protected readonly players = computed(() => this.members().filter(playsIn));
   protected readonly unassigned = computed(() => this.players().filter((m) => !m.teamId).sort((a, b) => a.nickname.localeCompare(b.nickname)));
 
   private loadSeq = 0;
