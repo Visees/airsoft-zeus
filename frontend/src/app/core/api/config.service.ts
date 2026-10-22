@@ -3,8 +3,7 @@ import { ApiService } from './api.service';
 import { AppConfig } from './models';
 
 const FALLBACK: AppConfig = {
-  googleMapsApiKey: '',
-  googleMapsMapId: null,
+  esriApiKey: '',
   vapidPublicKey: null,
   termsVersion: '2026-10',
   privacyVersion: '2026-10',

@@ -21,7 +21,35 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
+        "files": [
+          "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "map-tilejson",
+      "urls": [
+        "https://tiles.openfreemap.org/planet"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 2,
+        "maxAge": "7d",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "map-tiles",
+      "urls": [
+        "https://tiles.openfreemap.org/**",
+        "https://s3.amazonaws.com/elevation-tiles-prod/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 6000,
+        "maxAge": "30d"
       }
     }
   ]

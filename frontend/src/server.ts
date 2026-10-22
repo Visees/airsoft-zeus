@@ -56,11 +56,12 @@ app.use((_req, res, next) => {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.ggpht.com",
+      "img-src 'self' data: blob:",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' ws: wss: https://*.googleapis.com https://*.gstatic.com https://*.google.com",
+      // map tiles, fonts and icons (OpenFreeMap), elevation (AWS open data), satellite (Esri), place search (Photon)
+      "connect-src 'self' ws: wss: https://tiles.openfreemap.org https://s3.amazonaws.com https://ibasemaps-api.arcgis.com https://photon.komoot.io",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",

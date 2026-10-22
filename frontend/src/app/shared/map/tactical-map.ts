@@ -16,13 +16,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
+import type { Feature, FeatureCollection, Geometry } from 'geojson';
+import type { GeoJSONSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';
 import { LatLng, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
-import { MapsLoaderService } from '../../core/maps/maps-loader.service';
+import { MapEngine, MapEngineService } from '../../core/maps/map-engine.service';
+import type { BaseLayer } from '../../core/maps/map-style';
 import { objectiveMarker, playerMarker, poiMarker, selfMarker, zoneLabel } from '../../core/maps/markers';
 import { ThemeService } from '../../core/theme/theme.service';
 import { bounds, distanceM } from '../../core/util/geo';
 
 const SELF_GLIDE_MS = 800;
+const BASE_LAYER_KEY = 'zeus.mapBase';
 
 export interface SelfFix {
   lat: number;
@@ -45,17 +49,40 @@ export interface MarkerMove {
   position: LatLng;
 }
 
-type Renderer = 'loading' | 'google' | 'schematic';
+type Renderer = 'loading' | 'map' | 'schematic';
+type LayerChoice = BaseLayer | 'schematic';
 
 const M_PER_DEG_LAT = 110_540;
 const M_PER_DEG_LNG_EQ = 111_320;
 
 /**
+ * Zoom levels in inputs, events and saved event areas use the classic web-map scale (256 px tiles,
+ * as Google and Leaflet); MapLibre's scale uses 512 px tiles, one level lower for the same view.
+ */
+const toMl = (zoom: number) => zoom - 1;
+const fromMl = (zoom: number) => zoom + 1;
+
+/** Line styles of game shapes; separate layers because the dash pattern can't vary per feature. */
+const DASHES = { solid: null, dash: [3, 2], dot: [0.6, 2] } as const;
+type Dash = keyof typeof DASHES;
+
+interface ShapeProps {
+  zoneId: string | null;
+  color: string;
+  fill: boolean;
+  fillOpacity: number;
+  width: number;
+  lineOpacity: number;
+  dash: Dash;
+}
+
+/**
  * Tactical map used by every map screen.
  *
- * Renders with Google Maps (AdvancedMarkerElement) when the API key is configured and the
- * device is online; otherwise with a built-in schematic SVG renderer that works offline from
- * the cached event data (zones, objectives, POIs, positions on a metric grid).
+ * Renders a topographic map with MapLibre (free OpenStreetMap data from OpenFreeMap, contour lines
+ * and relief from open elevation data, see core/maps/map-style.ts), a satellite map when an ArcGIS
+ * key is configured, and otherwise a built-in schematic SVG renderer that works offline from the
+ * cached event data (zones, objectives, POIs, positions on a metric grid).
  *
  * Everything shown is already filtered by the server for the viewer; this component never
  * decides visibility.
@@ -66,10 +93,15 @@ const M_PER_DEG_LNG_EQ = 111_320;
   changeDetection: ChangeDetectionStrategy.OnPush,
   // The host takes the consumer's sizing/positioning classes (e.g. "absolute inset-0" or "h-56");
   // the inner wrapper is the positioning context for the map layers and controls.
-  host: { class: 'block overflow-hidden bg-muted', role: 'region', '[attr.aria-label]': 'ariaLabel()' },
+  host: {
+    class: 'block overflow-hidden bg-muted',
+    role: 'region',
+    '[attr.aria-label]': 'ariaLabel()',
+    '(document:keydown.escape)': 'layersOpen.set(false)',
+  },
   template: `
     <div class="relative size-full min-h-40">
-    <div #googleHost class="absolute inset-0" [class.invisible]="renderer() !== 'google'"></div>
+    <div #mapHost class="absolute inset-0" [class.invisible]="renderer() !== 'map'"></div>
 
     @if (renderer() === 'schematic') {
       <div
@@ -140,10 +172,27 @@ const M_PER_DEG_LNG_EQ = 111_320;
         </button>
       }
       @if (allowRendererToggle() && mapsState() === 'ready') {
-        <button type="button" class="hud grid size-11 place-items-center" (click)="toggleRenderer()"
-          [attr.aria-label]="renderer() === 'google' ? txt.switchToSchematicView : txt.switchToSatelliteMap">
-          <ng-icon [name]="renderer() === 'google' ? 'lucideLayers' : 'lucideMap'" size="18" aria-hidden="true" />
-        </button>
+        <div class="relative">
+          <button type="button" class="hud grid size-11 place-items-center compact:size-10" (click)="layersOpen.set(!layersOpen())"
+            [attr.aria-expanded]="layersOpen()" aria-haspopup="menu" aria-label="Map type" i18n-aria-label>
+            <ng-icon name="lucideLayers" size="18" aria-hidden="true" />
+          </button>
+          @if (layersOpen()) {
+            <div class="hud absolute top-0 right-full mr-1.5 flex min-w-40 flex-col p-1" role="menu" aria-label="Map type" i18n-aria-label>
+              @for (o of layerOptions(); track o.id) {
+                <button type="button" role="menuitemradio" [attr.aria-checked]="activeLayer() === o.id"
+                  class="flex min-h-11 items-center gap-2 rounded-sm px-2 text-left text-sm hover:bg-muted"
+                  [class.font-semibold]="activeLayer() === o.id" (click)="chooseLayer(o.id)">
+                  <ng-icon [name]="o.icon" size="16" aria-hidden="true" />
+                  <span class="flex-1">{{ o.label }}</span>
+                  @if (activeLayer() === o.id) {
+                    <ng-icon name="lucideCheck" size="16" class="text-nav" aria-hidden="true" />
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
       }
     </div>
     </div>
@@ -153,11 +202,9 @@ export class TacticalMap {
   /** UI text used inside template expressions. */
   protected readonly txt = {
     mapTilesUnavailable: $localize` (map tiles unavailable)`,
-    switchToSchematicView: $localize`Switch to schematic view`,
-    switchToSatelliteMap: $localize`Switch to satellite map`,
   };
 
-  private readonly loader = inject(MapsLoaderService);
+  private readonly engines = inject(MapEngineService);
   private readonly theme = inject(ThemeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -181,7 +228,6 @@ export class TacticalMap {
   readonly forceSchematic = input(false);
   readonly allowRendererToggle = input(true);
   readonly controlsBottom = input(false);
-  readonly mapType = input<'hybrid' | 'roadmap' | 'satellite' | 'terrain'>('hybrid');
   /** false: taps inside zones go to mapClick (placing points inside an area). */
   readonly shapesClickable = input(true);
   /** 'cooperative' for small embedded previews so one-finger scrolling scrolls the page. */
@@ -194,27 +240,36 @@ export class TacticalMap {
   readonly mapClick = output<LatLng>();
   readonly markerMoved = output<MarkerMove>();
 
-  /** Which renderer is showing: 'google', 'schematic' or 'loading'. */
+  /** Which renderer is showing: 'map' (MapLibre), 'schematic' or 'loading'. */
   readonly renderer = signal<Renderer>('loading');
-  protected readonly mapsState = this.loader.state;
-  private readonly userPrefersSchematic = signal(false);
+  protected readonly mapsState = this.engines.state;
+  protected readonly layersOpen = signal(false);
+  /** Topo or satellite, remembered on this device. */
+  private readonly baseLayer = signal<BaseLayer>(readBaseLayer());
+  private readonly effectiveBase = computed<BaseLayer>(() => (this.baseLayer() === 'satellite' && this.engines.satelliteAvailable() ? 'satellite' : 'topo'));
+  protected readonly activeLayer = computed<LayerChoice>(() => (this.renderer() === 'schematic' ? 'schematic' : this.effectiveBase()));
+  protected readonly layerOptions = computed(() => {
+    const opts: { id: LayerChoice; label: string; icon: string }[] = [{ id: 'topo', label: $localize`:map type|:Topographic`, icon: 'lucideMountain' }];
+    if (this.engines.satelliteAvailable()) opts.push({ id: 'satellite', label: $localize`:map type|:Satellite`, icon: 'lucideSatellite' });
+    opts.push({ id: 'schematic', label: $localize`:map type|:Schematic`, icon: 'lucideGrid3x3' });
+    return opts;
+  });
 
-  private readonly googleHost = viewChild<ElementRef<HTMLDivElement>>('googleHost');
+  private readonly mapHost = viewChild<ElementRef<HTMLDivElement>>('mapHost');
   private readonly schematicHost = viewChild<ElementRef<HTMLDivElement>>('schematicHost');
   private readonly schematicOverlay = viewChild<ElementRef<HTMLDivElement>>('schematicOverlay');
 
-  /** The Google map instance (it stays alive when the schematic view is shown; use activeMap()). */
-  map: google.maps.Map | null = null;
-
-  /** The Google map only while it is the visible renderer. */
-  activeMap(): google.maps.Map | null {
-    return this.renderer() === 'google' ? this.map : null;
-  }
-  private readonly markers = new Map<string, { marker: google.maps.marker.AdvancedMarkerElement; sig: string }>();
-  private readonly shapes = new Map<string, { shape: google.maps.MVCObject & { setMap(m: google.maps.Map | null): void }; sig: string }>();
-  private listeners: google.maps.MapsEventListener[] = [];
-  /** Bumped by reattach() to rebuild every Google marker. */
-  private readonly redraw = signal(0);
+  /** The MapLibre map (it stays alive when the schematic view is shown). */
+  private map: MlMap | null = null;
+  private engine: MapEngine | null = null;
+  private readonly markers = new Map<string, { marker: MlMarker; el: HTMLElement; sig: string }>();
+  /** Game shapes (zones, rings, draft) and the own accuracy circle, re-added after a style change. */
+  private shapeData: FeatureCollection<Geometry, ShapeProps> = { type: 'FeatureCollection', features: [] };
+  private selfData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  private styleReady = false;
+  private applied: { base: BaseLayer; dark: boolean } | null = null;
+  /** A marker drag ends with a click on the marker; it must not count as a tap. */
+  private suppressClickUntil = 0;
   /** Where the own dot is drawn: it glides to each new fix instead of jumping. */
   private readonly selfDrawn = signal<SelfFix | null>(null);
   private selfAnim = 0;
@@ -239,10 +294,9 @@ export class TacticalMap {
   constructor() {
     afterNextRender(() => void this.init());
 
-    // Google renderer sync
+    // Map renderer sync
     effect(() => {
       const r = this.renderer();
-      this.redraw();
       const data = {
         objectives: this.objectives(),
         pois: this.pois(),
@@ -257,7 +311,7 @@ export class TacticalMap {
         editable: this.editable(),
         shapesClickable: this.shapesClickable(),
       };
-      if (r === 'google' && this.map) untracked(() => this.syncGoogle(data));
+      if (r === 'map' && this.map) untracked(() => this.syncMap(data));
     });
     // Own position: glide towards the latest fix, moving only the dot and its accuracy circle
     effect(() => {
@@ -269,9 +323,11 @@ export class TacticalMap {
       const r = this.renderer();
       if (s) untracked(() => this.moveSelf(s, r));
     });
+    // Light/dark theme and topo/satellite switch the map style
     effect(() => {
       const dark = this.theme.isDark();
-      if (this.map && this.renderer() === 'google') untracked(() => this.applyColorScheme(dark));
+      const base = this.effectiveBase();
+      untracked(() => this.applyStyle(base, dark));
     });
     // Schematic overlay sync (markers are DOM nodes positioned over the SVG)
     effect(() => {
@@ -305,18 +361,16 @@ export class TacticalMap {
 
     this.destroyRef.onDestroy(() => {
       if (this.isBrowser) cancelAnimationFrame(this.selfAnim);
-      this.listeners.forEach((l) => l.remove());
-      this.markers.forEach((m) => (m.marker.map = null));
-      this.shapes.forEach((s) => s.shape.setMap(null));
+      this.markers.forEach((m) => m.marker.remove());
+      this.map?.remove();
     });
   }
 
   // ------------------------------------------------------------------ public API
 
   panTo(p: LatLng, zoom?: number): void {
-    if (this.renderer() === 'google' && this.map) {
-      this.map.panTo(p);
-      if (zoom) this.map.setZoom(zoom);
+    if (this.renderer() === 'map' && this.map) {
+      this.map.easeTo({ center: [p.lng, p.lat], ...(zoom ? { zoom: toMl(zoom) } : {}), duration: 300 });
     } else if (this.renderer() === 'schematic') {
       const { w, h } = this.size();
       const pt = this.project(p);
@@ -324,16 +378,28 @@ export class TacticalMap {
     }
   }
 
+  /** Frame an area (a place found by search); the schematic view centres on it. */
+  fitBounds(b: { north: number; south: number; east: number; west: number }): void {
+    if (this.renderer() === 'map' && this.map) {
+      this.map.fitBounds([[b.west, b.south], [b.east, b.north]], { padding: this.fitPadding(), maxZoom: toMl(18), duration: 300 });
+    } else {
+      this.panTo({ lat: (b.north + b.south) / 2, lng: (b.east + b.west) / 2 });
+    }
+  }
+
+  /** Centre and zoom of the visible map, or null when the schematic view is showing. */
+  viewState(): { lat: number; lng: number; zoom: number } | null {
+    if (this.renderer() !== 'map' || !this.map) return null;
+    const c = this.map.getCenter();
+    return { lat: c.lat, lng: c.lng, zoom: Math.round(fromMl(this.map.getZoom())) };
+  }
+
   /**
    * Call after the map's host was taken out of the document and put back (the live map is kept
-   * alive between tabs). Google drops the DOM of advanced markers when their map leaves the page
-   * and does not restore it, so markers vanish while shapes stay; rebuild them from current data.
+   * alive between tabs): the map measures its size again. Markers are plain DOM and stay.
    */
   reattach(): void {
-    if (!this.map) return;
-    this.markers.forEach((m) => (m.marker.map = null));
-    this.markers.clear();
-    this.redraw.update((v) => v + 1);
+    this.map?.resize();
   }
 
   private glideSelf(target: SelfFix | null): void {
@@ -361,12 +427,10 @@ export class TacticalMap {
 
   /** Move the existing own marker in place (the full syncs rebuild it only when the fix itself changes). */
   private moveSelf(s: SelfFix, renderer: string): void {
-    if (renderer === 'google') {
-      const m = this.markers.get('self');
-      if (m) m.marker.position = s;
-      const acc = this.shapes.get('acc')?.shape as google.maps.Circle | undefined;
-      acc?.setCenter(s);
-      acc?.setRadius(s.accuracy);
+    if (renderer === 'map') {
+      this.markers.get('self')?.marker.setLngLat([s.lng, s.lat]);
+      this.selfData = { type: 'FeatureCollection', features: [circleFeature(s, s.accuracy, {})] };
+      this.pushSelf();
     } else if (renderer === 'schematic' && this.selfNode) {
       const p = this.toScreen(s);
       this.selfNode.style.left = `${p.x}px`;
@@ -376,7 +440,8 @@ export class TacticalMap {
 
   centerOnSelf(): void {
     const s = this.self();
-    if (s) this.panTo(s, Math.max(this.map?.getZoom() ?? 17, 17));
+    const current = this.map ? fromMl(this.map.getZoom()) : 17;
+    if (s) this.panTo(s, Math.max(current, 17));
   }
 
   fitAll(): void {
@@ -386,14 +451,13 @@ export class TacticalMap {
       if (c) this.panTo(c, this.zoom());
       return;
     }
-    if (this.renderer() === 'google' && this.map) {
+    if (this.renderer() === 'map' && this.map) {
       if (pts.length === 1) {
-        this.map.setCenter(pts[0]);
-        this.map.setZoom(17);
+        this.map.jumpTo({ center: [pts[0].lng, pts[0].lat], zoom: toMl(17) });
         return;
       }
       const b = bounds(pts)!;
-      this.map.fitBounds({ north: b.north, south: b.south, east: b.east, west: b.west }, 48);
+      this.map.fitBounds([[b.west, b.south], [b.east, b.north]], { padding: this.fitPadding(), maxZoom: toMl(19), animate: false });
     } else if (this.renderer() === 'schematic') {
       const { w: viewW, h: viewH } = this.size();
       if (viewW < 80 || viewH < 80) {
@@ -419,26 +483,36 @@ export class TacticalMap {
   private async init(): Promise<void> {
     if (!this.isBrowser) return;
     this.observeSize();
-    const ok = !this.forceSchematic() && (await this.loader.load());
-    if (ok && this.googleHost()) {
-      this.createGoogleMap();
-      this.renderer.set('google');
+    const engine = this.forceSchematic() ? null : await this.engines.load();
+    if (engine && this.mapHost()) {
+      this.engine = engine;
+      this.createMap();
+      this.renderer.set('map');
     } else {
       this.renderer.set('schematic');
     }
     setTimeout(() => (this.center() ? this.panTo(this.center()!, this.zoom()) : this.fitAll()));
   }
 
-  protected toggleRenderer(): void {
-    const next = this.renderer() === 'google' ? 'schematic' : 'google';
-    if (next === 'google' && !this.map && this.googleHost()) this.createGoogleMap();
-    this.userPrefersSchematic.set(next === 'schematic');
-    this.renderer.set(next);
+  protected chooseLayer(choice: LayerChoice): void {
+    this.layersOpen.set(false);
+    if (choice === 'schematic') {
+      this.renderer.set('schematic');
+    } else {
+      this.baseLayer.set(choice);
+      try {
+        localStorage.setItem(BASE_LAYER_KEY, choice);
+      } catch {
+        /* private mode: the choice lasts for this page only */
+      }
+      if (!this.map && this.engine && this.mapHost()) this.createMap();
+      this.renderer.set(this.map ? 'map' : 'schematic');
+    }
     setTimeout(() => this.fitAll());
   }
 
   private observeSize(): void {
-    const host = (this.googleHost()?.nativeElement.parentElement ?? null) as HTMLElement | null;
+    const host = (this.mapHost()?.nativeElement.parentElement ?? null) as HTMLElement | null;
     if (!host || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
@@ -449,40 +523,132 @@ export class TacticalMap {
     this.destroyRef.onDestroy(() => ro.disconnect());
   }
 
-  // ------------------------------------------------------------------ Google renderer
+  /** Padding around fitted content, smaller on small embedded maps. */
+  private fitPadding(): number {
+    const { w, h } = this.size();
+    return Math.max(8, Math.min(48, w / 5, h / 5));
+  }
 
-  private createGoogleMap(): void {
-    const host = this.googleHost()!.nativeElement;
+  // ------------------------------------------------------------------ MapLibre renderer
+
+  private createMap(): void {
+    const engine = this.engine!;
+    const host = this.mapHost()!.nativeElement;
     const center = this.center() ?? this.contentPoints()[0] ?? { lat: 45.4642, lng: 9.19 };
-    this.map = new google.maps.Map(host, {
-      center,
-      zoom: this.zoom(),
-      mapId: this.loader.mapId ?? 'DEMO_MAP_ID',
-      mapTypeId: this.mapType(),
-      // Google's own controls off (zoom, scale, keyboard shortcuts): the map's buttons do this.
-      // The logo, map data credits and Terms link stay: the Maps terms require them.
-      disableDefaultUI: true,
-      zoomControl: false,
-      scaleControl: false,
-      keyboardShortcuts: false,
-      rotateControl: false,
-      fullscreenControl: false,
-      clickableIcons: false,
-      gestureHandling: this.gestureHandling(),
-      colorScheme: this.theme.isDark() ? google.maps.ColorScheme.DARK : google.maps.ColorScheme.LIGHT,
+    const base = this.effectiveBase();
+    const dark = this.theme.isDark();
+    this.applied = { base, dark };
+    const map = new engine.maplibregl.Map({
+      container: host,
+      style: engine.style(base, dark),
+      center: [center.lng, center.lat],
+      zoom: toMl(this.zoom()),
+      minZoom: 2,
+      maxZoom: toMl(20),
+      // North stays up: there is no compass to turn it back.
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      keyboard: false,
+      cooperativeGestures: this.gestureHandling() === 'cooperative',
+      // Map data credits stay visible: the OpenStreetMap and imagery licences require them.
+      attributionControl: { compact: false },
+      locale: {
+        'Map.Title': $localize`Map`,
+        'Marker.Title': $localize`Map marker`,
+        'AttributionControl.ToggleAttribution': $localize`Map credits`,
+        'CooperativeGesturesHandler.WindowsHelpText': $localize`Use Ctrl + scroll to zoom the map`,
+        'CooperativeGesturesHandler.MacHelpText': $localize`Use ⌘ + scroll to zoom the map`,
+        'CooperativeGesturesHandler.MobileHelpText': $localize`Use two fingers to move the map`,
+      },
     });
-    this.listeners.push(
-      this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) this.mapClick.emit({ lat: e.latLng.lat(), lng: e.latLng.lng() });
-      }),
-    );
+    map.touchZoomRotate.disableRotation();
+    map.on('styleimagemissing', (e) => {
+      if (map.hasImage(e.id)) return;
+      const img = this.engine?.patternImage(e.id, this.applied?.dark ?? false);
+      // a few POI icons the base style names are not in its sprite: draw nothing for them
+      map.addImage(e.id, img ?? { width: 1, height: 1, data: new Uint8Array(4) }, { pixelRatio: img ? 2 : 1 });
+    });
+    map.on('style.load', () => {
+      this.addGameLayers();
+      this.styleReady = true;
+      this.pushShapes();
+      this.pushSelf();
+    });
+    // Tiles that fail offline are expected; the markers and shapes keep working.
+    map.on('error', () => undefined);
+    map.on('click', (e) => {
+      this.layersOpen.set(false);
+      if (Date.now() < this.suppressClickUntil) return;
+      const hit = this.shapesClickable()
+        ? map.queryRenderedFeatures(e.point, { layers: SHAPE_LAYERS }).find((f) => f.properties?.['zoneId'])
+        : undefined;
+      const zoneId = hit?.properties?.['zoneId'] as string | undefined;
+      const zone = zoneId ? this.zones().find((z) => z.id === zoneId) : undefined;
+      if (zone) this.zoneClick.emit(zone);
+      else this.mapClick.emit({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+    });
+    this.map = map;
   }
 
-  private applyColorScheme(_dark: boolean): void {
-    // colorScheme is fixed at construction time for vector maps; hybrid imagery is unaffected.
+  private applyStyle(base: BaseLayer, dark: boolean): void {
+    if (!this.map || !this.engine) return;
+    if (this.applied?.base === base && this.applied.dark === dark) return;
+    this.applied = { base, dark };
+    this.styleReady = false;
+    this.map.setStyle(this.engine.style(base, dark), { diff: false });
   }
 
-  private syncGoogle(d: {
+  /** Game shapes draw above the base map and its labels, below the markers (DOM). */
+  private addGameLayers(): void {
+    const map = this.map!;
+    map.addSource('zeus-shapes', { type: 'geojson', data: this.shapeData });
+    map.addSource('zeus-self', { type: 'geojson', data: this.selfData });
+    map.addLayer({
+      id: 'zeus-fill',
+      type: 'fill',
+      source: 'zeus-shapes',
+      filter: ['==', ['get', 'fill'], true],
+      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'fillOpacity'] },
+    });
+    // A halo under every game line, so olive or green zones still read over woods and fields.
+    map.addLayer({
+      id: 'zeus-casing',
+      type: 'line',
+      source: 'zeus-shapes',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': this.applied?.dark ? '#000000' : '#ffffff', 'line-opacity': 0.7, 'line-width': ['+', ['get', 'width'], 3] },
+    });
+    for (const dash of Object.keys(DASHES) as Dash[]) {
+      const pattern = DASHES[dash];
+      map.addLayer({
+        id: `zeus-line-${dash}`,
+        type: 'line',
+        source: 'zeus-shapes',
+        filter: ['==', ['get', 'dash'], dash],
+        layout: { 'line-join': 'round', 'line-cap': dash === 'dot' ? 'round' : 'butt' },
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': ['get', 'width'],
+          'line-opacity': ['get', 'lineOpacity'],
+          ...(pattern ? { 'line-dasharray': [...pattern] } : {}),
+        },
+      });
+    }
+    const nav = cssVar('--nav');
+    map.addLayer({ id: 'zeus-self-fill', type: 'fill', source: 'zeus-self', paint: { 'fill-color': nav, 'fill-opacity': 0.1 } });
+    map.addLayer({ id: 'zeus-self-line', type: 'line', source: 'zeus-self', paint: { 'line-color': nav, 'line-opacity': 0.6, 'line-width': 1 } });
+  }
+
+  private pushShapes(): void {
+    if (this.styleReady) (this.map?.getSource('zeus-shapes') as GeoJSONSource | undefined)?.setData(this.shapeData);
+  }
+
+  private pushSelf(): void {
+    if (this.styleReady) (this.map?.getSource('zeus-self') as GeoJSONSource | undefined)?.setData(this.selfData);
+  }
+
+  private syncMap(d: {
     objectives: Objective[];
     pois: Poi[];
     zones: Zone[];
@@ -497,9 +663,10 @@ export class TacticalMap {
     shapesClickable: boolean;
   }): void {
     const map = this.map!;
+    const ml = this.engine!.maplibregl;
     const teamById = new Map(d.teams.map((t) => [t.id, t]));
     const seenM = new Set<string>();
-    const seenS = new Set<string>();
+    const shapes: Feature<Geometry, ShapeProps>[] = [];
 
     const upsertMarker = (
       key: string,
@@ -511,55 +678,54 @@ export class TacticalMap {
       seenM.add(key);
       const existing = this.markers.get(key);
       if (existing) {
-        existing.marker.position = pos;
+        existing.marker.setLngLat([pos.lng, pos.lat]);
         if (existing.sig !== sig) {
-          existing.marker.content = build();
+          setMarkerContent(existing.el, build());
           existing.sig = sig;
         }
-        existing.marker.gmpDraggable = !!opts.draggable;
+        existing.marker.setDraggable(!!opts.draggable);
         return;
       }
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: pos,
-        content: build(),
-        zIndex: opts.z,
-        gmpDraggable: !!opts.draggable,
+      // MapLibre positions the wrapper; the marker node keeps its own transform (bottom-centre anchor,
+      // as the marker builders expect).
+      const el = document.createElement('div');
+      el.style.zIndex = String(opts.z);
+      setMarkerContent(el, build());
+      const marker = new ml.Marker({ element: el, anchor: 'bottom', draggable: !!opts.draggable }).setLngLat([pos.lng, pos.lat]).addTo(map);
+      el.addEventListener('click', (e) => {
+        // the map must not also see this tap as a tap on the empty map
+        e.stopPropagation();
+        if (opts.onClick && Date.now() >= this.suppressClickUntil) opts.onClick();
       });
-      if (opts.onClick) marker.addListener('click', opts.onClick);
       if (opts.onDragEnd) {
-        marker.addListener('dragend', () => {
-          const p = marker.position as google.maps.LatLngLiteral | google.maps.LatLng | null;
-          if (!p) return;
-          const ll = p instanceof google.maps.LatLng ? { lat: p.lat(), lng: p.lng() } : { lat: p.lat, lng: p.lng };
-          opts.onDragEnd!(ll);
+        marker.on('dragend', () => {
+          this.suppressClickUntil = Date.now() + 300;
+          const p = marker.getLngLat();
+          opts.onDragEnd!({ lat: p.lat, lng: p.lng });
         });
       }
-      this.markers.set(key, { marker, sig });
+      this.markers.set(key, { marker, el, sig });
     };
 
-    const upsertShape = (key: string, sig: string, build: () => google.maps.MVCObject & { setMap(m: google.maps.Map | null): void }, onClick?: () => void) => {
-      seenS.add(key);
-      const existing = this.shapes.get(key);
-      if (existing && existing.sig === sig) return;
-      existing?.shape.setMap(null);
-      const shape = build();
-      shape.setMap(map);
-      if (onClick) google.maps.event.addListener(shape, 'click', onClick);
-      this.shapes.set(key, { shape, sig });
-    };
+    const shape = (geometry: Geometry, p: Partial<ShapeProps> & { color: string }) =>
+      shapes.push({
+        type: 'Feature',
+        geometry,
+        properties: { zoneId: null, fill: false, fillOpacity: 0, width: 2, lineOpacity: 0.95, dash: 'solid', ...p },
+      });
 
     // zones
     for (const z of d.zones) {
-      const style = zoneStyle(z);
-      const sig = JSON.stringify([z.points, z.radiusM, z.color, z.fillOpacity, z.strokeWidth, z.kind, z.geometry, d.shapesClickable]);
+      const fillOpacity = z.kind === 'playable' ? Math.min(z.fillOpacity, 0.08) : z.fillOpacity;
+      const dash: Dash = z.kind === 'restricted' || z.kind === 'line' ? 'dash' : z.kind === 'route' ? 'dot' : 'solid';
+      const zoneId = d.shapesClickable ? z.id : null;
       const click = d.shapesClickable ? () => this.zoneClick.emit(this.zones().find((x) => x.id === z.id) ?? z) : undefined;
       if (z.geometry === 'polygon' && z.points.length >= 3) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polygon({ paths: z.points, ...style.poly, clickable: d.shapesClickable }), click);
+        shape(polygon(z.points), { zoneId, color: z.color, fill: true, fillOpacity, width: z.strokeWidth, dash });
       } else if (z.geometry === 'polyline' && z.points.length >= 2) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Polyline({ path: z.points, ...style.line, clickable: d.shapesClickable }), click);
+        shape(line(z.points), { zoneId, color: z.color, width: z.strokeWidth + 1, dash });
       } else if (z.geometry === 'circle' && z.points[0] && z.radiusM) {
-        upsertShape(`z:${z.id}`, sig, () => new google.maps.Circle({ center: z.points[0], radius: z.radiusM!, ...style.poly, clickable: d.shapesClickable }), click);
+        shape(circle(z.points[0], z.radiusM), { zoneId, color: z.color, fill: true, fillOpacity, width: z.strokeWidth, dash });
       }
       const labelAt = z.geometry === 'point' || z.kind === 'label' ? z.points[0] : null;
       if ((labelAt || (d.labels && z.label)) && z.points[0]) {
@@ -581,18 +747,7 @@ export class TacticalMap {
       });
       if (d.geof && (o.methods.includes('geofence') || o.requireGeofence) && o.geofence.radiusM > 0) {
         const color = o.status === 'contested' ? cssVar('--destructive') : o.color;
-        upsertShape(`g:${o.id}`, JSON.stringify([o.lat, o.lng, o.geofence.radiusM, color]), () =>
-          new google.maps.Circle({
-            center: { lat: o.lat, lng: o.lng },
-            radius: o.geofence.radiusM,
-            strokeColor: color,
-            strokeOpacity: 0.9,
-            strokeWeight: 2,
-            fillColor: color,
-            fillOpacity: 0.12,
-            clickable: false,
-          }),
-        );
+        shape(circle(o, o.geofence.radiusM), { color, fill: true, fillOpacity: 0.12, width: 2, lineOpacity: 0.9 });
       }
     }
 
@@ -620,74 +775,42 @@ export class TacticalMap {
       });
       if (pos.radiusM && pos.radiusM > 0) {
         const color = pos.kind === 'ally' ? (team?.color ?? '#888') : cssVar('--destructive');
-        upsertShape(`a:${key}`, JSON.stringify([pos.lat, pos.lng, pos.radiusM, color]), () =>
-          new google.maps.Circle({
-            center: { lat: pos.lat, lng: pos.lng },
-            radius: pos.radiusM!,
-            strokeColor: color,
-            strokeOpacity: 0.7,
-            strokeWeight: 1,
-            fillColor: color,
-            fillOpacity: 0.15,
-            clickable: false,
-          }),
-        );
+        shape(circle(pos, pos.radiusM), { color, fill: true, fillOpacity: 0.15, width: 1, lineOpacity: 0.7, dash: 'dash' });
       }
     }
 
-    // self
+    // self (the dot and its accuracy circle are moved in place by moveSelf())
     if (d.self) {
       const at = this.selfDrawn() ?? d.self;
       upsertMarker('self', at, `self|${Math.round((d.self.heading ?? -1) / 10)}`, () => selfMarker(d.self!.heading), { z: 1000 });
-      // moved in place by moveSelf()
-      upsertShape('acc', 'acc', () =>
-        new google.maps.Circle({
-          center: at,
-          radius: at.accuracy,
-          strokeColor: cssVar('--nav'),
-          strokeOpacity: 0.6,
-          strokeWeight: 1,
-          fillColor: cssVar('--nav'),
-          fillOpacity: 0.1,
-          clickable: false,
-        }),
-      );
+      this.selfData = { type: 'FeatureCollection', features: [circleFeature(at, at.accuracy, {})] };
+    } else {
+      this.selfData = { type: 'FeatureCollection', features: [] };
     }
 
     // draft shape (editor)
     if (d.draft && d.draft.points.length) {
       const dr = d.draft;
-      const sig = JSON.stringify(dr);
       if (dr.geometry === 'polygon') {
-        upsertShape('draft', sig, () =>
-          dr.points.length >= 3
-            ? new google.maps.Polygon({ paths: dr.points, strokeColor: dr.color, strokeWeight: 2, fillColor: dr.color, fillOpacity: 0.2, clickable: false })
-            : new google.maps.Polyline({ path: dr.points, strokeColor: dr.color, strokeWeight: 2, clickable: false }),
-        );
-      } else if (dr.geometry === 'polyline') {
-        upsertShape('draft', sig, () => new google.maps.Polyline({ path: dr.points, strokeColor: dr.color, strokeWeight: 3, clickable: false }));
+        if (dr.points.length >= 3) shape(polygon(dr.points), { color: dr.color, fill: true, fillOpacity: 0.2, width: 2, dash: 'dash' });
+        else if (dr.points.length === 2) shape(line(dr.points), { color: dr.color, width: 2, dash: 'dash' });
+      } else if (dr.geometry === 'polyline' && dr.points.length >= 2) {
+        shape(line(dr.points), { color: dr.color, width: 3, dash: 'dash' });
       } else if (dr.geometry === 'circle' && dr.radiusM) {
-        upsertShape('draft', sig, () =>
-          new google.maps.Circle({ center: dr.points[0], radius: dr.radiusM!, strokeColor: dr.color, strokeWeight: 2, fillColor: dr.color, fillOpacity: 0.2, clickable: false }),
-        );
+        shape(circle(dr.points[0], dr.radiusM), { color: dr.color, fill: true, fillOpacity: 0.2, width: 2, dash: 'dash' });
       }
-      dr.points.forEach((p, i) =>
-        upsertMarker(`dv:${i}`, p, `dv|${dr.color}`, () => vertexDot(dr.color), { z: 2000 }),
-      );
+      dr.points.forEach((p, i) => upsertMarker(`dv:${i}`, p, `dv|${dr.color}`, () => vertexDot(dr.color), { z: 2000 }));
     }
 
     for (const [k, m] of this.markers) {
       if (!seenM.has(k)) {
-        m.marker.map = null;
+        m.marker.remove();
         this.markers.delete(k);
       }
     }
-    for (const [k, s] of this.shapes) {
-      if (!seenS.has(k)) {
-        s.shape.setMap(null);
-        this.shapes.delete(k);
-      }
-    }
+    this.shapeData = { type: 'FeatureCollection', features: shapes };
+    this.pushShapes();
+    this.pushSelf();
   }
 
   // ------------------------------------------------------------------ schematic renderer
@@ -750,15 +873,15 @@ export class TacticalMap {
     }[] = [];
     const pts = (arr: LatLng[]) => arr.map((p) => this.toScreen(p)).map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     for (const z of this.zones()) {
-      const st = zoneStyle(z);
+      const fillOpacity = z.kind === 'playable' ? Math.min(z.fillOpacity, 0.08) : z.fillOpacity;
       const dash = z.kind === 'restricted' || z.kind === 'line' ? '6 4' : z.kind === 'route' ? '2 4' : null;
       if (z.geometry === 'polygon' && z.points.length >= 3) {
-        list.push({ id: z.id, kind: 'polygon', points: pts(z.points), color: z.color, fillOpacity: st.poly.fillOpacity, strokeWidth: z.strokeWidth, dash });
+        list.push({ id: z.id, kind: 'polygon', points: pts(z.points), color: z.color, fillOpacity, strokeWidth: z.strokeWidth, dash });
       } else if (z.geometry === 'polyline' && z.points.length >= 2) {
         list.push({ id: z.id, kind: 'polyline', points: pts(z.points), color: z.color, fillOpacity: 0, strokeWidth: z.strokeWidth + 1, dash });
       } else if (z.geometry === 'circle' && z.points[0] && z.radiusM) {
         const c = this.toScreen(z.points[0]);
-        list.push({ id: z.id, kind: 'circle', cx: c.x, cy: c.y, r: z.radiusM * s, color: z.color, fillOpacity: st.poly.fillOpacity, strokeWidth: z.strokeWidth, dash });
+        list.push({ id: z.id, kind: 'circle', cx: c.x, cy: c.y, r: z.radiusM * s, color: z.color, fillOpacity, strokeWidth: z.strokeWidth, dash });
       }
     }
     if (this.showGeofences()) {
@@ -814,7 +937,7 @@ export class TacticalMap {
       node.style.position = 'absolute';
       node.style.left = `${s.x}px`;
       node.style.top = `${s.y}px`;
-      // markers are built for Google's bottom-centre anchor; centre them here instead
+      // markers are built for a bottom-centre anchor; centre them here instead
       node.style.transform = 'translate(-50%, -50%)';
       node.style.zIndex = String(z);
       host.appendChild(node);
@@ -913,8 +1036,8 @@ export class TacticalMap {
   }
 
   protected zoomBy(f: number): void {
-    if (this.renderer() === 'google' && this.map) {
-      this.map.setZoom((this.map.getZoom() ?? 17) + (f > 1 ? 1 : -1));
+    if (this.renderer() === 'map' && this.map) {
+      this.map.zoomTo(this.map.getZoom() + (f > 1 ? 1 : -1), { duration: 200 });
       return;
     }
     const { w, h } = this.size();
@@ -944,26 +1067,52 @@ export class TacticalMap {
   }
 }
 
-function zoneStyle(z: Zone) {
-  const fill = z.kind === 'playable' ? Math.min(z.fillOpacity, 0.08) : z.fillOpacity;
-  return {
-    poly: { strokeColor: z.color, strokeOpacity: 0.95, strokeWeight: z.strokeWidth, fillColor: z.color, fillOpacity: fill },
-    line: {
-      strokeColor: z.color,
-      strokeOpacity: z.kind === 'line' || z.kind === 'route' ? 0 : 0.95,
-      strokeWeight: z.strokeWidth + 1,
-      icons:
-        z.kind === 'line' || z.kind === 'route'
-          ? [
-              {
-                icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: z.color, scale: z.strokeWidth + 1 },
-                offset: '0',
-                repeat: z.kind === 'route' ? '10px' : '16px',
-              },
-            ]
-          : undefined,
-    },
-  };
+const SHAPE_LAYERS = ['zeus-fill', ...Object.keys(DASHES).map((d) => `zeus-line-${d}`)];
+
+function readBaseLayer(): BaseLayer {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(BASE_LAYER_KEY) === 'satellite' ? 'satellite' : 'topo';
+  } catch {
+    return 'topo';
+  }
+}
+
+/**
+ * Put a marker node into its MapLibre wrapper. The wrapper is the element MapLibre gives
+ * role="button", so it takes the node's accessible name and the node stops being a second button.
+ */
+function setMarkerContent(wrapper: HTMLElement, node: HTMLElement): void {
+  const label = node.getAttribute('aria-label') ?? node.title;
+  if (label) wrapper.setAttribute('aria-label', label);
+  node.removeAttribute('role');
+  node.removeAttribute('aria-label');
+  wrapper.replaceChildren(node);
+}
+
+function polygon(points: LatLng[]): Geometry {
+  const ring = points.map((p) => [p.lng, p.lat]);
+  ring.push(ring[0]);
+  return { type: 'Polygon', coordinates: [ring] };
+}
+
+function line(points: LatLng[]): Geometry {
+  return { type: 'LineString', coordinates: points.map((p) => [p.lng, p.lat]) };
+}
+
+/** A circle on the ground as a 64-sided polygon. */
+function circle(c: LatLng, radiusM: number): Geometry {
+  const ring: number[][] = [];
+  const dLat = radiusM / M_PER_DEG_LAT;
+  const dLng = radiusM / (M_PER_DEG_LNG_EQ * Math.cos((c.lat * Math.PI) / 180));
+  for (let i = 0; i <= 64; i++) {
+    const a = (i / 64) * 2 * Math.PI;
+    ring.push([c.lng + dLng * Math.cos(a), c.lat + dLat * Math.sin(a)]);
+  }
+  return { type: 'Polygon', coordinates: [ring] };
+}
+
+function circleFeature(c: LatLng, radiusM: number, properties: Record<string, unknown>): Feature {
+  return { type: 'Feature', geometry: circle(c, radiusM), properties };
 }
 
 function centroidOf(points: LatLng[]): LatLng {

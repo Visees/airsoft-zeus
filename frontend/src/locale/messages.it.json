@@ -3217,8 +3217,6 @@
     "5612004487976402827": "Mostra tutta l'area",
     "1864453221937409174": "Centra sulla mia posizione",
     "6856647772759704954": " (riquadri della mappa non disponibili)",
-    "361565085483081986": "Passa alla vista schematica",
-    "1689567583651096763": "Passa alla mappa satellitare",
     "6539283156092935240": "Mappa tattica: {$length} obiettivi, {$length2} giocatori visibili",
     "4333488984451344586": ", vista schematica",
     "3272612818120648715": "{$INTERPOLATION} punti",
@@ -3348,6 +3346,16 @@
     "2202497859915009920": "poi {$name}",
     "3963714786547663202": "Non ancora posizionato sulla mappa",
     "2178799491995533176": "Sempre disponibile",
-    "8114462015803870270": "Non fa parte di una catena"
+    "8114462015803870270": "Non fa parte di una catena",
+    "3081924238279335877": "Luoghi trovati",
+    "3458721542127668091": "Tipo di mappa",
+    "4184122207501489092": "Topografica",
+    "3474261101614701746": "Satellitare",
+    "1763948508935907553": "Schematica",
+    "2525967955975163655": "Indicatore sulla mappa",
+    "3884716438087831509": "Crediti della mappa",
+    "3025584581693865916": "Usa Ctrl + rotellina per ingrandire la mappa",
+    "8484794583492506371": "Usa ⌘ + rotellina per ingrandire la mappa",
+    "7091554086554402429": "Usa due dita per spostare la mappa"
   }
 }

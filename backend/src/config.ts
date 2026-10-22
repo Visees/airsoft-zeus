@@ -27,8 +27,8 @@ const schema = z.object({
   SMTP_SECURE: bool,
   MAIL_FROM: z.string().default('AirsoftHub <no-reply@localhost>'),
 
-  GOOGLE_MAPS_API_KEY: z.string().default(''),
-  GOOGLE_MAPS_MAP_ID: z.string().default(''),
+  /** ArcGIS Location Platform key for satellite imagery; without it the maps are topographic only. */
+  ESRI_API_KEY: z.string().default(''),
   VAPID_PUBLIC_KEY: z.string().default(''),
   VAPID_PRIVATE_KEY: z.string().default(''),
   VAPID_SUBJECT: z.string().default('mailto:admin@localhost'),

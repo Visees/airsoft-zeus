@@ -28,8 +28,10 @@
               }
             ],
             "styles": [
+              "node_modules/maplibre-gl/dist/maplibre-gl.css",
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": ["maplibre-gl"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {

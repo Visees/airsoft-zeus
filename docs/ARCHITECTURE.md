@@ -128,7 +128,8 @@ filtered per viewer by the REST handlers). Membership/team changes re-join the u
 
 * The live store caches the last snapshot (event, rules, map content, objectives, perks)
   in local storage; the UI shows "Showing data saved at HH:MM" when it falls back to it.
-* The map falls back to a built-in schematic renderer when Google tiles can't load.
+* The map falls back to a built-in schematic renderer when the map engine can't load (offline
+  at start); map and elevation tiles already viewed are served from the service worker cache.
 * Location samples queue on the device and are sent in batches when the signal returns;
   late samples update history and last position but never count for zone captures.
 * Captures and purchases are never shown as successful until the server answers; the

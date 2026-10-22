@@ -21,8 +21,7 @@ export const uploadDir = resolve(config.UPLOAD_DIR);
 commonRouter.get('/config', (_req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=300');
   res.json({
-    googleMapsApiKey: config.GOOGLE_MAPS_API_KEY,
-    googleMapsMapId: config.GOOGLE_MAPS_MAP_ID || null,
+    esriApiKey: config.ESRI_API_KEY,
     vapidPublicKey: config.VAPID_PUBLIC_KEY || null,
     termsVersion: config.TERMS_VERSION,
     privacyVersion: config.PRIVACY_VERSION,

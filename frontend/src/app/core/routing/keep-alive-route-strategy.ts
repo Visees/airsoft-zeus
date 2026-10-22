@@ -6,8 +6,8 @@ export const LIVE_MAP_KEEP_ALIVE = 'live-map';
 
 /**
  * Keeps routes marked `data: { keepAlive: '<name>' }` alive while the user moves to sibling
- * routes, instead of destroying and recreating them. Used for the live map: every new
- * google.maps.Map is a billed map load, so the player keeps one map for the whole game.
+ * routes, instead of destroying and recreating them. Used for the live map: a new map reloads its
+ * style and tiles and loses its view, so the player keeps one map for the whole game.
  *
  * One handle per name, scoped to the :eventId in the URL. The owner (LiveShell) calls
  * `release()` when it is destroyed so the kept component does not outlive its injector.

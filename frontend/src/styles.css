@@ -262,12 +262,13 @@
   }
 }
 
-/* Google Maps info windows/labels follow the theme */
-.gm-style .gm-style-iw-c {
-  background: var(--popover) !important;
-  color: var(--popover-foreground) !important;
-  border-radius: var(--radius) !important;
+/* Map data credits follow the theme and stay small, but always visible (the licences require
+   them). Outside the layers so they win over MapLibre's own stylesheet. */
+.maplibregl-ctrl.maplibregl-ctrl-attrib {
+  background: var(--hud);
+  color: var(--muted-foreground);
+  font-size: 10px;
 }
-.gm-style .gm-style-iw-tc::after {
-  background: var(--popover) !important;
+.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-inner a {
+  color: inherit;
 }

@@ -7,7 +7,7 @@ import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiService } from '../../../core/api/api.service';
 import { EventDetail, EventInput, GameMode, LatLng } from '../../../core/api/models';
-import { MapsLoaderService } from '../../../core/maps/maps-loader.service';
+import { PlaceSearchService } from '../../../core/maps/place-search.service';
 import { ToastService } from '../../../core/ui/toast.service';
 import { GAME_MODE_LABELS, toLocalInput } from '../../../core/util/format';
 import { formatLatLng, parseLatLng } from '../../../core/util/geo';
@@ -391,7 +391,7 @@ export class EventBasicsFormComponent {
 
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
-  private readonly maps = inject(MapsLoaderService);
+  private readonly places = inject(PlaceSearchService);
 
   readonly form = input.required<BasicsForm>();
   readonly joinCode = input<string | null>(null);
@@ -493,11 +493,10 @@ export class EventBasicsFormComponent {
     this.mapOpen.set(true);
     // No coordinates yet: start the map at the address, when it can be found.
     const address = v.meetingAddress.trim();
-    if (this.mapCenter() || !address || !(await this.maps.load())) return;
+    if (this.mapCenter() || !address) return;
     try {
-      const res = await new google.maps.Geocoder().geocode({ address });
-      const loc = res.results[0]?.geometry.location;
-      if (loc && !this.mapCenter()) this.mapCenter.set({ lat: loc.lat(), lng: loc.lng() });
+      const [found] = await this.places.search(address, null, 1);
+      if (found && !this.mapCenter()) this.mapCenter.set(found.position);
     } catch {
       /* the map stays on its default view */
     }

@@ -61,8 +61,8 @@ export interface Page<T> {
 // ---------------------------------------------------------------------------
 
 export interface AppConfig {
-  googleMapsApiKey: string;
-  googleMapsMapId: string | null;
+  /** ArcGIS Location Platform key for satellite imagery; '' hides the satellite map. */
+  esriApiKey: string;
   vapidPublicKey: string | null;
   termsVersion: string;
   privacyVersion: string;

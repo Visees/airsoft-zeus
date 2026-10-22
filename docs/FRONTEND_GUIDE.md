@@ -47,7 +47,7 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
 
 | Selector | Inputs (outputs) |
 | --- | --- |
-| `zeus-tactical-map` (`shared/map/tactical-map.ts`) | `objectives, pois, zones, positions, teams, self, selectedId, center, zoom, showGeofences, showLabels, editable, draft, fitKey, forceSchematic, controlsBottom` (`objectiveClick, poiClick, playerClick, zoneClick, mapClick, markerMoved`). Public: `panTo(latLng, zoom?)`, `fitAll()`, `map` (google.maps.Map or null). Give it an explicit height. |
+| `zeus-tactical-map` (`shared/map/tactical-map.ts`) | `objectives, pois, zones, positions, teams, self, selectedId, center, zoom, showGeofences, showLabels, editable, draft, fitKey, forceSchematic, allowRendererToggle, controlsBottom, shapesClickable, gestureHandling` (`objectiveClick, poiClick, playerClick, zoneClick, mapClick, markerMoved`). Public: `panTo(latLng, zoom?)`, `fitAll()`, `fitBounds(bounds)`, `viewState()` (centre + zoom, null in schematic view), `reattach()`. Zoom values use the classic web-map scale (17 ≈ a field). MapLibre topo/satellite map, schematic fallback; styles in `core/maps/map-style.ts`. Give it an explicit height. |
 | `zeus-event-card` | `event`, `link?` |
 | `zeus-player-list-item` | `member, team, squad, isSelf, showPresence, showGps` + projected actions |
 | `zeus-objective-card` | `objective, distanceM, teams, now` (`open, navigate`) |

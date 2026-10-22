@@ -2,8 +2,8 @@ import { Objective, Poi, PoiType, Team, VisiblePosition } from '../api/models';
 import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_STATUS_LABELS, PLAYER_ROLE_TAGS, initials } from '../util/format';
 
 /**
- * DOM builders for map markers, shared by the Google renderer (AdvancedMarkerElement content)
- * and the schematic renderer (positioned absolutely over the SVG).
+ * DOM builders for map markers, shared by the MapLibre renderer (Marker elements anchored at
+ * their bottom centre) and the schematic renderer (positioned absolutely over the SVG).
  * Every marker carries a text glyph or label so status never depends on colour alone.
  */
 
@@ -54,7 +54,7 @@ const LABEL_STYLE: Partial<CSSStyleDeclaration> = {
 
 function wrap(children: HTMLElement[], title: string): HTMLElement {
   // The icon alone defines the box, so translateY(50%) centres the icon on the coordinate
-  // (AdvancedMarkerElement anchors content at its bottom centre). Labels hang below.
+  // (map markers are anchored at their bottom centre). Labels hang below.
   const w = el('div', { position: 'relative', display: 'grid', placeItems: 'center', cursor: 'pointer', transform: 'translateY(50%)' });
   w.title = title;
   w.setAttribute('role', 'button');

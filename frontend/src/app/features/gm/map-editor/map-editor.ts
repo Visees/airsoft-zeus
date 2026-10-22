@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
@@ -26,6 +26,7 @@ import {
   ZoneInput,
   ZoneKind,
 } from '../../../core/api/models';
+import { PlaceResult, PlaceSearchService } from '../../../core/maps/place-search.service';
 import { ConfirmService } from '../../../core/ui/confirm.service';
 import { ToastService } from '../../../core/ui/toast.service';
 import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_TYPE_LABELS, POI_TYPE_LABELS, ZONE_KIND_LABELS, formatDateTime, formatDecimal } from '../../../core/util/format';
@@ -123,16 +124,29 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
         <div class="relative flex-1">
           <ng-icon name="lucideSearch" size="16" class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <input
-            #searchInput
             hlmInput
             id="map-search"
             class="h-10 pl-8"
             placeholder="Place or 45.4642, 9.1900"
             autocomplete="off"
             [value]="searchText()"
-            (input)="searchText.set($any($event.target).value)"
-            (focus)="attachAutocomplete()" i18n-placeholder
+            (input)="onSearchInput($any($event.target).value)"
+            (keydown.escape)="suggestions.set([])" i18n-placeholder
           />
+          @if (suggestions().length) {
+            <ul class="panel absolute inset-x-0 top-11 z-50 max-h-72 overflow-auto p-1 shadow-xl" aria-label="Places found" i18n-aria-label>
+              @for (r of suggestions(); track $index) {
+                <li>
+                  <button type="button" class="flex min-h-11 w-full flex-col justify-center rounded-sm px-2 py-1 text-left hover:bg-muted" (click)="goToPlace(r)">
+                    <span class="text-sm font-semibold">{{ r.name }}</span>
+                    @if (r.detail) {
+                      <span class="text-xs text-muted-foreground">{{ r.detail }}</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
         </div>
       </form>
       <button hlmBtn variant="ghost" size="icon" class="size-11 md:hidden" type="button" (click)="mobileSearch.set(!mobileSearch())" aria-label="Search a place" i18n-aria-label>
@@ -188,18 +202,31 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
       <form class="flex items-center gap-2 border-b border-border bg-card p-2 md:hidden" (submit)="$event.preventDefault(); submitSearch()" role="search">
         <label for="map-search-m" class="sr-only" i18n>Search a place or coordinates</label>
         <input
-          #searchInputMobile
           hlmInput
           id="map-search-m"
           class="h-11 flex-1"
           placeholder="Place or 45.4642, 9.1900"
           autocomplete="off"
           [value]="searchText()"
-          (input)="searchText.set($any($event.target).value)"
-          (focus)="attachAutocomplete(true)" i18n-placeholder
+          (input)="onSearchInput($any($event.target).value)"
+          (keydown.escape)="suggestions.set([])" i18n-placeholder
         />
         <button hlmBtn type="submit" class="h-11" i18n>Go</button>
       </form>
+      @if (suggestions().length) {
+        <ul class="border-b border-border bg-card p-1 md:hidden" aria-label="Places found" i18n-aria-label>
+          @for (r of suggestions(); track $index) {
+            <li>
+              <button type="button" class="flex min-h-11 w-full flex-col justify-center rounded-sm px-2 py-1 text-left hover:bg-muted" (click)="goToPlace(r)">
+                <span class="text-sm font-semibold">{{ r.name }}</span>
+                @if (r.detail) {
+                  <span class="text-xs text-muted-foreground">{{ r.detail }}</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
     }
 
     @if (loading()) {
@@ -807,6 +834,7 @@ export class MapEditorScreen implements OnInit {
 
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
+  private readonly places = inject(PlaceSearchService);
   private readonly confirm = inject(ConfirmService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -857,9 +885,10 @@ export class MapEditorScreen implements OnInit {
   protected readonly templatesError = signal<unknown>(null);
 
   private readonly mapRef = viewChild<TacticalMap>('map');
-  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-  private readonly searchInputMobile = viewChild<ElementRef<HTMLInputElement>>('searchInputMobile');
-  private autocompletes = new WeakSet<HTMLInputElement>();
+  /** Places found while typing (Photon); empty when the query is coordinates. */
+  protected readonly suggestions = signal<PlaceResult[]>([]);
+  private searchTimer: ReturnType<typeof setTimeout> | undefined;
+  private searchSeq = 0;
 
   // ---- forms
   /** New zone details (also used for circle radius while editing a circle). */
@@ -1712,28 +1741,37 @@ export class MapEditorScreen implements OnInit {
 
   // ------------------------------------------------------------------ search & location
 
-  protected attachAutocomplete(mobile = false): void {
-    const input = (mobile ? this.searchInputMobile() : this.searchInput())?.nativeElement;
-    if (!input || this.autocompletes.has(input)) return;
-    if (!(typeof google !== 'undefined' && google.maps && google.maps.places?.Autocomplete)) return;
-    try {
-      const ac = new google.maps.places.Autocomplete(input, { fields: ['geometry', 'name'] });
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace();
-        const loc = place.geometry?.location;
-        if (loc) {
-          this.searchText.set(place.name ?? input.value);
-          const vp = place.geometry?.viewport;
-          const gmap = this.mapRef()?.activeMap();
-          if (vp && gmap) gmap.fitBounds(vp);
-          else this.mapRef()?.panTo({ lat: loc.lat(), lng: loc.lng() }, 17);
-          this.mobileSearch.set(false);
-        }
-      });
-      this.autocompletes.add(input);
-    } catch {
-      /* Places library unavailable: coordinates still work */
+  protected onSearchInput(value: string): void {
+    this.searchText.set(value);
+    clearTimeout(this.searchTimer);
+    const q = value.trim();
+    if (q.length < 3 || parseLatLng(q)) {
+      this.searchSeq++;
+      this.suggestions.set([]);
+      return;
     }
+    // debounced: the free search service asks for fair use
+    this.searchTimer = setTimeout(() => void this.lookUpPlaces(q), 350);
+  }
+
+  private async lookUpPlaces(q: string): Promise<void> {
+    const seq = ++this.searchSeq;
+    try {
+      const found = await this.places.search(q, this.mapRef()?.viewState());
+      if (seq === this.searchSeq) this.suggestions.set(found);
+    } catch {
+      if (seq === this.searchSeq) this.suggestions.set([]);
+    }
+  }
+
+  protected goToPlace(r: PlaceResult): void {
+    clearTimeout(this.searchTimer);
+    this.searchSeq++;
+    this.searchText.set(r.name);
+    this.suggestions.set([]);
+    if (r.bounds) this.mapRef()?.fitBounds(r.bounds);
+    else this.mapRef()?.panTo(r.position, 16);
+    this.mobileSearch.set(false);
   }
 
   protected async submitSearch(): Promise<void> {
@@ -1745,22 +1783,21 @@ export class MapEditorScreen implements OnInit {
       this.mobileSearch.set(false);
       return;
     }
-    if (typeof google !== 'undefined' && google.maps && google.maps.Geocoder) {
-      try {
-        const res = await new google.maps.Geocoder().geocode({ address: q });
-        const loc = res.results[0]?.geometry.location;
-        if (loc) {
-          this.mapRef()?.panTo({ lat: loc.lat(), lng: loc.lng() }, 16);
-          this.mobileSearch.set(false);
-          return;
-        }
-      } catch {
-        /* fall through */
-      }
-      this.toast.warning($localize`No place found`, $localize`Try another name, or coordinates such as 45.4642, 9.1900.`);
+    const first = this.suggestions()[0];
+    if (first) {
+      this.goToPlace(first);
       return;
     }
-    this.toast.info($localize`Place search needs the online map`, $localize`Enter coordinates such as 45.4642, 9.1900.`);
+    try {
+      const [found] = await this.places.search(q, this.mapRef()?.viewState(), 1);
+      if (found) {
+        this.goToPlace(found);
+        return;
+      }
+      this.toast.warning($localize`No place found`, $localize`Try another name, or coordinates such as 45.4642, 9.1900.`);
+    } catch {
+      this.toast.info($localize`Place search needs the online map`, $localize`Enter coordinates such as 45.4642, 9.1900.`);
+    }
   }
 
   protected useMyLocation(): void {
@@ -1781,10 +1818,9 @@ export class MapEditorScreen implements OnInit {
   protected async setEventArea(): Promise<void> {
     this.menu.set(null);
     let area: { lat: number; lng: number; zoom: number } | null = null;
-    const gmap = this.mapRef()?.activeMap();
-    const c = gmap?.getCenter();
-    if (gmap && c) {
-      area = { lat: c.lat(), lng: c.lng(), zoom: Math.round(gmap.getZoom() ?? 16) };
+    const view = this.mapRef()?.viewState();
+    if (view) {
+      area = view;
     } else {
       const pts = [
         ...this.zones().flatMap((z) => z.points),

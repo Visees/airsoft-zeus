@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-22 — Admin users and per-user features.
+Last update: 2026-10-23 — Free topographic map (MapLibre) replaces Google Maps.
 
 ## Stack (decided)
 
@@ -17,7 +17,7 @@ No Flutter, no Firebase. Node 24 needed locally for the Angular CLI (`fnm instal
 * Frontend core: API contract (`core/api/models.ts`, `api.service.ts`), auth (memory access token +
   refresh cookie, interceptor, guards), realtime service, `LiveStore`, `LocationTracker`
   (batching, offline queue, wake lock), push, theme, connectivity, confirm/toast services,
-  shared components incl. `TacticalMap` (Google Maps + offline schematic renderer), app shell,
+  shared components incl. `TacticalMap` (MapLibre topo/satellite map + offline schematic renderer), app shell,
   route table, SSR server with proxy + security headers. `ng build` passes (before agents).
 * Backend complete and type-checked: domain engine (rules, geofence, anti-cheat, ledger,
   objectives, locations, perks, lifecycle, tick, results/exports), realtime hub, all routes
@@ -203,10 +203,32 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * Not done: roles (named bundles of features, e.g. "Field manager") — worth adding once several
   users need the same set; admin rights still come only from ADMIN_EMAILS.
 
+## Maps: free topographic map instead of Google (2026-10-23)
+
+* `TacticalMap` renders with MapLibre GL (lazy chunk, ~230 kB gzipped, loaded only on map
+  screens) instead of Google Maps. Styles in `core/maps/map-style.ts`: OpenFreeMap's Liberty
+  style (vendored in `core/maps/liberty.json`) recoloured like OpenTopoMap, hatched buildings,
+  tree symbols in woods, dashed paths, peaks with heights, and relief + 10 m contour lines
+  computed in the browser from the AWS open elevation tiles (`maplibre-contour`). A real dark
+  "tactical night" style follows the theme (and live mode). Everything is free, no key.
+* Map type button on every map: Topographic / Satellite / Schematic; topo vs satellite is
+  remembered per device (`zeus.mapBase`). Satellite (Esri World Imagery) appears only when
+  `ESRI_API_KEY` is set (free ArcGIS Location Platform account); `/api/config` sends it as
+  `esriApiKey`. Not tried with a real key yet.
+* Place search (map editor, event form address) uses Photon (free OpenStreetMap search),
+  debounced. Directions links still open Google Maps in a new tab (no API use).
+* Inputs, saved event areas and `panTo` keep the classic zoom scale (Google/Leaflet);
+  `TacticalMap` converts to MapLibre's (one level lower) internally.
+* The service worker caches viewed map and elevation tiles (`ngsw-config.json` dataGroups), so
+  a field seen once online loads from cache. Offline download of a whole event area before a
+  game is the next step (OpenFreeMap allows up to 3,000 tiles / 50 MB per download).
+* CSP (`frontend/src/server.ts`) allows tiles.openfreemap.org, s3.amazonaws.com,
+  ibasemaps-api.arcgis.com, photon.komoot.io; all Google hosts removed.
+
 ## Known limits / next ideas
 
-* No Google Maps key configured locally: the walkthrough used the schematic renderer.
-  Test the Google renderer (markers, drawing, drag) once a key is set.
+* Satellite map not yet tested with a real `ESRI_API_KEY`.
+* Offline download of the event area's map (see "Maps" above).
 * Background GPS with the screen locked: Android/iOS app (Capacitor), see "Native apps" below.
 * Single API instance (in-process rate limits and socket rooms); scaling out needs a
   Redis adapter for Socket.IO and a shared rate-limit store.

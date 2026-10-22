@@ -165,6 +165,8 @@ import {
   lucideCircleHelp,
   lucideEarth,
   lucideGroup,
+  lucideMountain,
+  lucideGrid3x3,
 } from '@ng-icons/lucide';
 
 export const APP_ICONS = {
@@ -332,4 +334,6 @@ export const APP_ICONS = {
   lucideCircleHelp,
   lucideEarth,
   lucideGroup,
+  lucideMountain,
+  lucideGrid3x3,
 };

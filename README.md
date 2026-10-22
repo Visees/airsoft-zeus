@@ -85,8 +85,9 @@ cd frontend && npx ng build                 # production build incl. SSR server
    `POSTGRES_PASSWORD`, `JWT_SECRET` (≥ 32 random chars: `openssl rand -base64 48`).
    Strongly recommended: SMTP settings on port 587 (Brevo, Resend, Mailjet…; port 25 is
    blocked on Oracle/AWS), `VAPID_*` keys (`npx web-push generate-vapid-keys`) for push
-   notifications, `GOOGLE_MAPS_API_KEY` restricted to your domain (without it the app uses
-   its schematic map). Keep `SEED_DEMO_DATA=false`.
+   notifications. Optional: `ESRI_API_KEY` (free ArcGIS Location Platform key, restricted to
+   your domain) adds the satellite map; the topographic map needs no key. Keep
+   `SEED_DEMO_DATA=false`.
 4. Enable **auto-deploy on push**.
 5. Turn on **scheduled backups** for the `postgres` service with an S3-compatible
    destination off the server. If the installed Coolify version cannot back up a compose
