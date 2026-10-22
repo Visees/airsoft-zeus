@@ -51,6 +51,8 @@ export interface Report {
   userId: string;
   teamId: string;
   inside: boolean;
+  /** Outside for sure (screen closed, far from the zone): skip the exit grace period. */
+  firm?: boolean;
 }
 
 export interface AdvanceInput {
@@ -62,6 +64,11 @@ export interface AdvanceInput {
   presenceTtlMs: number;
   /** Max server-time gap between accruals that still counts. */
   maxGapMs: number;
+  /**
+   * A non-firm outside report only removes a player who has not been inside for this long, so one
+   * stray GPS fix doesn't throw them out (the time is credited when they report inside again).
+   */
+  exitGraceMs?: number;
   report?: Report;
 }
 
@@ -75,6 +82,14 @@ export interface AdvanceResult {
   multiplier: Record<string, number>;
   /** Majority rule: the team that alone has the most players inside (null otherwise). */
   leader: string | null;
+}
+
+/**
+ * How far past the edge a player who is already counted may drift before leaving (hysteresis
+ * against GPS jitter): the fix accuracy, kept within 5–15 m and never more than the radius.
+ */
+export function exitMarginM(radiusM: number, accuracyM: number): number {
+  return Math.min(radiusM, Math.max(5, Math.min(accuracyM, 15)));
 }
 
 export function multiplierFor(cfg: Geofence, playersPresent: number): number {
@@ -104,8 +119,9 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
   // 1. presence
   if (report) {
     const team = (s.present[report.teamId] ??= {});
+    const lastInside = team[report.userId];
     if (report.inside) team[report.userId] = now;
-    else delete team[report.userId];
+    else if (report.firm || lastInside === undefined || now - lastInside >= (input.exitGraceMs ?? 0)) delete team[report.userId];
   }
   for (const [teamId, users] of Object.entries(s.present)) {
     for (const [uid, at] of Object.entries(users)) if (now - at > input.presenceTtlMs) delete users[uid];

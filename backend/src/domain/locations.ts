@@ -6,7 +6,7 @@ import { hub } from '../realtime/hub.js';
 import { FRESH_MS, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
 import { eventContext, playsIn, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
-import { advance, fromRow, majorityLeader, toRow } from './geofence.js';
+import { advance, exitMarginM, fromRow, majorityLeader, toRow, type Report } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
@@ -43,6 +43,11 @@ export interface ReportResult {
 
 export function presenceTtlMs(intervalSec: number): number {
   return Math.max(2.5 * intervalSec * 1000, 20_000);
+}
+
+/** How long a counted player survives outside reports near the edge (about one missed report). */
+export function exitGraceMs(intervalSec: number): number {
+  return Math.max(1.5 * intervalSec * 1000, 8_000);
 }
 
 export async function reportLocation(eventId: string, userId: string, samples: InSample[], screenObjectiveId: string | null): Promise<ReportResult> {
@@ -125,26 +130,37 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
   const states = new Map((await many('SELECT * FROM capture_states WHERE event_id = $1', [eventId])).map((s) => [s.objective_id as string, s]));
   const out: GeofenceStatusDto[] = [];
   const ttl = presenceTtlMs(ctx.tracking.intervalSec);
+  const grace = exitGraceMs(ctx.tracking.intervalSec);
 
   for (const o of objectives) {
     const status = statusOf(o, counts, now);
     if (!objectiveVisible(o, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) continue;
     const cfg = geofenceOf(o.geofence);
     const d = distanceM(fix, o);
-    const accuracyOk = fix.accuracy <= cfg.maxAccuracyM && !fix.lowAccuracy;
-    const screenOk = !cfg.requireScreenOpen || screenObjectiveId === o.id;
-    const inside = d <= cfg.radiusM && accuracyOk && screenOk;
-    // With a poor fix the player may really be inside even when the reported point is not.
-    const maybeInside = d <= cfg.radiusM + fix.accuracy;
-    const blocked = !maybeInside ? null : !accuracyOk ? 'low_accuracy' : d <= cfg.radiusM && !screenOk ? 'screen_closed' : null;
     const prev = fromRow(states.get(o.id));
     const wasPresent = !!prev.present[teamId]?.[userId];
+    const accuracyOk = fix.accuracy <= cfg.maxAccuracyM && !fix.lowAccuracy;
+    const screenOk = !cfg.requireScreenOpen || screenObjectiveId === o.id;
+    // Hysteresis: entering needs the fix inside the radius, a player already counted leaves only past a margin.
+    const margin = exitMarginM(cfg.radiusM, fix.accuracy);
+    const inRange = d <= cfg.radiusM + (wasPresent ? margin : 0);
+    const inside = inRange && accuracyOk && screenOk;
+    // With a poor fix the player may really be inside even when the reported point is not.
+    const maybeInside = d <= cfg.radiusM + fix.accuracy;
+    // A fix too poor to judge says nothing either way: a counted player stays (no report) until presence expires.
+    const report: Report | undefined = inside
+      ? { userId, teamId, inside: true }
+      : wasPresent && !accuracyOk && screenOk
+        ? undefined
+        : { userId, teamId, inside: false, firm: !screenOk || d > cfg.radiusM + 3 * margin };
     const near = d <= cfg.radiusM * 3 + 50 || maybeInside;
     const dto = (s: typeof prev, captured: boolean, multiplier = 1): GeofenceStatusDto => {
       const leader = majorityLeader(s.present, cfg);
+      const counted = !!s.present[teamId]?.[userId];
+      const blocked = !maybeInside || counted ? null : !accuracyOk ? 'low_accuracy' : inRange && !screenOk ? 'screen_closed' : null;
       return {
         objectiveId: o.id,
-        inside,
+        inside: counted,
         distanceM: Math.round(d),
         progressSec: Math.min(cfg.durationSec, Math.round((s.progress[teamId]?.s ?? 0) * 10) / 10),
         requiredSec: cfg.durationSec,
@@ -173,8 +189,9 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
         cfg,
         presenceTtlMs: ttl,
         maxGapMs: ttl,
+        exitGraceMs: grace,
         canAccrue: (team) => captureBlock(live, liveStatus, ctx.event.status, team, now, 'geofence') === null,
-        report: { userId, teamId, inside },
+        report,
       });
       let captured = false;
       if (adv.completedBy) {

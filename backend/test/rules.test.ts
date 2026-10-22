@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GEOFENCE, DEFAULT_TRACKING, DEFAULT_VISIBILITY, merge, type VisibilityRules } from '../src/domain/defaults.js';
 import { validateSamples } from '../src/domain/anticheat.js';
-import { advance, emptyState } from '../src/domain/geofence.js';
+import { advance, emptyState, exitMarginM } from '../src/domain/geofence.js';
 import {
   captureBlock,
   contentVisible,
@@ -272,6 +272,46 @@ describe('geofence', () => {
     r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true });
     r = step(r.state, 15_000, { userId: 'u1', teamId: 'A', inside: false });
     expect(r.state.progress.A).toBeUndefined();
+  });
+  describe('GPS jitter', () => {
+    const long = { ...cfg, durationSec: 120 };
+    const jitter = (s: ReturnType<typeof emptyState>, now: number, report?: { userId: string; teamId: string; inside: boolean; firm?: boolean }) =>
+      advance(s, { now, cfg: long, canAccrue: () => true, presenceTtlMs: 25_000, maxGapMs: 25_000, exitGraceMs: 15_000, report });
+
+    it('forgives one stray outside fix and credits the time', () => {
+      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+      r = jitter(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true });
+      r = jitter(r.state, 20_000, { userId: 'u1', teamId: 'A', inside: false });
+      expect(r.state.present.A.u1).toBe(10_000);
+      expect(r.state.progress.A.s).toBeCloseTo(10);
+      r = jitter(r.state, 30_000, { userId: 'u1', teamId: 'A', inside: true });
+      expect(r.state.progress.A.s).toBeCloseTo(30);
+    });
+    it('removes the player after a second outside report', () => {
+      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+      r = jitter(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: false });
+      r = jitter(r.state, 20_000, { userId: 'u1', teamId: 'A', inside: false });
+      expect(r.state.present.A).toBeUndefined();
+      expect(r.state.progress.A).toBeUndefined(); // resetOnExit
+    });
+    it('removes the player at once on a firm outside report', () => {
+      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+      r = jitter(r.state, 5_000, { userId: 'u1', teamId: 'A', inside: false, firm: true });
+      expect(r.state.present.A).toBeUndefined();
+    });
+    it('keeps a player without a report (fix too poor to judge) until presence expires', () => {
+      let r = jitter(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+      r = jitter(r.state, 20_000);
+      expect(r.state.present.A.u1).toBe(0);
+      r = jitter(r.state, 30_000);
+      expect(r.state.present.A).toBeUndefined();
+    });
+    it('exit margin follows accuracy within 5–15 m and the radius', () => {
+      expect(exitMarginM(25, 2)).toBe(5);
+      expect(exitMarginM(25, 9)).toBe(9);
+      expect(exitMarginM(25, 40)).toBe(15);
+      expect(exitMarginM(4, 10)).toBe(4);
+    });
   });
   it('pauses while contested and reports the end of a contest', () => {
     let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });

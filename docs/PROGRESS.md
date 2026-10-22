@@ -77,6 +77,21 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * E2E: new test "lets a GM play on a team…". The capture-ledger test can fail when run
   within 60 s of seeding (it counts the seed's own captures) — wait a minute or ignore.
 
+## GPS stability (2026-10-22)
+
+* Geofence hysteresis (`processGeofences` in `domain/locations.ts`): entering needs the fix
+  inside the radius; a counted player leaves only past `exitMarginM` (fix accuracy, 5–15 m,
+  ≤ radius). A fix worse than the objective's `maxAccuracyM` sends no report, so a counted
+  player stays until presence expires. A non-firm outside report removes a player only after
+  `exitGraceMs` (≈ 1.5 intervals) without an inside report — one stray fix is forgiven and the
+  time credited; screen closed or far away (> radius + 3 margins) is firm. `GeofenceStatus.inside`
+  now means "counted by the server".
+* Client (`core/location/fix-filter.ts`): `OutlierFilter` drops coarse fixes right after a good
+  one and impossible jumps (gives up after 15 s); `PositionSmoother` (Kalman) smooths the
+  displayed position only — samples sent to the server stay raw. The own marker glides between
+  fixes in both renderers (`glideSelf`/`moveSelf` in `TacticalMap`).
+* Not yet tested on a phone in the field, and the E2E suite was not rerun for this change.
+
 ## Known limits / next ideas
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.

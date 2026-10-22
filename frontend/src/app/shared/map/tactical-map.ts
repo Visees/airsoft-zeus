@@ -20,7 +20,9 @@ import { LatLng, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/
 import { MapsLoaderService } from '../../core/maps/maps-loader.service';
 import { objectiveMarker, playerMarker, poiMarker, selfMarker, zoneLabel } from '../../core/maps/markers';
 import { ThemeService } from '../../core/theme/theme.service';
-import { bounds } from '../../core/util/geo';
+import { bounds, distanceM } from '../../core/util/geo';
+
+const SELF_GLIDE_MS = 800;
 
 export interface SelfFix {
   lat: number;
@@ -200,6 +202,10 @@ export class TacticalMap {
   private listeners: google.maps.MapsEventListener[] = [];
   /** Bumped by reattach() to rebuild every Google marker. */
   private readonly redraw = signal(0);
+  /** Where the own dot is drawn: it glides to each new fix instead of jumping. */
+  private readonly selfDrawn = signal<SelfFix | null>(null);
+  private selfAnim = 0;
+  private selfNode: HTMLElement | null = null;
 
   // schematic view state: origin (lat/lng of projection), scale px/m, pan offset px
   private readonly origin = signal<LatLng>({ lat: 45.0, lng: 9.0 });
@@ -240,6 +246,16 @@ export class TacticalMap {
       };
       if (r === 'google' && this.map) untracked(() => this.syncGoogle(data));
     });
+    // Own position: glide towards the latest fix, moving only the dot and its accuracy circle
+    effect(() => {
+      const target = this.self();
+      untracked(() => this.glideSelf(target));
+    });
+    effect(() => {
+      const s = this.selfDrawn();
+      const r = this.renderer();
+      if (s) untracked(() => this.moveSelf(s, r));
+    });
     effect(() => {
       const dark = this.theme.isDark();
       if (this.map && this.renderer() === 'google') untracked(() => this.applyColorScheme(dark));
@@ -275,6 +291,7 @@ export class TacticalMap {
     });
 
     this.destroyRef.onDestroy(() => {
+      if (this.isBrowser) cancelAnimationFrame(this.selfAnim);
       this.listeners.forEach((l) => l.remove());
       this.markers.forEach((m) => (m.marker.map = null));
       this.shapes.forEach((s) => s.shape.setMap(null));
@@ -304,6 +321,44 @@ export class TacticalMap {
     this.markers.forEach((m) => (m.marker.map = null));
     this.markers.clear();
     this.redraw.update((v) => v + 1);
+  }
+
+  private glideSelf(target: SelfFix | null): void {
+    const from = this.selfDrawn();
+    if (this.isBrowser) cancelAnimationFrame(this.selfAnim);
+    // big jumps (first fix after a while) and reduced motion: no glide
+    if (!this.isBrowser || !target || !from || distanceM(from, target) > 150 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.selfDrawn.set(target);
+      return;
+    }
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / SELF_GLIDE_MS);
+      const e = 1 - (1 - t) ** 3;
+      this.selfDrawn.set({
+        ...target,
+        lat: from.lat + (target.lat - from.lat) * e,
+        lng: from.lng + (target.lng - from.lng) * e,
+        accuracy: from.accuracy + (target.accuracy - from.accuracy) * e,
+      });
+      if (t < 1) this.selfAnim = requestAnimationFrame(step);
+    };
+    this.selfAnim = requestAnimationFrame(step);
+  }
+
+  /** Move the existing own marker in place (the full syncs rebuild it only when the fix itself changes). */
+  private moveSelf(s: SelfFix, renderer: string): void {
+    if (renderer === 'google') {
+      const m = this.markers.get('self');
+      if (m) m.marker.position = s;
+      const acc = this.shapes.get('acc')?.shape as google.maps.Circle | undefined;
+      acc?.setCenter(s);
+      acc?.setRadius(s.accuracy);
+    } else if (renderer === 'schematic' && this.selfNode) {
+      const p = this.toScreen(s);
+      this.selfNode.style.left = `${p.x}px`;
+      this.selfNode.style.top = `${p.y}px`;
+    }
   }
 
   centerOnSelf(): void {
@@ -566,11 +621,13 @@ export class TacticalMap {
 
     // self
     if (d.self) {
-      upsertMarker('self', d.self, `self|${Math.round((d.self.heading ?? -1) / 10)}`, () => selfMarker(d.self!.heading), { z: 1000 });
-      upsertShape('acc', JSON.stringify([d.self.lat.toFixed(6), d.self.lng.toFixed(6), Math.round(d.self.accuracy)]), () =>
+      const at = this.selfDrawn() ?? d.self;
+      upsertMarker('self', at, `self|${Math.round((d.self.heading ?? -1) / 10)}`, () => selfMarker(d.self!.heading), { z: 1000 });
+      // moved in place by moveSelf()
+      upsertShape('acc', 'acc', () =>
         new google.maps.Circle({
-          center: d.self!,
-          radius: d.self!.accuracy,
+          center: at,
+          radius: at.accuracy,
           strokeColor: cssVar('--nav'),
           strokeOpacity: 0.6,
           strokeWeight: 1,
@@ -705,7 +762,7 @@ export class TacticalMap {
         list.push({ id: `a:${p.userId}:${p.kind}`, kind: 'circle', cx: c.x, cy: c.y, r: p.radiusM * s, color, fillOpacity: 0.15, strokeWidth: 1, dash: '3 3' });
       }
     }
-    const self = this.self();
+    const self = this.selfDrawn();
     if (self) {
       const c = this.toScreen(self);
       list.push({ id: 'acc', kind: 'circle', cx: c.x, cy: c.y, r: self.accuracy * s, color: cssVar('--nav'), fillOpacity: 0.1, strokeWidth: 1, dash: null });
@@ -785,7 +842,8 @@ export class TacticalMap {
     const dr = this.draft();
     dr?.points.forEach((p) => place(vertexDot(dr.color), p, 90));
     const self = this.self();
-    if (self) place(selfMarker(self.heading), self, 100);
+    this.selfNode = self ? selfMarker(self.heading) : null;
+    if (this.selfNode) place(this.selfNode, this.selfDrawn() ?? self!, 100);
   }
 
   protected onPointerDown(e: PointerEvent): void {

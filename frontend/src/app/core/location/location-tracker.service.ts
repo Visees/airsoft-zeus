@@ -5,6 +5,7 @@ import { ApiError } from '../api/api-error';
 import { GeofenceStatus, LocationReportResponse, LocationSample, TrackingSettings, Uuid } from '../api/models';
 import { ConnectivityService } from '../net/connectivity.service';
 import { distanceM } from '../util/geo';
+import { OutlierFilter, PositionSmoother } from './fix-filter';
 
 export type TrackerState = 'idle' | 'requesting' | 'tracking' | 'paused' | 'denied' | 'unavailable' | 'error';
 
@@ -25,7 +26,8 @@ const MAX_BATCH = 20;
  *
  * - Runs only after explicit consent and only while start() is active (the live screens
  *   start it when the event is live and stop it when the player leaves).
- * - Samples are filtered by minimum distance and sent every `intervalSec` in batches.
+ * - Outlier fixes (coarse network fixes, impossible jumps) are dropped; the own marker shows a
+ *   smoothed position. Samples are filtered by minimum distance and sent every `intervalSec` in batches.
  * - When a send fails the samples stay queued and are retried with backoff; the server
  *   uses late samples for history only, never for geofence captures.
  * - Browsers stop GPS when the screen locks, so a Screen Wake Lock keeps it on while
@@ -71,6 +73,8 @@ export class LocationTracker {
   private backoffMs = 0;
   private sending = false;
   private wakeLock: WakeLockSentinel | null = null;
+  private outliers = new OutlierFilter();
+  private smoother = new PositionSmoother();
 
   constructor() {
     if (this.isBrowser) setInterval(() => this.clock.set(Date.now()), 5_000);
@@ -116,6 +120,8 @@ export class LocationTracker {
     this.stop(false);
     this.eventId.set(eventId);
     this.settings = settings;
+    this.outliers = new OutlierFilter(settings.maxSpeedMps);
+    this.smoother = new PositionSmoother();
     this.state.set('requesting');
     const highAccuracy = settings.highAccuracy && !settings.batterySaver;
     this.watchId = navigator.geolocation.watchPosition(
@@ -189,7 +195,8 @@ export class LocationTracker {
 
   /** Queue a fix from getCurrentPosition (no distance filter; only newer than the last queued one). */
   private queueSample(sample: LocationSample): void {
-    this.lastFix.set({ lat: sample.lat, lng: sample.lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp });
+    if (!this.outliers.accept(sample)) return;
+    this.showFix(sample);
     if (this.lastQueued && sample.timestamp <= this.lastQueued.timestamp) return;
     this.queue.push(sample);
     if (this.queue.length > MAX_QUEUE) this.queue.splice(0, this.queue.length - MAX_QUEUE);
@@ -197,10 +204,16 @@ export class LocationTracker {
     this.pendingCount.set(this.queue.length);
   }
 
+  /** The marker shows the smoothed position; accuracy stays the device's, since that is what the server judges. */
+  private showFix(sample: LocationSample): void {
+    const { lat, lng } = this.smoother.next(sample);
+    this.lastFix.set({ lat, lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp });
+  }
+
   private onPosition(pos: GeolocationPosition): void {
     const sample = this.toSample(pos);
-    const fix: Fix = { lat: sample.lat, lng: sample.lng, accuracy: sample.accuracy, heading: sample.heading ?? null, speed: sample.speed ?? null, timestamp: sample.timestamp };
-    this.lastFix.set(fix);
+    if (!this.outliers.accept(sample)) return;
+    this.showFix(sample);
     if (!this.settings || this.watchId === null) return;
     const last = this.lastQueued;
     const moved = last ? distanceM(last, sample) : Infinity;
