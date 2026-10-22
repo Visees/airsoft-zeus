@@ -1140,7 +1140,7 @@ export interface SupportTicket {
 
 export interface SupportMessage {
   id: Uuid;
-  /** Written by the Airsoft Zeus team. */
+  /** Written by the AirsoftHub team. */
   fromAdmin: boolean;
   /** Player nickname; null for admin messages. */
   authorNickname: string | null;

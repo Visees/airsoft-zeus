@@ -162,6 +162,19 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * E2E test "shares event attachments only with GMs and approved players…"; verified in the
   browser at 390 px (wizard → editor → player joins → download identical to the original).
 
+## Rename to AirsoftHub (2026-10-22)
+
+* Every user-visible "Airsoft Zeus" / "Zeus" is now "AirsoftHub" (UI, page titles, PWA manifest,
+  emails, PDF report, legal text, share texts, data export file `airsofthub-data.json`); the logo
+  mark is "AH". `airsofthub` is a reserved nickname (`zeus` stays reserved).
+* Kept on purpose (internal, renaming breaks existing data or devices): QR payload prefix
+  `zeus:obj:` (printed codes keep working), `zeus_rt` / `zeus_session` cookies (no forced
+  logout), `zeus.*` localStorage keys, `X-Zeus-View` header, `zeus.allow_purge` /
+  `zeus.allow_anonymize` DB settings, JWT issuer, Postgres db/user `zeus`, `zeus-` component
+  selectors, demo accounts `@airsoftzeus.test` and their password, repo/folder name.
+* PWA icons in `frontend/public/icons` are still the Angular placeholder: replace with an
+  AirsoftHub icon.
+
 ## Known limits / next ideas
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.

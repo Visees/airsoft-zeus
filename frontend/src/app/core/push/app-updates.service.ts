@@ -24,7 +24,7 @@ export class AppUpdates {
         this.doc.location.reload();
         return;
       }
-      toast.info('A new version of Airsoft Zeus is ready', {
+      toast.info('A new version of AirsoftHub is ready', {
         description: 'Reload when you have a moment; nothing is lost.',
         duration: Infinity,
         action: { label: 'Reload', onClick: () => this.doc.location.reload() },

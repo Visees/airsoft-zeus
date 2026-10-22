@@ -16,7 +16,7 @@ import { NewsCard } from './news-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the Airsoft Zeus team." back="/home">
+      <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home">
         @if (isAdmin()) {
           <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Write news</a>
         }

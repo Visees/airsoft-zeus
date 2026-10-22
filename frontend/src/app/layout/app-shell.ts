@@ -28,8 +28,8 @@ interface NavItem {
     <!-- Desktop rail -->
     <nav class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar lg:flex" aria-label="Main">
       <a routerLink="/home" class="flex items-center gap-2 px-5 py-5">
-        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">Z</span>
-        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%">Airsoft Zeus</span>
+        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">AH</span>
+        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
       <ul class="flex flex-col gap-0.5 px-3">
         @for (item of items; track item.link) {
@@ -88,9 +88,9 @@ interface NavItem {
 
     <!-- Phone top bar -->
     <header class="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur lg:hidden" style="padding-top: var(--safe-top)">
-      <a routerLink="/home" class="flex items-center gap-2" aria-label="Airsoft Zeus home">
-        <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">Z</span>
-        <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">Zeus</span>
+      <a routerLink="/home" class="flex items-center gap-2" aria-label="AirsoftHub home">
+        <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">AH</span>
+        <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
       <span class="ml-auto"><zeus-connection-status [compact]="true" [showSync]="false" /></span>
       <a routerLink="/settings" class="tap grid place-items-center" aria-label="Settings">

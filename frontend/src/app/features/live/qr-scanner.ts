@@ -306,7 +306,7 @@ export class QrScannerScreen {
     vibrate(40);
     const parsed = parseObjectiveQr(text);
     if (!parsed) {
-      this.scanError.set('This QR code is not an Airsoft Zeus objective code.');
+      this.scanError.set('This QR code is not an AirsoftHub objective code.');
       return;
     }
     if (parsed.eventId !== this.store.eventId()) {

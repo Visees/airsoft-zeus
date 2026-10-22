@@ -158,7 +158,7 @@ function fmtDuration(ms: number): string {
 export async function exportPdf(eventId: string): Promise<Buffer> {
   const r = await computeResults(eventId);
   const ev = await one('SELECT start_at, meeting_address FROM events WHERE id = $1', [eventId]);
-  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: `${r.eventName} — results`, Creator: 'Airsoft Zeus' } });
+  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: `${r.eventName} — results`, Creator: 'AirsoftHub' } });
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
   const done = new Promise<Buffer>((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));
@@ -166,7 +166,7 @@ export async function exportPdf(eventId: string): Promise<Buffer> {
   const olive = '#4A5A1F';
   const muted = '#565C51';
 
-  doc.fillColor(olive).fontSize(9).text('AIRSOFT ZEUS · EVENT REPORT', { characterSpacing: 1.5 });
+  doc.fillColor(olive).fontSize(9).text('AIRSOFTHUB · EVENT REPORT', { characterSpacing: 1.5 });
   doc.moveDown(0.3).fillColor('#151813').fontSize(22).text(r.eventName.toUpperCase());
   doc
     .fontSize(10)

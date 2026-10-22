@@ -67,7 +67,7 @@ import { postAuthUrl } from './post-auth';
           }
         </button>
         <p class="text-center text-sm text-muted-foreground">
-          New to Airsoft Zeus? <a routerLink="/auth/sign-up" class="font-semibold text-primary underline-offset-2 hover:underline">Create an account</a>
+          New to AirsoftHub? <a routerLink="/auth/sign-up" class="font-semibold text-primary underline-offset-2 hover:underline">Create an account</a>
         </p>
       </form>
     </zeus-auth-layout>

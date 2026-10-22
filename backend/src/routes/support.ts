@@ -129,7 +129,7 @@ supportRouter.post('/:ticketId/messages', async (req, res) => {
     if (fromAdmin && row.user_id) {
       await notify(t, [row.user_id], {
         type: 'support_reply',
-        title: `Reply from the Airsoft Zeus team: ${row.subject}`,
+        title: `Reply from the AirsoftHub team: ${row.subject}`,
         body: b.body.length > 200 ? `${b.body.slice(0, 200)}…` : b.body,
         data: { ticketId: row.id },
         url: `/support/${row.id}`,
@@ -145,7 +145,7 @@ supportRouter.patch('/:ticketId', async (req, res) => {
   const me = currentUser(req);
   const { row, admin } = await visibleTicket(idParam(req, 'ticketId'), me.id);
   const b = body(req, z.object({ status: z.enum(['open', 'answered', 'closed']) }));
-  if (!admin && b.status !== 'closed' && b.status !== 'open') throw forbidden('Only the Airsoft Zeus team can do that.');
+  if (!admin && b.status !== 'closed' && b.status !== 'open') throw forbidden('Only the AirsoftHub team can do that.');
   await one('UPDATE support_tickets SET status = $2 WHERE id = $1 RETURNING id', [row.id, b.status]);
   res.json(await ticketDetail(row.id, admin, me.id));
 });

@@ -270,7 +270,7 @@ export class JoinEventScreen {
     if (this.searching()) return;
     const code = codeFromQr(text);
     if (!code) {
-      this.scanHint.set('This QR code is not an Airsoft Zeus invitation.');
+      this.scanHint.set('This QR code is not an AirsoftHub invitation.');
       return;
     }
     this.scanHint.set(null);

@@ -310,7 +310,7 @@ export class EventResultsScreen {
     const url = this.shareUrl();
     const r = this.results();
     if (!url || !r) return;
-    const res = await shareOrCopy({ title: `${r.eventName} — results`, text: `Results of ${r.eventName} on Airsoft Zeus`, url });
+    const res = await shareOrCopy({ title: `${r.eventName} — results`, text: `Results of ${r.eventName} on AirsoftHub`, url });
     if (res === 'copied') this.toast.success('Link copied');
     else if (res === 'failed') this.toast.error('Could not share the link.');
   }

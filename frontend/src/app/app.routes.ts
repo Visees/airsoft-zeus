@@ -13,7 +13,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [rootRedirectGuard], children: [] },
 
   // --- public / signed-out ---------------------------------------------------
-  { path: 'welcome', canActivate: [guestGuard], title: 'Airsoft Zeus', loadComponent: () => import('./features/auth/welcome').then((m) => m.WelcomeScreen) },
+  { path: 'welcome', canActivate: [guestGuard], title: 'AirsoftHub', loadComponent: () => import('./features/auth/welcome').then((m) => m.WelcomeScreen) },
   { path: 'auth/sign-up', canActivate: [guestGuard], title: 'Create account', loadComponent: () => import('./features/auth/sign-up').then((m) => m.SignUpScreen) },
   { path: 'auth/login', canActivate: [guestGuard], title: 'Log in', loadComponent: () => import('./features/auth/login').then((m) => m.LoginScreen) },
   { path: 'auth/forgot-password', title: 'Forgot password', loadComponent: () => import('./features/auth/forgot-password').then((m) => m.ForgotPasswordScreen) },

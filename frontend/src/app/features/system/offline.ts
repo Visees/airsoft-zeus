@@ -17,7 +17,7 @@ import { AuthLayout } from '../auth/auth-layout';
       <div class="flex flex-col items-start gap-3">
         <span class="grid size-12 place-items-center rounded-md bg-destructive/10 text-destructive" aria-hidden="true"><ng-icon name="lucideWifiOff" size="24" /></span>
         <h1 class="text-3xl uppercase">You are offline</h1>
-        <p class="text-muted-foreground">Airsoft Zeus cannot reach the server. Check mobile data or move to a spot with better signal.</p>
+        <p class="text-muted-foreground">AirsoftHub cannot reach the server. Check mobile data or move to a spot with better signal.</p>
         <ul class="panel flex w-full flex-col divide-y divide-border text-sm">
           <li class="flex gap-3 p-3"><ng-icon name="lucideMap" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             <span><strong>During a live game</strong> the live screens keep the last loaded map, objectives and team scores, and your GPS positions are queued and sent when the signal returns.</span></li>

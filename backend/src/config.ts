@@ -25,7 +25,7 @@ const schema = z.object({
   SMTP_USER: z.string().default(''),
   SMTP_PASSWORD: z.string().default(''),
   SMTP_SECURE: bool,
-  MAIL_FROM: z.string().default('Airsoft Zeus <no-reply@localhost>'),
+  MAIL_FROM: z.string().default('AirsoftHub <no-reply@localhost>'),
 
   GOOGLE_MAPS_API_KEY: z.string().default(''),
   GOOGLE_MAPS_MAP_ID: z.string().default(''),

@@ -312,7 +312,7 @@ meRouter.get('/export', requireAuth, async (req, res) => {
     pushSubscriptions: await many('SELECT endpoint, created_at FROM push_subscriptions WHERE user_id = $1', [me.id]),
     eventsOwned: await many('SELECT id, name, status, start_at FROM events WHERE owner_id = $1', [me.id]),
   };
-  res.setHeader('Content-Disposition', 'attachment; filename="airsoft-zeus-data.json"');
+  res.setHeader('Content-Disposition', 'attachment; filename="airsofthub-data.json"');
   res.json(data);
 });
 

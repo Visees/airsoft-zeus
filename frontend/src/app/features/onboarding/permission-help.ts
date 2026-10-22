@@ -59,7 +59,7 @@ export class PermissionHelp {
   }
   protected iosPath(): string {
     return this.kind() === 'location'
-      ? 'Privacy & Security → Location Services → Safari Websites (or Airsoft Zeus, if installed) → While Using the App'
-      : 'Notifications → Airsoft Zeus → Allow Notifications (only for the app added to the Home Screen)';
+      ? 'Privacy & Security → Location Services → Safari Websites (or AirsoftHub, if installed) → While Using the App'
+      : 'Notifications → AirsoftHub → Allow Notifications (only for the app added to the Home Screen)';
   }
 }

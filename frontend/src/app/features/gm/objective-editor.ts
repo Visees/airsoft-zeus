@@ -1135,8 +1135,8 @@ export class ObjectiveEditorScreen {
 </style></head><body>
 <h1>${name}</h1><p class="event">${eventName}</p>
 <img src="${q.pngDataUrl}" alt="QR code">
-<p class="how">Capture: open Airsoft Zeus → ${name} → Scan QR code</p>
-<p>Scan this code with the Airsoft Zeus app to capture the objective for your team.</p>
+<p class="how">Capture: open AirsoftHub → ${name} → Scan QR code</p>
+<p>Scan this code with the AirsoftHub app to capture the objective for your team.</p>
 ${instructions}
 <p class="meta">QR version ${q.qrVersion}. Regenerating the code in the app makes this sheet stop working.</p>
 </body></html>`);

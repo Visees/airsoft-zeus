@@ -276,7 +276,7 @@ export class ExportResultsScreen {
     const e = this.event();
     const url = this.shareUrl();
     if (!e || !url) return;
-    const res = await shareOrCopy({ title: `${e.name} — results`, text: `Results of ${e.name} on Airsoft Zeus`, url });
+    const res = await shareOrCopy({ title: `${e.name} — results`, text: `Results of ${e.name} on AirsoftHub`, url });
     if (res === 'copied') this.toast.success('Link copied');
     else if (res === 'failed') this.toast.error('Could not share the link.');
   }

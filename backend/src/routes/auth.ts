@@ -50,7 +50,7 @@ async function sessionResponse(req: Request, res: Response, userId: string, refr
   });
 }
 
-const RESERVED = new Set(['admin', 'administrator', 'gamemaster', 'gm', 'system', 'moderator', 'support', 'zeus', 'deleted-player', 'null', 'undefined']);
+const RESERVED = new Set(['admin', 'administrator', 'gamemaster', 'gm', 'system', 'moderator', 'support', 'zeus', 'airsofthub', 'deleted-player', 'null', 'undefined']);
 
 async function nicknameProblem(nick: string, exceptUserId?: string): Promise<string | null> {
   const fmt = nickname.safeParse(nick);

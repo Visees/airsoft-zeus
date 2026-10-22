@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   const server = createServer(createApp());
   initRealtime(server);
   startEngine();
-  server.listen(config.PORT, () => logger.info({ port: config.PORT }, 'Airsoft Zeus API listening'));
+  server.listen(config.PORT, () => logger.info({ port: config.PORT }, 'AirsoftHub API listening'));
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'shutting down');

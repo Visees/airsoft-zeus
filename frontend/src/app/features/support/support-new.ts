@@ -21,7 +21,7 @@ const PLACEHOLDERS: Record<SupportCategory, { subject: string; body: string }> =
   general: { subject: 'e.g. Idea for a new game mode', body: 'Write anything you want to tell us.' },
 };
 
-/** Write to the Airsoft Zeus team. Route: /support/new (?category=bug|report|general) */
+/** Write to the AirsoftHub team. Route: /support/new (?category=bug|report|general) */
 @Component({
   selector: 'zeus-support-new-screen',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, PageHeader],

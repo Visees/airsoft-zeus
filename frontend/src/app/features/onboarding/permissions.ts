@@ -71,7 +71,7 @@ type Step = 'location' | 'notifications';
           }
           @if (notifState() === 'unsupported') {
             <p class="text-sm text-muted-foreground">
-              This browser does not support push notifications. On iPhone, add Airsoft Zeus to your Home Screen first (Share → Add to Home Screen). You will still see alerts inside the app.
+              This browser does not support push notifications. On iPhone, add AirsoftHub to your Home Screen first (Share → Add to Home Screen). You will still see alerts inside the app.
             </p>
           }
         </section>

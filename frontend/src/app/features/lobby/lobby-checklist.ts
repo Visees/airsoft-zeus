@@ -153,7 +153,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
             <dd><span class="num">{{ e.tracking.retentionDays }}</span> days, then deleted.</dd>
           </dl>
           @if (!e.tracking.background) {
-            <p class="text-xs text-muted-foreground">Browsers stop location when the phone sleeps: keep Airsoft Zeus open during the game. The screen stays on while tracking.</p>
+            <p class="text-xs text-muted-foreground">Browsers stop location when the phone sleeps: keep AirsoftHub open during the game. The screen stays on while tracking.</p>
           }
           @if (m.trackingConsented) {
             <button hlmBtn variant="ghost" type="button" class="tap self-start text-muted-foreground" [disabled]="busy() === 'consent'" (click)="withdrawConsent()">Withdraw consent</button>

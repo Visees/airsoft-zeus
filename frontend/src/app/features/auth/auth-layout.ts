@@ -12,9 +12,9 @@ import { RouterLink } from '@angular/router';
   host: { class: 'flex min-h-dvh flex-col bg-background text-foreground' },
   template: `
     <header class="flex items-center justify-between gap-3 px-4 sm:px-6" style="padding-top: calc(0.75rem + var(--safe-top))">
-      <a routerLink="/" class="tap -ml-1 flex items-center gap-2 px-1" aria-label="Airsoft Zeus, start">
-        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">Z</span>
-        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%" aria-hidden="true">Airsoft Zeus</span>
+      <a routerLink="/" class="tap -ml-1 flex items-center gap-2 px-1" aria-label="AirsoftHub, start">
+        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">AH</span>
+        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%" aria-hidden="true">AirsoftHub</span>
       </a>
       <div class="flex items-center gap-2"><ng-content select="[layoutAction]" /></div>
     </header>

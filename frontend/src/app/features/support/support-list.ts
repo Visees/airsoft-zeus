@@ -10,7 +10,7 @@ import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../share
 import { SupportTicketCard } from './support-ui';
 
 /**
- * Help & feedback: the player's conversations with the Airsoft Zeus team. Admins answer
+ * Help & feedback: the player's conversations with the AirsoftHub team. Admins answer
  * everyone's from the dashboard (/admin/tickets). Route: /support
  */
 @Component({
@@ -19,7 +19,7 @@ import { SupportTicketCard } from './support-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the Airsoft Zeus team." back="/profile">
+      <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile">
         <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> New message</a>
       </zeus-page-header>
 

@@ -315,7 +315,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/capture', async (req, res)
   } else {
     const qr = b.qrPayload ? parseQr(b.qrPayload) : null;
     if (!o.methods.includes('qr')) failure = { code: 'method_not_allowed', message: 'This objective is not captured with a QR code.' };
-    else if (!qr) failure = { code: 'invalid_qr', message: 'This is not an Airsoft Zeus objective code.' };
+    else if (!qr) failure = { code: 'invalid_qr', message: 'This is not an AirsoftHub objective code.' };
     else if (qr.eventId !== eventId) failure = { code: 'wrong_event', message: 'This QR code belongs to another event.' };
     else if (qr.objectiveId !== objectiveId) failure = { code: 'wrong_objective', message: 'This QR code belongs to another objective.' };
     else if (!safeEqual(qr.token, o.qr_token)) failure = { code: 'invalid_qr', message: 'This QR code was replaced by the Game Master.' };

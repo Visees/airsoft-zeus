@@ -1,6 +1,6 @@
 {
-  "name": "Airsoft Zeus",
-  "short_name": "Zeus",
+  "name": "AirsoftHub",
+  "short_name": "AirsoftHub",
   "display": "standalone",
   "scope": "/",
   "start_url": "/home",

@@ -21,7 +21,7 @@ export const TERMS: LegalDoc = {
   id: 'terms',
   title: 'Terms of Service',
   summary: [
-    'Airsoft Zeus is a tool to organise and run airsoft games. The field rules, safety rules and the Game Master on site always come first.',
+    'AirsoftHub is a tool to organise and run airsoft games. The field rules, safety rules and the Game Master on site always come first.',
     'You must be old enough to play airsoft where you live and follow the law and the rules of the field.',
     'Game Masters are responsible for the events they create, including their rules, teams and scoring.',
     'Do not cheat: no spoofed GPS, shared capture codes or fake accounts. Game Masters can remove you from an event and we can suspend your account.',
@@ -31,7 +31,7 @@ export const TERMS: LegalDoc = {
     {
       heading: '1. What the service is',
       paragraphs: [
-        'Airsoft Zeus ("the app") lets players join airsoft events and lets Game Masters ("GMs") create events, set up a tactical map, objectives, teams, points, credits and perks, and run the game live.',
+        'AirsoftHub ("the app") lets players join airsoft events and lets Game Masters ("GMs") create events, set up a tactical map, objectives, teams, points, credits and perks, and run the game live.',
         'The app is a coordination tool. It does not organise, insure or supervise the physical event. The organiser of each event and the owner of the playing field are responsible for the event itself, for safety briefings, chrono checks and for compliance with local law.',
       ],
     },

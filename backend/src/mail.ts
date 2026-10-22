@@ -16,7 +16,7 @@ function layout(title: string, paragraphs: string[], action?: { label: string; u
   return `<!doctype html><html><body style="margin:0;background:#0e100f;font-family:Arial,Helvetica,sans-serif;color:#e9ece6">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td align="center">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#161917;border:1px solid #2c322d;border-radius:6px;padding:28px">
-  <tr><td style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#a4b465;font-weight:bold">Airsoft Zeus</td></tr>
+  <tr><td style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#a4b465;font-weight:bold">AirsoftHub</td></tr>
   <tr><td style="padding-top:12px;font-size:22px;font-weight:bold;text-transform:uppercase">${esc(title)}</td></tr>
   ${paragraphs.map((p) => `<tr><td style="padding-top:12px;font-size:15px;line-height:1.5;color:#c9cfc6">${esc(p)}</td></tr>`).join('')}
   ${action ? `<tr><td style="padding-top:24px"><a href="${esc(action.url)}" style="display:inline-block;background:#a4b465;color:#121509;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:4px">${esc(action.label)}</a></td></tr>
@@ -42,7 +42,7 @@ export async function sendVerificationEmail(to: string, nickname: string, token:
   await send(
     to,
     'Confirm your email address',
-    layout('Confirm your email', [`Hi ${nickname}, confirm this address to join and run events on Airsoft Zeus.`, 'The link is valid for 24 hours.'], {
+    layout('Confirm your email', [`Hi ${nickname}, confirm this address to join and run events on AirsoftHub.`, 'The link is valid for 24 hours.'], {
       label: 'Confirm email',
       url,
     }),
@@ -59,7 +59,7 @@ export async function sendPasswordResetEmail(to: string, nickname: string, token
       label: 'Choose a new password',
       url,
     }),
-    `Reset your Airsoft Zeus password: ${url} (valid for 1 hour). If you did not ask for this, ignore this email.`,
+    `Reset your AirsoftHub password: ${url} (valid for 1 hour). If you did not ask for this, ignore this email.`,
   );
 }
 
@@ -67,8 +67,8 @@ export async function sendAccountDeletedEmail(to: string): Promise<void> {
   await send(
     to,
     'Your account was deleted',
-    layout('Account deleted', ['Your Airsoft Zeus account and personal data were deleted. Event results keep an anonymous "Deleted player" entry.']),
-    'Your Airsoft Zeus account and personal data were deleted.',
+    layout('Account deleted', ['Your AirsoftHub account and personal data were deleted. Event results keep an anonymous "Deleted player" entry.']),
+    'Your AirsoftHub account and personal data were deleted.',
   );
 }
 

@@ -26,9 +26,9 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
   template: `
     <header class="border-b border-border bg-card">
       <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
-        <a routerLink="/welcome" class="flex items-center gap-2" aria-label="Airsoft Zeus home">
-          <span class="grid size-9 place-items-center rounded-md bg-primary font-mono text-lg font-bold text-primary-foreground" aria-hidden="true">Z</span>
-          <span class="text-sm font-bold tracking-wide uppercase" style="font-stretch: 80%">Airsoft Zeus</span>
+        <a routerLink="/welcome" class="flex items-center gap-2" aria-label="AirsoftHub home">
+          <span class="grid size-9 place-items-center rounded-md bg-primary font-mono text-lg font-bold text-primary-foreground" aria-hidden="true">AH</span>
+          <span class="text-sm font-bold tracking-wide uppercase" style="font-stretch: 80%">AirsoftHub</span>
         </a>
         <a hlmBtn variant="outline" class="tap" routerLink="/welcome">Create your own event</a>
       </div>
@@ -85,7 +85,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
     </main>
 
     <footer class="border-t border-border py-4 text-center text-xs text-muted-foreground">
-      Published with Airsoft Zeus. Player positions are never shown on public pages.
+      Published with AirsoftHub. Player positions are never shown on public pages.
     </footer>
   `,
 })
@@ -132,12 +132,12 @@ export class PublicResultsScreen {
       if (e.status === 404) {
         this.state.set('not-found');
         if (this.responseInit) this.responseInit.status = 404;
-        this.titleService.setTitle('Results not available — Airsoft Zeus');
+        this.titleService.setTitle('Results not available — AirsoftHub');
         this.meta.updateTag({ name: 'robots', content: 'noindex' });
       } else {
         this.error.set(err);
         this.state.set('error');
-        this.titleService.setTitle('Event results — Airsoft Zeus');
+        this.titleService.setTitle('Event results — AirsoftHub');
       }
     }
   }
@@ -157,7 +157,7 @@ export class PublicResultsScreen {
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:type', content: 'website' });
-    this.meta.updateTag({ property: 'og:site_name', content: 'Airsoft Zeus' });
+    this.meta.updateTag({ property: 'og:site_name', content: 'AirsoftHub' });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });

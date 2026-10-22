@@ -1,4 +1,4 @@
-# Airsoft Zeus
+# AirsoftHub
 
 Organise and run live airsoft events. Game Masters build an event (teams, squads, tactical
 map, objectives, perk store), run it from a live control center, and publish the results.

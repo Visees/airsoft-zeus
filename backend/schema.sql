@@ -1,4 +1,4 @@
--- Airsoft Zeus database schema.
+-- AirsoftHub database schema.
 -- Database names are snake_case; the API converts to camelCase at the boundary.
 -- Applied by the api on start when the database is empty (src/migrate.ts). Later changes
 -- go in backend/migrations/ and are applied after it, once each, in order.

@@ -32,7 +32,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
       <zeus-page-header eyebrow="News" [title]="isNew() ? 'Write news' : 'Edit news'" [back]="backUrl()" />
 
       @if (!isAdmin()) {
-        <zeus-empty-state icon="lucideLock" title="Admins only" message="Only the Airsoft Zeus team can write News." />
+        <zeus-empty-state icon="lucideLock" title="Admins only" message="Only the AirsoftHub team can write News." />
       } @else if (loading()) {
         <zeus-loading-skeleton [rows]="6" />
       } @else if (loadError()) {

@@ -64,7 +64,7 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
               <p class="flex items-center gap-1 px-1 text-xs text-muted-foreground">
                 @if (m.fromAdmin) {
                   <ng-icon name="lucideLifeBuoy" size="12" class="text-primary" aria-hidden="true" />
-                  <span class="font-semibold text-primary">Airsoft Zeus team</span>
+                  <span class="font-semibold text-primary">AirsoftHub team</span>
                 } @else {
                   <span class="font-semibold">{{ mine(false) ? 'You' : m.authorNickname || 'Player' }}</span>
                 }

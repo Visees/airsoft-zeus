@@ -780,7 +780,7 @@ export class EventDetailsScreen {
     const e = this.event();
     const url = this.shareUrl();
     if (!e || !url) return;
-    const res = await shareOrCopy({ title: e.name, text: `Join ${e.name} on Airsoft Zeus with code ${e.joinCode}`, url });
+    const res = await shareOrCopy({ title: e.name, text: `Join ${e.name} on AirsoftHub with code ${e.joinCode}`, url });
     if (res === 'copied') this.flashCopied('link');
     else if (res === 'failed') this.toast.error('Could not share the link. Copy the code instead.');
   }

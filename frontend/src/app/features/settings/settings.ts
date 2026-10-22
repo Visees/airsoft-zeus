@@ -387,8 +387,8 @@ export class SettingsScreen implements OnInit {
     this.exporting.set(true);
     try {
       const blob = await this.api.exportMyData();
-      downloadBlob(blob, 'airsoft-zeus-data.json');
-      this.toast.success('Download started', 'airsoft-zeus-data.json');
+      downloadBlob(blob, 'airsofthub-data.json');
+      this.toast.success('Download started', 'airsofthub-data.json');
     } catch (e) {
       this.toast.error(e);
     } finally {
