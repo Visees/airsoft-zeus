@@ -29,7 +29,7 @@ export interface MemberRow extends Row {
   event_id: string;
   user_id: string;
   role: 'gm' | 'player';
-  status: 'invited' | 'pending' | 'approved' | 'rejected' | 'removed' | 'left';
+  status: 'invited' | 'pending' | 'approved' | 'rejected' | 'removed' | 'banned' | 'left';
   team_id: string | null;
   squad_id: string | null;
   is_squad_leader: boolean;

@@ -184,22 +184,22 @@ export class LobbyRoster {
   }
 
   protected async remove(m: Member): Promise<void> {
-    const reason = await this.confirm.askReason({
+    const res = await this.confirm.askChoice({
       title: $localize`Remove ${m.nickname}:nickname:?`,
-      consequences: [
-        $localize`${m.nickname}:nickname: is removed from the event and notified with your reason.`,
-        $localize`Their team place is released.`,
-        $localize`They cannot rejoin unless you invite or approve them again.`,
+      consequences: [$localize`${m.nickname}:nickname: is removed from the event and notified with your reason.`, $localize`Their team place is released.`],
+      choices: [
+        { value: 'remove', label: $localize`Remove`, hint: $localize`They can join the event again.`, confirmLabel: $localize`Remove player` },
+        { value: 'ban', label: $localize`:remove a player|:Ban`, hint: $localize`They cannot join again unless you invite them.`, confirmLabel: $localize`Ban player` },
       ],
       reason: { label: $localize`Reason`, required: true, placeholder: $localize`e.g. No-show, safety violation` },
-      confirmLabel: $localize`Remove player`,
       destructive: true,
     });
-    if (reason === null) return;
+    if (res === null) return;
+    const ban = res.choice === 'ban';
     this.busy.set(m.userId);
     try {
-      await this.api.removeMember(this.event().id, m.userId, reason);
-      this.toast.info($localize`${m.nickname}:nickname: removed`);
+      await this.api.removeMember(this.event().id, m.userId, res.reason, ban);
+      this.toast.info(ban ? $localize`${m.nickname}:nickname: banned` : $localize`${m.nickname}:nickname: removed`);
       this.changed.emit();
     } catch (err) {
       this.toast.error(err);

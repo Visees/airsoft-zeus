@@ -1604,19 +1604,23 @@ export class ControlCenterScreen {
   }
 
   protected async removePlayer(m: Member): Promise<void> {
-    const reason = await this.confirm.askReason({
+    const res = await this.confirm.askChoice({
       title: $localize`Remove ${m.nickname}:nickname: from the event?`,
-      consequences: [$localize`They lose access to the live game immediately and their location stops being shared.`, $localize`They cannot rejoin with the join code.`, $localize`Their past captures stay in the results.`],
-      confirmLabel: $localize`Remove player`,
+      consequences: [$localize`They lose access to the live game immediately and their location stops being shared.`, $localize`Their past captures stay in the results.`],
+      choices: [
+        { value: 'remove', label: $localize`Remove`, hint: $localize`They can join the event again.`, confirmLabel: $localize`Remove player` },
+        { value: 'ban', label: $localize`:remove a player|:Ban`, hint: $localize`They cannot join again unless you invite them.`, confirmLabel: $localize`Ban player` },
+      ],
       destructive: true,
       reason: { label: $localize`Reason (shown to the player)`, required: true },
     });
-    if (reason === null) return;
+    if (res === null) return;
+    const ban = res.choice === 'ban';
     try {
-      await this.api.removeMember(this.eventId(), m.userId, reason.trim());
+      await this.api.removeMember(this.eventId(), m.userId, res.reason.trim(), ban);
       this.selectedPlayerId.set(null);
       this.store.refresh('members', 'event');
-      this.toast.success($localize`${m.nickname}:nickname: removed`);
+      this.toast.success(ban ? $localize`${m.nickname}:nickname: banned` : $localize`${m.nickname}:nickname: removed`);
     } catch (e) {
       this.toast.error(e);
     }

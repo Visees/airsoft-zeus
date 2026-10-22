@@ -79,6 +79,9 @@ interface NavCard {
             <a hlmBtn class="h-11" [routerLink]="['/gm/events', e.id, 'control']">
               <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
             </a>
+            <a hlmBtn variant="outline" class="h-11" [routerLink]="['/events', e.id, 'lobby']">
+              <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Open lobby</ng-container>
+            </a>
           }
           @for (a of actions(); track a.to) {
             <button

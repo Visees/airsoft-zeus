@@ -118,6 +118,7 @@ export const it: Record<string, string> = {
   "Give a short reason": "Indica un breve motivo",
   "The owner cannot be removed.": "Il proprietario non può essere rimosso.",
   "Removed from {0}": "Rimosso da {0}",
+  "Banned from {0}": "Bannato da {0}",
   "Player not found in this event.": "Giocatore non trovato in questo evento.",
   "Unknown team.": "Squadra sconosciuta.",
   "Unknown team": "Squadra sconosciuta",

@@ -685,7 +685,7 @@ liveRouter.get('/:eventId/export', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   const q = queryOf(req, z.object({ format: z.enum(['csv', 'pdf']), kind: z.enum(['leaderboard', 'players', 'captures', 'ledger', 'perks']).default('leaderboard') }));
   const ctx = await eventContext(eventId, me.id);
-  const isPlayer = ctx.member && ['approved', 'left', 'removed'].includes(ctx.member.status);
+  const isPlayer = ctx.member && ['approved', 'left', 'removed', 'banned'].includes(ctx.member.status);
   if (!ctx.isGm && !(isPlayer && ctx.event.status === 'completed')) throw forbidden(tr`Exports are available to the GM, and to players once the game is over.`);
   if (!ctx.isGm && q.kind === 'ledger') throw forbidden(tr`The full ledger export is for Game Masters.`);
   await consume('export', me.id, 30, 3600);

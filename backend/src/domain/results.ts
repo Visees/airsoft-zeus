@@ -58,7 +58,7 @@ export async function computeResults(eventId: string, opts: ResultsOptions = {})
   const players = await many(
     `SELECT m.user_id, u.nickname, u.deleted_at, m.team_id, m.points, m.captures, m.currency_earned
        FROM event_members m JOIN users u ON u.id = m.user_id
-      WHERE m.event_id = $1 AND m.status IN ('approved','left','removed') AND m.team_id IS NOT NULL
+      WHERE m.event_id = $1 AND m.status IN ('approved','left','removed','banned') AND m.team_id IS NOT NULL
       ORDER BY m.points DESC, m.captures DESC, u.nickname`,
     [eventId],
   );

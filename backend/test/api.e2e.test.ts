@@ -384,6 +384,32 @@ run('API end-to-end', () => {
     expect(notes.find((n: Json) => n.type === 'event_removed' && n.title.includes('E2E event to moderate'))).toBeTruthy();
   });
 
+  it('lets removed players join again, but not banned ones until they are invited', async () => {
+    const created = await alpha.post('/events', {
+      name: 'E2E remove and ban',
+      gameMode: 'sunday',
+      startAt: new Date(Date.now() + 86400_000).toISOString(),
+      endAt: new Date(Date.now() + 90000_000).toISOString(),
+    });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const id = created.body.id;
+    await alpha.post(`/events/${id}/status`, { status: 'registration_open' });
+    const playerId = (await alpha2.get('/me')).body.id;
+    expect((await alpha2.post(`/events/${id}/join`, {})).body.status).toBe('approved');
+
+    expect((await alpha.post(`/events/${id}/members/${playerId}/remove`, { reason: 'Wrong date' })).status).toBe(200);
+    expect((await alpha2.post(`/events/${id}/join`, {})).body.status).toBe('approved');
+
+    expect((await alpha.post(`/events/${id}/members/${playerId}/remove`, { reason: 'Safety violation', ban: true })).status).toBe(200);
+    expect((await alpha2.post(`/events/${id}/join`, {})).body.error.code).toBe('not_allowed');
+    const notes = (await alpha2.get('/me/notifications')).body.items;
+    expect(notes.find((n: Json) => n.type === 'removed_from_event' && n.title.includes('Banned from E2E remove and ban'))).toBeTruthy();
+
+    const nickname = (await alpha2.get('/me')).body.nickname;
+    expect((await alpha.post(`/events/${id}/members/invite`, { nickname })).status).toBe(201);
+    expect((await alpha2.post(`/events/${id}/invitation`, { accept: true })).body.status).toBe('approved');
+  });
+
   it('shares event attachments only with GMs and approved players, checking the real file type', async () => {
     const send = async (c: Client, method: string, path: string, form?: FormData) => {
       const res = await fetch(`${API}/api${path}`, { method, headers: { authorization: `Bearer ${c.token}` }, body: form });

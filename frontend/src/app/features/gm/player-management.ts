@@ -34,7 +34,7 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'approved', label: $localize`Approved` },
   { value: 'invited', label: $localize`Invited` },
   { value: 'rejected', label: $localize`Rejected` },
-  { value: 'removed', label: $localize`Removed / left` },
+  { value: 'removed', label: $localize`Removed / banned / left` },
 ];
 
 const STATUS_CHIPS: Record<MemberStatus, ChipSpec> = {
@@ -43,6 +43,7 @@ const STATUS_CHIPS: Record<MemberStatus, ChipSpec> = {
   invited: { label: $localize`Invited`, glyph: '✉', tone: 'nav' },
   rejected: { label: $localize`Rejected`, glyph: '✕', tone: 'danger' },
   removed: { label: $localize`Removed`, glyph: '✕', tone: 'danger' },
+  banned: { label: $localize`Banned`, glyph: '⊘', tone: 'danger' },
   left: { label: $localize`Left`, glyph: '○', tone: 'neutral' },
 };
 
@@ -54,7 +55,7 @@ const PERMISSION_LABELS: Record<PermissionState, string> = {
 };
 
 function filterOf(s: MemberStatus): StatusFilter {
-  return s === 'left' ? 'removed' : s;
+  return s === 'left' || s === 'banned' ? 'removed' : s;
 }
 
 @Component({
@@ -700,24 +701,31 @@ export class PlayerManagementScreen {
 
   protected async remove(m: Member): Promise<void> {
     const invited = m.status === 'invited';
-    const reason = await this.confirm.askReason({
+    const res = await this.confirm.askChoice({
       title: invited ? $localize`Cancel the invitation of ${m.nickname}:nickname:?` : $localize`Remove ${m.nickname}:nickname: from the event?`,
       consequences: invited
         ? [$localize`${m.nickname}:nickname: can no longer accept the invitation.`, $localize`They see your reason.`]
         : [
             this.running() ? $localize`${m.nickname}:nickname: loses access to the event and is disconnected from the live game immediately.` : $localize`${m.nickname}:nickname: loses access to the event.`,
             $localize`Location tracking stops and their emergency contact is no longer shared.`,
-            $localize`They see your reason and cannot register again.`,
+            $localize`They see your reason.`,
+          ],
+      choices: invited
+        ? []
+        : [
+            { value: 'remove', label: $localize`Remove`, hint: $localize`They can join the event again.`, confirmLabel: $localize`Remove player` },
+            { value: 'ban', label: $localize`:remove a player|:Ban`, hint: $localize`They cannot join again unless you invite them.`, confirmLabel: $localize`Ban player` },
           ],
       destructive: true,
       confirmLabel: invited ? $localize`Cancel invitation` : $localize`Remove player`,
       reason: { label: $localize`Reason (shown to the player)`, required: true, placeholder: invited ? $localize`Event full` : $localize`Did not respect the safety rules` },
     });
-    if (reason === null) return;
+    if (res === null) return;
+    const ban = res.choice === 'ban';
     this.busyId.set(m.userId);
     try {
-      await this.api.removeMember(this.eventId(), m.userId, reason);
-      this.toast.success(invited ? $localize`Invitation cancelled` : $localize`${m.nickname}:nickname: removed`);
+      await this.api.removeMember(this.eventId(), m.userId, res.reason, ban);
+      this.toast.success(invited ? $localize`Invitation cancelled` : ban ? $localize`${m.nickname}:nickname: banned` : $localize`${m.nickname}:nickname: removed`);
       if (this.detailId() === m.userId) this.detailId.set(null);
       await this.loadMembers();
       void this.loadEvent();

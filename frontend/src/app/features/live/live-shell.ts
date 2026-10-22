@@ -133,7 +133,9 @@ interface SharingIndicator {
         <h1 class="sr-only" i18n>{{ ev.name }} — live game</h1>
         <div class="flex items-center justify-between gap-3">
           <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
-          @if (store.myTeam(); as team) {
+          @if (store.isGm()) {
+            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary" i18n>GAME MASTER</span>
+          } @else if (store.myTeam(); as team) {
             <div class="flex min-w-0 items-center gap-3">
               <span class="flex min-w-0 items-center gap-1.5">
                 <zeus-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
@@ -145,8 +147,6 @@ interface SharingIndicator {
                 <zeus-currency-display [amount]="team.currency" size="md" [showUnit]="false" />
               }
             </div>
-          } @else if (store.isGm()) {
-            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary" i18n>GAME MASTER</span>
           } @else {
             <span class="text-sm font-bold text-warning" i18n>○ No team</span>
           }
@@ -464,7 +464,8 @@ export class LiveShell {
     const reuse = inject(KeepAliveRouteStrategy);
     destroyRef.onDestroy(() => reuse.release(LIVE_MAP_KEEP_ALIVE));
 
-    // A Game Master on a team sees these screens as their team does (see PlayerViewService).
+    // A Game Master on a team sees these screens as their team does (see PlayerViewService),
+    // unless the shell was opened with ?view=gm: then it keeps the Game Master view until it closes.
     let viewing: string | null = null;
     destroyRef.onDestroy(() => viewing && this.playerView.leave(viewing));
 
@@ -474,7 +475,7 @@ export class LiveShell {
       untracked(() => {
         if (viewing !== id) {
           if (viewing) this.playerView.leave(viewing);
-          this.playerView.enter(id);
+          if (this.router.routerState.snapshot.root.queryParams['view'] !== 'gm') this.playerView.enter(id);
           viewing = id;
         }
         this.redirected = false;

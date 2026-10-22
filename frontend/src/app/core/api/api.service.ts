@@ -333,8 +333,9 @@ export class ApiService {
   reviewMember(eventId: Uuid, userId: Uuid, approve: boolean) {
     return this.post<Member>(this.ev(eventId, `/members/${userId}/review`), { approve });
   }
-  removeMember(eventId: Uuid, userId: Uuid, reason: string) {
-    return this.post<{ ok: true }>(this.ev(eventId, `/members/${userId}/remove`), { reason });
+  /** `ban`: the player cannot join again unless invited; otherwise they can rejoin. */
+  removeMember(eventId: Uuid, userId: Uuid, reason: string, ban = false) {
+    return this.post<{ ok: true }>(this.ev(eventId, `/members/${userId}/remove`), { reason, ban });
   }
   assignMember(eventId: Uuid, userId: Uuid, body: { teamId: Uuid | null; squadId?: Uuid | null; isSquadLeader?: boolean }) {
     return this.post<Member>(this.ev(eventId, `/members/${userId}/assign`), body);

@@ -127,7 +127,7 @@ eventsRouter.get('/mine', async (req, res) => {
   const conds: Record<string, string> = {
     upcoming: `EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = e.id AND m.user_id = $1 AND m.status IN ('pending','approved'))
                AND e.status NOT IN ('completed','cancelled')`,
-    past: `EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = e.id AND m.user_id = $1 AND m.status IN ('approved','left','removed'))
+    past: `EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = e.id AND m.user_id = $1 AND m.status IN ('approved','left','removed','banned'))
            AND e.status IN ('completed','cancelled')`,
     gm: `(e.owner_id = $1 OR EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = e.id AND m.user_id = $1 AND m.role = 'gm' AND m.status = 'approved'))`,
     invitations: `EXISTS (SELECT 1 FROM event_members m WHERE m.event_id = e.id AND m.user_id = $1 AND m.status = 'invited') AND e.status NOT IN ('completed','cancelled')`,
@@ -394,7 +394,7 @@ eventsRouter.post('/:eventId/join', async (req, res) => {
     if (ctx.isGm) throw conflict(tr`You are a Game Master of this event.`, 'is_gm');
     const existing = ctx.member;
     if (existing && ['approved', 'pending'].includes(existing.status)) return existing.status;
-    if (existing && ['rejected', 'removed'].includes(existing.status)) throw forbidden(tr`The Game Master did not accept you in this event.`, 'not_allowed');
+    if (existing && ['rejected', 'banned'].includes(existing.status)) throw forbidden(tr`The Game Master did not accept you in this event.`, 'not_allowed');
     const invited = existing?.status === 'invited';
     if (!invited) {
       if (e.visibility === 'private' && (!b.joinCode || !e.join_code || !safeEqual(normalizeCode(b.joinCode), e.join_code))) {
@@ -596,20 +596,28 @@ eventsRouter.post('/:eventId/members/:userId/remove', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
   const userId = idParam(req, 'userId');
-  const b = body(req, z.object({ reason: z.string().trim().min(3, 'Give a short reason').max(500) }));
+  // A removed player can join again; a banned one cannot until a Game Master invites them.
+  const b = body(req, z.object({ reason: z.string().trim().min(3, 'Give a short reason').max(500), ban: z.boolean().default(false) }));
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     if (userId === ctx.event.owner_id) throw conflict(tr`The owner cannot be removed.`, 'is_owner');
     const m = await one('SELECT * FROM event_members WHERE event_id = $1 AND user_id = $2 FOR UPDATE', [eventId, userId], t);
     if (!m) throw notFound(tr`Member not found.`);
     await t.query(
-      `UPDATE event_members SET status = 'removed', removal_reason = $3, tracking_active = false, is_squad_leader = false, emergency_contact = NULL, updated_at = now()
+      `UPDATE event_members SET status = $4, removal_reason = $3, tracking_active = false, ready = false, is_squad_leader = false, emergency_contact = NULL, updated_at = now()
         WHERE event_id = $1 AND user_id = $2`,
-      [eventId, userId, b.reason],
+      [eventId, userId, b.reason, b.ban ? 'banned' : 'removed'],
     );
     await t.query('UPDATE squads SET leader_id = NULL WHERE event_id = $1 AND leader_id = $2', [eventId, userId]);
-    await notify(t, [userId], { type: 'removed_from_event', title: (tr) => tr`Removed from ${ctx.event.name}`, body: b.reason, priority: 'high', eventId, url: `/events/${eventId}` });
-    await audit(t, eventId, me.id, 'member.remove', { type: 'user', id: userId, before: { status: m.status, teamId: m.team_id }, reason: b.reason });
+    await notify(t, [userId], {
+      type: 'removed_from_event',
+      title: (tr) => (b.ban ? tr`Banned from ${ctx.event.name}` : tr`Removed from ${ctx.event.name}`),
+      body: b.reason,
+      priority: 'high',
+      eventId,
+      url: `/events/${eventId}`,
+    });
+    await audit(t, eventId, me.id, b.ban ? 'member.ban' : 'member.remove', { type: 'user', id: userId, before: { status: m.status, teamId: m.team_id }, reason: b.reason });
   });
   hub.invalidate(eventId, ['members']);
   hub.kick(eventId, userId, b.reason);

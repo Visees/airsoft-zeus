@@ -55,6 +55,25 @@ import { ConfirmService } from '../core/ui/confirm.service';
               }
             </ul>
           }
+          @if (r.choices?.length) {
+            <fieldset class="mt-4 flex flex-col gap-2">
+              <legend class="sr-only" i18n>Choose an option</legend>
+              @for (c of r.choices; track c.value) {
+                <label
+                  class="flex cursor-pointer items-start gap-3 rounded-sm border p-3 text-sm"
+                  [class]="choice() === c.value ? 'border-primary bg-primary/10' : 'border-border'"
+                >
+                  <input type="radio" class="mt-0.5 size-5 shrink-0 accent-primary" name="choice" [value]="c.value" [checked]="choice() === c.value" (change)="choice.set(c.value)" />
+                  <span class="flex flex-col gap-0.5">
+                    <span class="font-semibold">{{ c.label }}</span>
+                    @if (c.hint) {
+                      <span class="text-muted-foreground">{{ c.hint }}</span>
+                    }
+                  </span>
+                </label>
+              }
+            </fieldset>
+          }
           @if (r.reason) {
             <div class="mt-4 flex flex-col gap-1.5">
               <label hlmLabel for="confirm-reason">{{ r.reason.label }}@if (r.reason.required) { <span aria-hidden="true">*</span> }</label>
@@ -76,7 +95,7 @@ import { ConfirmService } from '../core/ui/confirm.service';
               [class]="r.destructive ? '!bg-destructive !text-destructive-foreground hover:!bg-destructive/85' : ''"
               [disabled]="!canConfirm()"
             >
-              {{ r.confirmLabel ?? txt.confirm }}
+              {{ confirmLabel() }}
             </button>
           </div>
         </form>
@@ -96,6 +115,13 @@ export class ConfirmHost {
   protected readonly req = this.confirm.current;
   protected readonly reason = signal('');
   protected readonly typed = signal('');
+  protected readonly choice = signal<string | null>(null);
+
+  protected readonly confirmLabel = computed(() => {
+    const r = this.req();
+    const picked = r?.choices?.find((c) => c.value === this.choice());
+    return picked?.confirmLabel ?? r?.confirmLabel ?? this.txt.confirm;
+  });
 
   protected readonly canConfirm = computed(() => {
     const r = this.req();
@@ -112,6 +138,7 @@ export class ConfirmHost {
       if (r && !el.open) {
         this.reason.set('');
         this.typed.set('');
+        this.choice.set(r.choices?.[0]?.value ?? null);
         el.showModal();
       } else if (!r && el.open) {
         el.close();
@@ -124,6 +151,6 @@ export class ConfirmHost {
     const r = this.req();
     if (!r) return;
     if (confirmed && !this.canConfirm()) return;
-    r.resolve({ confirmed, reason: this.reason().trim() });
+    r.resolve({ confirmed, reason: this.reason().trim(), choice: this.choice() });
   }
 }

@@ -35,7 +35,7 @@ export type PlayerRole =
   | 'custom';
 
 export type MemberRole = 'gm' | 'player';
-export type MemberStatus = 'invited' | 'pending' | 'approved' | 'rejected' | 'removed' | 'left';
+export type MemberStatus = 'invited' | 'pending' | 'approved' | 'rejected' | 'removed' | 'banned' | 'left';
 export type PermissionState = 'unknown' | 'granted' | 'denied' | 'prompt';
 export type TeamPattern = 'solid' | 'stripes' | 'dots' | 'chevron' | 'cross' | 'grid';
 export type Precision = 'exact' | 'approximate' | 'delayed' | 'area';

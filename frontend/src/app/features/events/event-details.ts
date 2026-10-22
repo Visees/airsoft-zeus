@@ -352,9 +352,9 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                     <button hlmBtn variant="outline" type="button" class="h-12 flex-1" [disabled]="busy()" (click)="respond(false)" i18n>Decline</button>
                   </div>
                 }
-                @case ('removed') {
-                  <h2 id="action-title" class="text-lg uppercase" i18n>Removed from this event</h2>
-                  <p class="text-sm text-muted-foreground" i18n>The Game Master removed you from this event. Contact them if you think this is a mistake.</p>
+                @case ('banned') {
+                  <h2 id="action-title" class="text-lg uppercase" i18n>Banned from this event</h2>
+                  <p class="text-sm text-muted-foreground" i18n>The Game Master banned you from this event. Contact them if you think this is a mistake.</p>
                 }
                 @case ('rejected') {
                   <h2 id="action-title" class="text-lg uppercase" i18n>Request declined</h2>
@@ -362,6 +362,9 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                 }
                 @default {
                   <h2 id="action-title" class="text-lg uppercase" i18n>Join this event</h2>
+                  @if (membership() === 'removed') {
+                    <p class="text-sm text-muted-foreground" i18n>The Game Master removed you from this event. You can join again.</p>
+                  }
                   @if (joinBlock(); as reason) {
                     <p class="rounded-sm border border-border bg-muted p-3 text-sm" role="status">■ {{ reason }}</p>
                     @if (e.status === 'completed') {
@@ -561,6 +564,7 @@ export class EventDetailsScreen {
         return $localize`Accept the invitation to download the documents the Game Master shared.`;
       case 'none':
       case 'left':
+      case 'removed':
         return $localize`The Game Master shared documents for the players, like the game book. Join the event to download them.`;
       default:
         return $localize`Only registered players can download these documents.`;

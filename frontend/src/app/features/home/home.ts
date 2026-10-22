@@ -95,6 +95,9 @@ import { StatTiles } from '../profile/profile-ui';
                         <ng-icon name="lucideMap" size="18" aria-hidden="true" /> <ng-container i18n>Open live map</ng-container>
                       </a>
                       @if (e.isGm) {
+                        <a hlmBtn variant="outline" [routerLink]="['/events', e.id, 'live']" [queryParams]="{ view: 'gm' }" class="h-12">
+                          <ng-icon name="lucideShield" size="18" aria-hidden="true" /> <ng-container i18n>Enter as Game Master</ng-container>
+                        </a>
                         <a hlmBtn variant="outline" [routerLink]="['/gm/events', e.id, 'control']" class="h-12">
                           <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
                         </a>
