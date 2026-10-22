@@ -150,3 +150,28 @@ npm run app:ios                               # macOS only: opens Xcode
 * iOS: a Mac with Xcode and an Apple Developer account. Location and camera texts are in
   `ios/App/App/Info.plist` (English only for now); background mode `location` is on.
 * App icons and splash: still Capacitor's defaults (replace with `@capacitor/assets`).
+
+### Releasing and updating the Android app
+
+The app loads the live site, so **most changes need no new app**:
+
+* Changes under `frontend/src` or `backend/`: push and deploy as usual. Apps pick up the new
+  site the next time they open (the service worker shows the update, like the PWA).
+* A new APK is needed only when the native side changes: `capacitor.config.ts` (site URL, app id),
+  adding or updating a Capacitor plugin, or anything under `frontend/android` (permissions,
+  icons, texts). Web code that uses a new plugin must still work in older installed apps.
+
+New APK:
+
+```powershell
+cd frontend
+npx cap sync
+# raise versionCode (and versionName) in android/app/build.gradle
+cd android; .\gradlew assembleRelease     # → app/build/outputs/apk/release/app-release.apk
+```
+
+Players install it over the old one (same signing key, higher versionCode). The release key is
+`%USERPROFILE%\.airsofthubirsofthub-release.jks` with its passwords in `keystore.properties`
+(copy in `frontend/android/keystore.properties`, not in git). Back both up: without them, installed
+apps can't be updated and players must uninstall first. Debug builds (Android Studio ▶) use a
+different key, so a phone with a debug build must uninstall it before installing a release APK.
