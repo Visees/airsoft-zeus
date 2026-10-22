@@ -6,7 +6,7 @@ import { hub } from '../realtime/hub.js';
 import { FRESH_MS, toServerClock, validateSamples, type Accepted, type InSample, type SampleFlag } from './anticheat.js';
 import { eventContext, playsIn, type EventContext } from './context.js';
 import { geofence as geofenceOf, rewards as rewardsOf, type Precision } from './defaults.js';
-import { advance, fromRow, majorityLeader, readZone, toRow, type Report, type ZoneFix } from './geofence.js';
+import { advance, fromRow, majorityLeader, presenceTtlMs, readZone, toRow, type Report, type ZoneFix } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
@@ -39,10 +39,6 @@ export interface ReportResult {
   flags: SampleFlag[];
   geofence: GeofenceStatusDto[];
   serverNow: string;
-}
-
-export function presenceTtlMs(intervalSec: number): number {
-  return Math.max(2.5 * intervalSec * 1000, 20_000);
 }
 
 /** `sentAt`: the device clock when the batch was sent, to correct a wrong phone clock (see toServerClock). */
@@ -128,7 +124,7 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
   const counts = new Map((await many<{ id: string; capture_count: number }>('SELECT id, capture_count FROM objectives WHERE event_id = $1', [eventId])).map((r) => [r.id, r.capture_count]));
   const states = new Map((await many('SELECT * FROM capture_states WHERE event_id = $1', [eventId])).map((s) => [s.objective_id as string, s]));
   const out: GeofenceStatusDto[] = [];
-  const ttl = presenceTtlMs(ctx.tracking.intervalSec);
+  const ttl = presenceTtlMs(ctx.tracking);
 
   for (const o of objectives) {
     const status = statusOf(o, counts, now);

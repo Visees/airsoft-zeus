@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GEOFENCE, DEFAULT_TRACKING, DEFAULT_VISIBILITY, merge, type VisibilityRules } from '../src/domain/defaults.js';
 import { toServerClock, validateSamples } from '../src/domain/anticheat.js';
-import { advance, emptyState, exitMarginM, readZone } from '../src/domain/geofence.js';
+import { advance, emptyState, exitMarginM, presenceTtlMs, readZone } from '../src/domain/geofence.js';
 import {
   captureBlock,
   contentVisible,
@@ -272,6 +272,38 @@ describe('geofence', () => {
     r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true });
     r = step(r.state, 15_000, { userId: 'u1', teamId: 'A', inside: false });
     expect(r.state.progress.A).toBeUndefined();
+  });
+  it('pauses, not resets, a team that only went silent (dead spot, late reports)', () => {
+    const long = { ...cfg, durationSec: 120 };
+    let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true }, long);
+    r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true }, long);
+    r = step(r.state, 40_000, undefined, long); // tick: presence expired, no exit seen
+    expect(r.state.present.A).toBeUndefined();
+    expect(r.state.progress.A).toEqual({ s: 10, at: null, idle: 40_000 });
+    r = step(r.state, 50_000, { userId: 'u1', teamId: 'A', inside: true }, long);
+    r = step(r.state, 60_000, { userId: 'u1', teamId: 'A', inside: true }, long);
+    expect(r.state.progress.A).toEqual({ s: 20, at: 60_000 });
+  });
+  it('resets a silent team after a long silence, or when a player is seen leaving', () => {
+    let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });
+    r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: true });
+    r = step(r.state, 40_000);
+    r = step(r.state, 40_000 + 120_000);
+    expect(r.state.progress.A).toBeDefined();
+    r = step(r.state, 40_000 + 120_001);
+    expect(r.state.progress.A).toBeUndefined();
+  });
+  it('keeps paused progress when resetOnExit is off', () => {
+    const keep = { ...cfg, resetOnExit: false };
+    let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true }, keep);
+    r = step(r.state, 10_000, { userId: 'u1', teamId: 'A', inside: false }, keep);
+    r = step(r.state, 500_000, undefined, keep);
+    expect(r.state.progress.A).toEqual({ s: 0, at: null });
+  });
+  it('waits 3.5 report intervals (at least 30 s) before dropping a silent player, battery saver included', () => {
+    expect(presenceTtlMs({ intervalSec: 10, batterySaver: false })).toBe(35_000);
+    expect(presenceTtlMs({ intervalSec: 3, batterySaver: false })).toBe(30_000);
+    expect(presenceTtlMs({ intervalSec: 10, batterySaver: true })).toBe(70_000);
   });
   it('keeps a player without a report (fix too poor to judge) until presence expires', () => {
     let r = step(emptyState(), 0, { userId: 'u1', teamId: 'A', inside: true });

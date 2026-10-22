@@ -140,7 +140,8 @@ export class LocationTracker {
     const highAccuracy = settings.highAccuracy && !settings.batterySaver;
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        if (this.state() === 'requesting') this.state.set('tracking');
+        // 'error' too: a first fix slower than the timeout (cold start under trees) reports an error, then fixes arrive
+        if (this.state() === 'requesting' || this.state() === 'error') this.state.set('tracking');
         this.onPosition(pos);
       },
       (err) => {
@@ -191,7 +192,8 @@ export class LocationTracker {
       heading: pos.coords.heading,
       speed: pos.coords.speed,
       altitude: pos.coords.altitude,
-      timestamp: pos.timestamp || Date.now(),
+      // whole ms: the server only accepts integers (WebKit builds it from a seconds double)
+      timestamp: Math.round(pos.timestamp || Date.now()),
     };
   }
 
@@ -248,6 +250,9 @@ export class LocationTracker {
     const eventId = this.eventId();
     if (!eventId || this.sending) return this.schedule(this.intervalMs());
     this.sending = true;
+    // Reports go out on a fixed rhythm (start to start): a slow GPS fix or request must not push the
+    // next report later, or the server stops counting a player who is standing in a zone.
+    const startedAt = Date.now();
     if (!this.queue.length) {
       // A phone standing still often gets no watchPosition callbacks, and resending the last fix is
       // useless (the server drops samples whose timestamp is not newer). Ask for a fresh fix, so a
@@ -256,12 +261,13 @@ export class LocationTracker {
       if (pos && this.eventId() === eventId) this.queueSample(this.toSample(pos));
       if (!this.queue.length) {
         this.sending = false;
-        return this.schedule(this.intervalMs());
+        return this.scheduleFrom(startedAt, this.intervalMs());
       }
     }
     const batch = this.queue.slice(0, MAX_BATCH);
     try {
       const res = await this.api.reportLocation(eventId, { samples: batch, screenObjectiveId: this.screenObjectiveId(), sentAt: Date.now() });
+      if (this.eventId() !== eventId) return; // stopped or switched event meanwhile: this answer is stale
       this.queue.splice(0, batch.length);
       this.pendingCount.set(this.queue.length);
       this.geofence.set(res.geofence);
@@ -273,24 +279,33 @@ export class LocationTracker {
       this.connectivity.markSynced();
       if (this.state() === 'paused') this.state.set('tracking');
     } catch (e) {
+      if (this.eventId() !== eventId) return;
       const err = ApiError.from(e);
       this.lastError.set(err.message);
       if (err.code === 'tracking_paused' || err.code === 'not_live') {
-        // Game paused or not running: drop queued samples, keep the GPS for the own marker.
+        // Game paused or not running: drop queued samples, keep the GPS for the own marker, and keep
+        // asking at the normal rhythm (no growing backoff) so reports resume as soon as the GM resumes.
         this.queue = [];
         this.pendingCount.set(0);
         this.state.set('paused');
-      } else if (err.status === 400) {
-        this.queue.splice(0, batch.length); // malformed batch, don't retry forever
-      } else if (err.code === 'tracking_not_allowed' || err.status === 403 || err.status === 404) {
-        this.stop(false);
-        return;
+        this.backoffMs = 0;
+      } else {
+        if (err.status === 400) {
+          this.queue.splice(0, batch.length); // malformed batch, don't retry forever
+        } else if (err.code === 'tracking_not_allowed' || err.status === 403 || err.status === 404) {
+          this.stop(false);
+          return;
+        }
+        this.backoffMs = Math.min(60_000, Math.max(2_000, this.backoffMs * 2 || 2_000));
       }
-      this.backoffMs = Math.min(60_000, Math.max(2_000, this.backoffMs * 2 || 2_000));
     } finally {
       this.sending = false;
     }
-    this.schedule(this.backoffMs || this.intervalMs());
+    this.scheduleFrom(startedAt, this.backoffMs || this.intervalMs());
+  }
+
+  private scheduleFrom(startedAt: number, ms: number): void {
+    this.schedule(Math.max(0, startedAt + ms - Date.now()));
   }
 
   private schedule(ms: number): void {

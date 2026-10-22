@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { GeofenceStatus } from '../core/api/models';
 import { formatClock, formatDistance } from '../core/util/format';
-import { useHoldEstimate } from './capture-bar';
+import { useAnswerStale, useHoldEstimate } from './capture-bar';
 
 /**
  * Geofence capture progress ring: distance, inside/outside, progress, time left, contested.
@@ -40,7 +40,9 @@ import { useHoldEstimate } from './capture-bar';
     <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
       <dt class="label-caps self-center">Zone</dt>
       <dd class="font-semibold" [class.text-primary]="status()?.inside" [class.text-muted-foreground]="!status()?.inside">
-        @if (status()?.inside) {
+        @if (stale()) {
+          ◌ No answer from the server — check your signal
+        } @else if (status()?.inside) {
           ● Inside
         } @else if (status()?.blocked === 'confirming') {
           ◌ Confirming your position…
@@ -82,6 +84,7 @@ export class CaptureProgress {
   protected readonly circumference = 2 * Math.PI * 44;
   /** Hold seconds, extrapolated between location reports. */
   private readonly held = useHoldEstimate(this.status, this.canAccrue);
+  protected readonly stale = useAnswerStale();
 
   protected readonly pct = computed(() => {
     const s = this.status();

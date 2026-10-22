@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { TimeoutError } from 'rxjs';
 
 /** Error shape returned by the backend: { error: { code, message, fields? } } */
 export class ApiError extends Error {
@@ -19,6 +20,7 @@ export class ApiError extends Error {
 
   static from(err: unknown): ApiError {
     if (err instanceof ApiError) return err;
+    if (err instanceof TimeoutError) return new ApiError(0, 'network', 'The server did not answer in time. Check your signal.');
     if (err instanceof HttpErrorResponse) {
       if (err.status === 0) {
         return new ApiError(0, 'network', 'No connection to the server. Check your signal and try again.');

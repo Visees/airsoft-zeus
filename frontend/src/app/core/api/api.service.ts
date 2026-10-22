@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import {
   ActivityItem,
   AdjustBalanceRequest,
@@ -68,6 +68,9 @@ import {
  * Typed client for the REST API (all paths relative to /api).
  * Every method returns a Promise; errors are ApiError (see api-error.ts) thrown by the interceptor.
  */
+/** Location reports go every few seconds; past this a request is treated as lost and retried. */
+const LOCATION_REPORT_TIMEOUT_MS = 8_000;
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
@@ -456,8 +459,12 @@ export class ApiService {
   live(eventId: Uuid) {
     return this.get<LiveSnapshot>(this.ev(eventId, '/live'));
   }
+  /**
+   * With a timeout: on a bad mobile connection a request can hang for a minute or more (browsers set
+   * no limit), which would hold back every later report. The tracker keeps the batch and retries.
+   */
   reportLocation(eventId: Uuid, body: LocationReportRequest) {
-    return this.post<LocationReportResponse>(this.ev(eventId, '/locations'), body);
+    return firstValueFrom(this.http.post<LocationReportResponse>(this.base + this.ev(eventId, '/locations'), body).pipe(timeout(LOCATION_REPORT_TIMEOUT_MS)));
   }
   stopTracking(eventId: Uuid) {
     return this.post<{ ok: true }>(this.ev(eventId, '/tracking/stop'));

@@ -6,13 +6,15 @@
  * clients that go silent cannot complete a capture.
  */
 import { distanceM } from '../lib/geo.js';
-import type { Geofence } from './defaults.js';
+import type { Geofence, Tracking } from './defaults.js';
 
 export interface TeamProgress {
   /** seconds of hold accumulated */
   s: number;
   /** server time (ms) of the last accrual; null = paused */
   at: number | null;
+  /** server time (ms) the team dropped out by going silent (no exit seen); see SILENCE_RESET */
+  idle?: number;
 }
 
 export interface GeofenceState {
@@ -160,12 +162,27 @@ export function majorityLeader(present: GeofenceState['present'], cfg: Geofence)
   return counts[0][1] > counts[1][1] ? counts[0][0] : null;
 }
 
+/**
+ * How long a player stays counted without a report. Clients report every intervalSec (twice that
+ * with battery saver); 3.5 intervals leaves room for a slow GPS fix plus a slow or failed request
+ * (simulated with patchy-network latencies, 2.5 intervals dropped players standing still a few
+ * times an hour).
+ */
+export function presenceTtlMs(tracking: Pick<Tracking, 'intervalSec' | 'batterySaver'>): number {
+  const intervalMs = tracking.intervalSec * 1000 * (tracking.batterySaver ? 2 : 1);
+  return Math.max(3.5 * intervalMs, 30_000);
+}
+
+/** A silent team's paused progress is kept this long (at least 2 presence TTLs) before "reset on exit" applies. */
+const SILENCE_RESET_MS = 120_000;
+
 export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult {
   const { now, cfg, report } = input;
   const s: GeofenceState = structuredClone(prev);
   const before = JSON.stringify(prev);
 
   // 1. presence
+  const exitSeenBy = report && !report.inside ? report.teamId : null;
   if (report) {
     const team = (s.present[report.teamId] ??= {});
     if (report.inside) team[report.userId] = now;
@@ -211,12 +228,18 @@ export function advance(prev: GeofenceState, input: AdvanceInput): AdvanceResult
     }
   }
 
-  // 3. teams that left the zone
-  for (const teamId of Object.keys(s.progress)) {
-    if (!s.present[teamId]) {
-      if (cfg.resetOnExit) delete s.progress[teamId];
-      else s.progress[teamId].at = null;
+  // 3. teams that left the zone. "Reset on exit" applies when a player is seen leaving; a team that
+  // only went silent (dead spot, late reports) is paused and resets after a longer silence.
+  const silenceResetMs = Math.max(SILENCE_RESET_MS, 2 * input.presenceTtlMs);
+  for (const [teamId, entry] of Object.entries(s.progress)) {
+    if (s.present[teamId]) {
+      delete entry.idle;
+      continue;
     }
+    entry.at = null;
+    if (!cfg.resetOnExit) continue;
+    entry.idle ??= now;
+    if (teamId === exitSeenBy || now - entry.idle > silenceResetMs) delete s.progress[teamId];
   }
 
   // 4. accrual for the reporting team

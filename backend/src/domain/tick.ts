@@ -4,10 +4,9 @@ import { logger } from '../logger.js';
 import { hub } from '../realtime/hub.js';
 import { eventContext } from './context.js';
 import { geofence as geofenceOf } from './defaults.js';
-import { advance, fromRow, toRow } from './geofence.js';
+import { advance, fromRow, presenceTtlMs, toRow } from './geofence.js';
 import { activity, alert, eventPlayers, notify } from './journal.js';
 import { transition } from './lifecycle.js';
-import { presenceTtlMs } from './locations.js';
 import { loadObjectives, settleRecurring, statusOf, type ObjRow } from './objectives.js';
 import { expireEffects } from './perks.js';
 import { captureBlock } from './rules.js';
@@ -117,7 +116,7 @@ async function tickEvent(eventId: string): Promise<void> {
   if (changed) hub.invalidate(eventId, ['objectives']);
 
   // Zone presence decays when players stop reporting
-  const ttl = presenceTtlMs(ctx.tracking.intervalSec);
+  const ttl = presenceTtlMs(ctx.tracking);
   const states = await many(`SELECT * FROM capture_states WHERE event_id = $1 AND (present <> '{}' OR progress <> '{}' OR contested)`, [eventId]);
   for (const s of states) {
     await tx(async (t) => {

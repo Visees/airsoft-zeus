@@ -108,6 +108,32 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   WebKit bug 254545) can't keep the screen on and GPS stops when it locks:
   `LocationTracker.wakeLockUnreliable` shows an "Auto-Lock → Never" warning on the capture
   screen and in More.
+* Report timing (simulated with mobile latency, lost requests and slow GPS fixes: the old timing
+  dropped a player standing in a zone 2–11 times an hour, and "reset on exit" wiped their hold):
+  - the tracker sends on a fixed rhythm (start to start), so a slow fix or request no longer
+    pushes the next report later; location requests time out after 8 s (`reportLocation`) and
+    are retried instead of hanging and blocking later reports;
+  - `presenceTtlMs` (now in `domain/geofence.ts`) = 3.5 report intervals, min 30 s, and counts
+    battery saver's doubled interval (it used 2.5 × intervalSec, so battery-saver clients
+    reporting every 20 s were dropped constantly);
+  - a team that only goes silent is paused, not reset: `advance()` resets on exit only when a
+    player is seen leaving, or after 2 min of silence (`TeamProgress.idle`).
+  Verified live: 45 s of silence keeps the hold (it used to reset), walking out still resets.
+* Audit fixes (tracker): state goes back from 'error' to 'tracking' when fixes arrive after a
+  slow first fix (the bar said "GPS problem" all game); a paused game is retried at the normal
+  rhythm instead of a 2→60 s backoff (reports resume as soon as the GM resumes); answers for an
+  event no longer tracked are ignored; fix timestamps are rounded to whole ms. Capture bar and
+  ring say "No answer from the server" when the last answer is older than 2.5 intervals instead
+  of freezing on "Holding". `location-tracker.service.spec.ts` covers rhythm, timeouts, pause,
+  error recovery and event switches (each test fails if its fix is undone).
+* Audit 2026-10-22 on an isolated fresh stack (`docker compose -p zeus-audit`, other ports, own
+  volume): E2E suite 16/16 passing (run it ≥ 60 s after seeding, see the ledger-test note).
+  Load: 120 and 400 players reporting every 10 s (half holding zones) — all 200, p99 11–13 ms,
+  max 50 ms, no server errors, on a dev machine. The service worker doesn't touch location
+  POSTs (no API dataGroups).
+* Known, not fixed (minor): a player moved to another team mid-game leaves a ghost presence in a
+  zone for up to one presence TTL; one account on two phones trips its own rate limit; the
+  tracking form doesn't warn about intervals > 30 s or max speed < 5 m/s.
 * Checked with a simulation of the whole pipeline (2 Hz fixes with drift and multipath spikes →
   client OutlierFilter/queue → server speed check → `readZone`): under trees a holder 7 m inside
   is counted 98% of the time with ~5 flips/h (newest-fix-only: 84%, ~60 flips/h). Spacing the

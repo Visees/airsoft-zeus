@@ -37,6 +37,17 @@ export function useHoldEstimate(status: () => GeofenceStatus | null, canAccrue: 
   });
 }
 
+/**
+ * The last server answer is too old to trust (no signal, request failing): the server stops
+ * counting a silent player after about 3.5 report intervals, so don't keep showing "Holding".
+ */
+export function useAnswerStale() {
+  const tracker = inject(LocationTracker);
+  const now = nowSignal(1000);
+  // not while the game is paused: the server then sends no zone answers on purpose
+  return computed(() => tracker.state() !== 'paused' && tracker.geofenceAt() > 0 && now() - tracker.geofenceAt() > 2.5 * tracker.intervalMs());
+}
+
 /** Is there a capture worth showing a bar for (in the zone, holding, or contested)? */
 export function showCaptureBar(s: GeofenceStatus | null | undefined): s is GeofenceStatus {
   return !!s && !s.captured && (s.inside || s.progressSec > 0 || s.contested || s.armed);
@@ -69,6 +80,7 @@ export class CaptureBar {
   readonly canAccrue = input(true);
 
   private readonly held = useHoldEstimate(this.status, this.canAccrue);
+  private readonly stale = useAnswerStale();
 
   protected readonly pct = computed(() => {
     const s = this.status();
@@ -76,7 +88,7 @@ export class CaptureBar {
     return s.requiredSec > 0 ? Math.min(100, Math.floor((this.held() / s.requiredSec) * 100)) : 0;
   });
 
-  private readonly running = computed(() => holdRunning(this.status(), this.canAccrue()));
+  private readonly running = computed(() => !this.stale() && holdRunning(this.status(), this.canAccrue()));
 
   protected readonly color = computed(() => {
     const s = this.status();
@@ -87,6 +99,7 @@ export class CaptureBar {
   protected readonly caption = computed(() => {
     const s = this.status();
     if (s.armed) return '✓ Zone held — enter the code';
+    if (this.stale()) return '◌ No answer from the server — check your signal';
     if (s.contested) return '▲ Contested — enemies in the zone';
     if (s.outnumbered) return '▲ Outnumbered — your team needs more players inside';
     if (s.blocked === 'low_accuracy') return '▲ GPS too imprecise to count';
