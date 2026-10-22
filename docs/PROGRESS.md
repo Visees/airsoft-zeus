@@ -172,8 +172,8 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   logout), `zeus.*` localStorage keys, `X-Zeus-View` header, `zeus.allow_purge` /
   `zeus.allow_anonymize` DB settings, JWT issuer, Postgres db/user `zeus`, `zeus-` component
   selectors, demo accounts `@airsoftzeus.test` and their password, repo/folder name.
-* PWA icons in `frontend/public/icons` are still the Angular placeholder: replace with an
-  AirsoftHub icon.
+* AirsoftHub icon and splash (2026-10-22) for Android, iOS, PWA icons and favicon; sources in
+  `frontend/assets/` (see README, native apps).
 
 ## Admin: users and per-user features (2026-10-22)
 

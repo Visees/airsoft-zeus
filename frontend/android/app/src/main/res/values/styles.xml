@@ -21,5 +21,7 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+ ignores the splash image and shows the app icon on this colour. -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
     </style>
 </resources>

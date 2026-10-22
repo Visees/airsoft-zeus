@@ -149,7 +149,12 @@ npm run app:ios                               # macOS only: opens Xcode
   Play needs the foreground-service (location) declaration in Play Console.
 * iOS: a Mac with Xcode and an Apple Developer account. Location and camera texts are in
   `ios/App/App/Info.plist` (English only for now); background mode `location` is on.
-* App icons and splash: still Capacitor's defaults (replace with `@capacitor/assets`).
+* App icons and splash come from `frontend/assets/` (`icon-only`, `icon-foreground`,
+  `icon-background` 1024 px; `splash`, `splash-dark` 2732 px). After changing them run
+  `npx @capacitor/assets generate --android --ios` in `frontend/` (revert the reformatted
+  `AndroidManifest.xml` it leaves), then a new APK. Android 12+ shows the icon on
+  `splash_background` (`res/values*/splash_background.xml`) instead of the splash image. The PWA
+  icons in `public/icons` and `public/favicon.ico` are resized from `icon-only.png`.
 
 ### Releasing and updating the Android app
 
