@@ -207,6 +207,12 @@ export function formatDistance(m: number | null | undefined): string {
   return `${(m / 1000).toFixed(m < 10_000 ? 2 : 1)} km`;
 }
 
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+}
+
 export function formatNumber(n: number | null | undefined): string {
   if (n === null || n === undefined) return '—';
   return new Intl.NumberFormat(undefined).format(n);

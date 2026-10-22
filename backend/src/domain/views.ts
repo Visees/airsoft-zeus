@@ -16,6 +16,9 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
     [e.id],
     q,
   );
+  // Attachments are for the people taking part; others only see how many there are.
+  const canSeeAttachments = ctx.isGm || ctx.member?.status === 'approved';
+  const attachments = await many('SELECT * FROM event_attachments WHERE event_id = $1 ORDER BY created_at', [e.id], q);
   const meRow = ctx.member ? await one('SELECT m.*, u.nickname, u.avatar_url FROM event_members m JOIN users u ON u.id = m.user_id WHERE m.event_id = $1 AND m.user_id = $2', [e.id, userId], q) : null;
   const myTeam = ctx.viewer.teamId;
   return {
@@ -48,6 +51,8 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
     squads: ctx.isGm || ctx.member?.status === 'approved' ? squads.map(dto.squad) : [],
     me: meRow ? dto.member(meRow, { viewerIsGm: ctx.isGm, showRole: true, online: hub.isOnline(userId) }) : null,
     joinCode: ctx.isGm ? e.join_code : null,
+    attachmentCount: attachments.length,
+    attachments: canSeeAttachments ? attachments.map(dto.attachment) : [],
   };
 }
 

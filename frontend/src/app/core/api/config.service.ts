@@ -9,6 +9,7 @@ const FALLBACK: AppConfig = {
   termsVersion: '2026-10',
   privacyVersion: '2026-10',
   maxUploadBytes: 5 * 1024 * 1024,
+  maxAttachmentBytes: 25 * 1024 * 1024,
 };
 
 /** Runtime configuration served by the API (keys are not baked into the bundle). */

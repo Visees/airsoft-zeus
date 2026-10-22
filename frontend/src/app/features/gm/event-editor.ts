@@ -19,6 +19,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { GAME_MODE_LABELS, formatDate, formatNumber, formatTime, initials } from '../../core/util/format';
 import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { StatusChip, eventStatusChip } from '../../shared/status-chip';
+import { AttachmentManager } from './common/attachment-manager';
 import { SaveState, SaveStateIndicator, SegmentOption, SegmentedControl, SwitchRow } from './common/controls';
 import { BASICS_FIELD_MAP, EventBasicsFormComponent, basicsToInput, createBasicsForm, patchBasicsForm } from './common/event-basics-form';
 import { applyServerErrors, copyText, focusFirstInvalid, staticFormTick } from './common/form-utils';
@@ -56,6 +57,7 @@ interface NavCard {
     SwitchRow,
     EventBasicsFormComponent,
     RulesOfPlayComponent,
+    AttachmentManager,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -117,6 +119,7 @@ interface NavCard {
                 <button hlmTabsTrigger="basics" class="h-full px-3">Basics @if (dirtyMark('basics')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
                 <button hlmTabsTrigger="registration" class="h-full px-3">Registration @if (dirtyMark('registration')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
                 <button hlmTabsTrigger="rules" class="h-full px-3">Rules of play @if (dirtyMark('rules')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
+                <button hlmTabsTrigger="attachments" class="h-full px-3">Attachments @if (e.attachmentCount) { <span class="num text-muted-foreground">{{ e.attachmentCount }}</span> }</button>
                 <button hlmTabsTrigger="gms" class="h-full px-3">Game Masters</button>
               </div>
             </div>
@@ -164,6 +167,10 @@ interface NavCard {
             <div hlmTabsContent="rules" class="pt-3">
               <zeus-rules-of-play [form]="rulesForm" [eventId]="e.id" [perkCount]="perkCount()" (perksAdded)="loadSide()" />
               <ng-container *ngTemplateOutlet="saveBar; context: { section: 'rules' }" />
+            </div>
+
+            <div hlmTabsContent="attachments" class="pt-3">
+              <zeus-attachment-manager [eventId]="e.id" [attachments]="e.attachments" [readonly]="e.status === 'completed' || e.status === 'cancelled'" (changed)="refresh()" />
             </div>
 
             <div hlmTabsContent="gms" class="pt-3">
@@ -420,7 +427,7 @@ export class EventEditorScreen {
     }
   }
 
-  private async refresh(): Promise<void> {
+  protected async refresh(): Promise<void> {
     try {
       this.applyEvent(await this.api.event(this.eventId()), false);
     } catch {

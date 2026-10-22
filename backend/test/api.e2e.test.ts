@@ -383,4 +383,47 @@ run('API end-to-end', () => {
     const notes = (await alpha2.get('/me/notifications')).body.items;
     expect(notes.find((n: Json) => n.type === 'event_removed' && n.title.includes('E2E event to moderate'))).toBeTruthy();
   });
+
+  it('shares event attachments only with GMs and approved players, checking the real file type', async () => {
+    const send = async (c: Client, method: string, path: string, form?: FormData) => {
+      const res = await fetch(`${API}/api${path}`, { method, headers: { authorization: `Bearer ${c.token}` }, body: form });
+      return { status: res.status, headers: res.headers, bytes: Buffer.from(await res.arrayBuffer()) };
+    };
+    const file = (bytes: Buffer, name: string) => {
+      const f = new FormData();
+      f.append('name', name);
+      f.append('file', new Blob([bytes]), name);
+      return f;
+    };
+    const created = await alpha.post('/events', {
+      name: 'E2E attachments',
+      gameMode: 'sunday',
+      startAt: new Date(Date.now() + 86400_000).toISOString(),
+      endAt: new Date(Date.now() + 90000_000).toISOString(),
+    });
+    const id = created.body.id;
+    const pdf = Buffer.concat([Buffer.from('%PDF-1.4\n'), Buffer.alloc(1000, 65)]);
+    const up = await send(alpha, 'POST', `/events/${id}/attachments`, file(pdf, 'Game book città.pdf'));
+    expect(up.status).toBe(201);
+    const att = JSON.parse(up.bytes.toString());
+    expect(att.fileName).toBe('Game book città.pdf');
+    // The content decides, not the name.
+    expect((await send(alpha, 'POST', `/events/${id}/attachments`, file(Buffer.from('<script>'), 'x.pdf'))).status).toBe(400);
+
+    await alpha.post(`/events/${id}/status`, { status: 'registration_open' });
+    const outside = (await bravo.get(`/events/${id}`)).body;
+    expect(outside.attachmentCount).toBe(1);
+    expect(outside.attachments).toEqual([]);
+    expect((await send(bravo, 'GET', `/events/${id}/attachments/${att.id}/file`)).status).toBe(403);
+    expect((await send(bravo, 'POST', `/events/${id}/attachments`, file(pdf, 'p.pdf'))).status).toBe(403);
+
+    expect((await alpha2.post(`/events/${id}/join`, {})).body.status).toBe('approved');
+    const dl = await send(alpha2, 'GET', `/events/${id}/attachments/${att.id}/file`);
+    expect(dl.status).toBe(200);
+    expect(dl.bytes.equals(pdf)).toBe(true);
+    expect(dl.headers.get('content-disposition')).toContain("filename*=UTF-8''Game%20book%20citt%C3%A0.pdf");
+    expect((await alpha2.del(`/events/${id}/attachments/${att.id}`)).status).toBe(403);
+    expect((await alpha.del(`/events/${id}/attachments/${att.id}`)).status).toBe(200);
+    expect((await send(alpha2, 'GET', `/events/${id}/attachments/${att.id}/file`)).status).toBe(404);
+  });
 });

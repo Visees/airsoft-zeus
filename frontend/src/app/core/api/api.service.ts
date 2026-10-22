@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, timeout } from 'rxjs';
+import { filter, firstValueFrom, map, tap, timeout } from 'rxjs';
 import {
   ActivityItem,
   AdjustBalanceRequest,
@@ -16,6 +16,7 @@ import {
   Club,
   ConsentKind,
   Effect,
+  EventAttachment,
   EventDetail,
   EventInput,
   EventResults,
@@ -256,6 +257,31 @@ export class ApiService {
   }
   deleteEvent(eventId: Uuid) {
     return this.delete<{ ok: true }>(this.ev(eventId));
+  }
+  attachments(eventId: Uuid) {
+    return this.get<EventAttachment[]>(this.ev(eventId, '/attachments'));
+  }
+  /** `onProgress` gets 0–1 while the file is sent. */
+  uploadAttachment(eventId: Uuid, file: File, onProgress?: (fraction: number) => void) {
+    const form = new FormData();
+    // The file name in the multipart header is not reliably UTF-8: send it again as a field.
+    form.append('name', file.name);
+    form.append('file', file);
+    return firstValueFrom(
+      this.http.post<EventAttachment>(this.base + this.ev(eventId, '/attachments'), form, { observe: 'events', reportProgress: true }).pipe(
+        tap((e) => {
+          if (e.type === HttpEventType.UploadProgress && e.total) onProgress?.(e.loaded / e.total);
+        }),
+        filter((e) => e.type === HttpEventType.Response),
+        map((e) => e.body!),
+      ),
+    );
+  }
+  deleteAttachment(eventId: Uuid, attachmentId: Uuid) {
+    return this.delete<{ ok: true }>(this.ev(eventId, `/attachments/${attachmentId}`));
+  }
+  downloadAttachment(eventId: Uuid, attachmentId: Uuid) {
+    return firstValueFrom(this.http.get(this.base + this.ev(eventId, `/attachments/${attachmentId}/file`), { responseType: 'blob' }));
   }
   setEventStatus(eventId: Uuid, status: EventDetail['status'], reason?: string) {
     return this.post<EventDetail>(this.ev(eventId, '/status'), { status, reason });

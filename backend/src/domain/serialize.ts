@@ -233,6 +233,10 @@ export function squad(s: Row) {
   return { id: s.id, teamId: s.team_id, name: s.name, callsign: s.callsign, icon: s.icon, leaderId: s.leader_id };
 }
 
+export function attachment(a: Row) {
+  return { id: a.id, fileName: a.file_name, mimeType: a.mime_type, sizeBytes: a.size_bytes, createdAt: iso(a.created_at) };
+}
+
 /** `m` joined with users: nickname, avatar_url. */
 export function member(m: Row, opts: { viewerIsGm: boolean; showRole: boolean; online: boolean }) {
   return {

@@ -13,6 +13,7 @@ import { ToastService } from '../../../core/ui/toast.service';
 import { GAME_MODE_LABELS, formatDate, formatNumber, formatTime } from '../../../core/util/format';
 import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../../shared/states';
 import { StatusChip, eventStatusChip } from '../../../shared/status-chip';
+import { AttachmentManager } from '../common/attachment-manager';
 import { BASICS_FIELD_MAP, EventBasicsFormComponent, basicsToInput, createBasicsForm, patchBasicsForm } from '../common/event-basics-form';
 import { applyServerErrors, controlError, focusFirstInvalid, staticFormTick } from '../common/form-utils';
 import { injectLifecycle } from '../common/lifecycle';
@@ -76,6 +77,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
     RulesOfPlayComponent,
     TeamEditor,
     TeamSelectionSettings,
+    AttachmentManager,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -222,6 +224,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
             <!-- STEP 1 · basics -->
             @case (1) {
               <zeus-event-basics-form [form]="basicsForm" [joinCode]="event()?.joinCode ?? null" />
+              <div class="mt-4">
+                <zeus-attachment-manager [eventId]="event()?.id ?? null" [attachments]="event()?.attachments ?? []" (changed)="refreshEvent()" />
+              </div>
             }
 
             <!-- STEP 2 · teams -->
@@ -422,6 +427,10 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                         <span class="num">{{ e.minPlayers }}–{{ e.maxPlayers }}</span> players
                       </p>
                       <p class="text-muted-foreground">{{ visibilitySummary() }}</p>
+                      <p class="text-muted-foreground">
+                        <span class="num">{{ e.attachmentCount }}</span> {{ e.attachmentCount === 1 ? 'attachment' : 'attachments' }} for the players
+                        <button type="button" class="tap ml-1 underline underline-offset-4 hover:text-foreground" (click)="jump(1)">Edit</button>
+                      </p>
                     </div>
 
                     <div class="panel flex flex-col gap-2 p-4">
@@ -492,6 +501,7 @@ export class CreateEventWizardScreen {
   readonly template = input<string>();
 
   private readonly root = viewChild<ElementRef<HTMLElement>>('root');
+  private readonly attachmentManager = viewChild(AttachmentManager);
 
   protected readonly steps = STEPS;
   protected readonly event = signal<EventDetail | null>(null);
@@ -786,7 +796,16 @@ export class CreateEventWizardScreen {
       const body = basicsToInput(f);
       const e = existing ? await this.api.updateEvent(existing.id, body) : await this.api.createEvent(body);
       this.setEvent(e, true);
-      if (!existing) this.toast.success('Draft created', e.visibility === 'private' && e.joinCode ? `Join code ${e.joinCode}` : 'It stays a draft until you publish it.');
+      if (!existing) {
+        this.toast.success('Draft created', e.visibility === 'private' && e.joinCode ? `Join code ${e.joinCode}` : 'It stays a draft until you publish it.');
+        // Files picked before the draft existed.
+        const failed = await this.attachmentManager()?.uploadPending(e.id);
+        if (failed) {
+          // Stay on this step (now with the draft) so the GM can add the failed files again.
+          this.goto(1, e.id);
+          return false;
+        }
+      }
       return e.id;
     } catch (err) {
       const unplaced = applyServerErrors(f, err, BASICS_FIELD_MAP);

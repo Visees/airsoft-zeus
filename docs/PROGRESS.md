@@ -144,6 +144,24 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   around the edge, leaving, and a phone clock 5 minutes slow. Not yet tested on a phone in the
   field; E2E suite not rerun.
 
+## Event attachments (2026-10-22)
+
+* GMs share documents with the players (game book, briefing, maps): `event_attachments`
+  (migration 0004), routes in `routes/attachments.ts` — list, upload (multipart `file` + UTF-8
+  `name` field), delete, download `/events/:id/attachments/:attId/file`.
+* Only GMs and approved members can list or download; everyone who can see the event gets
+  `attachmentCount` (the event page tells others to join). Files live in
+  `<UPLOAD_DIR>/attachments`, never under the public `/api/files` route, and are downloaded with
+  the bearer token (blob) under their original name.
+* Types are checked on the content: PDF, JPEG, PNG, WebP, and Office/OpenDocument files (ZIP
+  signature + docx/xlsx/pptx/odt/ods/odp extension). `MAX_ATTACHMENT_BYTES` (default 25 MB),
+  20 files per event, uploads share the 60/hour upload rate limit. No uploads on finished events.
+* UI: wizard step 1 (files picked before the draft exists upload right after "Create draft"),
+  editor tab "Attachments", event page section "Attachments", live More screen.
+* Deleting an event deletes its files. Duplicate / templates do not copy attachments.
+* E2E test "shares event attachments only with GMs and approved players…"; verified in the
+  browser at 390 px (wizard → editor → player joins → download identical to the original).
+
 ## Known limits / next ideas
 
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.

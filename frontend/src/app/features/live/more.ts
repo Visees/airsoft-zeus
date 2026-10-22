@@ -11,6 +11,7 @@ import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { formatRelative, formatTime } from '../../core/util/format';
 import { playsIn } from '../../core/util/members';
+import { AttachmentList } from '../../shared/attachments';
 import { nowSignal } from '../../shared/game-timer';
 import { ConnectionStatus } from '../../shared/link-status';
 import { LiveSession } from './live-session';
@@ -37,7 +38,7 @@ const FLAG_LABELS: Record<string, string> = {
 /** Location sharing controls, sync status, rules, messages, links, theme, leave event. */
 @Component({
   selector: 'zeus-live-more',
-  imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus],
+  imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -158,6 +159,13 @@ const FLAG_LABELS: Record<string, string> = {
             <p class="text-xs text-muted-foreground">Saved on this phone, readable without signal.</p>
           }
         </section>
+
+        @if (attachments().length) {
+          <section class="flex flex-col gap-2" aria-labelledby="att-title">
+            <h3 id="att-title" class="label-caps">Attachments · <span class="num">{{ attachments().length }}</span></h3>
+            <zeus-attachment-list [eventId]="ev.id" [attachments]="attachments()" />
+          </section>
+        }
       }
 
       <!-- Announcements -->
@@ -301,6 +309,8 @@ export class LiveMoreScreen {
     (this.store.event()?.gameMasters ?? []).map((g) => g.nickname).join(', '),
   );
 
+  /** `?? []`: an event saved on the phone by an older version has no attachments field. */
+  protected readonly attachments = computed(() => this.store.event()?.attachments ?? []);
   protected readonly rules = computed(() => {
     const ev = this.store.event();
     if (!ev) return [];

@@ -15,6 +15,7 @@ import { activity, audit, eventGms, notify } from '../domain/journal.js';
 import { extend, transition } from '../domain/lifecycle.js';
 import * as dto from '../domain/serialize.js';
 import { eventDetail, membersFor } from '../domain/views.js';
+import { removeAttachmentFiles } from './attachments.js';
 
 export const eventsRouter = Router();
 
@@ -259,7 +260,7 @@ eventsRouter.delete('/:eventId', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   // Platform admins can remove any event they can see, in any state (moderation).
   const admin = await userIsAdmin(me.id);
-  await tx(async (t) => {
+  const files = await tx(async (t) => {
     const ctx = admin ? await requireViewable(eventId, me.id, t) : await requireGm(eventId, me.id, t, true);
     if (!admin) {
       if (ctx.event.owner_id !== me.id) throw forbidden('Only the event owner can delete it.');
@@ -268,10 +269,13 @@ eventsRouter.delete('/:eventId', async (req, res) => {
     const members = admin
       ? (await many<{ user_id: string }>(`SELECT user_id FROM event_members WHERE event_id = $1 AND user_id <> $2 AND status IN ('invited','pending','approved')`, [eventId, me.id], t)).map((r) => r.user_id)
       : [];
+    const files = await many<{ stored_name: string }>('SELECT stored_name FROM event_attachments WHERE event_id = $1', [eventId], t);
     await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
     await t.query('DELETE FROM events WHERE id = $1', [eventId]);
     await notify(t, members, { type: 'event_removed', title: `${ctx.event.name} was removed`, body: 'A platform admin removed this event.', url: '/notifications' });
+    return files.map((f) => f.stored_name);
   });
+  await removeAttachmentFiles(files);
   if (admin) hub.invalidate(eventId, ['event']);
   res.json({ ok: true });
 });

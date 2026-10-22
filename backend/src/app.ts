@@ -9,6 +9,7 @@ import { runWithView } from './domain/context.js';
 import { errorHandler, notFound } from './errors.js';
 import { logger } from './logger.js';
 import { adminRouter } from './routes/admin.js';
+import { attachmentsRouter } from './routes/attachments.js';
 import { authRouter } from './routes/auth.js';
 import { commonRouter } from './routes/common.js';
 import { contentRouter } from './routes/content.js';
@@ -55,7 +56,7 @@ export function createApp() {
   app.use('/api/admin', requireAdmin, adminRouter);
   app.use('/api', commonRouter);
   app.use('/api', templateInstantiateRouter);
-  app.use('/api/events', requireVerified, eventsRouter, contentRouter, liveRouter);
+  app.use('/api/events', requireVerified, eventsRouter, contentRouter, liveRouter, attachmentsRouter);
 
   app.use('/api', (_req, _res, next) => next(notFound('Unknown API route.', 'unknown_route')));
   app.use(errorHandler);

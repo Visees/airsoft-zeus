@@ -62,6 +62,7 @@ export interface AppConfig {
   termsVersion: string;
   privacyVersion: string;
   maxUploadBytes: number;
+  maxAttachmentBytes: number;
 }
 
 export interface PlayerStats {
@@ -358,6 +359,19 @@ export interface EventDetail extends EventSummary {
   me: Member | null;
   /** Only for Game Masters. */
   joinCode: string | null;
+  /** Visible to everyone who can see the event. */
+  attachmentCount: number;
+  /** Only for Game Masters and approved members; empty for everyone else. */
+  attachments: EventAttachment[];
+}
+
+/** A document shared with the players of an event (game book, briefing, maps). */
+export interface EventAttachment {
+  id: Uuid;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: IsoDate;
 }
 
 export interface EventInput {

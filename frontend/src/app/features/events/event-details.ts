@@ -14,6 +14,7 @@ import { LocationTracker } from '../../core/location/location-tracker.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { GAME_MODE_LABELS, formatDate, formatDuration, formatTime, initials } from '../../core/util/format';
+import { AttachmentList } from '../../shared/attachments';
 import { ConnectionStatus } from '../../shared/link-status';
 import { ErrorState, PageHeader } from '../../shared/states';
 import { StatusChip, eventStatusChip } from '../../shared/status-chip';
@@ -31,7 +32,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
 /** Event page: briefing, rules and the join / membership actions. */
 @Component({
   selector: 'zeus-event-details-screen',
-  imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, ErrorState, PageHeader, StatusChip, TeamBadge, ConnectionStatus],
+  imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, ErrorState, PageHeader, StatusChip, TeamBadge, ConnectionStatus, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
@@ -237,6 +238,21 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                 <div class="panel p-4" [class.border-warning]="s.id === 'safety'">
                   <p class="text-sm whitespace-pre-line">{{ s.text }}</p>
                 </div>
+              </section>
+            }
+
+            @if (e.attachmentCount) {
+              <section aria-labelledby="att-title">
+                <h2 id="att-title" class="label-caps mb-2 flex items-center gap-1.5">
+                  <ng-icon name="lucidePaperclip" size="14" aria-hidden="true" /> Attachments · <span class="num">{{ e.attachmentCount }}</span>
+                </h2>
+                @if (e.attachments.length) {
+                  <zeus-attachment-list [eventId]="e.id" [attachments]="e.attachments" />
+                } @else {
+                  <p class="panel flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                    <ng-icon name="lucideLock" size="16" class="shrink-0" aria-hidden="true" /> {{ attachmentsHint() }}
+                  </p>
+                }
               </section>
             }
 
@@ -514,6 +530,21 @@ export class EventDetailsScreen {
     if (e.isGm) return 'gm';
     const status = e.me?.status ?? e.myStatus;
     return status ?? 'none';
+  });
+
+  /** Why the attachments are not downloadable yet (only GMs and approved players get them). */
+  protected readonly attachmentsHint = computed(() => {
+    switch (this.membership()) {
+      case 'pending':
+        return 'Available to download once the Game Master approves your registration.';
+      case 'invited':
+        return 'Accept the invitation to download the documents the Game Master shared.';
+      case 'none':
+      case 'left':
+        return 'The Game Master shared documents for the players, like the game book. Join the event to download them.';
+      default:
+        return 'Only registered players can download these documents.';
+    }
   });
 
   protected readonly lobbyStatus = computed(() => {
