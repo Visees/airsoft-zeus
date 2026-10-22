@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
@@ -14,11 +15,52 @@ import { TeamBadge } from '../../shared/team-badge';
 import { AdjustBalanceDialog } from './ops/adjust-balance-dialog';
 
 const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30';
+/** Ledger row. Phones: time | team, type / details | amount on two lines. Desktop: four columns. */
+const ROW_CLASS =
+  'grid grid-cols-[3rem_minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 px-3 py-2 text-sm lg:grid-cols-[7rem_10rem_1fr_9rem] lg:gap-x-4 lg:gap-y-1 lg:p-3';
+
+/** A ledger line: one entry, or a run of automatic "holding objective" payouts folded together. */
+interface LedgerRow {
+  id: string;
+  entry?: LedgerEntry;
+  group?: { entries: LedgerEntry[]; first: LedgerEntry; last: LedgerEntry; total: number };
+}
+
+/**
+ * Folds `recurring` entries (newest first) of the same team, objective and balance into one row,
+ * placed where the newest one is. Any other entry on that objective ends the run.
+ */
+function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
+  const rows: LedgerRow[] = [];
+  const open = new Map<string, LedgerRow>();
+  for (const e of entries) {
+    if (e.type !== 'recurring' || !e.objectiveId) {
+      for (const [k, r] of open) if (e.objectiveId && r.group!.last.objectiveId === e.objectiveId) open.delete(k);
+      rows.push({ id: e.id, entry: e });
+      continue;
+    }
+    const key = `${e.teamId}|${e.objectiveId}|${e.kind}`;
+    // another team holding it now: the earlier run of the previous holder is over
+    for (const [k, r] of open) if (k !== key && r.group!.last.objectiveId === e.objectiveId && r.group!.last.kind === e.kind) open.delete(k);
+    const run = open.get(key);
+    if (run) {
+      run.group!.entries.push(e);
+      run.group!.first = e;
+      run.group!.total += e.amount;
+    } else {
+      const row: LedgerRow = { id: e.id, group: { entries: [e], first: e, last: e, total: e.amount } };
+      open.set(key, row);
+      rows.push(row);
+    }
+  }
+  // a single payout reads better as a plain entry
+  return rows.map((r) => (r.group && r.group.entries.length === 1 ? { id: r.id, entry: r.group.last } : r));
+}
 
 /** Team balances, GM adjustments and the append-only ledger. Route: /gm/events/:eventId/scores */
 @Component({
   selector: 'zeus-score-manager-screen',
-  imports: [RouterLink, NgIcon, HlmButton, HlmLabel, CurrencyDisplay, ScoreDisplay, EmptyState, ErrorState, LoadingSkeleton, PageHeader, TeamBadge, AdjustBalanceDialog],
+  imports: [NgTemplateOutlet, RouterLink, NgIcon, HlmButton, HlmLabel, CurrencyDisplay, ScoreDisplay, EmptyState, ErrorState, LoadingSkeleton, PageHeader, TeamBadge, AdjustBalanceDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
@@ -115,46 +157,85 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
           <zeus-empty-state icon="lucideHistory" title="No ledger entries" message="Starting balances are written when the game starts; captures, purchases and adjustments follow." i18n-title i18n-message />
         } @else {
           <ol class="panel divide-y divide-border">
-            @for (l of entries(); track l.id) {
-              <li class="grid grid-cols-1 gap-x-4 gap-y-1 p-3 text-sm lg:grid-cols-[7rem_10rem_1fr_9rem]">
-                <div class="flex items-center gap-2 lg:flex-col lg:items-start lg:gap-0">
-                  <time class="num font-semibold" [attr.datetime]="l.createdAt" [title]="dateTime(l.createdAt)">{{ time(l.createdAt) }}</time>
-                  <span class="text-xs text-muted-foreground">{{ relative(l.createdAt) }}</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 lg:flex-col lg:items-start lg:gap-1">
-                  <zeus-team-badge [team]="teamById().get(l.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
-                  <span class="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <ng-icon [name]="l.kind === 'points' ? 'lucideTrophy' : 'lucideCoins'" size="12" [class]="l.kind === 'points' ? 'text-primary' : 'text-warning'" aria-hidden="true" />
-                    {{ l.kind === 'points' ? txt.points : txt.credits }} · {{ typeLabel(l) }}
-                  </span>
-                </div>
-                <div class="min-w-0">
-                  @if (l.reason) {
-                    <p class="wrap-break-word">{{ l.reason }}</p>
+            @for (r of rows(); track r.id) {
+              @if (r.group; as g) {
+                <!-- Automatic "holding objective" payouts in a row, folded into one line -->
+                <li>
+                  <button type="button" [class]="rowClass + ' w-full text-left hover:bg-muted'" [attr.aria-expanded]="expanded().has(r.id)" (click)="toggleGroup(r.id)">
+                    <div class="row-span-2 lg:row-span-1">
+                      <time class="num font-semibold" [attr.datetime]="g.last.createdAt" [title]="dateTime(g.last.createdAt)">{{ time(g.last.createdAt) }}</time>
+                      <span class="block text-xs text-muted-foreground max-lg:hidden">{{ relative(g.last.createdAt) }}</span>
+                    </div>
+                    <div class="flex min-w-0 flex-wrap items-center gap-x-2 lg:flex-col lg:items-start lg:gap-1">
+                      <zeus-team-badge [team]="teamById().get(g.last.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
+                      <ng-container [ngTemplateOutlet]="kindTpl" [ngTemplateOutletContext]="{ $implicit: g.last }" />
+                    </div>
+                    <p class="col-start-2 flex min-w-0 items-start gap-1 text-xs text-muted-foreground lg:col-start-auto lg:items-center lg:text-sm lg:text-foreground">
+                      <ng-icon [name]="expanded().has(r.id) ? 'lucideChevronDown' : 'lucideChevronRight'" size="14" class="shrink-0" aria-hidden="true" />
+                      <span class="min-w-0 lg:truncate">{{ g.last.objectiveName }} · <span class="num">{{ g.entries.length }} × {{ signed(g.last.amount) }}</span> · <span class="num">{{ time(g.first.createdAt) }}–{{ time(g.last.createdAt) }}</span></span>
+                    </p>
+                    <ng-container [ngTemplateOutlet]="amountTpl" [ngTemplateOutletContext]="{ amount: g.total, balance: g.last.balanceAfter }" />
+                  </button>
+                  @if (expanded().has(r.id)) {
+                    <ol class="divide-y divide-border border-t border-border bg-muted/40">
+                      @for (l of g.entries; track l.id) {
+                        <li><ng-container [ngTemplateOutlet]="entryTpl" [ngTemplateOutletContext]="{ $implicit: l }" /></li>
+                      }
+                    </ol>
                   }
-                  <p class="text-xs text-muted-foreground">
-                    @if (l.nickname) {
-                      <ng-container i18n>Player {{ l.nickname }} ·</ng-container>
-                    }
-                    @if (l.objectiveName) {
-                      <ng-container i18n>Objective {{ l.objectiveName }} ·</ng-container>
-                    }
-                    @if (l.perkId) {
-                      <ng-container i18n>Perk purchase ·</ng-container>
-                    }
-                    <ng-container i18n>By {{ l.actorNickname ?? txt.system }}</ng-container>
-                  </p>
-                </div>
-                <div class="flex items-baseline justify-between gap-2 lg:flex-col lg:items-end">
-                  <span class="num text-base font-bold" [class.text-destructive]="l.amount < 0" [class.text-primary]="l.amount > 0">{{ signed(l.amount) }}</span>
-                  @if (clampNote(l); as c) {
-                    <span class="text-xs text-warning lg:text-right">{{ c }}</span>
-                  }
-                  <span class="num text-xs text-muted-foreground" i18n>balance {{ number(l.balanceAfter) }}</span>
-                </div>
-              </li>
+                </li>
+              } @else if (r.entry; as l) {
+                <li><ng-container [ngTemplateOutlet]="entryTpl" [ngTemplateOutletContext]="{ $implicit: l }" /></li>
+              }
             }
           </ol>
+
+          <!-- One entry. Phones: time | team, type / reason, details | amount, balance -->
+          <ng-template #entryTpl let-l>
+            <div [class]="rowClass">
+              <div class="row-span-2 lg:row-span-1">
+                <time class="num font-semibold" [attr.datetime]="l.createdAt" [title]="dateTime(l.createdAt)">{{ time(l.createdAt) }}</time>
+                <span class="block text-xs text-muted-foreground max-lg:hidden">{{ relative(l.createdAt) }}</span>
+              </div>
+              <div class="flex min-w-0 flex-wrap items-center gap-x-2 lg:flex-col lg:items-start lg:gap-1">
+                <zeus-team-badge [team]="teamById().get(l.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
+                <ng-container [ngTemplateOutlet]="kindTpl" [ngTemplateOutletContext]="{ $implicit: l }" />
+              </div>
+              <div class="col-start-2 min-w-0 lg:col-start-auto">
+                @if (l.reason) {
+                  <p class="wrap-break-word">{{ l.reason }}</p>
+                }
+                <p class="text-xs text-muted-foreground">
+                  @if (l.nickname) {
+                    <ng-container i18n>Player {{ l.nickname }} ·</ng-container>
+                  }
+                  @if (l.objectiveName) {
+                    <ng-container i18n>Objective {{ l.objectiveName }} ·</ng-container>
+                  }
+                  @if (l.perkId) {
+                    <ng-container i18n>Perk purchase ·</ng-container>
+                  }
+                  <ng-container i18n>By {{ l.actorNickname ?? txt.system }}</ng-container>
+                </p>
+                @if (clampNote(l); as c) {
+                  <p class="text-xs text-warning">{{ c }}</p>
+                }
+              </div>
+              <ng-container [ngTemplateOutlet]="amountTpl" [ngTemplateOutletContext]="{ amount: l.amount, balance: l.balanceAfter }" />
+            </div>
+          </ng-template>
+          <ng-template #kindTpl let-l>
+            <span class="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <ng-icon [name]="l.kind === 'points' ? 'lucideTrophy' : 'lucideCoins'" size="12" [class]="l.kind === 'points' ? 'text-primary' : 'text-warning'" aria-hidden="true" />
+              {{ l.kind === 'points' ? txt.points : txt.credits }} · {{ typeLabel(l) }}
+            </span>
+          </ng-template>
+          <ng-template #amountTpl let-amount="amount" let-balance="balance">
+            <div class="col-start-3 row-span-2 row-start-1 flex flex-col items-end lg:col-start-auto lg:row-span-1 lg:row-start-auto">
+              <span class="num text-base font-bold" [class.text-destructive]="amount < 0" [class.text-primary]="amount > 0">{{ signed(amount) }}</span>
+              <span class="num text-xs text-muted-foreground" i18n>balance {{ number(balance) }}</span>
+            </div>
+          </ng-template>
           <div class="mt-3 flex justify-center">
             @if (cursor()) {
               <button hlmBtn type="button" variant="outline" class="h-11" (click)="loadMore()" [disabled]="ledgerLoading()">
@@ -218,6 +299,11 @@ export class ScoreManagerScreen {
 
   protected readonly adjustOpen = signal(false);
   protected readonly adjustTeamId = signal<string | null>(null);
+
+  protected readonly rowClass = ROW_CLASS;
+  protected readonly rows = computed(() => foldRecurring(this.entries()));
+  /** Folded runs the GM opened, by row id. */
+  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
 
   protected readonly teams = computed(() => this.event()?.teams ?? []);
   protected readonly rankedTeams = computed(() => [...this.teams()].sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder));
@@ -287,6 +373,14 @@ export class ScoreManagerScreen {
   protected setTeam(v: string): void {
     this.teamFilter.set(v);
     void this.reloadLedger();
+  }
+
+  protected toggleGroup(id: string): void {
+    this.expanded.update((s) => {
+      const next = new Set(s);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
   }
 
   protected typeLabel(l: LedgerEntry): string {

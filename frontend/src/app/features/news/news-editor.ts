@@ -44,7 +44,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="n-title"><ng-container i18n>Title</ng-container> <span aria-hidden="true">*</span></label>
               <input hlmInput id="n-title" formControlName="title" class="h-11" maxlength="140" autocomplete="off" />
-              @if (e('title', 'Title'); as m) {
+              @if (e('title', fieldLabels.title); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
@@ -60,7 +60,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
               <label hlmLabel for="n-summary" i18n>Summary</label>
               <textarea hlmTextarea id="n-summary" formControlName="summary" rows="2" maxlength="300"></textarea>
               <p class="text-sm text-muted-foreground" i18n>One or two sentences, shown on the home page card.</p>
-              @if (e('summary', 'Summary'); as m) {
+              @if (e('summary', fieldLabels.summary); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
@@ -68,7 +68,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
               <label hlmLabel for="n-body" i18n>Text</label>
               <textarea hlmTextarea id="n-body" formControlName="body" rows="10"></textarea>
               <p class="text-sm text-muted-foreground" i18n>Leave an empty line between paragraphs.</p>
-              @if (e('body', 'Text'); as m) {
+              @if (e('body', fieldLabels.text); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
@@ -93,7 +93,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="n-link" i18n>Link</label>
               <input hlmInput id="n-link" formControlName="linkUrl" class="h-11" maxlength="500" placeholder="https://…" autocomplete="off" inputmode="url" />
-              @if (e('linkUrl', 'Link'); as m) {
+              @if (e('linkUrl', fieldLabels.link); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
@@ -121,7 +121,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
               <div class="flex flex-col gap-1.5">
                 <label hlmLabel for="n-at" i18n>Publish at</label>
                 <input hlmInput id="n-at" type="datetime-local" formControlName="publishAt" class="h-11" />
-                @if (e('publishAt', 'Date'); as m) {
+                @if (e('publishAt', fieldLabels.date); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
@@ -150,6 +150,15 @@ type PublishMode = 'draft' | 'now' | 'schedule';
   `,
 })
 export class NewsEditorScreen {
+  /** Field names shown in validation messages. */
+  protected readonly fieldLabels = {
+    title: $localize`Title`,
+    summary: $localize`Summary`,
+    text: $localize`Text`,
+    link: $localize`Link`,
+    date: $localize`Date`,
+  };
+
   /** UI text used inside template expressions. */
   protected readonly txt = {
     uploading: $localize`Uploading…`,

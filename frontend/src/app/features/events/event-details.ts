@@ -35,7 +35,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, ErrorState, PageHeader, StatusChip, TeamBadge, ConnectionStatus, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page">
+    <div class="page" [class.max-lg:pb-40]="!!pinned()">
       @if (loading() && !event()) {
         <div class="flex flex-col gap-4" role="status" aria-label="Loading event" i18n-aria-label>
           <div class="aspect-16/7 w-full animate-pulse rounded-md bg-muted"></div>
@@ -443,6 +443,13 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
             }
           </aside>
         </div>
+
+        @if (pinned(); as p) {
+          <!-- Phones: the next step stays above the tab bar; the full action panel is at the end of a long page -->
+          <div class="fixed inset-x-0 bottom-[calc(4rem+var(--safe-bottom))] z-20 border-t border-border bg-background/95 px-4 py-2 backdrop-blur lg:hidden">
+            <a hlmBtn class="h-12 w-full" [routerLink]="p.link"><ng-icon [name]="p.icon" size="18" aria-hidden="true" /> {{ p.label }}</a>
+          </div>
+        }
       }
     </div>
   `,
@@ -574,6 +581,26 @@ export class EventDetailsScreen {
   protected readonly lobbyStatus = computed(() => {
     const s = this.event()?.status;
     return s === 'published' || s === 'registration_open' || s === 'lobby';
+  });
+
+  /** Phones: the one next step, pinned above the tab bar. Null when there is nothing to open. */
+  protected readonly pinned = computed<{ label: string; icon: string; link: string[] } | null>(() => {
+    const e = this.event();
+    if (!e) return null;
+    const running = e.status === 'live' || e.status === 'paused';
+    const results = { label: $localize`View results`, icon: 'lucideTrophy', link: ['/events', e.id, 'results'] };
+    switch (this.membership()) {
+      case 'gm':
+        if (running || e.status === 'lobby') return { label: $localize`Control center`, icon: 'lucideLayoutDashboard', link: ['/gm/events', e.id, 'control'] };
+        return e.status === 'completed' ? results : null;
+      case 'approved':
+        if (running) return { label: $localize`Open live map`, icon: 'lucideMap', link: ['/events', e.id, 'live'] };
+        if (e.status === 'completed') return results;
+        if (e.status === 'cancelled' || e.status === 'draft') return null;
+        return { label: $localize`Open lobby`, icon: 'lucideUsers', link: ['/events', e.id, 'lobby'] };
+      default:
+        return null;
+    }
   });
 
   protected readonly spotsLeft = computed(() => {

@@ -3339,6 +3339,15 @@
     "336354714033881357": "Mostra l'interfaccia",
     "4498795364940713905": "Come consentire di nuovo la posizione",
     "4216151224980662038": "Come consentire di nuovo le notifiche",
-    "4934093634243630156": "Accetto i {$START_TAG_BUTTON}Termini di servizio{$CLOSE_TAG_BUTTON} e l'{$START_TAG_BUTTON_1}Informativa sulla privacy{$CLOSE_TAG_BUTTON}, inclusa la condivisione della posizione durante gli eventi live a cui partecipo."
+    "4934093634243630156": "Accetto i {$START_TAG_BUTTON}Termini di servizio{$CLOSE_TAG_BUTTON} e l'{$START_TAG_BUTTON_1}Informativa sulla privacy{$CLOSE_TAG_BUTTON}, inclusa la condivisione della posizione durante gli eventi live a cui partecipo.",
+    "6414016414130697850": "dalle {$time}",
+    "2563337879246183169": "fino alle {$time}",
+    "5565797853976632621": "ricarica {$seconds} s",
+    "5732292750218872822": "max {$count} conquiste",
+    "1105489104615174537": "{$count} richiesti prima",
+    "2202497859915009920": "poi {$name}",
+    "3963714786547663202": "Non ancora posizionato sulla mappa",
+    "2178799491995533176": "Sempre disponibile",
+    "8114462015803870270": "Non fa parte di una catena"
   }
 }

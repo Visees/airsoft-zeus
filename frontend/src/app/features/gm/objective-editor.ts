@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, afterNextRender, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormRecord, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -16,7 +16,7 @@ import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Objective, Objectiv
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { activeLanguage } from '../../core/i18n/language';
-import { OBJECTIVE_TYPE_LABELS, downloadBlob, fromLocalInput, toLocalInput } from '../../core/util/format';
+import { OBJECTIVE_TYPE_LABELS, downloadBlob, formatTime, fromLocalInput, toLocalInput } from '../../core/util/format';
 import { formatLatLng } from '../../core/util/geo';
 import { TacticalMap } from '../../shared/map/tactical-map';
 import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
@@ -38,6 +38,8 @@ const SECTIONS = [
   { id: 'obj-visibility', label: $localize`Visibility` },
   { id: 'obj-chain', label: $localize`Chain` },
 ];
+/** Sections that start folded on phones (Basics stays open). */
+const FOLDED_AT_START = ['obj-position', 'obj-methods', 'obj-qr', 'obj-geofence', 'obj-rewards', 'obj-availability', 'obj-visibility', 'obj-chain'];
 
 const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30';
 
@@ -71,6 +73,12 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
+  // Folded section (phones): only the heading, the toggle and the summary line stay
+  styles: `
+    .folded > :not(h2):not(.fold-keep) {
+      display: none;
+    }
+  `,
   template: `
     <div class="page max-w-5xl!">
       <zeus-page-header
@@ -108,7 +116,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               <div class="flex flex-col gap-1.5">
                 <label hlmLabel for="o-name"><ng-container i18n>Name</ng-container> <span aria-hidden="true">*</span></label>
                 <input hlmInput id="o-name" formControlName="name" class="h-11" maxlength="80" autocomplete="off" />
-                @if (e('name', 'Name'); as m) {
+                @if (e('name', fieldLabels.name); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
@@ -123,7 +131,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               <div class="flex flex-col gap-1.5">
                 <label hlmLabel for="o-desc" i18n>Description <span class="font-normal text-muted-foreground">(players see it)</span></label>
                 <textarea hlmTextarea id="o-desc" formControlName="description" rows="3" maxlength="2000"></textarea>
-                @if (e('description', 'Description'); as m) {
+                @if (e('description', fieldLabels.description); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
@@ -179,20 +187,21 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Position ============ -->
-            <section id="obj-position" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-pos">
+            <section id="obj-position" [class.folded]="isFolded('obj-position')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-pos">
               <h2 id="h-pos" class="label-caps" i18n>Position</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-position', head: 'h-pos' }" />
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="o-lat" i18n>Latitude</label>
                   <input hlmInput id="o-lat" type="number" step="0.00001" formControlName="lat" class="num h-11" />
-                  @if (e('lat', 'Latitude'); as m) {
+                  @if (e('lat', fieldLabels.latitude); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="o-lng" i18n>Longitude</label>
                   <input hlmInput id="o-lng" type="number" step="0.00001" formControlName="lng" class="num h-11" />
-                  @if (e('lng', 'Longitude'); as m) {
+                  @if (e('lng', fieldLabels.longitude); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
@@ -218,8 +227,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Capture methods ============ -->
-            <section id="obj-methods" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-methods" formGroupName="methods">
+            <section id="obj-methods" [class.folded]="isFolded('obj-methods')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-methods" formGroupName="methods">
               <h2 id="h-methods" class="label-caps" i18n>Capture methods</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-methods', head: 'h-methods' }" />
               <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="checkbox" formControlName="code" class="size-5 accent-primary" />
@@ -239,7 +249,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               }
             </section>
 
-            <section class="panel -mt-4 flex flex-col gap-4 border-t-0 p-4 pt-0" aria-label="Capture rules" i18n-aria-label>
+            <section data-fold="obj-methods" [hidden]="isFolded('obj-methods')" class="panel -mt-4 flex flex-col gap-4 border-t-0 p-4 pt-0" aria-label="Capture rules" i18n-aria-label>
               @if (value().methods?.code || value().methods?.qr) {
                 <label class="flex min-h-11 cursor-pointer items-start gap-3">
                   <input type="checkbox" formControlName="requireGeofence" class="mt-1 size-5 accent-primary" />
@@ -268,7 +278,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                       <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> <ng-container i18n>Generate</ng-container>
                     </button>
                   </div>
-                  @if (e('captureCode', 'Code'); as m) {
+                  @if (e('captureCode', fieldLabels.code); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                   <p class="text-sm text-muted-foreground" i18n>4–32 letters and digits, unique within this event. Never shown to players; checked on the server. Generated codes avoid look-alike characters (0/O, 1/I/L). Left empty on a new objective, the server generates one.</p>
@@ -278,7 +288,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <!-- ============ QR ============ -->
             @if (showQrSection()) {
-              <section id="obj-qr" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-qr">
+              <section id="obj-qr" [class.folded]="isFolded('obj-qr')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-qr">
                 <h2 id="h-qr" class="label-caps">
                   @if (qr(); as q) {
                     <ng-container i18n>QR code · version {{ q.qrVersion }}</ng-container>
@@ -286,6 +296,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                     <ng-container i18n>QR code</ng-container>
                   }
                 </h2>
+                <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-qr', head: 'h-qr' }" />
                 @if (!objective()?.methods?.includes('qr')) {
                   <p class="text-sm text-muted-foreground" i18n>Save the objective with QR enabled to generate its QR code.</p>
                 } @else if (qrError()) {
@@ -313,8 +324,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             }
 
             <!-- ============ Geofence ============ -->
-            <section id="obj-geofence" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-geo" formGroupName="geofence">
+            <section id="obj-geofence" [class.folded]="isFolded('obj-geofence')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-geo" formGroupName="geofence">
               <h2 id="h-geo" class="label-caps" i18n>Geofence{{ geofenceUsed() ? '' : txt.notUsed }}</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-geofence', head: 'h-geo' }" />
               @if (!geofenceUsed()) {
                 <p class="text-sm text-muted-foreground" i18n>Enable the geofence method or "Require holding the zone" to use these settings.</p>
               }
@@ -368,8 +380,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Rewards ============ -->
-            <section id="obj-rewards" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-rew" formGroupName="rewards">
+            <section id="obj-rewards" [class.folded]="isFolded('obj-rewards')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-rew" formGroupName="rewards">
               <h2 id="h-rew" class="label-caps" i18n>Rewards</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-rewards', head: 'h-rew' }" />
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.points, id: 'r-pts', label: txt.victoryPointsPerCapture, min: 0, path: 'rewards.points' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.currency, id: 'r-cur', label: txt.creditsPerCapture, min: 0, path: 'rewards.currency' }" />
@@ -418,20 +431,21 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Availability ============ -->
-            <section id="obj-availability" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-av">
+            <section id="obj-availability" [class.folded]="isFolded('obj-availability')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-av">
               <h2 id="h-av" class="label-caps" i18n>Availability and limits</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-availability', head: 'h-av' }" />
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="o-start" i18n>Available from</label>
                   <input hlmInput id="o-start" type="datetime-local" formControlName="availabilityStart" class="h-11" />
-                  @if (e('availabilityStart', 'Start'); as m) {
+                  @if (e('availabilityStart', fieldLabels.start); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="o-end" i18n>Available until</label>
                   <input hlmInput id="o-end" type="datetime-local" formControlName="availabilityEnd" class="h-11" />
-                  @if (e('availabilityEnd', 'End'); as m) {
+                  @if (e('availabilityEnd', fieldLabels.end); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
@@ -454,8 +468,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Visibility ============ -->
-            <section id="obj-visibility" class="panel flex scroll-mt-20 flex-col gap-3 p-4" aria-labelledby="h-vis" formGroupName="visibility">
+            <section id="obj-visibility" [class.folded]="isFolded('obj-visibility')" class="panel relative flex scroll-mt-20 flex-col gap-3 p-4" aria-labelledby="h-vis" formGroupName="visibility">
               <h2 id="h-vis" class="label-caps" i18n>Visibility</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-visibility', head: 'h-vis' }" />
               @for (m of visibilityModes; track m.value) {
                 <label class="flex min-h-11 cursor-pointer items-start gap-3">
                   <input type="radio" formControlName="mode" [value]="m.value" class="mt-1 size-4 accent-primary" />
@@ -478,8 +493,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             </section>
 
             <!-- ============ Chain ============ -->
-            <section id="obj-chain" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-chain">
+            <section id="obj-chain" [class.folded]="isFolded('obj-chain')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-chain">
               <h2 id="h-chain" class="label-caps" i18n>Chain</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-chain', head: 'h-chain' }" />
               <fieldset>
                 <legend class="mb-1 text-sm font-medium" i18n>Prerequisites</legend>
                 <p class="mb-1 text-sm text-muted-foreground" i18n>It stays locked until a team has captured all of these.</p>
@@ -557,9 +573,38 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
         }
       </div>
     </ng-template>
+
+    <!-- Phones: the whole heading row opens and closes the section; folded, a summary line shows its settings -->
+    <ng-template #foldTpl let-id="id" let-head="head">
+      @if (phone()) {
+        <button
+          type="button"
+          class="fold-keep absolute inset-x-0 top-0 flex h-12 items-center justify-end rounded-t-md pr-4 text-muted-foreground"
+          [attr.aria-labelledby]="head"
+          [attr.aria-expanded]="!isFolded(id)"
+          (click)="toggleFold(id)"
+        >
+          <ng-icon [name]="isFolded(id) ? 'lucideChevronDown' : 'lucideChevronUp'" size="18" aria-hidden="true" />
+        </button>
+        @if (isFolded(id) && summary()[id]; as s) {
+          <p class="fold-keep -mt-2 truncate text-sm text-muted-foreground">{{ s }}</p>
+        }
+      }
+    </ng-template>
   `,
 })
 export class ObjectiveEditorScreen {
+  /** Field names shown in validation messages. */
+  protected readonly fieldLabels = {
+    name: $localize`Name`,
+    description: $localize`Description`,
+    latitude: $localize`Latitude`,
+    longitude: $localize`Longitude`,
+    code: $localize`Code`,
+    start: $localize`Start`,
+    end: $localize`End`,
+  };
+
   /** UI text used inside template expressions. */
   protected readonly txt = {
     uploading: $localize`Uploading…`,
@@ -696,6 +741,48 @@ export class ObjectiveEditorScreen {
 
   protected readonly geofenceUsed = computed(() => !!(this.value().methods?.geofence || this.value().requireGeofence));
   protected readonly showQrSection = computed(() => !this.isNew() && !!(this.value().methods?.qr || this.objective()?.methods.includes('qr')));
+
+  /** Phones fold every section but Basics (a new objective also keeps Position open); desktop shows them all. */
+  protected readonly phone = signal(false);
+  private readonly folded = signal<ReadonlySet<string>>(new Set(FOLDED_AT_START));
+  protected isFolded(id: string): boolean {
+    return this.phone() && this.folded().has(id);
+  }
+  protected toggleFold(id: string): void {
+    this.folded.update((s) => {
+      const next = new Set(s);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
+  /** One line under each folded heading, so the setup reads without opening anything. */
+  protected readonly summary = computed<Record<string, string>>(() => {
+    const v = this.value();
+    const m = v.methods ?? {};
+    const r = v.rewards ?? {};
+    const g = v.geofence ?? {};
+    const time = (local?: string) => (local ? formatTime(fromLocalInput(local)) : '');
+    const when = [
+      v.availabilityStart ? $localize`from ${time(v.availabilityStart)}:time:` : '',
+      v.availabilityEnd ? $localize`until ${time(v.availabilityEnd)}:time:` : '',
+      v.cooldownSec ? $localize`cooldown ${v.cooldownSec}:seconds: s` : '',
+      v.maxCaptures ? $localize`max ${v.maxCaptures}:count: captures` : '',
+    ].filter(Boolean);
+    const others = new Map(this.otherObjectives().map((o) => [o.id, o.name]));
+    const chain = [
+      v.prerequisiteIds?.length ? $localize`${v.prerequisiteIds.length}:count: required first` : '',
+      v.nextObjectiveId ? $localize`then ${others.get(v.nextObjectiveId) ?? ''}:name:` : '',
+    ].filter(Boolean);
+    return {
+      'obj-position': v.lat != null && v.lng != null ? formatLatLng({ lat: v.lat, lng: v.lng }) : $localize`Not placed on the map yet`,
+      'obj-methods': [m.code && $localize`Code`, m.qr && $localize`QR scan`, m.geofence && $localize`Zone hold`].filter(Boolean).join(' · '),
+      'obj-geofence': this.geofenceUsed() ? `${g.radiusM} m · ${g.durationSec} s` : '',
+      'obj-rewards': [`+${r.points} pt`, `+${r.currency} cr`, r.recurringPointsPerMinute ? `+${r.recurringPointsPerMinute} pt/min` : ''].filter(Boolean).join(' · '),
+      'obj-availability': when.length ? when.join(' · ') : $localize`Always available`,
+      'obj-visibility': this.visibilityModes.find((x) => x.value === v.visibility?.mode)?.label ?? '',
+      'obj-chain': chain.length ? chain.join(' · ') : $localize`Not in a chain`,
+    };
+  });
   protected readonly qrSvg = computed<SafeHtml | null>(() => {
     const q = this.qr();
     // Server-generated SVG for this objective only; nothing user-provided is inserted.
@@ -775,6 +862,20 @@ export class ObjectiveEditorScreen {
   );
 
   constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      if (typeof matchMedia === 'undefined') return;
+      const mq = matchMedia('(max-width: 1023.98px)');
+      this.phone.set(mq.matches);
+      const onChange = (e: MediaQueryListEvent) => this.phone.set(e.matches);
+      mq.addEventListener('change', onChange);
+      destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
+    });
+    // A new objective has to be placed: keep Position open.
+    effect(() => {
+      if (this.isNew()) untracked(() => this.folded.update((s) => new Set([...s].filter((id) => id !== 'obj-position'))));
+    });
+
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
       if (this.patching) return;
       if (this.saveState() !== 'saving') this.saveState.set('dirty');
@@ -1043,8 +1144,11 @@ export class ObjectiveEditorScreen {
 
   private scrollToFirstError(): void {
     setTimeout(() => {
-      const el = document.querySelector<HTMLElement>('zeus-objective-editor-screen .field-error, zeus-objective-editor-screen [role="alert"]');
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const errors = [...document.querySelectorAll<HTMLElement>('zeus-objective-editor-screen .field-error, zeus-objective-editor-screen [role="alert"]')];
+      // open the folded sections that hold an error, then scroll once they are laid out
+      const ids = new Set(errors.map((e) => (e.closest('section')?.dataset['fold'] ?? e.closest('section[id]')?.id)).filter((id): id is string => !!id));
+      if (ids.size) this.folded.update((s) => new Set([...s].filter((id) => !ids.has(id))));
+      setTimeout(() => errors.find((e) => e.offsetParent)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     });
   }
 

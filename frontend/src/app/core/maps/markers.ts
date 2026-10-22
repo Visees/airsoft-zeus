@@ -59,6 +59,9 @@ function wrap(children: HTMLElement[], title: string): HTMLElement {
   w.title = title;
   w.setAttribute('role', 'button');
   w.setAttribute('aria-label', title);
+  // Invisible 44px tap area centred on the icon (icons are 24–34px, hard to hit with gloves).
+  // Absolute, so it does not change the box; clicks on it reach the marker's own listener.
+  w.appendChild(el('span', { position: 'absolute', left: '50%', top: '50%', width: '44px', height: '44px', transform: 'translate(-50%, -50%)', borderRadius: '50%' }));
   children.forEach((c) => w.appendChild(c));
   return w;
 }

@@ -212,9 +212,10 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       </div>
     } @else {
       <!-- ======================= phone / tablet portrait ======================= -->
-      <div class="flex min-h-0 flex-1 flex-col">
-        <div class="relative h-[42dvh] shrink-0 border-b border-border"><ng-container [ngTemplateOutlet]="mapTpl" /></div>
-        <div role="tablist" aria-label="Sections" class="relative flex shrink-0 overflow-x-auto border-b border-border bg-card" i18n-aria-label>
+      <!-- Phone held sideways (compact:): map on the left, tabs and list on the right -->
+      <div class="flex min-h-0 flex-1 flex-col compact:grid compact:grid-cols-[minmax(0,1fr)_20rem] compact:grid-rows-[auto_minmax(0,1fr)]">
+        <div class="relative h-[42dvh] shrink-0 border-b border-border compact:col-start-1 compact:row-span-2 compact:row-start-1 compact:h-auto compact:border-r compact:border-b-0"><ng-container [ngTemplateOutlet]="mapTpl" /></div>
+        <div role="tablist" aria-label="Sections" class="relative flex shrink-0 overflow-x-auto border-b border-border bg-card compact:col-start-2 compact:row-start-1" i18n-aria-label>
           @for (t of phoneTabs; track t.id) {
             <button
               type="button"
@@ -232,7 +233,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             </button>
           }
         </div>
-        <div class="min-h-0 flex-1 overflow-y-auto p-3" role="tabpanel">
+        <div class="min-h-0 flex-1 overflow-y-auto p-3 compact:col-start-2 compact:row-start-2" role="tabpanel">
           @switch (phoneTab()) {
             @case ('teams') {
               <ng-container [ngTemplateOutlet]="teamsTpl" />

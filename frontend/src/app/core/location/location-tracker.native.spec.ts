@@ -14,6 +14,7 @@ const native = {
     cb: (loc?: unknown, err?: unknown) => void;
   }[],
   removed: [] as string[],
+  current: 0,
 };
 
 const fakeNativeLocation = {
@@ -24,10 +25,13 @@ const fakeNativeLocation = {
     return id;
   },
   removeWatcher: async (id: string) => void native.removed.push(id),
-  getCurrentPosition: async () => ({
-    timestamp: Date.now(),
-    coords: { latitude: 45.5, longitude: 9.2, accuracy: 6, heading: null, speed: null, altitude: null },
-  }),
+  getCurrentPosition: () => {
+    native.current++;
+    return Promise.resolve({
+      timestamp: Date.now(),
+      coords: { latitude: 45.5, longitude: 9.2, accuracy: 6, heading: null, speed: null, altitude: null },
+    });
+  },
 };
 
 const settings = {
@@ -62,6 +66,7 @@ describe('LocationTracker in the app', () => {
     vi.useFakeTimers({ now: 1_000_000 });
     native.watchers = [];
     native.removed = [];
+    native.current = 0;
     sent = [];
     wakeLocks = 0;
     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
@@ -128,6 +133,18 @@ describe('LocationTracker in the app', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(sent).toHaveLength(1);
     expect(sent[0].body.samples.at(-1)?.isMocked).toBe(true);
+  });
+
+  it('a standing phone sends its newest watch fix every report, without asking for one', async () => {
+    TestBed.inject(LocationTracker).start('ev', settings);
+    // ~1 Hz, same spot: the distance filter keeps one fix per 10+ s, so some reports find none queued
+    for (let i = 0; i < 120; i++) {
+      push(Date.now());
+      await vi.advanceTimersByTimeAsync(1_100);
+    }
+    expect(native.current).toBe(0);
+    expect(sent.length).toBe(13);
+    for (const s of sent) expect(s.body.samples).toHaveLength(1);
   });
 
   it('without the background setting tracks in the foreground and keeps the screen awake', async () => {

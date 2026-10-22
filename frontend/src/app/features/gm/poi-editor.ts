@@ -45,7 +45,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="p-name"><ng-container i18n>Name</ng-container> <span aria-hidden="true">*</span></label>
               <input hlmInput id="p-name" formControlName="name" class="h-11" maxlength="120" autocomplete="off" />
-              @if (e('name', 'Name'); as m) {
+              @if (e('name', fieldLabels.name); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
@@ -109,14 +109,14 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
               <div class="flex flex-col gap-1.5">
                 <label hlmLabel for="p-lat" i18n>Latitude</label>
                 <input hlmInput id="p-lat" type="number" step="0.00001" formControlName="lat" class="num h-11" />
-                @if (e('lat', 'Latitude'); as m) {
+                @if (e('lat', fieldLabels.latitude); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
               <div class="flex flex-col gap-1.5">
                 <label hlmLabel for="p-lng" i18n>Longitude</label>
                 <input hlmInput id="p-lng" type="number" step="0.00001" formControlName="lng" class="num h-11" />
-                @if (e('lng', 'Longitude'); as m) {
+                @if (e('lng', fieldLabels.longitude); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
@@ -225,7 +225,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="p-until" i18n>Visible until</label>
                   <input hlmInput id="p-until" type="datetime-local" formControlName="activeUntil" class="h-11" />
-                  @if (e('activeUntil', 'End'); as m) {
+                  @if (e('activeUntil', fieldLabels.end); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
@@ -248,6 +248,14 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
   `,
 })
 export class PoiEditorScreen {
+  /** Field names shown in validation messages. */
+  protected readonly fieldLabels = {
+    name: $localize`Name`,
+    latitude: $localize`Latitude`,
+    longitude: $localize`Longitude`,
+    end: $localize`End`,
+  };
+
   /** UI text used inside template expressions. */
   protected readonly txt = {
     uploading: $localize`Uploading…`,

@@ -113,8 +113,11 @@ export class ApiService {
   login(email: string, password: string) {
     return this.post<AuthResponse>('/auth/login', { email, password });
   }
-  refresh() {
-    return this.post<AuthResponse>('/auth/refresh');
+  /** In the app over native HTTP: a location report sent with the screen off may need a new token. */
+  async refresh(): Promise<AuthResponse> {
+    if (!isNativeApp()) return this.post<AuthResponse>('/auth/refresh');
+    const res = await this.postNative('/auth/refresh', {}, { 'Accept-Language': activeLanguage() }, LOCATION_REPORT_TIMEOUT_MS);
+    return res.data as AuthResponse;
   }
   logout() {
     return this.post<{ ok: true }>('/auth/logout');
@@ -526,16 +529,25 @@ export class ApiService {
     const headers: Record<string, string> = { 'Accept-Language': activeLanguage() };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     if (this.injector.get(PlayerViewService).has(eventId)) headers['X-Zeus-View'] = 'player';
-    const url = this.base + this.ev(eventId, '/locations');
+    try {
+      const res = await this.postNative(this.ev(eventId, '/locations'), body, headers, LOCATION_REPORT_TIMEOUT_MS);
+      return res.data as LocationReportResponse;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401 && token && !retried && (await auth.refresh())) return this.reportLocationNative(eventId, body, true);
+      throw e;
+    }
+  }
+  /** Native POST; errors become ApiError like HttpClient's (status 0 when the request failed). */
+  private async postNative(path: string, body: unknown, headers: Record<string, string>, timeoutMs: number): Promise<NativeResponse> {
+    const url = this.base + path;
     let res: NativeResponse;
     try {
-      res = await nativePost(url, body, headers, LOCATION_REPORT_TIMEOUT_MS);
+      res = await nativePost(url, body, headers, timeoutMs);
     } catch {
       throw ApiError.from(new HttpErrorResponse({ status: 0, url }));
     }
-    if (res.status === 401 && token && !retried && (await auth.refresh())) return this.reportLocationNative(eventId, body, true);
     if (res.status >= 400) throw ApiError.from(new HttpErrorResponse({ error: res.data, status: res.status, url }));
-    return res.data as LocationReportResponse;
+    return res;
   }
   stopTracking(eventId: Uuid) {
     return this.post<{ ok: true }>(this.ev(eventId, '/tracking/stop'));

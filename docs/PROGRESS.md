@@ -269,9 +269,19 @@ and the notes below.
   never resolve a promise with a plugin (it hangs, logging "then() is not implemented"). The
   loaders in `native-app.ts` resolve to `{ plugin }` and `NativeLocation` calls the methods.
   Found on a Galaxy S10e (GPS stuck on "Starting GPS"); unit tests use plain fakes and can't catch it.
-* `ApiService.reportLocation` in the app uses native HTTP (Android throttles WebView requests
-  after ~5 min in the background) and adds what the interceptors would: bearer token,
-  Accept-Language, `X-Zeus-View`, one refresh + retry on 401.
+* `ApiService.reportLocation` in the app uses native HTTP and adds what the interceptors would:
+  bearer token, Accept-Language, `X-Zeus-View`, one refresh + retry on 401. The token refresh
+  also goes over native HTTP in the app (cookies are shared with the WebView, rotation works).
+* Screen off (measured on a Galaxy S10e, Android 12, 2026-10-23 via a debug build and
+  `chrome://inspect`-style CDP): about a minute after locking, the WebView stops running its own
+  tasks. Microtasks still run, but `setTimeout`, `import()`, `fetch` and XHR never complete; only
+  callbacks from native code (watcher fixes, CapacitorHttp answers) get through. So the report path
+  started from a fix must await nothing but native calls and already-resolved promises:
+  `native-app.ts` imports each module once and keeps the promise. Before this, `nativePost` started
+  an `import('@capacitor/core')` that never finished, `sending` stayed true and the player turned
+  ◐ ~2 min after locking. With the screen off Android delivers fixes about every 8 s, so reports
+  go out about every 16 s. A report with nothing queued sends the newest watch fix instead of
+  calling `getCurrentPosition`.
 * `downloadBlob` opens the share sheet in the app (attachments, exports, QR PNG).
 * `APP_URL` defaults to the production site https://airsoftzeus.visedev.it. The app runs the
   deployed frontend, so the native code works only once this frontend is deployed. App id

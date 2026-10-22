@@ -137,6 +137,8 @@ export class LocationTracker {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private queue: LocationSample[] = [];
   private lastQueued: LocationSample | null = null;
+  /** Newest accepted fix, queued or not (a standing phone's fixes are mostly left out by the distance filter). */
+  private latest: LocationSample | null = null;
   private backoffMs = 0;
   private sending = false;
   private wakeLock: WakeLockSentinel | null = null;
@@ -311,6 +313,7 @@ export class LocationTracker {
     this.queue = [];
     this.pendingCount.set(0);
     this.lastQueued = null;
+    this.latest = null;
     this.geofence.set([]);
     if (this.state() !== 'denied' && this.state() !== 'unavailable') this.state.set('idle');
     this.eventId.set(null);
@@ -357,6 +360,10 @@ export class LocationTracker {
   private queueSample(sample: LocationSample): void {
     if (!this.logFix('poll', sample, this.outliers.accept(sample))) return;
     this.showFix(sample);
+    this.enqueueIfNewer(sample);
+  }
+
+  private enqueueIfNewer(sample: LocationSample): void {
     if (this.lastQueued && sample.timestamp <= this.lastQueued.timestamp) return;
     this.queue.push(sample);
     if (this.queue.length > MAX_QUEUE) this.queue.splice(0, this.queue.length - MAX_QUEUE);
@@ -382,6 +389,7 @@ export class LocationTracker {
     const sample = this.toSample(pos);
     if (!this.logFix(source, sample, this.outliers.accept(sample))) return;
     this.showFix(sample);
+    if (!this.latest || sample.timestamp > this.latest.timestamp) this.latest = sample;
     if (!this.settings || !this.watching()) return;
     const last = this.lastQueued;
     const moved = last ? distanceM(last, sample) : Infinity;
@@ -406,6 +414,8 @@ export class LocationTracker {
     // next report later, or the server stops counting a player who is standing in a zone.
     const startedAt = Date.now();
     this.lastFlushAt = startedAt;
+    // A standing phone's fixes are left out by the distance filter: send the newest one.
+    if (!this.queue.length && this.latest) this.enqueueIfNewer(this.latest);
     if (!this.queue.length) {
       // A phone standing still often gets no watchPosition callbacks, and resending the last fix is
       // useless (the server drops samples whose timestamp is not newer). Ask for a fresh fix, so a
