@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
+import { adminGuard, authGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
 import { LiveStore } from './core/live/live-store';
 import { LIVE_MAP_KEEP_ALIVE } from './core/routing/keep-alive-route-strategy';
 import { AppShell } from './layout/app-shell';
@@ -86,6 +86,9 @@ export const routes: Routes = [
       /** ?category=bug|report|general preselects the kind; ?from=/path is attached to bug reports */
       { path: 'support/new', title: 'New message', loadComponent: () => import('./features/support/support-new').then((m) => m.SupportNewScreen) },
       { path: 'support/:ticketId', title: 'Help & feedback', loadComponent: () => import('./features/support/support-thread').then((m) => m.SupportThreadScreen) },
+      /** Platform admins (ADMIN_EMAILS): tab = tickets | news */
+      { path: 'admin', pathMatch: 'full', redirectTo: 'admin/tickets' },
+      { path: 'admin/:tab', canActivate: [adminGuard], title: 'Admin', loadComponent: () => import('./features/admin/admin-dashboard').then((m) => m.AdminDashboardScreen) },
       { path: 'notifications', title: 'Notifications', loadComponent: () => import('./features/notifications/notifications').then((m) => m.NotificationsScreen) },
       { path: 'profile', title: 'Profile', loadComponent: () => import('./features/profile/profile').then((m) => m.ProfileScreen) },
       { path: 'profile/edit', title: 'Edit profile', loadComponent: () => import('./features/profile/edit-profile').then((m) => m.EditProfileScreen) },

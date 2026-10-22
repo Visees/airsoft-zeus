@@ -60,6 +60,17 @@ interface NavItem {
           </a>
         </li>
       </ul>
+      @if (user()?.isAdmin) {
+        <p class="label-caps mt-6 px-6">Platform</p>
+        <ul class="mt-1 flex flex-col gap-0.5 px-3">
+          <li>
+            <a routerLink="/admin" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold"
+              class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
+              <ng-icon name="lucideShield" size="18" aria-hidden="true" /> Admin
+            </a>
+          </li>
+        </ul>
+      }
       <div class="mt-auto border-t border-sidebar-border p-3">
         <a routerLink="/profile" class="flex items-center gap-3 rounded-sm p-2 hover:bg-sidebar-accent">
           @if (user()?.avatarUrl) {

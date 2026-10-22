@@ -162,7 +162,7 @@ import { StatTiles } from '../profile/profile-ui';
               <section aria-labelledby="home-news">
                 <div class="mb-2 flex items-baseline justify-between gap-2">
                   <h2 id="home-news" class="label-caps">News</h2>
-                  <a routerLink="/news" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">{{ isAdmin() ? 'Manage news' : 'All news' }}</a>
+                  <a [routerLink]="isAdmin() ? '/admin/news' : '/news'" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">{{ isAdmin() ? 'Manage news' : 'All news' }}</a>
                 </div>
                 @if (d.news.length) {
                   <ul class="flex flex-col gap-2">

@@ -339,8 +339,14 @@ run('API end-to-end', () => {
     expect((await alpha2.get('/support?all=true')).body.items.some((t: Json) => t.id === id)).toBe(false);
     expect((await alpha.get('/support')).body.items[0].id).toBe(id);
 
+    expect((await alpha.get('/admin/overview')).status).toBe(403);
+
     // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
     if (!(await gm.get('/me')).body.isAdmin) return;
+    const overview = (await gm.get('/admin/overview')).body;
+    expect(overview.tickets.open).toBeGreaterThanOrEqual(1);
+    expect(overview.tickets.openBugs).toBeGreaterThanOrEqual(1);
+    expect(typeof overview.news.drafts).toBe('number');
     const inbox = await gm.get('/support?all=true&status=open');
     const row = inbox.body.items.find((t: Json) => t.id === id);
     expect(row.userNickname).toBe('Kestrel');

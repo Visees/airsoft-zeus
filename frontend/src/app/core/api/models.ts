@@ -1143,3 +1143,12 @@ export interface SupportTicketInput {
   body: string;
   context?: SupportContext;
 }
+
+// ---------------------------------------------------------------------------
+// Admin dashboard (ADMIN_EMAILS)
+// ---------------------------------------------------------------------------
+
+export interface AdminOverview {
+  tickets: { open: number; answered: number; closed: number; openBugs: number };
+  news: { drafts: number; scheduled: number; published: number };
+}

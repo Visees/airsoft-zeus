@@ -177,7 +177,7 @@ export class NewsEditorScreen {
 
   protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
   protected readonly isNew = computed(() => this.newsId() === 'new');
-  protected readonly backUrl = computed(() => (this.isNew() ? '/news' : `/news/${this.newsId()}`));
+  protected readonly backUrl = computed(() => (this.isNew() ? '/admin/news' : `/news/${this.newsId()}`));
 
   protected readonly form = new FormGroup({
     title: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(140)] }),
@@ -331,7 +331,7 @@ export class NewsEditorScreen {
       await this.api.deleteNews(n.id);
       this.dirty.set(false);
       this.toast.success('News deleted');
-      await this.router.navigateByUrl('/news', { replaceUrl: true });
+      await this.router.navigateByUrl('/admin/news', { replaceUrl: true });
     } catch (e) {
       this.toast.error(e);
     }

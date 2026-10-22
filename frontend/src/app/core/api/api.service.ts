@@ -35,6 +35,7 @@ import {
   Member,
   MeUser,
   MyStats,
+  AdminOverview,
   News,
   NewsInput,
   Objective,
@@ -225,6 +226,12 @@ export class ApiService {
   }
   setSupportStatus(id: Uuid, status: SupportStatus) {
     return this.patch<SupportTicketDetail>(`/support/${encodeURIComponent(id)}`, { status });
+  }
+
+  // --- admin ----------------------------------------------------------------
+  /** Counters for the admin dashboard (admins only). */
+  adminOverview() {
+    return this.get<AdminOverview>('/admin/overview');
   }
 
   // --- events ---------------------------------------------------------------

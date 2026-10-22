@@ -19,7 +19,7 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header eyebrow="Help & feedback" title="Conversation" back="/support" backLabel="All messages" />
+      <zeus-page-header [eyebrow]="staff() ? 'Admin' : 'Help & feedback'" title="Conversation" [back]="staff() ? '/admin/tickets' : '/support'" [backLabel]="staff() ? 'All tickets' : 'All messages'" />
 
       @if (loading()) {
         <zeus-loading-skeleton [rows]="5" />

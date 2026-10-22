@@ -85,7 +85,7 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
 
         <nav class="mt-6" aria-label="Profile links">
           <ul class="panel divide-y divide-border overflow-hidden">
-            @for (l of links; track l.link) {
+            @for (l of links(); track l.link) {
               <li>
                 <a [routerLink]="l.link" class="flex min-h-14 items-center gap-3 px-4 hover:bg-muted/60">
                   <ng-icon [name]="l.icon" size="18" class="text-muted-foreground" aria-hidden="true" />
@@ -143,13 +143,14 @@ export class ProfileScreen implements OnInit {
     return m;
   });
 
-  protected readonly links = [
+  protected readonly links = computed(() => [
     { label: 'Edit profile', hint: 'Photo, nickname, club, role, emergency contact', icon: 'lucidePencil', link: '/profile/edit' },
     { label: 'Statistics', hint: 'Game history, results and badges', icon: 'lucideChartColumn', link: '/profile/stats' },
     { label: 'Settings', hint: 'Theme, notifications, password, data', icon: 'lucideSettings', link: '/settings' },
     { label: 'Privacy', hint: 'What other players and Game Masters see', icon: 'lucideShieldCheck', link: '/settings/privacy' },
     { label: 'Help & feedback', hint: 'Report a bug, flag a problem, write to the team', icon: 'lucideLifeBuoy', link: '/support' },
-  ];
+    ...(this.user()?.isAdmin ? [{ label: 'Admin', hint: 'Answer support tickets, publish News', icon: 'lucideShield', link: '/admin' }] : []),
+  ]);
 
   ngOnInit(): void {
     // Stats and badges change after games: refresh in the background.

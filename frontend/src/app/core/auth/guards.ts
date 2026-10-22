@@ -23,6 +23,14 @@ export const verifiedGuard: CanActivateFn = async (_route, state) => {
   return true;
 };
 
+/** Platform admin (ADMIN_EMAILS on the server). Goes inside the shell, after verifiedGuard. */
+export const adminGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await auth.init();
+  return auth.user()?.isAdmin ? true : router.createUrlTree(['/home']);
+};
+
 /** Only for signed-out visitors (welcome, login, sign-up). */
 export const guestGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);

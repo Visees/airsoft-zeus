@@ -1,20 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiService } from '../../core/api/api.service';
-import { SupportStatus, SupportTicket } from '../../core/api/models';
+import { SupportTicket } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
 import { SupportTicketCard } from './support-ui';
 
-type View = 'mine' | 'inbox';
-type StatusFilter = SupportStatus | 'all';
-
 /**
- * Help & feedback: the player's conversations with the Airsoft Zeus team. Admins also get the
- * inbox with every conversation, filtered by status. Route: /support
+ * Help & feedback: the player's conversations with the Airsoft Zeus team. Admins answer
+ * everyone's from the dashboard (/admin/tickets). Route: /support
  */
 @Component({
   selector: 'zeus-support-list-screen',
@@ -27,24 +24,14 @@ type StatusFilter = SupportStatus | 'all';
       </zeus-page-header>
 
       @if (isAdmin()) {
-        <div class="mb-4 flex flex-col gap-2">
-          <div class="flex gap-2" role="group" aria-label="Conversations">
-            @for (v of views; track v.value) {
-              <button type="button" class="tap rounded-sm border px-3 text-sm" [attr.aria-pressed]="view() === v.value"
-                [class]="view() === v.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:bg-muted'"
-                (click)="view.set(v.value)">{{ v.label }}</button>
-            }
-          </div>
-          @if (view() === 'inbox') {
-            <div class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status">
-              @for (f of filters; track f.value) {
-                <button type="button" class="tap shrink-0 rounded-sm border px-3 text-sm" [attr.aria-pressed]="status() === f.value"
-                  [class]="status() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:bg-muted'"
-                  (click)="status.set(f.value)">{{ f.label }}</button>
-              }
-            </div>
-          }
-        </div>
+        <a routerLink="/admin/tickets" class="panel mb-4 flex min-h-14 items-center gap-3 px-4 hover:bg-muted/60">
+          <ng-icon name="lucideInbox" size="18" class="text-muted-foreground" aria-hidden="true" />
+          <span class="flex-1">
+            <span class="block font-semibold">Admin inbox</span>
+            <span class="block text-xs text-muted-foreground">Answer the messages from every player</span>
+          </span>
+          <ng-icon name="lucideChevronRight" size="16" class="text-muted-foreground" aria-hidden="true" />
+        </a>
       }
 
       @if (loading()) {
@@ -52,16 +39,12 @@ type StatusFilter = SupportStatus | 'all';
       } @else if (error() && !items().length) {
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
-        @if (inbox()) {
-          <zeus-empty-state icon="lucideLifeBuoy" title="Nothing here" message="No conversations with this status." />
-        } @else {
-          <zeus-empty-state icon="lucideLifeBuoy" title="No messages yet"
-            message="Found a bug, something wrong in an event, or have an idea? Write to us: we answer here and you get a notification." />
-        }
+        <zeus-empty-state icon="lucideLifeBuoy" title="No messages yet"
+          message="Found a bug, something wrong in an event, or have an idea? Write to us: we answer here and you get a notification." />
       } @else {
         <ul class="flex flex-col gap-2" aria-label="Conversations">
           @for (t of items(); track t.id) {
-            <li><zeus-support-ticket-card [ticket]="t" [admin]="inbox()" /></li>
+            <li><zeus-support-ticket-card [ticket]="t" /></li>
           }
         </ul>
         @if (nextCursor()) {
@@ -75,26 +58,12 @@ type StatusFilter = SupportStatus | 'all';
     </div>
   `,
 })
-export class SupportListScreen {
+export class SupportListScreen implements OnInit {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
-  protected readonly views: { value: View; label: string }[] = [
-    { value: 'inbox', label: 'Inbox' },
-    { value: 'mine', label: 'My messages' },
-  ];
-  protected readonly filters: { value: StatusFilter; label: string }[] = [
-    { value: 'open', label: 'To answer' },
-    { value: 'answered', label: 'Answered' },
-    { value: 'closed', label: 'Closed' },
-    { value: 'all', label: 'All' },
-  ];
-
   protected readonly isAdmin = computed(() => !!this.auth.user()?.isAdmin);
-  protected readonly view = signal<View>('inbox');
-  protected readonly status = signal<StatusFilter>('open');
-  protected readonly inbox = computed(() => this.isAdmin() && this.view() === 'inbox');
 
   protected readonly items = signal<SupportTicket[]>([]);
   protected readonly nextCursor = signal<string | null>(null);
@@ -102,18 +71,12 @@ export class SupportListScreen {
   protected readonly loadingMore = signal(false);
   protected readonly error = signal<unknown>(null);
 
-  constructor() {
-    effect(() => {
-      this.inbox();
-      this.status();
-      untracked(() => void this.load());
-    });
+  ngOnInit(): void {
+    void this.load();
   }
 
   private query(cursor: string | null) {
-    const inbox = this.inbox();
-    const status = this.status();
-    return this.api.supportTickets({ cursor, all: inbox, status: inbox && status !== 'all' ? status : null });
+    return this.api.supportTickets({ cursor });
   }
 
   protected async load(): Promise<void> {
