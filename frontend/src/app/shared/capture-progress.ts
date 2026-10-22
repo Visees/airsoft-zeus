@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { GeofenceStatus } from '../core/api/models';
+import { LocationTracker } from '../core/location/location-tracker.service';
 import { formatClock, formatDistance } from '../core/util/format';
 import { useAnswerStale, useHoldEstimate } from './capture-bar';
 
@@ -67,9 +68,13 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
       }
       @if (status()?.blocked === 'low_accuracy') {
         <dt class="label-caps self-center" i18n>GPS</dt>
-        <dd class="font-semibold text-warning" i18n>
-          ▲ Too imprecise — needs ±<span class="num">{{ status()!.maxAccuracyM }}</span> m or better. Move into the open and wait for a GPS fix.
-        </dd>
+        @if (tracker.approximateOnly()) {
+          <dd class="font-semibold text-warning" i18n>▲ Your phone shares only an approximate position. Turn on precise location for your browser (steps in More).</dd>
+        } @else {
+          <dd class="font-semibold text-warning" i18n>
+            ▲ Too imprecise — needs ±<span class="num">{{ status()!.maxAccuracyM }}</span> m or better. Move into the open and wait for a GPS fix.
+          </dd>
+        }
       } @else if (status()?.blocked === 'screen_closed') {
         <dt class="label-caps self-center" i18n>State</dt>
         <dd class="font-semibold text-warning" i18n>▲ Keep this screen open to hold the zone</dd>
@@ -78,6 +83,7 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
   `,
 })
 export class CaptureProgress {
+  protected readonly tracker = inject(LocationTracker);
   readonly status = input<GeofenceStatus | null>(null);
   /** Can the viewer's team build hold time here (see zoneCanAccrue)? */
   readonly canAccrue = input(true);

@@ -78,6 +78,12 @@ export class LocationTracker {
     if (fix.accuracy <= (this.settings?.maxAccuracyM ?? 50)) return 'fair';
     return 'poor';
   });
+  /**
+   * The fix is kilometres wide: on Android this is almost always the "approximate location"
+   * permission (the OS blurs it to ±2000 m) or Google Location Accuracy turned off, not bad signal.
+   * Waiting in the open does not help; the player must change a phone setting.
+   */
+  readonly approximateOnly = computed(() => this.gpsQuality() === 'poor' && (this.lastFix()?.accuracy ?? 0) >= 1000);
 
   private settings: TrackingSettings | null = null;
   private watchId: number | null = null;
@@ -137,7 +143,9 @@ export class LocationTracker {
     this.outliers = new OutlierFilter(settings.maxSpeedMps);
     this.smoother = new PositionSmoother();
     this.state.set('requesting');
-    const highAccuracy = settings.highAccuracy && !settings.batterySaver;
+    // Battery saver only stretches the interval: without high accuracy Android answers with Wi-Fi/cell
+    // estimates, kilometres wide outdoors, and no zone can count the player.
+    const highAccuracy = settings.highAccuracy;
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => {
         // 'error' too: a first fix slower than the timeout (cold start under trees) reports an error, then fixes arrive
@@ -202,7 +210,7 @@ export class LocationTracker {
     const s = this.settings;
     return new Promise((resolve) =>
       navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
-        enableHighAccuracy: !!s?.highAccuracy && !s?.batterySaver,
+        enableHighAccuracy: !!s?.highAccuracy,
         maximumAge: 1_000,
         timeout: Math.min(10_000, this.intervalMs()),
       }),

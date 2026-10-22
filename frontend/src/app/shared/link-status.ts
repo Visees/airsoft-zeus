@@ -73,6 +73,29 @@ export class ConnectionStatus {
   protected readonly aria = computed(() => $localize`Connection ${LINK_STATE_LABELS[this.conn.state()]}:state:, last synced ${this.synced()}:synced:`);
 }
 
+/** How to fix a kilometres-wide fix (LocationTracker.approximateOnly): turn on precise location. */
+@Component({
+  selector: 'zeus-precise-location-help',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block rounded-sm border border-warning/60 bg-warning/10 p-3 text-sm', role: 'note' },
+  template: `
+    <p class="font-semibold text-warning" i18n>▲ Your phone gives only an approximate position (±{{ accuracy() }} m), so zones cannot count you.</p>
+    <ol class="mt-1.5 flex list-decimal flex-col gap-1 pl-5">
+      <li i18n>
+        <strong>Android:</strong> Settings → Apps → Chrome (or the browser you play with) → Permissions → Location → turn on
+        <strong>Use precise location</strong>.
+      </li>
+      <li i18n>Also check Settings → Location → Location services → <strong>Google Location Accuracy</strong> is on.</li>
+      <li i18n><strong>iPhone:</strong> Settings → Privacy → Location Services → your browser → turn on <strong>Precise Location</strong>.</li>
+      <li i18n>Then reload this page.</li>
+    </ol>
+  `,
+})
+export class PreciseLocationHelp {
+  private readonly tracker = inject(LocationTracker);
+  protected readonly accuracy = computed(() => Math.round(this.tracker.lastFix()?.accuracy ?? 0));
+}
+
 /** GPS indicator: accuracy in metres and quality glyph. */
 @Component({
   selector: 'zeus-gps-status',

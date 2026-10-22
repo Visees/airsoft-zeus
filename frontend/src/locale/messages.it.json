@@ -3267,6 +3267,12 @@
     "8691741789851962706": "{$nickname} bannato",
     "8800860932982779880": "Rimossi / bannati / usciti",
     "2999492056553212422": "Bannato",
-    "7549695930447114662": "Scegli un'opzione"
+    "7549695930447114662": "Scegli un'opzione",
+    "5476382464467554517": "▲ Il telefono condivide solo una posizione approssimativa. Attiva la posizione precisa per il browser (passaggi in Altro).",
+    "8327479262582638688": "▲ Il telefono fornisce solo una posizione approssimativa (±{$INTERPOLATION} m), quindi le zone non possono contarti.",
+    "535465883532661114": "{$START_TAG_STRONG}Android:{$CLOSE_TAG_STRONG} Impostazioni → App → Chrome (o il browser con cui giochi) → Autorizzazioni → Posizione → attiva {$START_TAG_STRONG}Usa posizione precisa{$CLOSE_TAG_STRONG}. ",
+    "5099376726613484460": "Controlla anche Impostazioni → Posizione → Servizi di localizzazione → {$START_TAG_STRONG}Precisione posizione Google{$CLOSE_TAG_STRONG} sia attiva.",
+    "5299168730935033869": "{$START_TAG_STRONG}iPhone:{$CLOSE_TAG_STRONG} Impostazioni → Privacy e sicurezza → Localizzazione → il tuo browser → attiva {$START_TAG_STRONG}Posizione esatta{$CLOSE_TAG_STRONG}.",
+    "4911539652061620331": "Poi ricarica questa pagina."
   }
 }

@@ -13,7 +13,7 @@ import { formatRelative, formatTime } from '../../core/util/format';
 import { playsIn } from '../../core/util/members';
 import { AttachmentList } from '../../shared/attachments';
 import { nowSignal } from '../../shared/game-timer';
-import { ConnectionStatus } from '../../shared/link-status';
+import { ConnectionStatus, PreciseLocationHelp } from '../../shared/link-status';
 import { LiveSession } from './live-session';
 
 const TRACKER_LABELS: Record<TrackerState, string> = {
@@ -38,7 +38,7 @@ const FLAG_LABELS: Record<string, string> = {
 /** Location sharing controls, sync status, rules, messages, links, theme, leave event. */
 @Component({
   selector: 'zeus-live-more',
-  imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, AttachmentList],
+  imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, PreciseLocationHelp, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -94,6 +94,9 @@ const FLAG_LABELS: Record<string, string> = {
             </div>
           }
         </dl>
+        @if (mine() && tracker.approximateOnly()) {
+          <zeus-precise-location-help />
+        }
         @if (flags().length) {
           <ul class="flex flex-col gap-1 text-sm text-warning">
             @for (f of flags(); track f) {
