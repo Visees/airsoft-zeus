@@ -48,7 +48,7 @@ export const BASICS_FIELD_MAP: Record<string, string> = {
 function coordsValidator(c: AbstractControl): ValidationErrors | null {
   const v = String(c.value ?? '').trim();
   if (!v) return null;
-  return parseLatLng(v) ? null : { message: 'Use "latitude, longitude", e.g. 45.4642, 9.1900.' };
+  return parseLatLng(v) ? null : { message: $localize`Use "latitude, longitude", e.g. 45.4642, 9.1900.` };
 }
 
 function basicsGroupValidator(g: AbstractControl): ValidationErrors | null {
@@ -168,54 +168,54 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
     @let f = form();
     <div [formGroup]="f" class="contents" [attr.data-rev]="tick()">
       <fieldset class="panel flex flex-col gap-4 p-4">
-        <legend class="label-caps float-left mb-1 w-full">Event</legend>
+        <legend class="label-caps float-left mb-1 w-full" i18n>Event</legend>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-name">Event name <span aria-hidden="true">*</span></label>
-          <input hlmInput id="bf-name" class="h-11" formControlName="name" autocomplete="off" placeholder="Operation Iron Valley" [attr.aria-invalid]="!!err('name')" aria-describedby="bf-name-e" />
+          <label hlmLabel for="bf-name"><ng-container i18n>Event name</ng-container> <span aria-hidden="true">*</span></label>
+          <input hlmInput id="bf-name" class="h-11" formControlName="name" autocomplete="off" placeholder="Operation Iron Valley" [attr.aria-invalid]="!!err('name')" aria-describedby="bf-name-e" i18n-placeholder />
           @if (err('name'); as e) {
             <p id="bf-name-e" class="field-error">{{ e }}</p>
           }
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <span hlmLabel id="bf-cover-l">Cover image</span>
+          <span hlmLabel id="bf-cover-l" i18n>Cover image</span>
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
             <div class="relative aspect-[16/9] w-full overflow-hidden rounded-sm border border-border bg-muted sm:w-56">
               @if (f.controls.coverUrl.value; as url) {
-                <img [src]="url" alt="Cover preview" class="absolute inset-0 size-full object-cover" />
+                <img [src]="url" alt="Cover preview" class="absolute inset-0 size-full object-cover" i18n-alt />
               } @else {
                 <div class="absolute inset-0 grid place-items-center text-muted-foreground">
                   <ng-icon name="lucideImage" size="28" aria-hidden="true" />
-                  <span class="sr-only">No cover image</span>
+                  <span class="sr-only" i18n>No cover image</span>
                 </div>
               }
             </div>
             <div class="flex flex-wrap gap-2">
               <label class="tap inline-flex h-11 cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring">
                 <ng-icon name="lucideUpload" size="16" aria-hidden="true" />
-                {{ uploading() ? 'Uploading…' : f.controls.coverUrl.value ? 'Replace image' : 'Upload image' }}
+                {{ uploading() ? txt.uploading : f.controls.coverUrl.value ? txt.replaceImage : txt.uploadImage }}
                 <input type="file" accept="image/*" class="sr-only" aria-labelledby="bf-cover-l" [disabled]="uploading()" (change)="onCover($event)" />
               </label>
               @if (f.controls.coverUrl.value) {
                 <button hlmBtn variant="ghost" class="h-11" type="button" (click)="removeCover()">
-                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Remove
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Remove</ng-container>
                 </button>
               }
-              <p class="w-full text-xs text-muted-foreground">JPG or PNG, landscape works best. Shown on event cards and the event page.</p>
+              <p class="w-full text-xs text-muted-foreground" i18n>JPG or PNG, landscape works best. Shown on event cards and the event page.</p>
             </div>
           </div>
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-desc">Description</label>
-          <textarea hlmTextarea id="bf-desc" rows="4" formControlName="description" placeholder="Scenario, schedule of the day, what makes this game different."></textarea>
+          <label hlmLabel for="bf-desc" i18n>Description</label>
+          <textarea hlmTextarea id="bf-desc" rows="4" formControlName="description" placeholder="Scenario, schedule of the day, what makes this game different." i18n-placeholder></textarea>
           @if (err('description'); as e) {
             <p class="field-error">{{ e }}</p>
           }
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-mode">Game mode</label>
+          <label hlmLabel for="bf-mode" i18n>Game mode</label>
           <select id="bf-mode" formControlName="gameMode" class="h-11 w-full rounded-md border border-input bg-background px-2.5 text-base dark:bg-input/30">
             @for (m of modes; track m.value) {
               <option [value]="m.value">{{ m.label }}</option>
@@ -226,70 +226,70 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
         @if (f.controls.gameMode.value === 'custom') {
           <div class="flex flex-col gap-4 border-l-2 border-primary/50 pl-3">
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="bf-cname">Custom mode name <span aria-hidden="true">*</span></label>
-              <input hlmInput id="bf-cname" class="h-11" formControlName="customModeName" placeholder="Convoy ambush" [attr.aria-invalid]="customNameMissing()" />
+              <label hlmLabel for="bf-cname"><ng-container i18n>Custom mode name</ng-container> <span aria-hidden="true">*</span></label>
+              <input hlmInput id="bf-cname" class="h-11" formControlName="customModeName" placeholder="Convoy ambush" [attr.aria-invalid]="customNameMissing()" i18n-placeholder />
               @if (customNameMissing()) {
-                <p class="field-error">Give the custom mode a name.</p>
+                <p class="field-error" i18n>Give the custom mode a name.</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="bf-crules">Custom mode rules</label>
-              <textarea hlmTextarea id="bf-crules" rows="4" formControlName="customModeRules" placeholder="How a team wins, how objectives work, respawn rules."></textarea>
+              <label hlmLabel for="bf-crules" i18n>Custom mode rules</label>
+              <textarea hlmTextarea id="bf-crules" rows="4" formControlName="customModeRules" placeholder="How a team wins, how objectives work, respawn rules." i18n-placeholder></textarea>
             </div>
           </div>
         }
       </fieldset>
 
       <fieldset class="panel flex flex-col gap-4 p-4">
-        <legend class="label-caps float-left mb-1 w-full">Schedule</legend>
+        <legend class="label-caps float-left mb-1 w-full" i18n>Schedule</legend>
         <div class="grid gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="bf-date">Date <span aria-hidden="true">*</span></label>
+            <label hlmLabel for="bf-date"><ng-container i18n>Date</ng-container> <span aria-hidden="true">*</span></label>
             <input hlmInput id="bf-date" type="date" class="h-11" formControlName="date" [attr.aria-invalid]="!!err('date')" />
             @if (err('date'); as e) {
               <p class="field-error">{{ e }}</p>
             }
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="bf-start">Start time <span aria-hidden="true">*</span></label>
+            <label hlmLabel for="bf-start"><ng-container i18n>Start time</ng-container> <span aria-hidden="true">*</span></label>
             <input hlmInput id="bf-start" type="time" class="h-11" formControlName="startTime" [attr.aria-invalid]="!!err('startTime')" />
             @if (err('startTime'); as e) {
               <p class="field-error">{{ e }}</p>
             }
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="bf-end">Expected end time <span aria-hidden="true">*</span></label>
+            <label hlmLabel for="bf-end"><ng-container i18n>Expected end time</ng-container> <span aria-hidden="true">*</span></label>
             <input hlmInput id="bf-end" type="time" class="h-11" formControlName="endTime" [attr.aria-invalid]="!!err('endTime') || endBeforeStart()" aria-describedby="bf-end-e" />
             @if (err('endTime'); as e) {
               <p id="bf-end-e" class="field-error">{{ e }}</p>
             } @else if (endBeforeStart()) {
-              <p id="bf-end-e" class="field-error">The end time must be after the start time.</p>
+              <p id="bf-end-e" class="field-error" i18n>The end time must be after the start time.</p>
             }
           </div>
         </div>
       </fieldset>
 
       <fieldset class="panel flex flex-col gap-4 p-4">
-        <legend class="label-caps float-left mb-1 w-full">Meeting point</legend>
+        <legend class="label-caps float-left mb-1 w-full" i18n>Meeting point</legend>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-addr">Address</label>
-          <input hlmInput id="bf-addr" class="h-11" formControlName="meetingAddress" autocomplete="street-address" placeholder="Car park, Via dei Boschi 12, Bergamo" />
+          <label hlmLabel for="bf-addr" i18n>Address</label>
+          <input hlmInput id="bf-addr" class="h-11" formControlName="meetingAddress" autocomplete="street-address" placeholder="Car park, Via dei Boschi 12, Bergamo" i18n-placeholder />
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-coords">Coordinates (optional)</label>
+          <label hlmLabel for="bf-coords" i18n>Coordinates (optional)</label>
           <div class="flex flex-col gap-2 sm:flex-row">
             <input hlmInput id="bf-coords" class="num h-11 flex-1" formControlName="meetingCoords" inputmode="decimal" placeholder="45.4642, 9.1900" [attr.aria-invalid]="!!err('meetingCoords')" aria-describedby="bf-coords-h" />
             <button hlmBtn variant="outline" class="h-11" type="button" (click)="useMyLocation()" [disabled]="locating()">
-              <ng-icon name="lucideLocateFixed" size="16" class="text-nav" aria-hidden="true" /> {{ locating() ? 'Locating…' : 'Use my location' }}
+              <ng-icon name="lucideLocateFixed" size="16" class="text-nav" aria-hidden="true" /> {{ locating() ? txt.locating : txt.useMyLocation }}
             </button>
             <button hlmBtn variant="outline" class="h-11" type="button" (click)="toggleMap()" [attr.aria-expanded]="mapOpen()" aria-controls="bf-map">
-              <ng-icon name="lucideMap" size="16" aria-hidden="true" /> {{ mapOpen() ? 'Hide map' : 'Pick on map' }}
+              <ng-icon name="lucideMap" size="16" aria-hidden="true" /> {{ mapOpen() ? txt.hideMap : txt.pickOnMap }}
             </button>
           </div>
           @if (err('meetingCoords'); as e) {
             <p class="field-error">{{ e }}</p>
           } @else {
-            <p id="bf-coords-h" class="text-xs text-muted-foreground">Tap the map, paste from Google Maps ("45.46, 9.19") or use your location, so players can navigate to the car park.</p>
+            <p id="bf-coords-h" class="text-xs text-muted-foreground" i18n>Tap the map, paste from Google Maps ("45.46, 9.19") or use your location, so players can navigate to the car park.</p>
           }
         </div>
         @if (mapOpen()) {
@@ -303,81 +303,92 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
               gestureHandling="cooperative"
               (mapClick)="pickOnMap($event)"
             />
-            <p class="text-xs text-muted-foreground">Tap the map to set the meeting point.</p>
+            <p class="text-xs text-muted-foreground" i18n>Tap the map to set the meeting point.</p>
           </div>
         }
       </fieldset>
 
       <fieldset class="panel flex flex-col gap-4 p-4">
-        <legend class="label-caps float-left mb-1 w-full">Players</legend>
+        <legend class="label-caps float-left mb-1 w-full" i18n>Players</legend>
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="bf-min">Minimum players</label>
+            <label hlmLabel for="bf-min" i18n>Minimum players</label>
             <input hlmInput id="bf-min" type="number" min="0" inputmode="numeric" class="num h-11" formControlName="minPlayers" [attr.aria-invalid]="!!err('minPlayers')" />
             @if (err('minPlayers'); as e) {
               <p class="field-error">{{ e }}</p>
             }
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="bf-max">Maximum players</label>
+            <label hlmLabel for="bf-max" i18n>Maximum players</label>
             <input hlmInput id="bf-max" type="number" min="1" inputmode="numeric" class="num h-11" formControlName="maxPlayers" [attr.aria-invalid]="!!err('maxPlayers') || minAboveMax()" />
             @if (err('maxPlayers'); as e) {
               <p class="field-error">{{ e }}</p>
             } @else if (minAboveMax()) {
-              <p class="field-error">Must be at least the minimum.</p>
+              <p class="field-error" i18n>Must be at least the minimum.</p>
             }
           </div>
         </div>
 
         @if (showRegistration()) {
           <div class="flex flex-col gap-1.5">
-            <span hlmLabel id="bf-vis-l">Who can find this event</span>
+            <span hlmLabel id="bf-vis-l" i18n>Who can find this event</span>
             <zeus-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="bf-vis-l" stacked />
             @if (f.controls.visibility.value === 'private') {
               <div class="rounded-sm border border-border bg-muted p-3 text-sm">
                 @if (joinCode(); as code) {
-                  <p class="label-caps">Join code</p>
+                  <p class="label-caps" i18n>Join code</p>
                   <div class="mt-1 flex items-center gap-2">
                     <span class="num text-2xl font-bold tracking-widest">{{ code }}</span>
-                    <button hlmBtn variant="outline" size="sm" class="tap" type="button" (click)="copy(code)" aria-label="Copy join code">
-                      <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> Copy
+                    <button hlmBtn variant="outline" size="sm" class="tap" type="button" (click)="copy(code)" aria-label="Copy join code" i18n-aria-label>
+                      <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Copy</ng-container>
                     </button>
                   </div>
-                  <p class="mt-1 text-xs text-muted-foreground">Share it with your players. They enter it under Join event.</p>
+                  <p class="mt-1 text-xs text-muted-foreground" i18n>Share it with your players. They enter it under Join event.</p>
                 } @else {
-                  <p><ng-icon name="lucideKeyRound" size="14" aria-hidden="true" /> A join code is generated when you save. It appears here, and you can share it with your players.</p>
+                  <p><ng-icon name="lucideKeyRound" size="14" aria-hidden="true" /> <ng-container i18n>A join code is generated when you save. It appears here, and you can share it with your players.</ng-container></p>
                 }
               </div>
             }
           </div>
-          <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits until you approve it. Off: players are approved immediately." />
+          <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits until you approve it. Off: players are approved immediately." i18n-label i18n-description />
         }
       </fieldset>
 
       <fieldset class="panel flex flex-col gap-4 p-4">
-        <legend class="label-caps float-left mb-1 w-full">Rules and safety</legend>
+        <legend class="label-caps float-left mb-1 w-full" i18n>Rules and safety</legend>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-rules">Event rules</label>
-          <textarea hlmTextarea id="bf-rules" rows="5" formControlName="rules" placeholder="Hit calling, respawn procedure, bang rule distance, dead rag colour."></textarea>
+          <label hlmLabel for="bf-rules" i18n>Event rules</label>
+          <textarea hlmTextarea id="bf-rules" rows="5" formControlName="rules" placeholder="Hit calling, respawn procedure, bang rule distance, dead rag colour." i18n-placeholder></textarea>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-safety">Safety rules</label>
-          <textarea hlmTextarea id="bf-safety" rows="4" formControlName="safetyRules" placeholder="Eye protection on at all times outside the safe zone; barrel covers in the safe zone; emergency word: BLIND MAN."></textarea>
-          <p class="text-xs text-muted-foreground">Players accept these before the game starts.</p>
+          <label hlmLabel for="bf-safety" i18n>Safety rules</label>
+          <textarea hlmTextarea id="bf-safety" rows="4" formControlName="safetyRules" placeholder="Eye protection on at all times outside the safe zone; barrel covers in the safe zone; emergency word: BLIND MAN." i18n-placeholder></textarea>
+          <p class="text-xs text-muted-foreground" i18n>Players accept these before the game starts.</p>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-equip">Required equipment</label>
-          <textarea hlmTextarea id="bf-equip" rows="3" formControlName="requiredEquipment" placeholder="Full-seal eye protection, dead rag, radio on channel 4, red and blue armbands."></textarea>
+          <label hlmLabel for="bf-equip" i18n>Required equipment</label>
+          <textarea hlmTextarea id="bf-equip" rows="3" formControlName="requiredEquipment" placeholder="Full-seal eye protection, dead rag, radio on channel 4, red and blue armbands." i18n-placeholder></textarea>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="bf-chrono">Chronograph and power limits</label>
-          <textarea hlmTextarea id="bf-chrono" rows="3" formControlName="chronoInfo" placeholder="Rifles 1.2 J with 0.20 g BBs; DMR 1.88 J, 20 m MED; bolt-action 2.3 J, 30 m MED. Chrono from 08:00."></textarea>
+          <label hlmLabel for="bf-chrono" i18n>Chronograph and power limits</label>
+          <textarea hlmTextarea id="bf-chrono" rows="3" formControlName="chronoInfo" placeholder="Rifles 1.2 J with 0.20 g BBs; DMR 1.88 J, 20 m MED; bolt-action 2.3 J, 30 m MED. Chrono from 08:00." i18n-placeholder></textarea>
         </div>
       </fieldset>
     </div>
   `,
 })
 export class EventBasicsFormComponent {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    uploading: $localize`Uploading…`,
+    replaceImage: $localize`Replace image`,
+    uploadImage: $localize`Upload image`,
+    locating: $localize`Locating…`,
+    useMyLocation: $localize`Use my location`,
+    hideMap: $localize`Hide map`,
+    pickOnMap: $localize`Pick on map`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly maps = inject(MapsLoaderService);
@@ -400,8 +411,8 @@ export class EventBasicsFormComponent {
     return p ? { geometry: 'point', points: [p], color: '#E6B04F' } : null;
   });
   protected readonly visibilityOptions: SegmentOption<'public' | 'private'>[] = [
-    { value: 'public', label: 'Public', hint: 'Listed in Discover; anyone can register.' },
-    { value: 'private', label: 'Private', hint: 'Hidden from Discover; players need the join code or an invitation.' },
+    { value: 'public', label: $localize`Public`, hint: $localize`Listed in Discover; anyone can register.` },
+    { value: 'private', label: $localize`Private`, hint: $localize`Hidden from Discover; players need the join code or an invitation.` },
   ];
 
   private readonly groupErrors = computed(() => {
@@ -426,7 +437,7 @@ export class EventBasicsFormComponent {
     inputEl.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      this.toast.error('Choose an image file (JPG, PNG or WebP).');
+      this.toast.error($localize`Choose an image file (JPG, PNG or WebP).`);
       return;
     }
     this.uploading.set(true);
@@ -450,7 +461,7 @@ export class EventBasicsFormComponent {
 
   protected useMyLocation(): void {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      this.toast.error('This browser cannot share its location.');
+      this.toast.error($localize`This browser cannot share its location.`);
       return;
     }
     this.locating.set(true);
@@ -462,11 +473,11 @@ export class EventBasicsFormComponent {
         c.setValue(formatLatLng(p));
         c.markAsDirty();
         this.mapCenter.set(p);
-        this.toast.success('Meeting point set to your location', `Accuracy ±${Math.round(pos.coords.accuracy)} m`);
+        this.toast.success($localize`Meeting point set to your location`, $localize`Accuracy ±${Math.round(pos.coords.accuracy)}:accuracy: m`);
       },
       (err) => {
         this.locating.set(false);
-        this.toast.error(err.code === err.PERMISSION_DENIED ? 'Location permission denied. Allow it in the browser settings or paste coordinates.' : 'Could not get your location. Paste coordinates instead.');
+        this.toast.error(err.code === err.PERMISSION_DENIED ? $localize`Location permission denied. Allow it in the browser settings or paste coordinates.` : $localize`Could not get your location. Paste coordinates instead.`);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
     );
@@ -500,7 +511,7 @@ export class EventBasicsFormComponent {
   }
 
   protected async copy(code: string): Promise<void> {
-    if (await copyText(code)) this.toast.success('Join code copied');
-    else this.toast.error('Copy failed. Select the code and copy it manually.');
+    if (await copyText(code)) this.toast.success($localize`Join code copied`);
+    else this.toast.error($localize`Copy failed. Select the code and copy it manually.`);
   }
 }

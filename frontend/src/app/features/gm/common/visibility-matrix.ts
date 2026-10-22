@@ -50,18 +50,18 @@ export function visibilityValue(form: VisibilityForm): VisibilityRules {
 }
 
 const SHOW_HIDE: SegmentOption<boolean>[] = [
-  { value: true, label: 'Show' },
-  { value: false, label: 'Hide' },
+  { value: true, label: $localize`Show` },
+  { value: false, label: $localize`Hide` },
 ];
 const YES_NO_LEADERS: SegmentOption<boolean>[] = [
-  { value: true, label: 'Yes' },
-  { value: false, label: 'No' },
+  { value: true, label: $localize`Yes` },
+  { value: false, label: $localize`No` },
 ];
 const PRECISION_OPTIONS: SegmentOption<Precision>[] = [
-  { value: 'exact', label: 'Exact', hint: 'The real position.' },
-  { value: 'approximate', label: 'Approximate', hint: 'A circle around a shifted point.' },
-  { value: 'delayed', label: 'Delayed', hint: 'The exact position, but late.' },
-  { value: 'area', label: 'Area only', hint: 'Only the rough area, no marker.' },
+  { value: 'exact', label: $localize`Exact`, hint: $localize`The real position.` },
+  { value: 'approximate', label: $localize`Approximate`, hint: $localize`A circle around a shifted point.` },
+  { value: 'delayed', label: $localize`Delayed`, hint: $localize`The exact position, but late.` },
+  { value: 'area', label: $localize`Area only`, hint: $localize`Only the rough area, no marker.` },
 ];
 
 interface MatrixRow {
@@ -78,74 +78,74 @@ interface MatrixGroup {
 
 const GROUPS: MatrixGroup[] = [
   {
-    title: 'Your side',
+    title: $localize`Your side`,
     rows: [
       {
         key: 'allies',
-        label: 'Teammates on the map',
-        help: 'Which friendly players each player sees.',
+        label: $localize`Teammates on the map`,
+        help: $localize`Which friendly players each player sees.`,
         options: [
-          { value: 'none', label: 'None' },
-          { value: 'squad', label: 'Own squad' },
-          { value: 'team', label: 'Whole team' },
-          { value: 'alliance', label: 'Team + allies' },
+          { value: 'none', label: $localize`None` },
+          { value: 'squad', label: $localize`Own squad` },
+          { value: 'team', label: $localize`Whole team` },
+          { value: 'alliance', label: $localize`Team + allies` },
         ],
       },
-      { key: 'squadLeadersSeeSquad', label: 'Squad leaders see their squad', help: 'Even when teammates are hidden, leaders still see their own squad.', options: YES_NO_LEADERS },
-      { key: 'allyPrecision', label: 'Ally precision', help: 'How exact friendly markers are.', options: PRECISION_OPTIONS },
+      { key: 'squadLeadersSeeSquad', label: $localize`Squad leaders see their squad`, help: $localize`Even when teammates are hidden, leaders still see their own squad.`, options: YES_NO_LEADERS },
+      { key: 'allyPrecision', label: $localize`Ally precision`, help: $localize`How exact friendly markers are.`, options: PRECISION_OPTIONS },
     ],
   },
   {
-    title: 'Enemies',
+    title: $localize`Enemies`,
     rows: [
       {
         key: 'enemies',
-        label: 'Enemy positions',
-        help: 'When players see enemies at all.',
+        label: $localize`Enemy positions`,
+        help: $localize`When players see enemies at all.`,
         options: [
-          { value: 'never', label: 'Never' },
-          { value: 'perk_only', label: 'Only during a perk', hint: 'While a UAV or recon scan is active.' },
-          { value: 'always', label: 'Always' },
+          { value: 'never', label: $localize`Never` },
+          { value: 'perk_only', label: $localize`Only during a perk`, hint: $localize`While a UAV or recon scan is active.` },
+          { value: 'always', label: $localize`Always` },
         ],
       },
-      { key: 'enemyPrecision', label: 'Enemy precision', help: 'How exact enemy markers are when shown.', options: PRECISION_OPTIONS },
+      { key: 'enemyPrecision', label: $localize`Enemy precision`, help: $localize`How exact enemy markers are when shown.`, options: PRECISION_OPTIONS },
     ],
   },
   {
-    title: 'Details',
+    title: $localize`Details`,
     rows: [
-      { key: 'showNicknames', label: 'Nicknames on markers', help: 'Hide them for anonymous dots.', options: SHOW_HIDE },
-      { key: 'showRoles', label: 'Player roles', help: 'Medic, sniper, squad leader… on markers and lists.', options: SHOW_HIDE },
-      { key: 'showEnemyBases', label: 'Enemy team bases', help: 'Show the other teams’ base locations on the map.', options: SHOW_HIDE },
+      { key: 'showNicknames', label: $localize`Nicknames on markers`, help: $localize`Hide them for anonymous dots.`, options: SHOW_HIDE },
+      { key: 'showRoles', label: $localize`Player roles`, help: $localize`Medic, sniper, squad leader… on markers and lists.`, options: SHOW_HIDE },
+      { key: 'showEnemyBases', label: $localize`Enemy team bases`, help: $localize`Show the other teams’ base locations on the map.`, options: SHOW_HIDE },
     ],
   },
   {
-    title: 'Objectives',
+    title: $localize`Objectives`,
     rows: [
       {
         key: 'capturedObjectives',
-        label: 'Captured objectives',
-        help: 'Who sees which team holds an objective.',
+        label: $localize`Captured objectives`,
+        help: $localize`Who sees which team holds an objective.`,
         options: [
-          { value: 'visible', label: 'Everyone' },
-          { value: 'owner_only', label: 'Owner only' },
-          { value: 'hidden', label: 'Nobody' },
+          { value: 'visible', label: $localize`Everyone` },
+          { value: 'owner_only', label: $localize`Owner only` },
+          { value: 'hidden', label: $localize`Nobody` },
         ],
       },
       {
         key: 'revealObjectivesBeforeStart',
-        label: 'Reveal objectives before start',
-        help: 'Show objectives in the lobby so teams can plan.',
+        label: $localize`Reveal objectives before start`,
+        help: $localize`Show objectives in the lobby so teams can plan.`,
         options: [
-          { value: true, label: 'Reveal in lobby' },
-          { value: false, label: 'At start' },
+          { value: true, label: $localize`Reveal in lobby` },
+          { value: false, label: $localize`At start` },
         ],
       },
     ],
   },
   {
-    title: 'Economy',
-    rows: [{ key: 'showEnemyCurrency', label: 'Enemy credits', help: 'Whether teams can see how many credits the others have.', options: SHOW_HIDE }],
+    title: $localize`Economy`,
+    rows: [{ key: 'showEnemyCurrency', label: $localize`Enemy credits`, help: $localize`Whether teams can see how many credits the others have.`, options: SHOW_HIDE }],
   },
 ];
 
@@ -157,14 +157,14 @@ const GROUPS: MatrixGroup[] = [
   host: { class: 'block' },
   template: `
     <fieldset [formGroup]="form()" class="panel flex flex-col gap-4 p-4" [attr.data-rev]="tick()">
-      <legend class="label-caps float-left mb-1 w-full">Map visibility</legend>
+      <legend class="label-caps float-left mb-1 w-full" i18n>Map visibility</legend>
       <p class="flex gap-2 text-sm text-muted-foreground">
         <ng-icon name="lucideShieldCheck" size="16" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-        <span>The server enforces these rules: positions a player may not see are never sent to their phone.</span>
+        <span i18n>The server enforces these rules: positions a player may not see are never sent to their phone.</span>
       </p>
 
       <div class="rounded-sm border border-primary/40 bg-primary/5 p-3" aria-live="polite">
-        <p class="label-caps">Player view preview</p>
+        <p class="label-caps" i18n>Player view preview</p>
         <p class="mt-1 text-sm font-medium">{{ preview() }}</p>
         <p class="mt-1 text-xs text-muted-foreground">{{ detailsPreview() }}</p>
       </div>
@@ -187,24 +187,24 @@ const GROUPS: MatrixGroup[] = [
       }
 
       <section [attr.aria-labelledby]="id + '-p'">
-        <h3 [id]="id + '-p'" class="mb-1 border-b border-border pb-1 text-sm font-bold uppercase">Precision parameters</h3>
+        <h3 [id]="id + '-p'" class="mb-1 border-b border-border pb-1 text-sm font-bold uppercase" i18n>Precision parameters</h3>
         <div class="grid gap-4 py-3 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel [for]="id + '-rad'">Approximate radius (m)</label>
+            <label hlmLabel [for]="id + '-rad'" i18n>Approximate radius (m)</label>
             <input hlmInput [id]="id + '-rad'" type="number" min="5" inputmode="numeric" class="num h-11" formControlName="approxRadiusM" [attr.aria-invalid]="!!err('approxRadiusM')" [attr.aria-describedby]="id + '-rad-h'" />
             @if (err('approxRadiusM'); as e) {
               <p class="field-error">{{ e }}</p>
             } @else {
-              <p [id]="id + '-rad-h'" class="text-xs text-muted-foreground">Size of the circle for "Approximate" and "Area only".</p>
+              <p [id]="id + '-rad-h'" class="text-xs text-muted-foreground" i18n>Size of the circle for "Approximate" and "Area only".</p>
             }
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel [for]="id + '-del'">Delay (s)</label>
+            <label hlmLabel [for]="id + '-del'" i18n>Delay (s)</label>
             <input hlmInput [id]="id + '-del'" type="number" min="5" inputmode="numeric" class="num h-11" formControlName="delaySec" [attr.aria-invalid]="!!err('delaySec')" [attr.aria-describedby]="id + '-del-h'" />
             @if (err('delaySec'); as e) {
               <p class="field-error">{{ e }}</p>
             } @else {
-              <p [id]="id + '-del-h'" class="text-xs text-muted-foreground">How late "Delayed" positions are shown.</p>
+              <p [id]="id + '-del-h'" class="text-xs text-muted-foreground" i18n>How late "Delayed" positions are shown.</p>
             }
           </div>
         </div>
@@ -227,12 +227,16 @@ export class VisibilityMatrix {
   protected readonly detailsPreview = computed(() => {
     const v = this.value();
     const parts = [
-      `Nicknames ${v.showNicknames ? 'shown' : 'hidden'}`,
-      `roles ${v.showRoles ? 'shown' : 'hidden'}`,
-      `enemy bases ${v.showEnemyBases ? 'shown' : 'hidden'}`,
-      `captured objectives visible to ${v.capturedObjectives === 'visible' ? 'everyone' : v.capturedObjectives === 'owner_only' ? 'the owning team only' : 'nobody'}`,
-      v.revealObjectivesBeforeStart ? 'objectives revealed in the lobby' : 'objectives revealed at start',
-      `enemy credits ${v.showEnemyCurrency ? 'visible' : 'hidden'}`,
+      v.showNicknames ? $localize`nicknames shown` : $localize`nicknames hidden`,
+      v.showRoles ? $localize`roles shown` : $localize`roles hidden`,
+      v.showEnemyBases ? $localize`enemy bases shown` : $localize`enemy bases hidden`,
+      v.capturedObjectives === 'visible'
+        ? $localize`captured objectives visible to everyone`
+        : v.capturedObjectives === 'owner_only'
+          ? $localize`captured objectives visible to the owning team only`
+          : $localize`captured objectives visible to nobody`,
+      v.revealObjectivesBeforeStart ? $localize`objectives revealed in the lobby` : $localize`objectives revealed at start`,
+      v.showEnemyCurrency ? $localize`enemy credits visible` : $localize`enemy credits hidden`,
     ];
     const s = parts.join(', ');
     return s.charAt(0).toUpperCase() + s.slice(1) + '.';
@@ -246,13 +250,13 @@ export class VisibilityMatrix {
 function precisionPhrase(p: Precision, v: Pick<VisibilityRules, 'approxRadiusM' | 'delaySec'>): string {
   switch (p) {
     case 'exact':
-      return 'exactly';
+      return $localize`exactly`;
     case 'approximate':
-      return `as approximate circles of ${v.approxRadiusM} m`;
+      return $localize`as approximate circles of ${v.approxRadiusM}:approxRadiusM: m`;
     case 'delayed':
-      return `${v.delaySec} s late`;
+      return $localize`${v.delaySec}:delaySec: s late`;
     case 'area':
-      return `only as areas of ${v.approxRadiusM} m`;
+      return $localize`only as areas of ${v.approxRadiusM}:approxRadiusM: m`;
   }
 }
 
@@ -261,21 +265,21 @@ export function describeVisibility(v: VisibilityRules): string {
   let allies: string;
   switch (v.allies) {
     case 'none':
-      allies = v.squadLeadersSeeSquad ? 'no teammates (squad leaders see their squad)' : 'no teammates';
+      allies = v.squadLeadersSeeSquad ? $localize`no teammates (squad leaders see their squad)` : $localize`no teammates`;
       break;
     case 'squad':
-      allies = 'their squad';
+      allies = $localize`their squad`;
       break;
     case 'team':
-      allies = 'their whole team';
+      allies = $localize`their whole team`;
       break;
     case 'alliance':
-      allies = 'their team and allied teams';
+      allies = $localize`their team and allied teams`;
       break;
   }
   if (v.allies !== 'none') allies += ` ${precisionPhrase(v.allyPrecision, v)}`;
 
-  if (v.enemies === 'never') return `Players see ${allies} and never see enemies.`;
-  const when = v.enemies === 'perk_only' ? 'only during a UAV or recon perk' : 'at all times';
-  return `Players see ${allies}; enemies ${when}, ${precisionPhrase(v.enemyPrecision, v)}.`;
+  if (v.enemies === 'never') return $localize`Players see ${allies}:allies: and never see enemies.`;
+  const when = v.enemies === 'perk_only' ? $localize`only during a UAV or recon perk` : $localize`at all times`;
+  return $localize`Players see ${allies}:allies:; enemies ${when}:when:, ${precisionPhrase(v.enemyPrecision, v)}:precisionPhrase:.`;
 }

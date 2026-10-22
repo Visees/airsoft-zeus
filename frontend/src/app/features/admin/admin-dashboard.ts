@@ -20,7 +20,7 @@ type StatusFilter = SupportStatus | 'all';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <div class="mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status">
+    <div class="mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status" i18n-aria-label>
       @for (f of filters(); track f.value) {
         <button type="button" class="tap shrink-0 rounded-sm border px-3 text-sm" [attr.aria-pressed]="status() === f.value"
           [class]="status() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:bg-muted'"
@@ -38,9 +38,9 @@ type StatusFilter = SupportStatus | 'all';
     } @else if (error() && !items().length) {
       <zeus-error-state [error]="error()" (retry)="load()" />
     } @else if (!items().length) {
-      <zeus-empty-state icon="lucideLifeBuoy" title="Nothing here" [message]="status() === 'open' ? 'No conversation is waiting for an answer.' : 'No conversations with this status.'" />
+      <zeus-empty-state icon="lucideLifeBuoy" title="Nothing here" [message]="status() === 'open' ? txt.noConversationIsWaiting : txt.noConversationsWithThis" i18n-title />
     } @else {
-      <ul class="flex flex-col gap-2" aria-label="Conversations">
+      <ul class="flex flex-col gap-2" aria-label="Conversations" i18n-aria-label>
         @for (t of items(); track t.id) {
           <li><zeus-support-ticket-card [ticket]="t" [admin]="true" /></li>
         }
@@ -48,7 +48,7 @@ type StatusFilter = SupportStatus | 'all';
       @if (nextCursor()) {
         <div class="mt-4 flex justify-center">
           <button hlmBtn variant="outline" type="button" class="h-11 min-w-40" [disabled]="loadingMore()" (click)="loadMore()">
-            {{ loadingMore() ? 'Loading…' : 'Load more' }}
+            {{ loadingMore() ? txt.loading : txt.loadMore }}
           </button>
         </div>
       }
@@ -56,6 +56,14 @@ type StatusFilter = SupportStatus | 'all';
   `,
 })
 export class AdminTickets {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    loading: $localize`Loading…`,
+    loadMore: $localize`Load more`,
+    noConversationIsWaiting: $localize`No conversation is waiting for an answer.`,
+    noConversationsWithThis: $localize`No conversations with this status.`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
 
@@ -65,10 +73,10 @@ export class AdminTickets {
   protected readonly filters = computed(() => {
     const c = this.overview()?.tickets;
     return [
-      { value: 'open' as const, label: 'To answer', count: c?.open ?? null },
-      { value: 'answered' as const, label: 'Answered', count: c?.answered ?? null },
-      { value: 'closed' as const, label: 'Closed', count: c?.closed ?? null },
-      { value: 'all' as const, label: 'All', count: null },
+      { value: 'open' as const, label: $localize`To answer`, count: c?.open ?? null },
+      { value: 'answered' as const, label: $localize`Answered`, count: c?.answered ?? null },
+      { value: 'closed' as const, label: $localize`Closed`, count: c?.closed ?? null },
+      { value: 'all' as const, label: $localize`All`, count: null },
     ];
   });
 
@@ -134,11 +142,11 @@ export class AdminTickets {
     } @else if (error() && !items().length) {
       <zeus-error-state [error]="error()" (retry)="load()" />
     } @else if (!items().length) {
-      <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Published news shows up on everyone's home page.">
-        <a hlmBtn routerLink="/news/new/edit" class="h-11">Write the first one</a>
+      <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Published news shows up on everyone's home page." i18n-title i18n-message>
+        <a hlmBtn routerLink="/news/new/edit" class="h-11" i18n>Write the first one</a>
       </zeus-empty-state>
     } @else {
-      <ul class="flex flex-col gap-2" aria-label="News">
+      <ul class="flex flex-col gap-2" aria-label="News" i18n-aria-label>
         @for (n of items(); track n.id) {
           <li><zeus-news-card [news]="n" /></li>
         }
@@ -146,7 +154,7 @@ export class AdminTickets {
       @if (nextCursor()) {
         <div class="mt-4 flex justify-center">
           <button hlmBtn variant="outline" type="button" class="h-11 min-w-40" [disabled]="loadingMore()" (click)="loadMore()">
-            {{ loadingMore() ? 'Loading…' : 'Load more' }}
+            {{ loadingMore() ? txt.loading : txt.loadMore }}
           </button>
         </div>
       }
@@ -154,6 +162,12 @@ export class AdminTickets {
   `,
 })
 export class AdminNews {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    loading: $localize`Loading…`,
+    loadMore: $localize`Load more`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
 
@@ -208,11 +222,11 @@ export class AdminNews {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Admin" subtitle="Support conversations from every player and the News on the home page." back="/profile">
-        <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Write news</a>
+      <zeus-page-header title="Admin" subtitle="Support conversations from every player and the News on the home page." back="/profile" i18n-title i18n-subtitle>
+        <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Write news</ng-container></a>
       </zeus-page-header>
 
-      <dl class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Summary">
+      <dl class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Summary" i18n-aria-label>
         @for (t of tiles(); track t.label) {
           <div class="panel relative flex flex-col gap-1 p-3 transition-colors hover:border-primary/60" [class.border-warning!]="t.alert">
             <dt class="label-caps flex items-center gap-1.5"><ng-icon [name]="t.icon" size="13" aria-hidden="true" />{{ t.label }}</dt>
@@ -223,7 +237,7 @@ export class AdminNews {
         }
       </dl>
 
-      <nav class="mb-4 flex gap-2 border-b border-border" aria-label="Admin sections">
+      <nav class="mb-4 flex gap-2 border-b border-border" aria-label="Admin sections" i18n-aria-label>
         @for (t of tabs; track t.value) {
           <a [routerLink]="['/admin', t.value]" [attr.aria-current]="current() === t.value ? 'page' : null"
             class="tap -mb-px inline-flex items-center gap-2 border-b-2 px-3 text-sm"
@@ -249,8 +263,8 @@ export class AdminDashboardScreen {
   protected readonly current = computed<Tab>(() => (this.tab() === 'news' ? 'news' : 'tickets'));
 
   protected readonly tabs: { value: Tab; label: string; icon: string }[] = [
-    { value: 'tickets', label: 'Tickets', icon: 'lucideLifeBuoy' },
-    { value: 'news', label: 'News', icon: 'lucideNewspaper' },
+    { value: 'tickets', label: $localize`Tickets`, icon: 'lucideLifeBuoy' },
+    { value: 'news', label: $localize`News`, icon: 'lucideNewspaper' },
   ];
 
   protected readonly overview = signal<AdminOverview | null>(null);
@@ -258,10 +272,10 @@ export class AdminDashboardScreen {
     const o = this.overview();
     const n = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v));
     return [
-      { label: 'To answer', value: n(o?.tickets.open), icon: 'lucideInbox', tab: 'tickets', alert: !!o?.tickets.open },
-      { label: 'Open bugs', value: n(o?.tickets.openBugs), icon: 'lucideBug', tab: 'tickets', alert: false },
-      { label: 'Scheduled', value: n(o?.news.scheduled), icon: 'lucideClock', tab: 'news', alert: false },
-      { label: 'Drafts', value: n(o?.news.drafts), icon: 'lucidePencil', tab: 'news', alert: false },
+      { label: $localize`To answer`, value: n(o?.tickets.open), icon: 'lucideInbox', tab: 'tickets', alert: !!o?.tickets.open },
+      { label: $localize`Open bugs`, value: n(o?.tickets.openBugs), icon: 'lucideBug', tab: 'tickets', alert: false },
+      { label: $localize`Scheduled`, value: n(o?.news.scheduled), icon: 'lucideClock', tab: 'news', alert: false },
+      { label: $localize`Drafts`, value: n(o?.news.drafts), icon: 'lucidePencil', tab: 'news', alert: false },
     ];
   });
 

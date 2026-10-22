@@ -1,3 +1,5 @@
+import { UI_LANGUAGES, activeLanguage } from '../../core/i18n/language';
+
 /** Countries offered in the profile picker (ISO 3166-1 alpha-2). Any other value is stored as free text. */
 export const COMMON_COUNTRIES = [
   'AT', 'AU', 'BE', 'BG', 'BR', 'CA', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU',
@@ -7,7 +9,7 @@ export const COMMON_COUNTRIES = [
 
 const names = (() => {
   try {
-    return new Intl.DisplayNames(['en'], { type: 'region' });
+    return new Intl.DisplayNames([activeLanguage()], { type: 'region' });
   } catch {
     return null;
   }
@@ -30,10 +32,5 @@ export function countryOptions(): { code: string; name: string }[] {
   return COMMON_COUNTRIES.map((code) => ({ code, name: countryName(code) ?? code })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export const LANGUAGES: { code: string; name: string }[] = [
-  { code: 'en', name: 'English' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'fr', name: 'Français' },
-  { code: 'es', name: 'Español' },
-];
+/** Languages the app is translated into (the API also accepts de/fr/es from older profiles). */
+export const LANGUAGES = UI_LANGUAGES;

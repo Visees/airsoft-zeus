@@ -43,27 +43,27 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
         <div class="mb-4 h-28 animate-pulse rounded-md bg-muted" aria-hidden="true"></div>
         <zeus-loading-skeleton [rows]="5" />
       } @else if (notFinished()) {
-        <zeus-page-header [title]="event()?.name || 'Results'" eyebrow="Results" [back]="'/events/' + eventId()" backLabel="Event" />
-        <zeus-empty-state icon="lucideHourglass" title="Results appear when the game ends" message="Scores, captures and the winner are published here as soon as the Game Master ends the game.">
-          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]">Back to the event</a>
+        <zeus-page-header [title]="event()?.name || txt.results" eyebrow="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-eyebrow i18n-backLabel />
+        <zeus-empty-state icon="lucideHourglass" title="Results appear when the game ends" message="Scores, captures and the winner are published here as soon as the Game Master ends the game." i18n-title i18n-message>
+          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to the event</a>
           @if (event()?.status === 'live' || event()?.status === 'paused') {
             <a hlmBtn class="tap" [routerLink]="event()?.isGm ? ['/gm/events', eventId(), 'control'] : ['/events', eventId(), 'live']">
-              {{ event()?.isGm ? 'Control center' : 'Open live map' }}
+              {{ event()?.isGm ? txt.controlCenter : txt.openLiveMap }}
             </a>
           }
         </zeus-empty-state>
       } @else if (error() && !results()) {
-        <zeus-page-header title="Results" [back]="'/events/' + eventId()" backLabel="Event" />
+        <zeus-page-header title="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (results(); as r) {
-        <zeus-page-header [title]="r.eventName" eyebrow="Results" [subtitle]="subtitle()" [back]="'/events/' + r.eventId" backLabel="Event">
-          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'stats']"><ng-icon name="lucideChartColumn" size="16" aria-hidden="true" /> Statistics</a>
-          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'export']"><ng-icon name="lucideDownload" size="16" aria-hidden="true" /> Export</a>
+        <zeus-page-header [title]="r.eventName" eyebrow="Results" [subtitle]="subtitle()" [back]="'/events/' + r.eventId" backLabel="Event" i18n-eyebrow i18n-backLabel>
+          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'stats']"><ng-icon name="lucideChartColumn" size="16" aria-hidden="true" /> <ng-container i18n>Statistics</ng-container></a>
+          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'export']"><ng-icon name="lucideDownload" size="16" aria-hidden="true" /> <ng-container i18n>Export</ng-container></a>
         </zeus-page-header>
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
-            <span>Showing the results loaded earlier.</span>
+            <span i18n>Showing the results loaded earlier.</span>
             <zeus-connection-status />
           </div>
         }
@@ -74,15 +74,15 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
 
             <dl class="grid grid-cols-3 gap-2">
               <div class="panel p-3">
-                <dt class="label-caps">Duration</dt>
+                <dt class="label-caps" i18n>Duration</dt>
                 <dd class="num text-lg font-bold">{{ duration() }}</dd>
               </div>
               <div class="panel p-3">
-                <dt class="label-caps">Captures</dt>
+                <dt class="label-caps" i18n>Captures</dt>
                 <dd class="num text-lg font-bold">{{ validCaptures() }}</dd>
               </div>
               <div class="panel p-3">
-                <dt class="label-caps">Players</dt>
+                <dt class="label-caps" i18n>Players</dt>
                 <dd class="num text-lg font-bold">{{ r.players.length }}</dd>
               </div>
             </dl>
@@ -91,9 +91,9 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
             <zeus-results-timeline [results]="r" />
 
             <section aria-labelledby="perks-title">
-              <h2 id="perks-title" class="label-caps mb-2">Perks purchased · <span class="num">{{ r.perks.length }}</span></h2>
+              <h2 id="perks-title" class="label-caps mb-2" i18n>Perks purchased · <span class="num">{{ r.perks.length }}</span></h2>
               @if (!r.perks.length) {
-                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No perks were bought in this game.</p>
+                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No perks were bought in this game.</p>
               } @else {
                 <ul class="panel divide-y divide-border">
                   @for (p of r.perks; track p.id) {
@@ -102,7 +102,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                         <p class="font-semibold">{{ p.perkName }}</p>
                         <p class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <zeus-team-badge [team]="team(p.teamId)" size="sm" [showIcon]="false" />
-                          <span>{{ p.buyerNickname || 'Game Master' }}</span>
+                          <span>{{ p.buyerNickname || txt.gameMaster }}</span>
                           <span class="num">{{ time(p.createdAt) }}</span>
                           @if (p.targetTeamId && team(p.targetTeamId); as target) {
                             <span>→ {{ target.name }}</span>
@@ -110,7 +110,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                         </p>
                       </div>
                       <zeus-status-chip [spec]="purchaseChip(p.status)" />
-                      <span class="num w-20 shrink-0 text-right text-sm font-semibold">{{ fmt(p.price) }} cr{{ p.refunded ? ' ↺' : '' }}</span>
+                      <span class="num w-20 shrink-0 text-right text-sm font-semibold" i18n>{{ fmt(p.price) }} cr{{ p.refunded ? ' ↺' : '' }}</span>
                     </li>
                   }
                 </ul>
@@ -118,9 +118,9 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
             </section>
 
             <section aria-labelledby="adj-title">
-              <h2 id="adj-title" class="label-caps mb-2">Game Master adjustments · <span class="num">{{ r.adjustments.length }}</span></h2>
+              <h2 id="adj-title" class="label-caps mb-2" i18n>Game Master adjustments · <span class="num">{{ r.adjustments.length }}</span></h2>
               @if (!r.adjustments.length) {
-                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No manual changes to scores or credits.</p>
+                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No manual changes to scores or credits.</p>
               } @else {
                 <ul class="panel divide-y divide-border">
                   @for (a of r.adjustments; track a.id) {
@@ -130,17 +130,17 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                           <zeus-team-badge [team]="team(a.teamId)" size="sm" [showIcon]="false" />
                           <span class="text-xs font-semibold" [class.text-destructive]="a.type === 'penalty'">{{ a.type === 'penalty' ? '▲ ' : '' }}{{ ledgerLabel(a.type) }}</span>
                         </p>
-                        <p class="mt-1 text-sm">{{ a.reason || 'No reason given' }}</p>
+                        <p class="mt-1 text-sm">{{ a.reason || txt.noReasonGiven }}</p>
                         <p class="text-xs text-muted-foreground">
-                          {{ a.actorNickname || 'Game Master' }} · <span class="num">{{ dateTime(a.createdAt) }}</span>
+                          {{ a.actorNickname || txt.gameMaster }} · <span class="num">{{ dateTime(a.createdAt) }}</span>
                           @if (a.nickname) {
-                            · for {{ a.nickname }}
+                            <ng-container i18n>· for {{ a.nickname }}</ng-container>
                           }
                         </p>
                       </div>
                       <p class="num shrink-0 text-right font-bold">
                         {{ signed(a.amount) }}
-                        <span class="block text-xs font-normal text-muted-foreground">{{ a.kind === 'points' ? 'points' : 'credits' }}</span>
+                        <span class="block text-xs font-normal text-muted-foreground">@if (a.kind === 'points') {<ng-container i18n>points</ng-container>} @else {<ng-container i18n>credits</ng-container>}</span>
                       </p>
                     </li>
                   }
@@ -153,25 +153,25 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
             <zeus-results-top-players [results]="r" />
 
             <section class="panel flex flex-col gap-3 p-4" aria-labelledby="share-title">
-              <h2 id="share-title" class="label-caps">Share results</h2>
+              <h2 id="share-title" class="label-caps" i18n>Share results</h2>
               @if (shareUrl()) {
-                <p class="text-sm text-muted-foreground">Anyone with the link can see the results page. No account needed.</p>
+                <p class="text-sm text-muted-foreground" i18n>Anyone with the link can see the results page. No account needed.</p>
                 <p class="num truncate rounded-sm border border-dashed border-border bg-muted px-2 py-1.5 text-xs" [title]="shareUrl()">{{ shareUrl() }}</p>
                 <div class="grid grid-cols-2 gap-2">
                   <button hlmBtn variant="outline" type="button" class="h-11" (click)="copyLink()">
-                    <ng-icon [name]="copied() ? 'lucideCheck' : 'lucideCopy'" size="16" aria-hidden="true" /> {{ copied() ? 'Copied' : 'Copy link' }}
+                    <ng-icon [name]="copied() ? 'lucideCheck' : 'lucideCopy'" size="16" aria-hidden="true" /> {{ copied() ? txt.copied : txt.copyLink }}
                   </button>
-                  <button hlmBtn type="button" class="h-11" (click)="share()"><ng-icon name="lucideShare2" size="16" aria-hidden="true" /> Share</button>
+                  <button hlmBtn type="button" class="h-11" (click)="share()"><ng-icon name="lucideShare2" size="16" aria-hidden="true" /> <ng-container i18n>Share</ng-container></button>
                 </div>
               } @else if (isGm()) {
                 <p class="text-sm text-muted-foreground">
-                  {{ published() === false ? 'The public page is unpublished: the old link shows "not available".' : 'Publish a public page with the winner, leaderboard and timeline. Player positions are never included.' }}
+                  {{ published() === false ? txt.thePublicPageIs : txt.publishAPublicPage }}
                 </p>
                 <button hlmBtn type="button" class="h-11" [disabled]="publishing()" (click)="publish()">
-                  <ng-icon name="lucideGlobe" size="16" aria-hidden="true" /> {{ publishing() ? 'Publishing…' : published() === false ? 'Publish again' : 'Publish results page' }}
+                  <ng-icon name="lucideGlobe" size="16" aria-hidden="true" /> {{ publishing() ? txt.publishing : published() === false ? txt.publishAgain : txt.publishResultsPage }}
                 </button>
               } @else {
-                <p class="text-sm text-muted-foreground">The Game Master has not published a public results page yet.</p>
+                <p class="text-sm text-muted-foreground" i18n>The Game Master has not published a public results page yet.</p>
               }
             </section>
           </aside>
@@ -181,6 +181,22 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
   `,
 })
 export class EventResultsScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    controlCenter: $localize`Control center`,
+    openLiveMap: $localize`Open live map`,
+    gameMaster: $localize`Game Master`,
+    noReasonGiven: $localize`No reason given`,
+    copied: $localize`Copied`,
+    copyLink: $localize`Copy link`,
+    thePublicPageIs: $localize`The public page is unpublished: the old link shows "not available".`,
+    publishAPublicPage: $localize`Publish a public page with the winner, leaderboard and timeline. Player positions are never included.`,
+    publishing: $localize`Publishing…`,
+    publishAgain: $localize`Publish again`,
+    publishResultsPage: $localize`Publish results page`,
+    results: $localize`Results`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly doc = inject(DOCUMENT);
@@ -287,7 +303,7 @@ export class EventResultsScreen {
       const res = await this.api.publishResults(this.eventId());
       this.token.set(res.token);
       this.published.set(true);
-      this.toast.success('Results page published', 'Share the link with your players.');
+      this.toast.success($localize`Results page published`, $localize`Share the link with your players.`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -302,7 +318,7 @@ export class EventResultsScreen {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     } else {
-      this.toast.error('Could not copy the link.');
+      this.toast.error($localize`Could not copy the link.`);
     }
   }
 
@@ -310,8 +326,8 @@ export class EventResultsScreen {
     const url = this.shareUrl();
     const r = this.results();
     if (!url || !r) return;
-    const res = await shareOrCopy({ title: `${r.eventName} — results`, text: `Results of ${r.eventName} on AirsoftHub`, url });
-    if (res === 'copied') this.toast.success('Link copied');
-    else if (res === 'failed') this.toast.error('Could not share the link.');
+    const res = await shareOrCopy({ title: $localize`${r.eventName}:eventName: — results`, text: $localize`Results of ${r.eventName}:eventName: on AirsoftHub`, url });
+    if (res === 'copied') this.toast.success($localize`Link copied`);
+    else if (res === 'failed') this.toast.error($localize`Could not share the link.`);
   }
 }

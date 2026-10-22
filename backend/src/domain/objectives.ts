@@ -16,6 +16,8 @@ import {
   type ObjectiveStatus,
 } from './rules.js';
 import * as dto from './serialize.js';
+import { tr } from '../i18n/index.js';
+import { captureMethodLabel } from '../i18n/labels.js';
 
 export type ObjRow = Row & ObjectiveRow & { name: string; event_id: string; lat: number; lng: number; rewards: unknown; recurring_last_at: Date | null; last_status: string | null };
 
@@ -88,7 +90,7 @@ export async function settleRecurring(t: Tx, ctx: EventContext, row: ObjRow, now
   const minutes = Math.floor((now - new Date(row.recurring_last_at).getTime()) / 60_000);
   if (minutes < 1) return;
   const mult = await pointsMultiplier(t, ctx.event.id, row.owner_team_id);
-  const base = { eventId: ctx.event.id, teamId: row.owner_team_id, scoring: ctx.scoring, objectiveId: row.id, type: 'recurring' as const, reason: `Held ${row.name} for ${minutes} min` };
+  const base = { eventId: ctx.event.id, teamId: row.owner_team_id, scoring: ctx.scoring, objectiveId: row.id, type: 'recurring' as const, reason: tr`Held ${row.name} for ${minutes} min` };
   if (r.recurringPointsPerMinute) await applyLedger(t, { ...base, kind: 'points', amount: Math.round(r.recurringPointsPerMinute * minutes * mult) });
   if (r.recurringCurrencyPerMinute) await applyLedger(t, { ...base, kind: 'currency', amount: r.recurringCurrencyPerMinute * minutes });
   const next = new Date(new Date(row.recurring_last_at).getTime() + minutes * 60_000);
@@ -115,24 +117,24 @@ export interface CaptureOutcome {
   currency: number;
 }
 
-const BLOCK_MESSAGES: Record<CaptureBlockReason, string> = {
-  not_live: 'The game is not running.',
-  no_team: 'You are not on a team.',
-  disabled: 'This objective is disabled.',
-  completed: 'This objective has no captures left.',
-  locked: 'Capture the prerequisite objectives first.',
-  inactive: 'This objective is not available right now.',
-  contested: 'The objective is contested.',
-  already_owned: 'Your team already holds this objective.',
-  team_not_allowed: 'Your team cannot capture this objective.',
-  cooldown: 'The objective is cooling down after the last capture.',
-  jammed: 'This objective is jammed for your team.',
-  shielded: 'This objective is shielded by another team.',
-  geofence_required: 'Hold the zone first, then enter the code.',
-};
+const BLOCK_MESSAGES = (): Record<CaptureBlockReason, string> => ({
+  not_live: tr`The game is not running.`,
+  no_team: tr`You are not on a team.`,
+  disabled: tr`This objective is disabled.`,
+  completed: tr`This objective has no captures left.`,
+  locked: tr`Capture the prerequisite objectives first.`,
+  inactive: tr`This objective is not available right now.`,
+  contested: tr`The objective is contested.`,
+  already_owned: tr`Your team already holds this objective.`,
+  team_not_allowed: tr`Your team cannot capture this objective.`,
+  cooldown: tr`The objective is cooling down after the last capture.`,
+  jammed: tr`This objective is jammed for your team.`,
+  shielded: tr`This objective is shielded by another team.`,
+  geofence_required: tr`Hold the zone first, then enter the code.`,
+});
 
 export function blockError(reason: CaptureBlockReason) {
-  return conflict(BLOCK_MESSAGES[reason], reason);
+  return conflict(BLOCK_MESSAGES()[reason], reason);
 }
 
 /**
@@ -143,13 +145,13 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
   const { ctx, now } = input;
   const eventId = ctx.event.id;
   const row = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1 AND event_id = $2 FOR UPDATE', [input.objectiveId, eventId], t);
-  if (!row) throw notFound('Objective not found.');
+  if (!row) throw notFound(tr`Objective not found.`);
   const counts = new Map((await many<{ id: string; capture_count: number }>('SELECT id, capture_count FROM objectives WHERE event_id = $1', [eventId], t)).map((r) => [r.id, r.capture_count]));
   const status = statusOf(row, counts, now);
   const state = await one<{ armed: Record<string, boolean> }>('SELECT armed FROM capture_states WHERE objective_id = $1', [row.id], t);
   if (input.method !== 'gm') {
     if (!objectiveVisible(row, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules }) && input.method !== 'geofence') {
-      throw notFound('Objective not found.');
+      throw notFound(tr`Objective not found.`);
     }
     const block = captureBlock(row, status, ctx.event.status, input.teamId, now, input.method, state?.armed ?? {});
     if (block) throw blockError(block);
@@ -186,18 +188,18 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
   if (input.userId) await t.query('UPDATE event_members SET captures = captures + 1 WHERE event_id = $1 AND user_id = $2', [eventId, input.userId]);
 
   const base = { eventId, teamId: input.teamId, scoring: ctx.scoring, userId: input.userId, objectiveId: row.id, captureId, clientTxId: input.clientTxId, actorId: input.actorId ?? null };
-  if (points) await applyLedger(t, { ...base, kind: 'points', type: 'capture', amount: points, reason: `Captured ${row.name}` });
-  if (currency) await applyLedger(t, { ...base, kind: 'currency', type: 'capture', amount: currency, reason: `Captured ${row.name}` });
-  if (firstCapture && r.captureBonus) await applyLedger(t, { ...base, kind: 'points', type: 'capture_bonus', amount: Math.round(r.captureBonus * mult), reason: `First capture of ${row.name}` });
-  if (completes && r.completionBonus) await applyLedger(t, { ...base, kind: 'points', type: 'completion_bonus', amount: Math.round(r.completionBonus * mult), reason: `Completed ${row.name}` });
+  if (points) await applyLedger(t, { ...base, kind: 'points', type: 'capture', amount: points, reason: (tr) => tr`Captured ${row.name}` });
+  if (currency) await applyLedger(t, { ...base, kind: 'currency', type: 'capture', amount: currency, reason: (tr) => tr`Captured ${row.name}` });
+  if (firstCapture && r.captureBonus) await applyLedger(t, { ...base, kind: 'points', type: 'capture_bonus', amount: Math.round(r.captureBonus * mult), reason: (tr) => tr`First capture of ${row.name}` });
+  if (completes && r.completionBonus) await applyLedger(t, { ...base, kind: 'points', type: 'completion_bonus', amount: Math.round(r.completionBonus * mult), reason: (tr) => tr`Completed ${row.name}` });
 
   // Feed, alerts, notifications
-  const teamName = (await one<{ name: string }>('SELECT name FROM teams WHERE id = $1', [input.teamId], t))?.name ?? 'A team';
+  const teamName = (await one<{ name: string }>('SELECT name FROM teams WHERE id = $1', [input.teamId], t))?.name ?? tr`A team`;
   const nickname = input.userId ? (await one<{ nickname: string }>('SELECT nickname FROM users WHERE id = $1', [input.userId], t))?.nickname : null;
   const capturedVisibleToAll = ctx.rules.capturedObjectives === 'visible' && (row.visibility?.mode ?? 'all') === 'all';
   await activity(t, eventId, {
     type: 'objective_captured',
-    message: `${teamName} captured ${row.name}${nickname ? ` (${nickname}, ${input.method === 'gm' ? 'GM' : input.method})` : ''}`,
+    message: (tr) => (nickname ? tr`${teamName} captured ${row.name} (${nickname}, ${captureMethodLabel(tr, input.method)})` : tr`${teamName} captured ${row.name}`),
     scope: capturedVisibleToAll ? 'all' : 'gm',
     teamId: input.teamId,
     userId: input.userId,
@@ -205,20 +207,20 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
     data: { method: input.method, points, currency },
   });
   if (!capturedVisibleToAll) {
-    await activity(t, eventId, { type: 'objective_captured', message: `Your team captured ${row.name}`, scope: 'team', teamId: input.teamId, objectiveId: row.id, data: { points, currency } });
+    await activity(t, eventId, { type: 'objective_captured', message: (tr) => tr`Your team captured ${row.name}`, scope: 'team', teamId: input.teamId, objectiveId: row.id, data: { points, currency } });
   }
   await alert(t, eventId, {
     type: 'capture',
     severity: 'info',
     userId: input.userId,
-    message: `${teamName} captured ${row.name} by ${input.method}`,
+    message: (tr) => tr`${teamName} captured ${row.name} by ${captureMethodLabel(tr, input.method)}`,
     data: { objectiveId: row.id, captureId, teamId: input.teamId },
   });
   const url = `/events/${eventId}/live/objectives/${row.id}`;
   await notify(t, await eventPlayers(t, eventId, input.teamId), {
     type: 'objective_captured',
     title: `${row.name} captured`,
-    body: `+${points} points, +${currency} credits${nickname ? ` · ${nickname}` : ''}`,
+    body: (tr) => (nickname ? tr`+${points} points, +${currency} credits · ${nickname}` : tr`+${points} points, +${currency} credits`),
     eventId,
     url,
     data: { objectiveId: row.id },
@@ -227,7 +229,7 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
     await notify(t, await eventPlayers(t, eventId, previousOwner), {
       type: 'objective_lost',
       title: `${row.name} lost`,
-      body: `${teamName} took the objective.`,
+      body: (tr) => tr`${teamName} took the objective.`,
       priority: 'high',
       eventId,
       url,
@@ -244,10 +246,10 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
     counts.set(row.id, newCount);
     for (const u of unlocked) {
       if (u.prerequisite_ids.every((p) => (counts.get(p) ?? 0) > 0)) {
-        await activity(t, eventId, { type: 'objective_available', message: `New objective available: ${u.name}`, scope: 'all', objectiveId: u.id });
+        await activity(t, eventId, { type: 'objective_available', message: (tr) => tr`New objective available: ${u.name}`, scope: 'all', objectiveId: u.id });
         await notify(t, await eventPlayers(t, eventId), {
           type: 'objective_available',
-          title: 'New objective available',
+          title: (tr) => tr`New objective available`,
           body: u.name,
           eventId,
           url: `/events/${eventId}/live/objectives/${u.id}`,
@@ -266,8 +268,8 @@ export async function performCapture(t: Tx, input: CaptureInput): Promise<Captur
 /** GM revokes a capture: optionally reverses its rewards; ownership goes back to the previous owner. */
 export async function revokeCapture(t: Tx, ctx: EventContext, captureId: string, reverseRewards: boolean, reason: string, actorId: string): Promise<void> {
   const c = await one('SELECT * FROM objective_captures WHERE id = $1 AND event_id = $2 FOR UPDATE', [captureId, ctx.event.id], t);
-  if (!c) throw notFound('Capture not found.');
-  if (c.revoked_at) throw conflict('This capture was already revoked.', 'already_revoked');
+  if (!c) throw notFound(tr`Capture not found.`);
+  if (c.revoked_at) throw conflict(tr`This capture was already revoked.`, 'already_revoked');
   await t.query('UPDATE objective_captures SET revoked_at = now(), revoked_by = $2, revoke_reason = $3 WHERE id = $1', [captureId, actorId, reason]);
   const o = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1 FOR UPDATE', [c.objective_id], t);
   if (o && o.owner_team_id === c.team_id) {
@@ -285,7 +287,7 @@ export async function revokeCapture(t: Tx, ctx: EventContext, captureId: string,
     if (Number(c.points)) await applyLedger(t, { ...base, kind: 'points', amount: -Number(c.points) });
     if (Number(c.currency)) await applyLedger(t, { ...base, kind: 'currency', amount: -Number(c.currency) });
   }
-  await activity(t, ctx.event.id, { type: 'capture_revoked', message: `GM revoked a capture of ${o?.name ?? 'an objective'}: ${reason}`, scope: 'all', teamId: c.team_id, objectiveId: c.objective_id });
+  await activity(t, ctx.event.id, { type: 'capture_revoked', message: (tr) => tr`GM revoked a capture of ${o?.name ?? tr`an objective`}: ${reason}`, scope: 'all', teamId: c.team_id, objectiveId: c.objective_id });
   t.afterCommit(() => hub.invalidate(ctx.event.id, ['objectives', 'captures']));
 }
 

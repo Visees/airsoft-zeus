@@ -19,12 +19,12 @@ import { postAuthUrl } from './post-auth';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <zeus-auth-layout>
-      <h1 class="text-3xl uppercase">Log in</h1>
+      <h1 class="text-3xl uppercase" i18n>Log in</h1>
       <p class="mt-1 text-sm text-muted-foreground">
         @if (next()) {
-          Log in to continue where you left off.
+          <ng-container i18n>Log in to continue where you left off.</ng-container>
         } @else {
-          Log in with the email address you registered with.
+          <ng-container i18n>Log in with the email address you registered with.</ng-container>
         }
       </p>
 
@@ -39,7 +39,7 @@ import { postAuthUrl } from './post-auth';
         }
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="li-email">Email</label>
+          <label hlmLabel for="li-email" i18n>Email</label>
           <input hlmInput id="li-email" type="email" class="h-11" formControlName="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false"
             [attr.aria-invalid]="!!err('email')" [attr.aria-describedby]="err('email') ? 'li-email-err' : null" />
           @if (err('email'); as e) {
@@ -49,8 +49,8 @@ import { postAuthUrl } from './post-auth';
 
         <div class="flex flex-col gap-1.5">
           <div class="flex items-end justify-between gap-2">
-            <label hlmLabel for="li-password">Password</label>
-            <a routerLink="/auth/forgot-password" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">Forgot password?</a>
+            <label hlmLabel for="li-password" i18n>Password</label>
+            <a routerLink="/auth/forgot-password" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Forgot password?</a>
           </div>
           <zeus-password-input [control]="form.controls.password" inputId="li-password" autocomplete="current-password"
             [invalid]="!!err('password')" [describedBy]="err('password') ? 'li-password-err' : null" />
@@ -61,12 +61,12 @@ import { postAuthUrl } from './post-auth';
 
         <button hlmBtn type="submit" class="h-12 text-base" [disabled]="saving()">
           @if (saving()) {
-            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Logging in…
+            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Logging in…</ng-container>
           } @else {
-            Log in
+            <ng-container i18n>Log in</ng-container>
           }
         </button>
-        <p class="text-center text-sm text-muted-foreground">
+        <p class="text-center text-sm text-muted-foreground" i18n>
           New to AirsoftHub? <a routerLink="/auth/sign-up" class="font-semibold text-primary underline-offset-2 hover:underline">Create an account</a>
         </p>
       </form>
@@ -109,14 +109,14 @@ export class LoginScreen {
     } catch (e) {
       const err = ApiError.from(e);
       if (err.status === 429) {
-        this.formError.set({ kind: 'rate', message: err.message || 'Too many login attempts. Wait a few minutes before trying again, or reset your password.' });
+        this.formError.set({ kind: 'rate', message: err.message || $localize`Too many login attempts. Wait a few minutes before trying again, or reset your password.` });
       } else if (err.isNetwork) {
         this.formError.set({ kind: 'network', message: err.message });
       } else if (err.status === 401 || err.status === 400) {
         const unmatched = applyServerErrors(this.form, err);
         this.formError.set({
           kind: 'auth',
-          message: Object.keys(err.fields).length && !unmatched.length ? 'Check the highlighted fields.' : err.message || 'Wrong email or password.',
+          message: Object.keys(err.fields).length && !unmatched.length ? $localize`Check the highlighted fields.` : err.message || $localize`Wrong email or password.`,
         });
         this.form.controls.password.reset('');
       } else {

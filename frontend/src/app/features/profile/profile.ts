@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgIcon } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { AuthService } from '../../core/auth/auth.service';
-import { formatDate } from '../../core/util/format';
+import { formatDate, formatList } from '../../core/util/format';
 import { EmptyState, PageHeader } from '../../shared/states';
 import { countryName } from './countries';
 import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
@@ -15,44 +15,44 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
   template: `
     <div class="page-narrow">
       @if (user(); as u) {
-        <zeus-page-header title="Profile">
-          <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> Edit profile</a>
+        <zeus-page-header title="Profile" i18n-title>
+          <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit profile</ng-container></a>
         </zeus-page-header>
 
-        <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Profile summary">
-          <zeus-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="88" [alt]="'Avatar of ' + u.nickname" />
+        <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Profile summary" i18n-aria-label>
+          <zeus-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="88" alt="Avatar of {{ u.nickname }}" i18n-alt />
           <div class="flex min-w-0 flex-1 flex-col gap-2">
             <div>
-              <p class="label-caps">Nickname · public</p>
+              <p class="label-caps" i18n>Nickname · public</p>
               <p class="truncate text-2xl font-bold uppercase" style="font-stretch: 85%">{{ u.nickname }}</p>
             </div>
             @if (realName()) {
               <div>
-                <p class="label-caps flex items-center gap-1"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> Real name · only you see this</p>
+                <p class="label-caps flex items-center gap-1"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> <ng-container i18n>Real name · only you see this</ng-container></p>
                 <p>{{ realName() }}</p>
               </div>
             }
             <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
               <div>
-                <dt class="label-caps">Club</dt>
+                <dt class="label-caps" i18n>Club</dt>
                 <dd>
                   @if (u.clubId) {
-                    <a [routerLink]="['/clubs', u.clubId]" class="font-semibold text-primary underline-offset-2 hover:underline">{{ u.clubName || 'View club' }}</a>
+                    <a [routerLink]="['/clubs', u.clubId]" class="font-semibold text-primary underline-offset-2 hover:underline">{{ u.clubName || txt.viewClub }}</a>
                   } @else {
                     {{ u.clubName || '—' }}
                   }
                 </dd>
               </div>
               <div>
-                <dt class="label-caps">Role</dt>
+                <dt class="label-caps" i18n>Role</dt>
                 <dd>{{ role() }}</dd>
               </div>
               <div>
-                <dt class="label-caps">Country</dt>
+                <dt class="label-caps" i18n>Country</dt>
                 <dd>{{ country() ?? '—' }}</dd>
               </div>
               <div>
-                <dt class="label-caps">Member since</dt>
+                <dt class="label-caps" i18n>Member since</dt>
                 <dd>{{ since() }}</dd>
               </div>
             </dl>
@@ -65,25 +65,25 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
         @if (missing().length) {
           <a routerLink="/profile/edit" class="mt-3 flex items-center gap-3 rounded-md border border-dashed border-border p-3 text-sm hover:bg-muted/60">
             <ng-icon name="lucideInfo" size="18" class="shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span class="flex-1">Add {{ missing().join(', ') }} to complete your profile.</span>
+            <span class="flex-1" i18n>Add {{ missingList() }} to complete your profile.</span>
             <ng-icon name="lucideChevronRight" size="16" class="text-muted-foreground" aria-hidden="true" />
           </a>
         }
 
         <section class="mt-6" aria-labelledby="pr-stats">
           <div class="mb-2 flex items-baseline justify-between">
-            <h2 id="pr-stats" class="label-caps">Statistics</h2>
-            <a routerLink="/profile/stats" class="text-sm font-semibold text-primary underline-offset-2 hover:underline">Game history</a>
+            <h2 id="pr-stats" class="label-caps" i18n>Statistics</h2>
+            <a routerLink="/profile/stats" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Game history</a>
           </div>
           <zeus-stat-tiles [stats]="u.stats" />
         </section>
 
         <section class="mt-6" aria-labelledby="pr-badges">
-          <h2 id="pr-badges" class="label-caps mb-2">Badges · <span class="num">{{ u.badges.length }}</span></h2>
+          <h2 id="pr-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ u.badges.length }}</span></h2>
           <zeus-badge-grid [badges]="u.badges" [compact]="true" />
         </section>
 
-        <nav class="mt-6" aria-label="Profile links">
+        <nav class="mt-6" aria-label="Profile links" i18n-aria-label>
           <ul class="panel divide-y divide-border overflow-hidden">
             @for (l of links(); track l.link) {
               <li>
@@ -101,8 +101,8 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
               <a [routerLink]="['/players', u.id]" class="flex min-h-14 items-center gap-3 px-4 hover:bg-muted/60">
                 <ng-icon name="lucideEye" size="18" class="text-muted-foreground" aria-hidden="true" />
                 <span class="flex-1">
-                  <span class="block font-semibold">See my public profile</span>
-                  <span class="block text-xs text-muted-foreground">What other players see</span>
+                  <span class="block font-semibold" i18n>See my public profile</span>
+                  <span class="block text-xs text-muted-foreground" i18n>What other players see</span>
                 </span>
                 <ng-icon name="lucideChevronRight" size="16" class="text-muted-foreground" aria-hidden="true" />
               </a>
@@ -111,17 +111,24 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
         </nav>
 
         <button hlmBtn variant="outline" type="button" class="mt-6 h-12 w-full" [disabled]="loggingOut()" (click)="logout()">
-          <ng-icon name="lucideLogOut" size="18" aria-hidden="true" /> {{ loggingOut() ? 'Logging out…' : 'Log out' }}
+          <ng-icon name="lucideLogOut" size="18" aria-hidden="true" /> {{ loggingOut() ? txt.loggingOut : txt.logOut }}
         </button>
       } @else {
-        <zeus-empty-state icon="lucideUser" title="Not signed in" message="Log in to see your profile.">
-          <a hlmBtn routerLink="/auth/login" class="h-11">Log in</a>
+        <zeus-empty-state icon="lucideUser" title="Not signed in" message="Log in to see your profile." i18n-title i18n-message>
+          <a hlmBtn routerLink="/auth/login" class="h-11" i18n>Log in</a>
         </zeus-empty-state>
       }
     </div>
   `,
 })
 export class ProfileScreen implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    viewClub: $localize`View club`,
+    loggingOut: $localize`Logging out…`,
+    logOut: $localize`Log out`,
+  };
+
   private readonly auth = inject(AuthService);
   protected readonly user = this.auth.user;
   protected readonly loggingOut = signal(false);
@@ -133,23 +140,24 @@ export class ProfileScreen implements OnInit {
   protected readonly role = computed(() => roleText(this.user()?.playerRole, this.user()?.customRole) ?? '—');
   protected readonly country = computed(() => countryName(this.user()?.country));
   protected readonly since = computed(() => formatDate(this.user()?.createdAt));
+  protected readonly missingList = computed(() => formatList(this.missing()));
   protected readonly missing = computed(() => {
     const u = this.user();
     if (!u) return [];
     const m: string[] = [];
-    if (!u.avatarUrl) m.push('a photo');
-    if (!u.clubName && !u.clubId) m.push('your club');
-    if (!u.emergencyContact) m.push('an emergency contact');
+    if (!u.avatarUrl) m.push($localize`a photo`);
+    if (!u.clubName && !u.clubId) m.push($localize`your club`);
+    if (!u.emergencyContact) m.push($localize`an emergency contact`);
     return m;
   });
 
   protected readonly links = computed(() => [
-    { label: 'Edit profile', hint: 'Photo, nickname, club, role, emergency contact', icon: 'lucidePencil', link: '/profile/edit' },
-    { label: 'Statistics', hint: 'Game history, results and badges', icon: 'lucideChartColumn', link: '/profile/stats' },
-    { label: 'Settings', hint: 'Theme, notifications, password, data', icon: 'lucideSettings', link: '/settings' },
-    { label: 'Privacy', hint: 'What other players and Game Masters see', icon: 'lucideShieldCheck', link: '/settings/privacy' },
-    { label: 'Help & feedback', hint: 'Report a bug, flag a problem, write to the team', icon: 'lucideLifeBuoy', link: '/support' },
-    ...(this.user()?.isAdmin ? [{ label: 'Admin', hint: 'Answer support tickets, publish News', icon: 'lucideShield', link: '/admin' }] : []),
+    { label: $localize`Edit profile`, hint: $localize`Photo, nickname, club, role, emergency contact`, icon: 'lucidePencil', link: '/profile/edit' },
+    { label: $localize`Statistics`, hint: $localize`Game history, results and badges`, icon: 'lucideChartColumn', link: '/profile/stats' },
+    { label: $localize`Settings`, hint: $localize`Theme, notifications, password, data`, icon: 'lucideSettings', link: '/settings' },
+    { label: $localize`Privacy`, hint: $localize`What other players and Game Masters see`, icon: 'lucideShieldCheck', link: '/settings/privacy' },
+    { label: $localize`Help & feedback`, hint: $localize`Report a bug, flag a problem, write to the team`, icon: 'lucideLifeBuoy', link: '/support' },
+    ...(this.user()?.isAdmin ? [{ label: $localize`Admin`, hint: $localize`Answer support tickets, publish News`, icon: 'lucideShield', link: '/admin' }] : []),
   ]);
 
   ngOnInit(): void {

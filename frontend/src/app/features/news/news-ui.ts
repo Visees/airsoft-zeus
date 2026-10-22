@@ -6,17 +6,17 @@ import { formatDate } from '../../core/util/format';
 import { ChipSpec, StatusChip } from '../../shared/status-chip';
 
 export const NEWS_CATEGORY_LABELS: Record<NewsCategory, string> = {
-  update: 'Update',
-  sponsor: 'Sponsor',
-  announcement: 'Announcement',
-  event: 'Event',
+  update: $localize`Update`,
+  sponsor: $localize`Sponsor`,
+  announcement: $localize`Announcement`,
+  event: $localize`Event`,
 };
 
 const CATEGORY_CHIPS: Record<NewsCategory, ChipSpec> = {
-  update: { label: 'Update', glyph: '↻', tone: 'nav' },
-  sponsor: { label: 'Sponsor', glyph: '★', tone: 'warning' },
-  announcement: { label: 'Announcement', glyph: '!', tone: 'primary' },
-  event: { label: 'Event', glyph: '◆', tone: 'neutral' },
+  update: { label: $localize`Update`, glyph: '↻', tone: 'nav' },
+  sponsor: { label: $localize`Sponsor`, glyph: '★', tone: 'warning' },
+  announcement: { label: $localize`Announcement`, glyph: '!', tone: 'primary' },
+  event: { label: $localize`Event`, glyph: '◆', tone: 'neutral' },
 };
 
 export const newsCategoryChip = (c: NewsCategory): ChipSpec => CATEGORY_CHIPS[c] ?? CATEGORY_CHIPS.update;
@@ -59,12 +59,12 @@ export function isExternalLink(url: string): boolean {
         <div class="flex flex-wrap items-center gap-1.5">
           <zeus-status-chip [spec]="chip()" />
           @if (n.pinned) {
-            <span class="inline-flex items-center gap-1 text-xs font-semibold text-primary"><ng-icon name="lucidePin" size="12" aria-hidden="true" /> Pinned</span>
+            <span class="inline-flex items-center gap-1 text-xs font-semibold text-primary"><ng-icon name="lucidePin" size="12" aria-hidden="true" /> <ng-container i18n>Pinned</ng-container></span>
           }
           @if (state() === 'draft') {
-            <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs text-muted-foreground">Draft</span>
+            <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs text-muted-foreground" i18n>Draft</span>
           } @else if (state() === 'scheduled') {
-            <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning">◷ Scheduled</span>
+            <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning" i18n>◷ Scheduled</span>
           }
         </div>
         <h3 class="line-clamp-2 text-base font-bold uppercase group-hover:text-primary">{{ n.title }}</h3>
@@ -82,6 +82,6 @@ export class NewsCard {
   protected readonly state = computed(() => newsState(this.news()));
   protected readonly date = computed(() => {
     const n = this.news();
-    return n.publishedAt ? formatDate(n.publishedAt) : `Created ${formatDate(n.createdAt)}`;
+    return n.publishedAt ? formatDate(n.publishedAt) : $localize`Created ${formatDate(n.createdAt)}:createdAt:`;
   });
 }

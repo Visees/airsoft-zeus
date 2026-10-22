@@ -31,7 +31,7 @@ interface SquadGroup {
       @if (store.myTeam(); as team) {
         <!-- Header -->
         <header class="panel flex flex-col gap-3 p-4">
-          <p class="label-caps">Your team</p>
+          <p class="label-caps" i18n>Your team</p>
           <h2 class="sr-only">{{ team.name }}</h2>
           <zeus-team-badge [team]="team" size="lg" />
           <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -40,7 +40,7 @@ interface SquadGroup {
               <zeus-currency-display [amount]="team.currency" size="lg" />
             }
           </div>
-          <p class="text-sm text-muted-foreground">
+          <p class="text-sm text-muted-foreground" i18n>
             <span class="num">{{ team.memberCount }}</span> players · holding <span class="num">{{ team.objectivesHeld }}</span> objectives
           </p>
         </header>
@@ -48,7 +48,7 @@ interface SquadGroup {
         <!-- Active perks -->
         @if (effects().length) {
           <section class="flex flex-col gap-2" aria-labelledby="perks-title">
-            <h3 id="perks-title" class="label-caps">Active perks · <span class="num">{{ effects().length }}</span></h3>
+            <h3 id="perks-title" class="label-caps" i18n>Active perks · <span class="num">{{ effects().length }}</span></h3>
             <ul class="panel flex flex-col divide-y divide-border">
               @for (e of effects(); track e.id) {
                 <li class="flex items-center gap-2 p-3 text-sm">
@@ -56,7 +56,7 @@ interface SquadGroup {
                   <span class="min-w-0 flex-1 font-semibold">
                     {{ e.label }}
                     @if (e.hostile) {
-                      <span class="font-normal text-destructive">— used against your team</span>
+                      <span class="font-normal text-destructive" i18n>— used against your team</span>
                     }
                   </span>
                   @if (e.left) {
@@ -70,9 +70,9 @@ interface SquadGroup {
 
         <!-- Members -->
         <section class="flex flex-col gap-3" aria-labelledby="members-title">
-          <h3 id="members-title" class="label-caps">Members · <span class="num">{{ memberCount() }}</span></h3>
+          <h3 id="members-title" class="label-caps" i18n>Members · <span class="num">{{ memberCount() }}</span></h3>
           @if (!memberCount()) {
-            <zeus-empty-state icon="lucideUsers" title="No teammates yet" message="Players assigned to your team appear here." />
+            <zeus-empty-state icon="lucideUsers" title="No teammates yet" message="Players assigned to your team appear here." i18n-title i18n-message />
           }
           @for (g of squads(); track g.key) {
             <div class="panel px-3 py-2" [class.border-primary]="g.mine" [class.border-2]="g.mine">
@@ -80,10 +80,10 @@ interface SquadGroup {
                 @if (g.squad) {
                   <zeus-squad-badge [squad]="g.squad" />
                 } @else {
-                  <span class="label-caps">No squad</span>
+                  <span class="label-caps" i18n>No squad</span>
                 }
                 @if (g.mine) {
-                  <span class="text-xs font-bold text-primary">YOUR SQUAD</span>
+                  <span class="text-xs font-bold text-primary" i18n>YOUR SQUAD</span>
                 }
                 <span class="num ml-auto text-xs text-muted-foreground">{{ g.members.length }}</span>
               </div>
@@ -100,9 +100,9 @@ interface SquadGroup {
 
         <!-- Messages -->
         <section class="flex flex-col gap-2" aria-labelledby="msg-title">
-          <h3 id="msg-title" class="label-caps">Messages · <span class="num">{{ announcements().length }}</span></h3>
+          <h3 id="msg-title" class="label-caps" i18n>Messages · <span class="num">{{ announcements().length }}</span></h3>
           @if (!announcements().length) {
-            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No messages from the Game Master yet.</p>
+            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No messages from the Game Master yet.</p>
           } @else {
             <ul class="flex flex-col gap-2">
               @for (a of announcements(); track a.id) {
@@ -113,11 +113,11 @@ interface SquadGroup {
                 >
                   <p class="label-caps">
                     @if (a.priority === 'emergency') {
-                      <span class="text-destructive">Emergency</span> ·
+                      <span class="text-destructive" i18n>Emergency</span> ·
                     } @else if (a.priority === 'high') {
-                      <span class="text-warning">Important</span> ·
+                      <span class="text-warning" i18n>Important</span> ·
                     }
-                    {{ a.scope === 'team' ? 'Team' : a.scope === 'player' ? 'To you' : 'Everyone' }} ·
+                    {{ a.scope === 'team' ? txt.team : a.scope === 'player' ? txt.toYou : txt.everyone }} ·
                     <span class="num">{{ time(a.createdAt) }}</span>
                   </p>
                   <p class="font-bold">{{ a.title }}</p>
@@ -135,13 +135,13 @@ interface SquadGroup {
 
         <!-- Ledger -->
         <section class="flex flex-col gap-2" aria-labelledby="ledger-title">
-          <h3 id="ledger-title" class="label-caps">Recent points and credits</h3>
+          <h3 id="ledger-title" class="label-caps" i18n>Recent points and credits</h3>
           @if (ledgerLoading() && !ledger().length) {
             <zeus-loading-skeleton [rows]="3" />
           } @else if (ledgerError() && !ledger().length) {
-            <zeus-error-state [error]="ledgerError()" title="Could not load the history" (retry)="loadLedger()" />
+            <zeus-error-state [error]="ledgerError()" title="Could not load the history" (retry)="loadLedger()" i18n-title />
           } @else if (!ledger().length) {
-            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No points or credits recorded yet.</p>
+            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No points or credits recorded yet.</p>
           } @else {
             <ol class="panel flex flex-col divide-y divide-border">
               @for (l of ledger(); track l.id) {
@@ -161,7 +161,7 @@ interface SquadGroup {
                     [class.text-primary]="l.amount > 0"
                     [class.text-destructive]="l.amount < 0"
                   >
-                    {{ signed(l.amount) }} <span class="text-xs font-semibold">{{ l.kind === 'points' ? 'pts' : 'cr' }}</span>
+                    {{ signed(l.amount) }} <span class="text-xs font-semibold">@if (l.kind === 'points') {<ng-container i18n>pts</ng-container>} @else {<ng-container i18n>cr</ng-container>}</span>
                   </span>
                 </li>
               }
@@ -172,13 +172,13 @@ interface SquadGroup {
         <zeus-empty-state
           icon="lucideUsers"
           title="You are not on a team"
-          message="The Game Master assigns teams. Until then you can follow the game on the map and the scoreboard below."
+          message="The Game Master assigns teams. Until then you can follow the game on the map and the scoreboard below." i18n-title i18n-message
         />
       }
 
       <!-- Scoreboard -->
       <section class="flex flex-col gap-2" aria-labelledby="board-title">
-        <h3 id="board-title" class="label-caps">Scoreboard · <span class="num">{{ board().length }}</span> teams</h3>
+        <h3 id="board-title" class="label-caps" i18n>Scoreboard · <span class="num">{{ board().length }}</span> teams</h3>
         <ol class="panel flex flex-col divide-y divide-border">
           @for (t of board(); track t.id; let i = $index) {
             <li class="flex items-center gap-3 p-3" [style.background]="t.id === myTeamId() ? 'color-mix(in oklch, var(--primary) 12%, transparent)' : null">
@@ -186,9 +186,9 @@ interface SquadGroup {
               <span class="min-w-0 flex-1">
                 <zeus-team-badge [team]="t" />
                 @if (t.id === myTeamId()) {
-                  <span class="sr-only">(your team)</span>
+                  <span class="sr-only" i18n>(your team)</span>
                 }
-                <span class="block text-xs text-muted-foreground"><span class="num">{{ t.objectivesHeld }}</span> held</span>
+                <span class="block text-xs text-muted-foreground" i18n><span class="num">{{ t.objectivesHeld }}</span> held</span>
               </span>
               <span class="flex shrink-0 flex-col items-end gap-0.5">
                 <zeus-score-display [points]="t.points" size="md" />
@@ -204,6 +204,13 @@ interface SquadGroup {
   `,
 })
 export class TeamScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    team: $localize`Team`,
+    toYou: $localize`To you`,
+    everyone: $localize`Everyone`,
+  };
+
   protected readonly store = inject(LiveStore);
   private readonly api = inject(ApiService);
 

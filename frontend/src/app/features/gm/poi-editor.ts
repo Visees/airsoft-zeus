@@ -32,7 +32,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
   template: `
     <div class="page-narrow">
-      <zeus-page-header [title]="isNew() ? 'New point of interest' : (poi()?.name ?? 'Point of interest')" [eyebrow]="event()?.name ?? 'POI editor'" [back]="backUrl()" />
+      <zeus-page-header [title]="isNew() ? txt.newPointOfInterest : (poi()?.name ?? txt.pointOfInterest)" [eyebrow]="event()?.name ?? txt.poiEditor" [back]="backUrl()" />
 
       @if (loading()) {
         <zeus-loading-skeleton [rows]="5" />
@@ -41,16 +41,16 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
       } @else {
         <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-6" novalidate>
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-poi-basics">
-            <h2 id="h-poi-basics" class="label-caps">Basics</h2>
+            <h2 id="h-poi-basics" class="label-caps" i18n>Basics</h2>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="p-name">Name <span aria-hidden="true">*</span></label>
+              <label hlmLabel for="p-name"><ng-container i18n>Name</ng-container> <span aria-hidden="true">*</span></label>
               <input hlmInput id="p-name" formControlName="name" class="h-11" maxlength="120" autocomplete="off" />
               @if (e('name', 'Name'); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="p-type">Type</label>
+              <label hlmLabel for="p-type" i18n>Type</label>
               <select id="p-type" formControlName="type" [class]="selectClass">
                 @for (t of types; track t) {
                   <option [value]="t">{{ typeLabels[t] }}</option>
@@ -59,26 +59,26 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             </div>
             @if (value().type === 'team_base') {
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="p-team">Owning team</label>
+                <label hlmLabel for="p-team" i18n>Owning team</label>
                 <select id="p-team" formControlName="teamId" [class]="selectClass">
-                  <option value="">No team</option>
+                  <option value="" i18n>No team</option>
                   @for (t of event()?.teams ?? []; track t.id) {
                     <option [value]="t.id">{{ t.name }}</option>
                   }
                 </select>
-                <p class="text-sm text-muted-foreground">Enemy team bases follow the event's "show enemy bases" rule.</p>
+                <p class="text-sm text-muted-foreground" i18n>Enemy team bases follow the event's "show enemy bases" rule.</p>
               </div>
             }
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="p-desc">Description</label>
+              <label hlmLabel for="p-desc" i18n>Description</label>
               <textarea hlmTextarea id="p-desc" formControlName="description" rows="3" maxlength="5000"></textarea>
             </div>
             <div class="flex flex-col gap-1.5">
-              <span hlmLabel>Colour</span>
-              <zeus-color-field formControlName="color" label="POI colour" />
+              <span hlmLabel i18n>Colour</span>
+              <zeus-color-field formControlName="color" label="POI colour" i18n-label />
             </div>
             <fieldset>
-              <legend class="mb-1.5 text-sm font-medium">Icon</legend>
+              <legend class="mb-1.5 text-sm font-medium" i18n>Icon</legend>
               <div class="flex flex-wrap gap-1.5">
                 @for (i of icons; track i.value) {
                   <label class="grid size-11 cursor-pointer place-items-center rounded-md border border-border has-checked:border-primary has-checked:bg-primary/15" [title]="i.label">
@@ -89,14 +89,14 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
               </div>
             </fieldset>
             <div class="flex flex-col gap-1.5">
-              <span hlmLabel id="lbl-poi-img">Image</span>
+              <span hlmLabel id="lbl-poi-img" i18n>Image</span>
               @if (value().imageUrl) {
-                <img [src]="value().imageUrl" alt="Point of interest image" class="aspect-video w-full rounded-md border border-border object-cover" />
-                <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearImage()">Remove image</button>
+                <img [src]="value().imageUrl" alt="Point of interest image" class="aspect-video w-full rounded-md border border-border object-cover" i18n-alt />
+                <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearImage()" i18n>Remove image</button>
               } @else {
                 <label class="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-input text-sm hover:bg-muted">
                   <ng-icon name="lucideImage" size="16" aria-hidden="true" />
-                  {{ uploading() ? 'Uploading…' : 'Upload image' }}
+                  {{ uploading() ? txt.uploading : txt.uploadImage }}
                   <input type="file" accept="image/*" class="sr-only" aria-labelledby="lbl-poi-img" (change)="upload($event)" [disabled]="uploading()" />
                 </label>
               }
@@ -104,17 +104,17 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
           </section>
 
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-poi-pos">
-            <h2 id="h-poi-pos" class="label-caps">Position</h2>
+            <h2 id="h-poi-pos" class="label-caps" i18n>Position</h2>
             <div class="grid grid-cols-2 gap-3">
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="p-lat">Latitude</label>
+                <label hlmLabel for="p-lat" i18n>Latitude</label>
                 <input hlmInput id="p-lat" type="number" step="0.00001" formControlName="lat" class="num h-11" />
                 @if (e('lat', 'Latitude'); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="p-lng">Longitude</label>
+                <label hlmLabel for="p-lng" i18n>Longitude</label>
                 <input hlmInput id="p-lng" type="number" step="0.00001" formControlName="lng" class="num h-11" />
                 @if (e('lng', 'Longitude'); as m) {
                   <p class="field-error">{{ m }}</p>
@@ -122,9 +122,9 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>Tap the map to place it.</span>
+              <span i18n>Tap the map to place it.</span>
               <button hlmBtn type="button" variant="outline" class="h-10" (click)="useMyPosition()">
-                <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> Use my position
+                <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> <ng-container i18n>Use my position</ng-container>
               </button>
             </div>
             <zeus-tactical-map
@@ -143,9 +143,9 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
           </section>
 
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-poi-vis">
-            <h2 id="h-poi-vis" class="label-caps">Visibility</h2>
+            <h2 id="h-poi-vis" class="label-caps" i18n>Visibility</h2>
             <fieldset class="flex flex-col">
-              <legend class="mb-1.5 text-sm font-medium">Who sees it</legend>
+              <legend class="mb-1.5 text-sm font-medium" i18n>Who sees it</legend>
               @for (m of modes; track m.value) {
                 <label class="flex min-h-11 cursor-pointer items-center gap-3">
                   <input type="radio" formControlName="visMode" [value]="m.value" class="size-4 accent-primary" /> {{ m.label }}
@@ -154,7 +154,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             </fieldset>
             @if (value().visMode === 'teams') {
               <fieldset>
-                <legend class="mb-1 text-sm font-medium">Teams</legend>
+                <legend class="mb-1 text-sm font-medium" i18n>Teams</legend>
                 <div class="flex flex-wrap gap-x-4">
                   @for (t of event()?.teams ?? []; track t.id) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
@@ -166,7 +166,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
               </fieldset>
               @if (event()?.squads?.length) {
                 <fieldset>
-                  <legend class="mb-1 text-sm font-medium">Squads <span class="font-normal text-muted-foreground">(optional, narrows it further)</span></legend>
+                  <legend class="mb-1 text-sm font-medium" i18n>Squads <span class="font-normal text-muted-foreground">(optional, narrows it further)</span></legend>
                   <div class="flex flex-wrap gap-x-4">
                     @for (s of event()!.squads; track s.id) {
                       <label class="flex min-h-11 cursor-pointer items-center gap-2">
@@ -180,7 +180,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             }
             @if (value().visMode !== 'gm_only') {
               <fieldset>
-                <legend class="mb-1 text-sm font-medium">Roles <span class="font-normal text-muted-foreground">(none = every role)</span></legend>
+                <legend class="mb-1 text-sm font-medium" i18n>Roles <span class="font-normal text-muted-foreground">(none = every role)</span></legend>
                 <div class="flex flex-wrap gap-x-4">
                   @for (r of roles; track r) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
@@ -191,7 +191,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                 </div>
               </fieldset>
               <fieldset>
-                <legend class="mb-1 text-sm font-medium">Phases <span class="font-normal text-muted-foreground">(none = always)</span></legend>
+                <legend class="mb-1 text-sm font-medium" i18n>Phases <span class="font-normal text-muted-foreground">(none = always)</span></legend>
                 <div class="flex flex-wrap gap-x-4">
                   @for (p of statusPhases; track p) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
@@ -204,26 +204,26 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                   @for (p of customPhases(); track p) {
                     <span class="inline-flex h-9 items-center gap-1 rounded-sm border border-border bg-muted pl-2 text-sm">
                       {{ p }}
-                      <button type="button" class="grid size-9 place-items-center rounded-sm hover:bg-background" (click)="removePhase(p)" [attr.aria-label]="'Remove phase ' + p">
+                      <button type="button" class="grid size-9 place-items-center rounded-sm hover:bg-background" (click)="removePhase(p)" aria-label="Remove phase {{ p }}" i18n-aria-label>
                         <ng-icon name="lucideX" size="14" aria-hidden="true" />
                       </button>
                     </span>
                   }
                 </div>
                 <div class="mt-2 flex gap-2">
-                  <label for="p-phase" class="sr-only">Custom phase label</label>
-                  <input hlmInput id="p-phase" class="h-11" placeholder="Custom phase, e.g. Night ops" maxlength="40" [value]="phaseDraft()" (input)="phaseDraft.set($any($event.target).value)" (keydown.enter)="$event.preventDefault(); addPhase()" />
-                  <button hlmBtn type="button" variant="outline" class="h-11" (click)="addPhase()">Add</button>
+                  <label for="p-phase" class="sr-only" i18n>Custom phase label</label>
+                  <input hlmInput id="p-phase" class="h-11" placeholder="Custom phase, e.g. Night ops" maxlength="40" [value]="phaseDraft()" (input)="phaseDraft.set($any($event.target).value)" (keydown.enter)="$event.preventDefault(); addPhase()" i18n-placeholder />
+                  <button hlmBtn type="button" variant="outline" class="h-11" (click)="addPhase()" i18n>Add</button>
                 </div>
-                <p class="mt-1 text-sm text-muted-foreground">Custom phases match the phase label the GM sets on the event.</p>
+                <p class="mt-1 text-sm text-muted-foreground" i18n>Custom phases match the phase label the GM sets on the event.</p>
               </fieldset>
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="p-from">Visible from</label>
+                  <label hlmLabel for="p-from" i18n>Visible from</label>
                   <input hlmInput id="p-from" type="datetime-local" formControlName="activeFrom" class="h-11" />
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="p-until">Visible until</label>
+                  <label hlmLabel for="p-until" i18n>Visible until</label>
                   <input hlmInput id="p-until" type="datetime-local" formControlName="activeUntil" class="h-11" />
                   @if (e('activeUntil', 'End'); as m) {
                     <p class="field-error">{{ m }}</p>
@@ -237,10 +237,10 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             <p class="min-w-0 flex-1 px-1 text-sm" role="status" aria-live="polite">{{ statusText() }}</p>
             @if (!isNew()) {
               <button hlmBtn type="button" variant="destructive" class="h-11" (click)="remove()" [disabled]="saving()">
-                <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete
+                <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Delete</ng-container>
               </button>
             }
-            <button hlmBtn type="submit" class="h-11" [disabled]="saving()">{{ saving() ? 'Saving…' : isNew() ? 'Create' : 'Save' }}</button>
+            <button hlmBtn type="submit" class="h-11" [disabled]="saving()">{{ saving() ? txt.saving : isNew() ? txt.create : txt.save }}</button>
           </div>
         </form>
       }
@@ -248,6 +248,18 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
   `,
 })
 export class PoiEditorScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    uploading: $localize`Uploading…`,
+    uploadImage: $localize`Upload image`,
+    saving: $localize`Saving…`,
+    create: $localize`Create`,
+    save: $localize`Save`,
+    newPointOfInterest: $localize`New point of interest`,
+    pointOfInterest: $localize`Point of interest`,
+    poiEditor: $localize`POI editor`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -268,9 +280,9 @@ export class PoiEditorScreen {
   protected readonly statusPhases = STATUS_PHASES;
   protected readonly statusLabels = EVENT_STATUS_LABELS;
   protected readonly modes: { value: ContentVisibility['mode']; label: string }[] = [
-    { value: 'all', label: 'Everyone' },
-    { value: 'teams', label: 'Selected teams (and squads)' },
-    { value: 'gm_only', label: 'Game Masters only' },
+    { value: 'all', label: $localize`Everyone` },
+    { value: 'teams', label: $localize`Selected teams (and squads)` },
+    { value: 'gm_only', label: $localize`Game Masters only` },
   ];
 
   protected readonly loading = signal(true);
@@ -319,7 +331,7 @@ export class PoiEditorScreen {
     if (typeof v.lat !== 'number' || typeof v.lng !== 'number') return others;
     const current: Poi = {
       id: me?.id ?? 'draft',
-      name: v.name || 'New point',
+      name: v.name || $localize`New point`,
       type: v.type ?? 'custom',
       description: '',
       lat: v.lat,
@@ -334,7 +346,7 @@ export class PoiEditorScreen {
   });
 
   protected readonly statusText = computed(() =>
-    this.saving() ? 'Saving…' : this.dirty() ? 'Unsaved changes' : this.isNew() ? 'New point, not saved yet' : 'No changes',
+    this.saving() ? $localize`Saving…` : this.dirty() ? $localize`Unsaved changes` : this.isNew() ? $localize`New point, not saved yet` : $localize`No changes`,
   );
 
   constructor() {
@@ -369,7 +381,7 @@ export class PoiEditorScreen {
       let p: Poi | null = null;
       if (!this.isNew()) {
         p = pois.find((x) => x.id === this.poiId()) ?? null;
-        if (!p) throw new ApiError(404, 'not_found', 'Point of interest not found. It may have been deleted.');
+        if (!p) throw new ApiError(404, 'not_found', $localize`Point of interest not found. It may have been deleted.`);
       }
       this.poi.set(p);
       this.fill(p, event);
@@ -439,7 +451,7 @@ export class PoiEditorScreen {
 
   protected useMyPosition(): void {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      this.toast.warning('Location is not available on this device');
+      this.toast.warning($localize`Location is not available on this device`);
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -447,9 +459,9 @@ export class PoiEditorScreen {
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         this.setPosition(p);
         this.mapCenter.set(p);
-        this.toast.info('Position set from your GPS', `${formatLatLng(p)} · ±${Math.round(pos.coords.accuracy)} m`);
+        this.toast.info($localize`Position set from your GPS`, `${formatLatLng(p)} · ±${Math.round(pos.coords.accuracy)} m`);
       },
-      (err) => this.toast.warning('Could not get your location', err.message),
+      (err) => this.toast.warning($localize`Could not get your location`, err.message),
       { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
     );
   }
@@ -462,7 +474,7 @@ export class PoiEditorScreen {
     try {
       const res = await this.api.upload(file, 'poi_image');
       this.form.controls.imageUrl.setValue(res.url);
-      this.toast.success('Image uploaded', 'Save to keep it.');
+      this.toast.success($localize`Image uploaded`, $localize`Save to keep it.`);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -484,7 +496,7 @@ export class PoiEditorScreen {
     const v = this.form.getRawValue();
     const from = fromLocalInput(v.activeFrom);
     const until = fromLocalInput(v.activeUntil);
-    if (from && until && new Date(until) <= new Date(from)) this.form.controls.activeUntil.setErrors({ message: 'The end must be after the start.' });
+    if (from && until && new Date(until) <= new Date(from)) this.form.controls.activeUntil.setErrors({ message: $localize`The end must be after the start.` });
     if (this.form.invalid) return;
     const visibility: ContentVisibility = {
       mode: v.visMode,
@@ -512,7 +524,7 @@ export class PoiEditorScreen {
       const saved = this.isNew() ? await this.api.createPoi(this.eventId(), body) : await this.api.updatePoi(this.eventId(), this.poiId(), body);
       this.poi.set(saved);
       this.dirty.set(false);
-      this.toast.success(this.isNew() ? `${saved.name} created` : `${saved.name} saved`);
+      this.toast.success(this.isNew() ? $localize`${saved.name}:name: created` : $localize`${saved.name}:name: saved`);
       await this.router.navigateByUrl(this.backUrl());
     } catch (e) {
       const err = ApiError.from(e);
@@ -527,16 +539,16 @@ export class PoiEditorScreen {
     const p = this.poi();
     if (!p) return;
     const ok = await this.confirm.ask({
-      title: `Delete ${p.name}?`,
-      consequences: ['Players no longer see it on their map.', 'This cannot be undone.'],
-      confirmLabel: 'Delete',
+      title: $localize`Delete ${p.name}:name:?`,
+      consequences: [$localize`Players no longer see it on their map.`, $localize`This cannot be undone.`],
+      confirmLabel: $localize`Delete`,
       destructive: true,
     });
     if (!ok) return;
     try {
       await this.api.deletePoi(this.eventId(), p.id);
       this.dirty.set(false);
-      this.toast.success(`${p.name} deleted`);
+      this.toast.success($localize`${p.name}:name: deleted`);
       await this.router.navigateByUrl(this.backUrl());
     } catch (e) {
       this.toast.error(e);

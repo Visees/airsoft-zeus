@@ -12,6 +12,7 @@ import { consume } from '../lib/rate-limit.js';
 import { body, idParam, queryOf, shortText, uuid } from '../lib/validate.js';
 import { computeResults } from '../domain/results.js';
 import * as dto from '../domain/serialize.js';
+import { tr } from '../i18n/index.js';
 
 export const commonRouter = Router();
 export const uploadDir = resolve(config.UPLOAD_DIR);
@@ -33,7 +34,7 @@ commonRouter.get('/config', (_req, res) => {
 
 commonRouter.get('/users/:userId/profile', requireVerified, async (req, res) => {
   const u = await one('SELECT * FROM users WHERE id = $1', [idParam(req, 'userId')]);
-  if (!u) throw notFound('Player not found.');
+  if (!u) throw notFound(tr`Player not found.`);
   const badges = await many('SELECT * FROM user_badges WHERE user_id = $1 ORDER BY awarded_at', [u.id]);
   res.json(dto.publicProfile(u, badges));
 });
@@ -51,7 +52,7 @@ commonRouter.get('/clubs', requireVerified, async (req, res) => {
 
 commonRouter.get('/clubs/:clubId', requireVerified, async (req, res) => {
   const c = await one(`SELECT ${CLUB_SELECT} FROM clubs c WHERE c.id = $1`, [idParam(req, 'clubId')]);
-  if (!c) throw notFound('Club not found.');
+  if (!c) throw notFound(tr`Club not found.`);
   const members = await many(`SELECT id, nickname, avatar_url, player_role, privacy FROM users WHERE club_id = $1 AND deleted_at IS NULL AND (privacy->>'showClub')::boolean IS NOT FALSE ORDER BY nickname LIMIT 200`, [c.id]);
   res.json(dto.club(c, members));
 });
@@ -70,7 +71,7 @@ commonRouter.post('/clubs', requireVerified, async (req, res) => {
   const b = body(req, clubInput);
   await consume('club-create', me.id, 5, 86400);
   const exists = await one('SELECT 1 FROM clubs WHERE lower(name) = lower($1)', [b.name]);
-  if (exists) throw badRequest('A club with this name already exists.', 'club_exists', { name: 'Already exists' });
+  if (exists) throw badRequest(tr`A club with this name already exists.`, 'club_exists', { name: 'Already exists' });
   const c = await one(
     `INSERT INTO clubs (name, country, city, description, logo_url, website, owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
     [b.name, b.country ?? null, b.city ?? null, b.description ?? null, b.logoUrl ?? null, b.website ?? null, me.id],
@@ -83,8 +84,8 @@ commonRouter.patch('/clubs/:clubId', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const id = idParam(req, 'clubId');
   const c = await one('SELECT owner_id FROM clubs WHERE id = $1', [id]);
-  if (!c) throw notFound('Club not found.');
-  if (c.owner_id !== me.id) throw forbidden('Only the club owner can edit it.');
+  if (!c) throw notFound(tr`Club not found.`);
+  if (c.owner_id !== me.id) throw forbidden(tr`Only the club owner can edit it.`);
   const b = body(req, clubInput.partial());
   const cols: Record<string, string> = { name: 'name', country: 'country', city: 'city', description: 'description', logoUrl: 'logo_url', website: 'website' };
   const sets: string[] = [];
@@ -119,15 +120,15 @@ const PURPOSES = ['avatar', 'cover', 'team_icon', 'objective_image', 'objective_
 
 commonRouter.post('/uploads', requireVerified, upload.single('file'), async (req, res) => {
   const me = currentUser(req);
-  await consume('upload', me.id, 60, 3600, 'Too many uploads. Try again later.');
+  await consume('upload', me.id, 60, 3600, tr`Too many uploads. Try again later.`);
   const purpose = z.enum(PURPOSES).safeParse(req.body?.purpose);
-  if (!purpose.success) throw badRequest('Unknown upload purpose.');
+  if (!purpose.success) throw badRequest(tr`Unknown upload purpose.`);
   const file = req.file;
-  if (!file) throw badRequest('Choose a file to upload.', 'no_file');
+  if (!file) throw badRequest(tr`Choose a file to upload.`, 'no_file');
   const kind = sniff(file.buffer);
   const allowPdf = purpose.data === 'objective_document';
   if (!kind || (kind.ext === 'pdf' && !allowPdf)) {
-    throw badRequest(allowPdf ? 'Upload a JPEG, PNG, WebP or PDF file.' : 'Upload a JPEG, PNG or WebP image.', 'unsupported_type');
+    throw badRequest(allowPdf ? tr`Upload a JPEG, PNG, WebP or PDF file.` : tr`Upload a JPEG, PNG or WebP image.`, 'unsupported_type');
   }
   await mkdir(uploadDir, { recursive: true });
   const name = `${purpose.data}-${randomToken(18)}.${kind.ext}`;
@@ -141,7 +142,7 @@ commonRouter.get('/files/:name', (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
   res.sendFile(name, { root: uploadDir, maxAge: '365d', immutable: true }, (err) => {
-    if (err && !res.headersSent) res.status(404).json({ error: { code: 'not_found', message: 'File not found.' } });
+    if (err && !res.headersSent) res.status(404).json({ error: { code: 'not_found', message: tr`File not found.` } });
   });
 });
 
@@ -163,9 +164,9 @@ commonRouter.post('/reports', requireVerified, async (req, res) => {
 
 commonRouter.get('/public/results/:token', async (req, res) => {
   const token = req.params.token;
-  if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) throw notFound('These results are not published.');
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) throw notFound(tr`These results are not published.`);
   const ev = await one<{ id: string }>('SELECT id FROM events WHERE results_token = $1 AND results_published_at IS NOT NULL', [token]);
-  if (!ev) throw notFound('These results are not published.');
+  if (!ev) throw notFound(tr`These results are not published.`);
   res.setHeader('Cache-Control', 'public, max-age=60');
   res.json(await computeResults(ev.id, { publicView: true }));
 });

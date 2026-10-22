@@ -24,12 +24,12 @@ interface Group {
   template: `
     <div class="mx-auto flex max-w-3xl flex-col gap-5 px-4 pt-4 pb-8">
       <div>
-        <h2 class="text-2xl uppercase">Objectives</h2>
+        <h2 class="text-2xl uppercase" i18n>Objectives</h2>
         <p class="text-sm text-muted-foreground">
           @if (hasFix()) {
-            Nearest first, measured from your position.
+            <ng-container i18n>Nearest first, measured from your position.</ng-container>
           } @else {
-            Waiting for GPS — shown in game order.
+            <ng-container i18n>Waiting for GPS — shown in game order.</ng-container>
           }
         </p>
       </div>
@@ -38,7 +38,7 @@ interface Group {
         <zeus-empty-state
           icon="lucideCrosshair"
           title="No objectives visible yet"
-          message="The Game Master reveals objectives as the game goes on. They appear here and on the map."
+          message="The Game Master reveals objectives as the game goes on. They appear here and on the map." i18n-title i18n-message
         />
       } @else {
         @for (g of groups(); track g.key) {
@@ -87,12 +87,12 @@ export class ObjectiveListScreen {
     const geo = new Map(this.tracker.geofence().map((g) => [g.objectiveId, g]));
     const byId = this.store.objectiveById();
     const buckets: Record<string, Group> = {
-      progress: { key: 'progress', label: 'Active', hint: 'Contested or being captured right now', items: [] },
-      available: { key: 'available', label: 'Available', hint: null, items: [] },
-      captured: { key: 'captured', label: 'Captured', hint: null, items: [] },
-      locked: { key: 'locked', label: 'Locked', hint: 'Not open yet', items: [] },
-      completed: { key: 'completed', label: 'Completed', hint: null, items: [] },
-      disabled: { key: 'disabled', label: 'Disabled', hint: null, items: [] },
+      progress: { key: 'progress', label: $localize`Active`, hint: $localize`Contested or being captured right now`, items: [] },
+      available: { key: 'available', label: $localize`Available`, hint: null, items: [] },
+      captured: { key: 'captured', label: $localize`Captured`, hint: null, items: [] },
+      locked: { key: 'locked', label: $localize`Locked`, hint: $localize`Not open yet`, items: [] },
+      completed: { key: 'completed', label: $localize`Completed`, hint: null, items: [] },
+      disabled: { key: 'disabled', label: $localize`Disabled`, hint: null, items: [] },
     };
 
     for (const o of this.store.objectives()) {
@@ -108,9 +108,9 @@ export class ObjectiveListScreen {
       let note: string | null = null;
       if (o.status === 'locked' && o.prerequisiteIds.length) {
         const names = o.prerequisiteIds.map((id) => byId.get(id)?.name).filter((n): n is string => !!n);
-        note = names.length ? `Opens after: ${names.join(', ')}` : 'Opens after other objectives are captured';
+        note = names.length ? $localize`Opens after: ${names.join(', ')}:names:` : $localize`Opens after other objectives are captured`;
       } else if (o.status === 'inactive' && !o.availabilityStart) {
-        note = 'Opens when the Game Master activates it';
+        note = $localize`Opens when the Game Master activates it`;
       }
       buckets[key].items.push({ o, distance: distanceFrom(fix, o), note, capture: g ?? null });
     }

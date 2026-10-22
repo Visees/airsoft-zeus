@@ -8,6 +8,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiError } from '../../core/api/api-error';
 import { ConfigService } from '../../core/api/config.service';
+import { activeLanguage } from '../../core/i18n/language';
 import { AuthService } from '../../core/auth/auth.service';
 import { LegalDialog } from '../onboarding/legal-dialog';
 import { PRIVACY, TERMS } from '../onboarding/legal-text';
@@ -22,13 +23,13 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <zeus-auth-layout [center]="false">
-      <a layoutAction routerLink="/auth/login" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground">Log in</a>
+      <a layoutAction routerLink="/auth/login" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" i18n>Log in</a>
 
       <a routerLink="/welcome" class="tap -ml-2 inline-flex items-center gap-1 self-start px-2 text-sm text-muted-foreground hover:text-foreground">
-        <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> Back
+        <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> <ng-container i18n>Back</ng-container>
       </a>
-      <h1 class="mt-2 text-3xl uppercase">Create account</h1>
-      <p class="mt-1 text-sm text-muted-foreground">One account to join events as a player and to run your own as a Game Master.</p>
+      <h1 class="mt-2 text-3xl uppercase" i18n>Create account</h1>
+      <p class="mt-1 text-sm text-muted-foreground" i18n>One account to join events as a player and to run your own as a Game Master.</p>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 flex flex-col gap-5" novalidate>
         @if (formError()) {
@@ -39,21 +40,21 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
         }
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="su-email">Email</label>
+          <label hlmLabel for="su-email" i18n>Email</label>
           <input hlmInput id="su-email" type="email" class="h-11" formControlName="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"
             [attr.aria-invalid]="!!err('email')" [attr.aria-describedby]="err('email') ? 'su-email-err' : 'su-email-help'" />
           @if (err('email'); as e) {
             <p id="su-email-err" class="field-error">{{ e }}</p>
           } @else {
-            <p id="su-email-help" class="text-xs text-muted-foreground">We send a link to verify it. Never shown to other players.</p>
+            <p id="su-email-help" class="text-xs text-muted-foreground" i18n>We send a link to verify it. Never shown to other players.</p>
           }
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="su-nickname">Nickname</label>
+          <label hlmLabel for="su-nickname" i18n>Nickname</label>
           <input hlmInput id="su-nickname" class="h-11" formControlName="nickname" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="24"
             [attr.aria-invalid]="!!err('nickname') || nick.status() === 'taken'" aria-describedby="su-nickname-help su-nickname-status" />
-          <p id="su-nickname-help" class="text-xs text-muted-foreground">
+          <p id="su-nickname-help" class="text-xs text-muted-foreground" i18n>
             Your public name: it is shown on the map, in teams and in results. {{ formatHelp }}
           </p>
           @if (err('nickname'); as e) {
@@ -64,7 +65,7 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="su-password">Password</label>
+          <label hlmLabel for="su-password" i18n>Password</label>
           <zeus-password-input [control]="form.controls.password" inputId="su-password" autocomplete="new-password"
             [invalid]="!!err('password')" [describedBy]="err('password') ? 'su-password-err su-password-hints' : 'su-password-hints'" />
           @if (err('password'); as e) {
@@ -78,11 +79,11 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
             <input id="su-terms" type="checkbox" formControlName="acceptTerms" class="mt-0.5 size-6 shrink-0 accent-primary"
               [attr.aria-invalid]="!!err('acceptTerms')" [attr.aria-describedby]="err('acceptTerms') ? 'su-terms-err' : null" />
             <label for="su-terms" class="text-sm leading-6">
-              I accept the
-              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(terms)">Terms of Service</button>
-              and the
-              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(privacy)">Privacy Policy</button>,
-              including location sharing during live events I join.
+              <ng-container i18n>I accept the</ng-container>
+              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(terms)" i18n>Terms of Service</button>
+              <ng-container i18n>and the</ng-container>
+              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(privacy)" i18n>Privacy Policy</button><ng-container i18n>,
+              including location sharing during live events I join.</ng-container>
             </label>
           </div>
           @if (err('acceptTerms'); as e) {
@@ -92,12 +93,12 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
 
         <button hlmBtn type="submit" class="h-12 text-base" [disabled]="saving()">
           @if (saving()) {
-            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Creating account…
+            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Creating account…</ng-container>
           } @else {
-            Create account
+            <ng-container i18n>Create account</ng-container>
           }
         </button>
-        <p class="text-center text-sm text-muted-foreground">
+        <p class="text-center text-sm text-muted-foreground" i18n>
           Already have an account? <a routerLink="/auth/login" class="font-semibold text-primary underline-offset-2 hover:underline">Log in</a>
         </p>
       </form>
@@ -134,8 +135,8 @@ export class SignUpScreen {
   protected err(name: 'email' | 'nickname' | 'password' | 'acceptTerms'): string | null {
     return fieldError(this.form.controls[name], {
       pattern: NICKNAME_FORMAT_HELP,
-      required: name === 'acceptTerms' ? 'Accept the Terms of Service and Privacy Policy to create an account.' : 'Required.',
-      minlength: `Use at least ${PASSWORD_MIN} characters.`,
+      required: name === 'acceptTerms' ? $localize`Accept the Terms of Service and Privacy Policy to create an account.` : $localize`Required.`,
+      minlength: $localize`Use at least ${PASSWORD_MIN}:PASSWORD_MIN: characters.`,
     });
   }
 
@@ -143,11 +144,11 @@ export class SignUpScreen {
     this.formError.set(null);
     if (this.nick.status() === 'taken') {
       this.form.controls.nickname.markAsTouched();
-      this.form.controls.nickname.setErrors({ server: this.nick.reason() || 'This nickname is already taken.' });
+      this.form.controls.nickname.setErrors({ server: this.nick.reason() || $localize`This nickname is already taken.` });
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.formError.set('Check the highlighted fields.');
+      this.formError.set($localize`Check the highlighted fields.`);
       queueMicrotask(() => focusFirstInvalid(this.host.nativeElement));
       return;
     }
@@ -162,13 +163,14 @@ export class SignUpScreen {
         acceptTerms: true,
         termsVersion: cfg.termsVersion,
         privacyVersion: cfg.privacyVersion,
+        language: activeLanguage(),
       });
       await this.router.navigateByUrl('/auth/verify-email');
     } catch (e) {
       const err = ApiError.from(e);
       const unmatched = applyServerErrors(this.form, err);
       const hasFieldErrors = Object.keys(err.fields).length > unmatched.length;
-      this.formError.set(hasFieldErrors ? (unmatched[0] ?? 'Check the highlighted fields.') : err.message);
+      this.formError.set(hasFieldErrors ? (unmatched[0] ?? $localize`Check the highlighted fields.`) : err.message);
       queueMicrotask(() => focusFirstInvalid(this.host.nativeElement));
     } finally {
       this.saving.set(false);

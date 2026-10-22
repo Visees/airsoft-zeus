@@ -16,9 +16,9 @@ import { NewsCard } from './news-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home">
+      <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home" i18n-title i18n-subtitle>
         @if (isAdmin()) {
-          <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Write news</a>
+          <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Write news</ng-container></a>
         }
       </zeus-page-header>
 
@@ -27,9 +27,9 @@ import { NewsCard } from './news-ui';
       } @else if (error() && !items().length) {
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
-        <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Updates and announcements will show up here." />
+        <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Updates and announcements will show up here." i18n-title i18n-message />
       } @else {
-        <ul class="flex flex-col gap-2" aria-label="News">
+        <ul class="flex flex-col gap-2" aria-label="News" i18n-aria-label>
           @for (n of items(); track n.id) {
             <li><zeus-news-card [news]="n" /></li>
           }
@@ -37,7 +37,7 @@ import { NewsCard } from './news-ui';
         @if (nextCursor()) {
           <div class="mt-4 flex justify-center">
             <button hlmBtn variant="outline" type="button" class="h-11 min-w-40" [disabled]="loadingMore()" (click)="loadMore()">
-              {{ loadingMore() ? 'Loading…' : 'Load more' }}
+              {{ loadingMore() ? txt.loading : txt.loadMore }}
             </button>
           </div>
         }
@@ -46,6 +46,12 @@ import { NewsCard } from './news-ui';
   `,
 })
 export class NewsListScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    loading: $localize`Loading…`,
+    loadMore: $localize`Load more`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);

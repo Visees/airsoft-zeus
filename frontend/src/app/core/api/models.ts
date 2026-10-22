@@ -140,6 +140,8 @@ export interface RegisterRequest {
   acceptTerms: true;
   termsVersion: string;
   privacyVersion: string;
+  /** UI language at sign-up; the server defaults to Italian. */
+  language?: string;
 }
 
 export interface PublicProfile {

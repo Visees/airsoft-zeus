@@ -13,19 +13,19 @@ import { AuthLayout } from '../auth/auth-layout';
     <zeus-auth-layout>
       <div class="flex flex-col items-start gap-3">
         <p class="num text-5xl font-bold text-muted-foreground" aria-hidden="true">404</p>
-        <h1 class="text-3xl uppercase">Page not found</h1>
-        <p class="text-muted-foreground">
+        <h1 class="text-3xl uppercase" i18n>Page not found</h1>
+        <p class="text-muted-foreground" i18n>
           There is nothing at <span class="num break-all text-foreground">{{ path }}</span>. The link may be old, or the event or page was removed.
         </p>
-        <nav class="mt-2 flex w-full flex-col gap-2" aria-label="Where to go">
+        <nav class="mt-2 flex w-full flex-col gap-2" aria-label="Where to go" i18n-aria-label>
           @if (auth.isLoggedIn()) {
-            <a hlmBtn routerLink="/home" class="h-12 text-base"><ng-icon name="lucideHouse" size="18" aria-hidden="true" /> Go home</a>
-            <a hlmBtn variant="outline" routerLink="/events/mine" class="h-11"><ng-icon name="lucideCalendarDays" size="16" aria-hidden="true" /> My events</a>
-            <a hlmBtn variant="outline" routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> Discover events</a>
-            <a hlmBtn variant="ghost" routerLink="/events/join" class="h-11">Join with a code</a>
+            <a hlmBtn routerLink="/home" class="h-12 text-base"><ng-icon name="lucideHouse" size="18" aria-hidden="true" /> <ng-container i18n>Go home</ng-container></a>
+            <a hlmBtn variant="outline" routerLink="/events/mine" class="h-11"><ng-icon name="lucideCalendarDays" size="16" aria-hidden="true" /> <ng-container i18n>My events</ng-container></a>
+            <a hlmBtn variant="outline" routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
+            <a hlmBtn variant="ghost" routerLink="/events/join" class="h-11" i18n>Join with a code</a>
           } @else {
-            <a hlmBtn routerLink="/welcome" class="h-12 text-base">Go to start</a>
-            <a hlmBtn variant="outline" routerLink="/auth/login" class="h-11">Log in</a>
+            <a hlmBtn routerLink="/welcome" class="h-12 text-base" i18n>Go to start</a>
+            <a hlmBtn variant="outline" routerLink="/auth/login" class="h-11" i18n>Log in</a>
           }
         </nav>
       </div>

@@ -61,7 +61,7 @@ let nextId = 0;
         <ng-content />
       </span>
       <span class="flex items-center gap-2 pt-0.5">
-        <span class="label-caps w-6 text-right" aria-hidden="true">{{ value() ? 'On' : 'Off' }}</span>
+        <span class="label-caps w-6 text-right" aria-hidden="true">{{ value() ? txt.on : txt.off }}</span>
         <input
           type="checkbox"
           role="switch"
@@ -79,6 +79,12 @@ let nextId = 0;
   `,
 })
 export class SwitchRow implements ControlValueAccessor {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    on: $localize`On`,
+    off: $localize`Off`,
+  };
+
   readonly label = input.required<string>();
   readonly description = input<string | null>(null);
   protected readonly id = `zsw-${++nextId}`;

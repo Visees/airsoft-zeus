@@ -14,19 +14,19 @@ import { formatNumber } from '../core/util/format';
     }
     <ng-icon name="lucideCoins" [size]="size() === 'lg' ? '20' : '14'" class="text-warning" aria-hidden="true" />
     @if (amount() === null) {
-      <span class="num text-muted-foreground" aria-label="Hidden">—</span>
+      <span class="num text-muted-foreground" aria-label="Hidden" i18n-aria-label>—</span>
     } @else {
       <span
         class="num font-bold"
         [class.text-3xl]="size() === 'lg'"
         [class.text-lg]="size() === 'md'"
         [class.text-sm]="size() === 'sm'"
-        [attr.aria-label]="fmt(amount()) + ' credits'"
+        aria-label="{{ fmt(amount()) }} credits" i18n-aria-label
         >{{ fmt(amount()) }}</span
       >
     }
     @if (showUnit()) {
-      <span class="text-xs text-muted-foreground" aria-hidden="true">cr</span>
+      <span class="text-xs text-muted-foreground" aria-hidden="true" i18n>cr</span>
     }
   `,
 })

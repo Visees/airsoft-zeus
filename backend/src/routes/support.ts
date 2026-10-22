@@ -10,6 +10,14 @@ import { consume } from '../lib/rate-limit.js';
 import { decodeCursor, encodeCursor } from '../lib/pagination.js';
 import { body, idParam, queryOf, shortText } from '../lib/validate.js';
 import { sendSupportEmail } from '../mail.js';
+import { toLang, tr } from '../i18n/index.js';
+
+/** The platform admins with the language of their account (English if they have none). */
+async function adminRecipients() {
+  const rows = await many<{ email: string; language: string }>('SELECT lower(email) AS email, language FROM users WHERE lower(email) = ANY($1::text[])', [config.ADMIN_EMAILS]);
+  const langs = new Map(rows.map((r) => [r.email, toLang(r.language)]));
+  return config.ADMIN_EMAILS.map((email) => ({ email, lang: langs.get(email.toLowerCase()) ?? ('en' as const) }));
+}
 
 /**
  * Support messages from the players to the platform admins (ADMIN_EMAILS): bugs, reports,
@@ -41,14 +49,14 @@ const ticketInput = z.object({
 async function visibleTicket(id: string, userId: string) {
   const row = await one(`SELECT ${TICKET_SELECT} ${FROM} WHERE t.id = $1`, [id]);
   const admin = await userIsAdmin(userId);
-  if (!row || (row.user_id !== userId && !admin)) throw notFound('Conversation not found.');
+  if (!row || (row.user_id !== userId && !admin)) throw notFound(tr`Conversation not found.`);
   return { row, admin };
 }
 
 /** `admin` = the viewer is a platform admin; `asStaff` = an admin answering someone else's ticket. */
 async function ticketDetail(id: string, admin: boolean, viewerId: string) {
   const row = await one(`SELECT ${TICKET_SELECT} ${FROM} WHERE t.id = $1`, [id]);
-  if (!row) throw notFound('Conversation not found.');
+  if (!row) throw notFound(tr`Conversation not found.`);
   const messages = await many(
     `SELECT m.*, u.nickname AS author_nickname FROM support_messages m LEFT JOIN users u ON u.id = m.author_id
      WHERE m.ticket_id = $1 ORDER BY m.created_at, m.id`,
@@ -93,7 +101,7 @@ supportRouter.get('/', async (req, res) => {
 supportRouter.post('/', async (req, res) => {
   const me = currentUser(req);
   const b = body(req, ticketInput);
-  await consume('support', me.id, 5, 3600, 'You sent several messages in the last hour. Try again later, or add to an open conversation.');
+  await consume('support', me.id, 5, 3600, tr`You sent several messages in the last hour. Try again later, or add to an open conversation.`);
   const id = await tx(async (t) => {
     const ticket = await one<{ id: string }>(
       'INSERT INTO support_tickets (user_id, category, subject, context) VALUES ($1,$2,$3,$4) RETURNING id',
@@ -103,7 +111,7 @@ supportRouter.post('/', async (req, res) => {
     await one('INSERT INTO support_messages (ticket_id, author_id, body) VALUES ($1,$2,$3) RETURNING id', [ticket!.id, me.id, b.body], t);
     return ticket!.id;
   });
-  void sendSupportEmail(config.ADMIN_EMAILS, { id, subject: b.subject, category: b.category }, me.nickname, b.body);
+  void sendSupportEmail(await adminRecipients(), { id, subject: b.subject, category: b.category }, me.nickname, b.body);
   res.status(201).json(await ticketDetail(id, false, me.id));
 });
 
@@ -129,14 +137,14 @@ supportRouter.post('/:ticketId/messages', async (req, res) => {
     if (fromAdmin && row.user_id) {
       await notify(t, [row.user_id], {
         type: 'support_reply',
-        title: `Reply from the AirsoftHub team: ${row.subject}`,
+        title: (tr) => tr`Reply from the AirsoftHub team: ${row.subject}`,
         body: b.body.length > 200 ? `${b.body.slice(0, 200)}…` : b.body,
         data: { ticketId: row.id },
         url: `/support/${row.id}`,
       });
     }
   });
-  if (!fromAdmin) void sendSupportEmail(config.ADMIN_EMAILS, { id: row.id, subject: row.subject, category: row.category }, me.nickname, b.body);
+  if (!fromAdmin) void sendSupportEmail(await adminRecipients(), { id: row.id, subject: row.subject, category: row.category }, me.nickname, b.body);
   res.status(201).json(await ticketDetail(row.id, admin, me.id));
 });
 
@@ -145,7 +153,7 @@ supportRouter.patch('/:ticketId', async (req, res) => {
   const me = currentUser(req);
   const { row, admin } = await visibleTicket(idParam(req, 'ticketId'), me.id);
   const b = body(req, z.object({ status: z.enum(['open', 'answered', 'closed']) }));
-  if (!admin && b.status !== 'closed' && b.status !== 'open') throw forbidden('Only the AirsoftHub team can do that.');
+  if (!admin && b.status !== 'closed' && b.status !== 'open') throw forbidden(tr`Only the AirsoftHub team can do that.`);
   await one('UPDATE support_tickets SET status = $2 WHERE id = $1 RETURNING id', [row.id, b.status]);
   res.json(await ticketDetail(row.id, admin, me.id));
 });

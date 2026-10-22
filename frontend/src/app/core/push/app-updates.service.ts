@@ -24,10 +24,10 @@ export class AppUpdates {
         this.doc.location.reload();
         return;
       }
-      toast.info('A new version of AirsoftHub is ready', {
-        description: 'Reload when you have a moment; nothing is lost.',
+      toast.info($localize`A new version of AirsoftHub is ready`, {
+        description: $localize`Reload when you have a moment; nothing is lost.`,
         duration: Infinity,
-        action: { label: 'Reload', onClick: () => this.doc.location.reload() },
+        action: { label: $localize`Reload`, onClick: () => this.doc.location.reload() },
       });
     });
     // Check for a new version every 10 minutes while the app is open.

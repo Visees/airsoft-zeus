@@ -149,7 +149,7 @@ export class LocationTracker {
           this.state.set('denied');
           this.stop(false);
         } else {
-          this.lastError.set(err.message || 'GPS unavailable');
+          this.lastError.set(err.message || $localize`GPS unavailable`);
           if (this.state() !== 'tracking') this.state.set('error');
         }
       },

@@ -3,6 +3,7 @@ import { config } from '../config.js';
 import { one } from '../db.js';
 import { forbidden, unauthorized } from '../errors.js';
 import { verifyAccessToken } from './tokens.js';
+import { tr } from '../i18n/index.js';
 
 export interface AuthUser {
   id: string;
@@ -41,7 +42,7 @@ export async function userForClaims(userId: string, version: number): Promise<Au
 /** Signed in (any verification state). */
 export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const user = await authenticate(req);
-  if (!user) return next(unauthorized('Your session has expired. Sign in again.', 'token_expired'));
+  if (!user) return next(unauthorized(tr`Your session has expired. Sign in again.`, 'token_expired'));
   req.user = user;
   next();
 }
@@ -49,9 +50,9 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
 /** Signed in with a verified email and accepted terms: required for anything event related. */
 export async function requireVerified(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const user = await authenticate(req);
-  if (!user) return next(unauthorized('Your session has expired. Sign in again.', 'token_expired'));
-  if (!user.emailVerified) return next(forbidden('Verify your email address first.', 'email_not_verified'));
-  if (!user.termsAccepted) return next(forbidden('Accept the terms of service first.', 'terms_not_accepted'));
+  if (!user) return next(unauthorized(tr`Your session has expired. Sign in again.`, 'token_expired'));
+  if (!user.emailVerified) return next(forbidden(tr`Verify your email address first.`, 'email_not_verified'));
+  if (!user.termsAccepted) return next(forbidden(tr`Accept the terms of service first.`, 'terms_not_accepted'));
   req.user = user;
   next();
 }
@@ -75,7 +76,7 @@ export async function userIsAdmin(userId: string): Promise<boolean> {
 export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   await requireVerified(req, res, async (err?: unknown) => {
     if (err) return next(err);
-    if (!(await userIsAdmin(req.user!.id))) return next(forbidden('Only platform admins can do that.', 'not_admin'));
+    if (!(await userIsAdmin(req.user!.id))) return next(forbidden(tr`Only platform admins can do that.`, 'not_admin'));
     next();
   });
 }

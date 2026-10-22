@@ -22,7 +22,7 @@ export function bearingDeg(a: LatLng, b: LatLng): number {
 }
 
 export function compassPoint(bearing: number): string {
-  const points = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const points = [$localize`:compass|:N`, $localize`:compass|:NE`, $localize`:compass|:E`, $localize`:compass|:SE`, $localize`:compass|:S`, $localize`:compass|:SW`, $localize`:compass|:W`, $localize`:compass|:NW`];
   return points[Math.round(bearing / 45) % 8];
 }
 

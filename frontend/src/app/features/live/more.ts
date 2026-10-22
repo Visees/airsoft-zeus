@@ -17,22 +17,22 @@ import { ConnectionStatus } from '../../shared/link-status';
 import { LiveSession } from './live-session';
 
 const TRACKER_LABELS: Record<TrackerState, string> = {
-  idle: 'Not sharing',
-  requesting: 'Starting GPS…',
-  tracking: 'Sharing your location',
-  paused: 'Paused — the game is paused',
-  denied: 'Blocked by the browser',
-  unavailable: 'No GPS on this device',
-  error: 'GPS problem',
+  idle: $localize`Not sharing`,
+  requesting: $localize`Starting GPS…`,
+  tracking: $localize`Sharing your location`,
+  paused: $localize`Paused — the game is paused`,
+  denied: $localize`Blocked by the browser`,
+  unavailable: $localize`No GPS on this device`,
+  error: $localize`GPS problem`,
 };
 
 const FLAG_LABELS: Record<string, string> = {
-  future_timestamp: 'Device clock is ahead of the server',
-  too_old: 'Some positions arrived too late',
-  low_accuracy: 'GPS accuracy too low for the game',
-  speed: 'Movement looked too fast',
-  mock: 'A mock location app was detected',
-  stale: 'Position is stale',
+  future_timestamp: $localize`Device clock is ahead of the server`,
+  too_old: $localize`Some positions arrived too late`,
+  low_accuracy: $localize`GPS accuracy too low for the game`,
+  speed: $localize`Movement looked too fast`,
+  mock: $localize`A mock location app was detected`,
+  stale: $localize`Position is stale`,
 };
 
 /** Location sharing controls, sync status, rules, messages, links, theme, leave event. */
@@ -43,15 +43,15 @@ const FLAG_LABELS: Record<string, string> = {
   host: { class: 'block' },
   template: `
     <div class="mx-auto flex max-w-3xl flex-col gap-6 px-4 pt-4 pb-8">
-      <h2 class="text-2xl uppercase">More</h2>
+      <h2 class="text-2xl uppercase" i18n>More</h2>
 
       <!-- Emergency -->
       @if (gameMasters().length) {
         <section class="rounded-md border-2 border-destructive/70 p-4" aria-labelledby="emergency-title">
           <h3 id="emergency-title" class="flex items-center gap-2 font-bold text-destructive">
-            <ng-icon name="lucideSiren" size="18" aria-hidden="true" /> In an emergency
+            <ng-icon name="lucideSiren" size="18" aria-hidden="true" /> <ng-container i18n>In an emergency</ng-container>
           </h3>
-          <p class="mt-1 text-sm">
+          <p class="mt-1 text-sm" i18n>
             Stop playing, call “blind man” / “medic” as the event rules say, and reach a Game Master:
             <span class="font-bold">{{ gameMasters() }}</span>.
           </p>
@@ -61,35 +61,35 @@ const FLAG_LABELS: Record<string, string> = {
       <!-- Location sharing -->
       <section class="panel flex flex-col gap-3 p-4" aria-labelledby="loc-title">
         <div class="flex items-center justify-between gap-2">
-          <h3 id="loc-title" class="label-caps">Location sharing</h3>
+          <h3 id="loc-title" class="label-caps" i18n>Location sharing</h3>
           <span class="text-sm font-bold" [class]="sharingTone()">{{ sharingLabel() }}</span>
         </div>
         <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
           <div>
-            <dt class="text-xs text-muted-foreground">Accuracy</dt>
+            <dt class="text-xs text-muted-foreground" i18n>Accuracy</dt>
             <dd class="num text-lg font-bold">{{ accuracy() }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-muted-foreground">Last fix</dt>
+            <dt class="text-xs text-muted-foreground" i18n>Last fix</dt>
             <dd class="num font-semibold">{{ lastFixLabel() }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-muted-foreground">Last sent</dt>
+            <dt class="text-xs text-muted-foreground" i18n>Last sent</dt>
             <dd class="num font-semibold">{{ lastSentLabel() }}</dd>
           </div>
           <div>
-            <dt class="text-xs text-muted-foreground">Waiting to send</dt>
+            <dt class="text-xs text-muted-foreground" i18n>Waiting to send</dt>
             <dd class="num text-lg font-bold" [class.text-warning]="tracker.pendingCount() > 0">{{ tracker.pendingCount() }}</dd>
           </div>
           <div class="col-span-2">
-            <dt class="text-xs text-muted-foreground">Screen</dt>
+            <dt class="text-xs text-muted-foreground" i18n>Screen</dt>
             <dd class="font-semibold" [class.text-warning]="tracker.wakeLockUnreliable">
-              {{ tracker.wakeLockUnreliable ? 'This iPhone can’t keep it on — set Settings › Display & Brightness › Auto-Lock to Never' : tracker.wakeLockActive() ? 'Kept awake while sharing' : 'May turn off — keep the app open' }}
+              {{ tracker.wakeLockUnreliable ? txt.thisIphoneCanT : tracker.wakeLockActive() ? txt.keptAwakeWhileSharing : txt.mayTurnOffKeep }}
             </dd>
           </div>
           @if (tracker.lastError() && mine()) {
             <div class="col-span-2">
-              <dt class="text-xs text-muted-foreground">Last problem</dt>
+              <dt class="text-xs text-muted-foreground" i18n>Last problem</dt>
               <dd class="text-warning">{{ tracker.lastError() }}</dd>
             </div>
           }
@@ -102,48 +102,48 @@ const FLAG_LABELS: Record<string, string> = {
           </ul>
         }
         @if (!isPlayer()) {
-          <p class="text-sm text-muted-foreground">Only players share their location. Game Masters see players from the control center.</p>
+          <p class="text-sm text-muted-foreground" i18n>Only players share their location. Game Masters see players from the control center.</p>
         } @else if (!consented()) {
-          <p class="text-sm text-muted-foreground">You have not agreed to share your location in this event.</p>
+          <p class="text-sm text-muted-foreground" i18n>You have not agreed to share your location in this event.</p>
           <button hlmBtn type="button" class="h-12" (click)="session.sheetOpen.set(true)">
-            <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> Share my location
+            <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> <ng-container i18n>Share my location</ng-container>
           </button>
         } @else if (stopped()) {
-          <p class="text-sm text-muted-foreground">You stopped sharing. Teammates and the Game Master cannot see you.</p>
+          <p class="text-sm text-muted-foreground" i18n>You stopped sharing. Teammates and the Game Master cannot see you.</p>
           <button hlmBtn type="button" class="h-12" (click)="resume()">
-            <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> Resume sharing
+            <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> <ng-container i18n>Resume sharing</ng-container>
           </button>
         } @else if (tracker.state() === 'denied') {
-          <button hlmBtn variant="outline" type="button" class="h-12" (click)="session.sheetOpen.set(true)">How to allow location</button>
+          <button hlmBtn variant="outline" type="button" class="h-12" (click)="session.sheetOpen.set(true)" i18n>How to allow location</button>
         } @else {
           @if (!running()) {
-            <p class="text-sm text-muted-foreground">Sharing runs only while the game is live.</p>
+            <p class="text-sm text-muted-foreground" i18n>Sharing runs only while the game is live.</p>
           }
           <button hlmBtn variant="destructive" type="button" class="h-12" (click)="stopSharing()">
-            <ng-icon name="lucideLocateOff" size="18" aria-hidden="true" /> Stop sharing my location
+            <ng-icon name="lucideLocateOff" size="18" aria-hidden="true" /> <ng-container i18n>Stop sharing my location</ng-container>
           </button>
         }
       </section>
 
       <!-- Sync -->
       <section class="panel flex flex-col gap-2 p-4" aria-labelledby="sync-title">
-        <h3 id="sync-title" class="label-caps">Connection</h3>
+        <h3 id="sync-title" class="label-caps" i18n>Connection</h3>
         <div class="flex flex-wrap items-center justify-between gap-2">
           <zeus-connection-status [showSync]="false" />
-          <span class="text-sm">Last sync <span class="num font-semibold">{{ lastSyncLabel() }}</span></span>
+          <span class="text-sm" i18n>Last sync <span class="num font-semibold">{{ lastSyncLabel() }}</span></span>
         </div>
         @if (store.fromCache()) {
-          <p class="text-sm text-warning">Showing data saved on this phone. It refreshes when the signal returns.</p>
+          <p class="text-sm text-warning" i18n>Showing data saved on this phone. It refreshes when the signal returns.</p>
         }
         <button hlmBtn variant="outline" type="button" class="h-12" (click)="store.reload()" [disabled]="store.loading()">
-          <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> {{ store.loading() ? 'Refreshing…' : 'Refresh now' }}
+          <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> {{ store.loading() ? txt.refreshing : txt.refreshNow }}
         </button>
       </section>
 
       <!-- Rules -->
       @if (store.event(); as ev) {
         <section class="flex flex-col gap-2" aria-labelledby="rules-title">
-          <h3 id="rules-title" class="label-caps">Rules</h3>
+          <h3 id="rules-title" class="label-caps" i18n>Rules</h3>
           @for (r of rules(); track r.title) {
             <details class="panel group">
               <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 font-semibold">
@@ -153,16 +153,16 @@ const FLAG_LABELS: Record<string, string> = {
               <p class="border-t border-border px-4 py-3 text-sm whitespace-pre-line">{{ r.text }}</p>
             </details>
           } @empty {
-            <p class="text-sm text-muted-foreground">The Game Master has not written rules for this event.</p>
+            <p class="text-sm text-muted-foreground" i18n>The Game Master has not written rules for this event.</p>
           }
           @if (fromCacheNote()) {
-            <p class="text-xs text-muted-foreground">Saved on this phone, readable without signal.</p>
+            <p class="text-xs text-muted-foreground" i18n>Saved on this phone, readable without signal.</p>
           }
         </section>
 
         @if (attachments().length) {
           <section class="flex flex-col gap-2" aria-labelledby="att-title">
-            <h3 id="att-title" class="label-caps">Attachments · <span class="num">{{ attachments().length }}</span></h3>
+            <h3 id="att-title" class="label-caps" i18n>Attachments · <span class="num">{{ attachments().length }}</span></h3>
             <zeus-attachment-list [eventId]="ev.id" [attachments]="attachments()" />
           </section>
         }
@@ -170,20 +170,20 @@ const FLAG_LABELS: Record<string, string> = {
 
       <!-- Announcements -->
       <section class="flex flex-col gap-2" aria-labelledby="ann-title">
-        <h3 id="ann-title" class="label-caps">Announcements · <span class="num">{{ store.announcements().length }}</span></h3>
+        <h3 id="ann-title" class="label-caps" i18n>Announcements · <span class="num">{{ store.announcements().length }}</span></h3>
         @if (!store.announcements().length) {
-          <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No announcements yet.</p>
+          <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No announcements yet.</p>
         } @else {
           <ul class="panel flex flex-col divide-y divide-border">
             @for (a of store.announcements(); track a.id) {
               <li class="p-3">
                 <p class="label-caps">
                   @if (a.priority === 'emergency') {
-                    <span class="text-destructive">Emergency</span> ·
+                    <span class="text-destructive" i18n>Emergency</span> ·
                   } @else if (a.priority === 'high') {
-                    <span class="text-warning">Important</span> ·
+                    <span class="text-warning" i18n>Important</span> ·
                   }
-                  {{ a.scope === 'team' ? 'Team' : a.scope === 'player' ? 'To you' : 'Everyone' }} · <span class="num">{{ time(a.createdAt) }}</span>
+                  {{ a.scope === 'team' ? txt.team : a.scope === 'player' ? txt.toYou : txt.everyone }} · <span class="num">{{ time(a.createdAt) }}</span>
                 </p>
                 <p class="font-bold">{{ a.title }}</p>
                 @if (a.body) {
@@ -196,22 +196,22 @@ const FLAG_LABELS: Record<string, string> = {
       </section>
 
       <!-- Links -->
-      <nav class="panel flex flex-col divide-y divide-border" aria-label="Other pages">
+      <nav class="panel flex flex-col divide-y divide-border" aria-label="Other pages" i18n-aria-label>
         <a [routerLink]="['/events', eventId()]" class="flex min-h-12 items-center gap-3 px-4 font-semibold hover:bg-muted">
-          <ng-icon name="lucideInfo" size="18" aria-hidden="true" /> Event details
+          <ng-icon name="lucideInfo" size="18" aria-hidden="true" /> <ng-container i18n>Event details</ng-container>
           <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
         </a>
         <a routerLink="/notifications" class="flex min-h-12 items-center gap-3 px-4 font-semibold hover:bg-muted">
-          <ng-icon name="lucideBell" size="18" aria-hidden="true" /> Notifications
+          <ng-icon name="lucideBell" size="18" aria-hidden="true" /> <ng-container i18n>Notifications</ng-container>
           <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
         </a>
         <a [routerLink]="['/events', eventId(), 'results']" class="flex min-h-12 items-center gap-3 px-4 font-semibold hover:bg-muted">
-          <ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> Results
+          <ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> <ng-container i18n>Results</ng-container>
           <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
         </a>
         @if (gameMaster()) {
           <a [routerLink]="['/gm/events', eventId(), 'control']" class="flex min-h-12 items-center gap-3 px-4 font-semibold hover:bg-muted">
-            <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> Control center
+            <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
             <ng-icon name="lucideChevronRight" size="18" class="ml-auto text-muted-foreground" aria-hidden="true" />
           </a>
         }
@@ -219,24 +219,24 @@ const FLAG_LABELS: Record<string, string> = {
 
       <!-- Theme -->
       <section class="flex flex-col gap-2" aria-labelledby="theme-title">
-        <h3 id="theme-title" class="label-caps">Display</h3>
+        <h3 id="theme-title" class="label-caps" i18n>Display</h3>
         <div class="grid grid-cols-2 gap-2" role="group" aria-labelledby="theme-title">
           <button hlmBtn [variant]="theme.isDark() ? 'default' : 'outline'" type="button" class="h-12" [attr.aria-pressed]="theme.isDark()" (click)="theme.setPreference('dark')">
-            <ng-icon name="lucideMoon" size="18" aria-hidden="true" /> Dark
+            <ng-icon name="lucideMoon" size="18" aria-hidden="true" /> <ng-container i18n>Dark</ng-container>
           </button>
           <button hlmBtn [variant]="!theme.isDark() ? 'default' : 'outline'" type="button" class="h-12" [attr.aria-pressed]="!theme.isDark()" (click)="theme.setPreference('light')">
-            <ng-icon name="lucideSun" size="18" aria-hidden="true" /> Light
+            <ng-icon name="lucideSun" size="18" aria-hidden="true" /> <ng-container i18n>Light</ng-container>
           </button>
         </div>
-        <p class="text-xs text-muted-foreground">Light is easier to read in direct sun; dark saves battery and night vision.</p>
+        <p class="text-xs text-muted-foreground" i18n>Light is easier to read in direct sun; dark saves battery and night vision.</p>
       </section>
 
       <!-- Leave -->
       @if (!gameMaster()) {
         <section class="flex flex-col gap-2" aria-labelledby="leave-title">
-          <h3 id="leave-title" class="label-caps">Leave</h3>
+          <h3 id="leave-title" class="label-caps" i18n>Leave</h3>
           <button hlmBtn variant="destructive" type="button" class="h-12" (click)="leave()" [disabled]="leaving()">
-            <ng-icon name="lucideLogOut" size="18" aria-hidden="true" /> {{ leaving() ? 'Leaving…' : 'Leave event' }}
+            <ng-icon name="lucideLogOut" size="18" aria-hidden="true" /> {{ leaving() ? txt.leaving : txt.leaveEvent }}
           </button>
         </section>
       }
@@ -244,6 +244,20 @@ const FLAG_LABELS: Record<string, string> = {
   `,
 })
 export class LiveMoreScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    thisIphoneCanT: $localize`This iPhone can’t keep it on — set Settings › Display & Brightness › Auto-Lock to Never`,
+    keptAwakeWhileSharing: $localize`Kept awake while sharing`,
+    mayTurnOffKeep: $localize`May turn off — keep the app open`,
+    refreshing: $localize`Refreshing…`,
+    refreshNow: $localize`Refresh now`,
+    team: $localize`Team`,
+    toYou: $localize`To you`,
+    everyone: $localize`Everyone`,
+    leaving: $localize`Leaving…`,
+    leaveEvent: $localize`Leave event`,
+  };
+
   protected readonly store = inject(LiveStore);
   protected readonly tracker = inject(LocationTracker);
   protected readonly session = inject(LiveSession);
@@ -270,11 +284,11 @@ export class LiveMoreScreen {
   });
 
   protected readonly sharingLabel = computed(() => {
-    if (!this.consented()) return 'Not agreed';
-    if (this.stopped()) return 'Stopped by you';
+    if (!this.consented()) return $localize`Not agreed`;
+    if (this.stopped()) return $localize`Stopped by you`;
     const s = this.tracker.state();
     if (s === 'denied' || s === 'unavailable') return TRACKER_LABELS[s];
-    if (!this.mine()) return this.running() ? 'Starting…' : 'Starts with the game';
+    if (!this.mine()) return this.running() ? $localize`Starting…` : $localize`Starts with the game`;
     return TRACKER_LABELS[s];
   });
   protected readonly sharingTone = computed(() => {
@@ -291,17 +305,17 @@ export class LiveMoreScreen {
   protected readonly lastFixLabel = computed(() => {
     this.tick();
     const f = this.tracker.lastFix();
-    return f ? formatRelative(new Date(f.timestamp).toISOString()) : 'none';
+    return f ? formatRelative(new Date(f.timestamp).toISOString()) : $localize`none`;
   });
   protected readonly lastSentLabel = computed(() => {
     this.tick();
     const at = this.tracker.lastSentAt();
-    return at ? formatRelative(new Date(at).toISOString()) : 'never';
+    return at ? formatRelative(new Date(at).toISOString()) : $localize`never`;
   });
   protected readonly lastSyncLabel = computed(() => {
     this.tick();
     const at = this.connectivity.lastSyncAt();
-    return at ? formatRelative(new Date(at).toISOString()) : 'never';
+    return at ? formatRelative(new Date(at).toISOString()) : $localize`never`;
   });
   protected readonly flags = computed(() => (this.mine() ? this.tracker.lastFlags().map((f) => FLAG_LABELS[f] ?? f) : []));
 
@@ -315,11 +329,11 @@ export class LiveMoreScreen {
     const ev = this.store.event();
     if (!ev) return [];
     return [
-      { title: 'Game rules', text: ev.rules },
-      { title: 'Scenario rules', text: ev.customModeRules ?? '' },
-      { title: 'Safety rules', text: ev.safetyRules },
-      { title: 'Chrono and FPS limits', text: ev.chronoInfo },
-      { title: 'Required equipment', text: ev.requiredEquipment },
+      { title: $localize`Game rules`, text: ev.rules },
+      { title: $localize`Scenario rules`, text: ev.customModeRules ?? '' },
+      { title: $localize`Safety rules`, text: ev.safetyRules },
+      { title: $localize`Chrono and FPS limits`, text: ev.chronoInfo },
+      { title: $localize`Required equipment`, text: ev.requiredEquipment },
     ].filter((r) => r.text?.trim());
   });
   protected readonly fromCacheNote = computed(() => this.rules().length > 0);
@@ -328,27 +342,27 @@ export class LiveMoreScreen {
     const id = this.store.eventId();
     if (!id) return;
     const ok = await this.confirm.ask({
-      title: 'Stop sharing your location?',
+      title: $localize`Stop sharing your location?`,
       consequences: [
-        'Teammates and the Game Master will stop seeing you',
-        'Objectives that need you inside a zone cannot be captured',
-        'You can resume sharing here at any time',
+        $localize`Teammates and the Game Master will stop seeing you`,
+        $localize`Objectives that need you inside a zone cannot be captured`,
+        $localize`You can resume sharing here at any time`,
       ],
-      confirmLabel: 'Stop sharing',
+      confirmLabel: $localize`Stop sharing`,
       destructive: true,
     });
     if (!ok) return;
     this.session.setStopped(id, true);
     if (this.tracker.eventId() === id) this.tracker.stop();
     else void this.api.stopTracking(id).catch(() => undefined);
-    this.toast.info('Location sharing stopped');
+    this.toast.info($localize`Location sharing stopped`);
   }
 
   protected resume(): void {
     const id = this.store.eventId();
     if (!id) return;
     this.session.setStopped(id, false); // the live shell starts the tracker again
-    this.toast.success(this.running() ? 'Sharing your location again' : 'Sharing will start with the game');
+    this.toast.success(this.running() ? $localize`Sharing your location again` : $localize`Sharing will start with the game`);
   }
 
   protected async leave(): Promise<void> {
@@ -356,13 +370,13 @@ export class LiveMoreScreen {
     const ev = this.store.event();
     if (!id || !ev) return;
     const ok = await this.confirm.ask({
-      title: `Leave ${ev.name}?`,
+      title: $localize`Leave ${ev.name}:name:?`,
       consequences: [
-        'You stop playing and sharing your location',
-        'Your team loses you as a member; your points so far stay with the team',
-        ev.requiresApproval ? 'To come back you must ask to join again and be approved' : 'To come back you must join again',
+        $localize`You stop playing and sharing your location`,
+        $localize`Your team loses you as a member; your points so far stay with the team`,
+        ev.requiresApproval ? $localize`To come back you must ask to join again and be approved` : $localize`To come back you must join again`,
       ],
-      confirmLabel: 'Leave event',
+      confirmLabel: $localize`Leave event`,
       destructive: true,
     });
     if (!ok) return;
@@ -370,7 +384,7 @@ export class LiveMoreScreen {
     try {
       await this.api.leaveEvent(id);
       if (this.tracker.eventId() === id) this.tracker.stop();
-      this.toast.success(`You left ${ev.name}`);
+      this.toast.success($localize`You left ${ev.name}:name:`);
       void this.router.navigate(['/home']);
     } catch (e) {
       this.toast.error(e);

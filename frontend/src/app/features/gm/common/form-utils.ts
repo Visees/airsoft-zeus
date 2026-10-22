@@ -35,16 +35,16 @@ export function controlError(control: AbstractControl | null | undefined, opts: 
 
 export function describeErrors(e: ValidationErrors): string {
   if (e['server']) return String(e['server']);
-  if (e['required']) return 'Required.';
-  if (e['min']) return `Must be at least ${e['min'].min}.`;
-  if (e['max']) return `Must be at most ${e['max'].max}.`;
-  if (e['maxlength']) return `Keep it under ${e['maxlength'].requiredLength} characters.`;
-  if (e['minlength']) return `Use at least ${e['minlength'].requiredLength} characters.`;
-  if (e['integer']) return 'Use a whole number.';
-  if (e['pattern']) return 'Check the format.';
+  if (e['required']) return $localize`Required.`;
+  if (e['min']) return $localize`Must be at least ${e['min'].min}:min:.`;
+  if (e['max']) return $localize`Must be at most ${e['max'].max}:max:.`;
+  if (e['maxlength']) return $localize`Keep it under ${e['maxlength'].requiredLength}:requiredLength: characters.`;
+  if (e['minlength']) return $localize`Use at least ${e['minlength'].requiredLength}:requiredLength: characters.`;
+  if (e['integer']) return $localize`Use a whole number.`;
+  if (e['pattern']) return $localize`Check the format.`;
   if (e['message']) return String(e['message']);
   const first = Object.values(e)[0];
-  return typeof first === 'string' ? first : 'Check this value.';
+  return typeof first === 'string' ? first : $localize`Check this value.`;
 }
 
 /** Whole-number validator (null/empty passes; combine with required). */

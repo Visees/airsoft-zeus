@@ -70,15 +70,15 @@ interface PlayerRow {
 }
 
 const PRESENCE: Record<PositionStatus, { glyph: string; label: string; cls: string }> = {
-  online: { glyph: '●', label: 'Online', cls: 'text-primary' },
-  stale: { glyph: '◐', label: 'Stale', cls: 'text-warning' },
-  offline: { glyph: '○', label: 'Offline', cls: 'text-muted-foreground' },
+  online: { glyph: '●', label: $localize`Online`, cls: 'text-primary' },
+  stale: { glyph: '◐', label: $localize`Stale`, cls: 'text-warning' },
+  offline: { glyph: '○', label: $localize`Offline`, cls: 'text-muted-foreground' },
 };
 
 const SEVERITY: Record<GmAlert['severity'], { glyph: string; label: string; tone: 'neutral' | 'warning' | 'danger' }> = {
-  critical: { glyph: '■', label: 'Critical', tone: 'danger' },
-  warning: { glyph: '▲', label: 'Warning', tone: 'warning' },
-  info: { glyph: '●', label: 'Info', tone: 'neutral' },
+  critical: { glyph: '■', label: $localize`Critical`, tone: 'danger' },
+  warning: { glyph: '▲', label: $localize`Warning`, tone: 'warning' },
+  info: { glyph: '●', label: $localize`Info`, tone: 'neutral' },
 };
 
 const SELECT_CLASS = 'h-10 w-full rounded-md border border-input bg-transparent px-2 text-sm dark:bg-input/30';
@@ -119,12 +119,12 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
   template: `
     <!-- ======================= command bar ======================= -->
     <header class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-card px-2 py-2 lg:px-3">
-      <a [routerLink]="['/gm/events', eventId()]" hlmBtn variant="ghost" size="icon" class="size-11 shrink-0" aria-label="Back to the event editor">
+      <a [routerLink]="['/gm/events', eventId()]" hlmBtn variant="ghost" size="icon" class="size-11 shrink-0" aria-label="Back to the event editor" i18n-aria-label>
         <ng-icon name="lucideArrowLeft" size="20" aria-hidden="true" />
       </a>
-      <div class="min-w-0 flex-1 lg:flex-none">
-        <p class="label-caps leading-none">Control center</p>
-        <h1 class="max-w-[18rem] truncate text-base uppercase lg:text-lg">{{ store.event()?.name ?? 'Loading…' }}</h1>
+      <div class="min-w-32 flex-1 lg:flex-none">
+        <p class="label-caps truncate leading-none" i18n>Control center</p>
+        <h1 class="max-w-[18rem] truncate text-base uppercase lg:text-lg">{{ store.event()?.name ?? txt.loading }}</h1>
       </div>
       @if (status(); as s) {
         <zeus-status-chip [spec]="statusChip(s)" />
@@ -132,23 +132,23 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       <zeus-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
       <zeus-connection-status [compact]="!wide()" />
       @if (store.fromCache()) {
-        <span class="text-xs text-warning">Showing cached data</span>
+        <span class="text-xs text-warning" i18n>Showing cached data</span>
       }
 
       @if (wide()) {
         <div class="ml-auto flex flex-wrap items-center gap-2">
           <ng-container [ngTemplateOutlet]="gameControls" />
           <button hlmBtn type="button" variant="outline" class="h-11" (click)="openAnnounce()">
-            <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> Announce
+            <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> <ng-container i18n>Announce</ng-container>
           </button>
           <button hlmBtn type="button" variant="outline" class="h-11" (click)="openAdjust(null, null)">
-            <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" /> Adjust
+            <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" /> <ng-container i18n>Adjust</ng-container>
           </button>
           <button hlmBtn type="button" class="h-11 bg-destructive! text-destructive-foreground! hover:bg-destructive/85!" (click)="dialog.set('emergency')" [disabled]="ended()">
-            <ng-icon name="lucideSiren" size="16" aria-hidden="true" /> Emergency
+            <ng-icon name="lucideSiren" size="16" aria-hidden="true" /> <ng-container i18n>Emergency</ng-container>
           </button>
           <div class="relative">
-            <button hlmBtn type="button" variant="ghost" size="icon" class="size-11" (click)="moreOpen.set(!moreOpen())" [attr.aria-expanded]="moreOpen()" aria-controls="cc-more" aria-label="Settings and links">
+            <button hlmBtn type="button" variant="ghost" size="icon" class="size-11" (click)="moreOpen.set(!moreOpen())" [attr.aria-expanded]="moreOpen()" aria-controls="cc-more" aria-label="Settings and links" i18n-aria-label>
               <ng-icon name="lucideEllipsisVertical" size="18" aria-hidden="true" />
             </button>
             @if (moreOpen()) {
@@ -159,7 +159,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           </div>
         </div>
       } @else {
-        <button hlmBtn type="button" size="icon" class="size-11 bg-destructive! text-destructive-foreground!" (click)="dialog.set('emergency')" [disabled]="ended()" aria-label="Send emergency alert">
+        <button hlmBtn type="button" size="icon" class="size-11 bg-destructive! text-destructive-foreground!" (click)="dialog.set('emergency')" [disabled]="ended()" aria-label="Send emergency alert" i18n-aria-label>
           <ng-icon name="lucideSiren" size="18" aria-hidden="true" />
         </button>
       }
@@ -172,9 +172,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     } @else if (wide()) {
       <!-- ======================= desktop ======================= -->
       <div class="grid min-h-0 flex-1 grid-cols-[20rem_1fr_22rem] xl:grid-cols-[23rem_1fr_25rem]">
-        <aside class="flex min-h-0 flex-col overflow-hidden border-r border-border" aria-label="Teams, objectives and players">
+        <aside class="flex min-h-0 flex-col overflow-hidden border-r border-border" aria-label="Teams, objectives and players" i18n-aria-label>
           <div class="shrink-0 border-b border-border p-3"><ng-container [ngTemplateOutlet]="teamsTpl" /></div>
-          <div role="tablist" aria-label="Lists" class="flex shrink-0 border-b border-border">
+          <div role="tablist" aria-label="Lists" class="flex shrink-0 border-b border-border" i18n-aria-label>
             @for (t of leftTabs; track t.id) {
               <button
                 type="button"
@@ -203,7 +203,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           </div>
         </aside>
         <main class="relative min-h-0 min-w-0"><ng-container [ngTemplateOutlet]="mapTpl" /></main>
-        <aside class="flex min-h-0 flex-col gap-5 overflow-y-auto border-l border-border p-3" aria-label="Alerts, requests and activity">
+        <aside class="flex min-h-0 flex-col gap-5 overflow-y-auto border-l border-border p-3" aria-label="Alerts, requests and activity" i18n-aria-label>
           <ng-container [ngTemplateOutlet]="alertsTpl" />
           <ng-container [ngTemplateOutlet]="purchasesTpl" />
           <ng-container [ngTemplateOutlet]="effectsTpl" />
@@ -214,7 +214,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       <!-- ======================= phone / tablet portrait ======================= -->
       <div class="flex min-h-0 flex-1 flex-col">
         <div class="relative h-[42dvh] shrink-0 border-b border-border"><ng-container [ngTemplateOutlet]="mapTpl" /></div>
-        <div role="tablist" aria-label="Sections" class="flex shrink-0 overflow-x-auto border-b border-border bg-card">
+        <div role="tablist" aria-label="Sections" class="flex shrink-0 overflow-x-auto border-b border-border bg-card" i18n-aria-label>
           @for (t of phoneTabs; track t.id) {
             <button
               type="button"
@@ -260,18 +260,18 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             @case ('actions') {
               <div class="flex flex-col gap-4">
                 <section aria-labelledby="h-ctl">
-                  <h2 id="h-ctl" class="label-caps mb-2">Game controls</h2>
+                  <h2 id="h-ctl" class="label-caps mb-2" i18n>Game controls</h2>
                   <div class="flex flex-wrap gap-2"><ng-container [ngTemplateOutlet]="gameControls" /></div>
                 </section>
                 <div class="grid grid-cols-2 gap-2">
                   <button hlmBtn type="button" variant="outline" class="h-12" (click)="openAnnounce()">
-                    <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> Announce
+                    <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> <ng-container i18n>Announce</ng-container>
                   </button>
                   <button hlmBtn type="button" variant="outline" class="h-12" (click)="openAdjust(null, null)">
-                    <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" /> Adjust score
+                    <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" /> <ng-container i18n>Adjust score</ng-container>
                   </button>
                   <button hlmBtn type="button" class="col-span-2 h-12 bg-destructive! text-destructive-foreground!" (click)="dialog.set('emergency')" [disabled]="ended()">
-                    <ng-icon name="lucideSiren" size="16" aria-hidden="true" /> Emergency alert
+                    <ng-icon name="lucideSiren" size="16" aria-hidden="true" /> <ng-container i18n>Emergency alert</ng-container>
                   </button>
                 </div>
                 <ng-container [ngTemplateOutlet]="settingsTpl" />
@@ -288,43 +288,43 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       @switch (status()) {
         @case ('lobby') {
           <button hlmBtn type="button" class="h-11" (click)="start()" [disabled]="busy()">
-            <ng-icon name="lucidePlay" size="16" aria-hidden="true" /> Start game
+            <ng-icon name="lucidePlay" size="16" aria-hidden="true" /> <ng-container i18n>Start game</ng-container>
           </button>
         }
         @case ('live') {
           <button hlmBtn type="button" variant="outline" class="h-11" (click)="pause()" [disabled]="busy()">
-            <ng-icon name="lucidePause" size="16" aria-hidden="true" /> Pause
+            <ng-icon name="lucidePause" size="16" aria-hidden="true" /> <ng-container i18n>Pause</ng-container>
           </button>
         }
         @case ('paused') {
           <button hlmBtn type="button" class="h-11" (click)="resume()" [disabled]="busy()">
-            <ng-icon name="lucidePlay" size="16" aria-hidden="true" /> Resume
+            <ng-icon name="lucidePlay" size="16" aria-hidden="true" /> <ng-container i18n>Resume</ng-container>
           </button>
         }
         @case ('published') {
           <button hlmBtn type="button" variant="outline" class="h-11" (click)="openLobby()" [disabled]="busy()">
-            <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> Open lobby
+            <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Open lobby</ng-container>
           </button>
         }
         @case ('registration_open') {
           <button hlmBtn type="button" variant="outline" class="h-11" (click)="openLobby()" [disabled]="busy()">
-            <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> Open lobby
+            <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Open lobby</ng-container>
           </button>
         }
       }
       @if (status() === 'live' || status() === 'paused' || status() === 'lobby') {
         <button hlmBtn type="button" variant="outline" class="h-11" (click)="dialog.set('extend')" [disabled]="busy()">
-          <ng-icon name="lucideTimer" size="16" aria-hidden="true" /> Extend
+          <ng-icon name="lucideTimer" size="16" aria-hidden="true" /> <ng-container i18n>Extend</ng-container>
         </button>
       }
       @if (status() === 'live' || status() === 'paused') {
         <button hlmBtn type="button" variant="destructive" class="h-11" (click)="endGame()" [disabled]="busy()">
-          <ng-icon name="lucideCircleStop" size="16" aria-hidden="true" /> End game
+          <ng-icon name="lucideCircleStop" size="16" aria-hidden="true" /> <ng-container i18n>End game</ng-container>
         </button>
       }
       @if (status() === 'completed') {
         <a hlmBtn class="h-11" [routerLink]="['/events', eventId(), 'results', 'export']">
-          <ng-icon name="lucideFileDown" size="16" aria-hidden="true" /> Export results
+          <ng-icon name="lucideFileDown" size="16" aria-hidden="true" /> <ng-container i18n>Export results</ng-container>
         </a>
       }
     </ng-template>
@@ -332,9 +332,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <!-- ---------- teams ---------- -->
     <ng-template #teamsTpl>
       <section aria-labelledby="h-teams">
-        <h2 id="h-teams" class="label-caps mb-2">Scoreboard · {{ teams().length }} teams</h2>
+        <h2 id="h-teams" class="label-caps mb-2" i18n>Scoreboard · {{ teams().length }} teams</h2>
         @if (!teams().length) {
-          <p class="text-sm text-muted-foreground">No teams.</p>
+          <p class="text-sm text-muted-foreground" i18n>No teams.</p>
         }
         <ol class="flex flex-col gap-1.5">
           @for (t of rankedTeams(); track t.id; let i = $index) {
@@ -342,13 +342,13 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               <span class="num w-4 text-xs text-muted-foreground">{{ i + 1 }}</span>
               <div class="min-w-0 flex-1">
                 <zeus-team-badge [team]="t" size="sm" />
-                <p class="num text-xs text-muted-foreground">{{ onlineByTeam().get(t.id) ?? 0 }}/{{ t.memberCount }} online · {{ t.objectivesHeld }} held</p>
+                <p class="num text-xs text-muted-foreground" i18n>{{ onlineByTeam().get(t.id) ?? 0 }}/{{ t.memberCount }} online · {{ t.objectivesHeld }} held</p>
               </div>
               <div class="flex flex-col items-end">
                 <zeus-score-display [points]="t.points" size="sm" [showUnit]="false" />
                 <zeus-currency-display [amount]="t.currency" size="sm" [showUnit]="false" />
               </div>
-              <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="openAdjust(t.id, null)" [attr.aria-label]="'Adjust points or credits of ' + t.name">
+              <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="openAdjust(t.id, null)" aria-label="Adjust points or credits of {{ t.name }}" i18n-aria-label>
                 <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" />
               </button>
             </li>
@@ -361,21 +361,21 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <ng-template #objectivesTpl>
       <section aria-labelledby="h-objs">
         <div class="mb-2 flex items-center justify-between gap-2">
-          <h2 id="h-objs" class="label-caps">Objectives · {{ activeObjectiveCount() }} active</h2>
+          <h2 id="h-objs" class="label-caps" i18n>Objectives · {{ activeObjectiveCount() }} active</h2>
           <div class="flex items-center gap-1.5">
-            <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status">
-              <option value="">All statuses</option>
+            <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status" i18n-aria-label>
+              <option value="" i18n>All statuses</option>
               @for (s of objStatuses; track s) {
                 <option [value]="s">{{ objStatusLabels[s] }}</option>
               }
             </select>
             <a hlmBtn variant="outline" class="h-10 shrink-0" [routerLink]="['/gm/events', eventId(), 'objectives', 'new']" [queryParams]="{ returnTo: controlUrl() }">
-              <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> New
+              <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> <ng-container i18n>New</ng-container>
             </a>
           </div>
         </div>
         @if (!filteredObjectives().length) {
-          <zeus-empty-state icon="lucideFlag" [title]="statusFilter() ? 'No objectives with this status' : 'No objectives'" />
+          <zeus-empty-state icon="lucideFlag" [title]="statusFilter() ? txt.noObjectivesWithThis : txt.noObjectives" />
         }
         <ul class="flex flex-col gap-1.5">
           @for (o of filteredObjectives(); track o.id) {
@@ -392,49 +392,53 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                       }
                     </div>
                   </div>
-                  <span class="num text-xs text-muted-foreground" [title]="o.captureCount + ' captures'">×{{ o.captureCount }}</span>
+                  <span class="num text-xs text-muted-foreground" title="{{ o.captureCount }} captures" i18n-title>×{{ o.captureCount }}</span>
                 </summary>
                 <div class="flex flex-col gap-2 border-t border-border p-2">
                   <p class="text-xs text-muted-foreground">
                     @if (o.lastCapturedAt) {
-                      Last capture {{ rel(o.lastCapturedAt) }}{{ o.lastCapturedByNickname ? ' by ' + o.lastCapturedByNickname : '' }}.
+                      @if (o.lastCapturedByNickname) {
+                        <ng-container i18n>Last capture {{ rel(o.lastCapturedAt) }} by {{ o.lastCapturedByNickname }}.</ng-container>
+                      } @else {
+                        <ng-container i18n>Last capture {{ rel(o.lastCapturedAt) }}.</ng-container>
+                      }
                     }
                     @if (o.cooldownUntil && isFuture(o.cooldownUntil)) {
-                      Cooldown until {{ time(o.cooldownUntil) }}.
+                      <ng-container i18n>Cooldown until {{ time(o.cooldownUntil) }}.</ng-container>
                     }
                     {{ o.methods.join(' · ').toUpperCase() }}
                   </p>
                   <div class="grid grid-cols-2 gap-1.5">
                     @if (o.status === 'disabled') {
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'activate')">Activate</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'activate')" i18n>Activate</button>
                     } @else {
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'disable')">Disable</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'disable')" i18n>Disable</button>
                     }
                     @if (o.contested) {
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'uncontest')">Clear contest</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'uncontest')" i18n>Clear contest</button>
                     } @else {
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'contest')">Mark contested</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'contest')" i18n>Mark contested</button>
                     }
                     @if (o.ownerTeamId) {
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'clear_owner')">Clear owner</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'clear_owner')" i18n>Clear owner</button>
                     }
-                    <button hlmBtn type="button" variant="destructive" class="h-10" (click)="objAction(o, 'reset')">Reset</button>
+                    <button hlmBtn type="button" variant="destructive" class="h-10" (click)="objAction(o, 'reset')" i18n>Reset</button>
                   </div>
                   <div class="flex gap-1.5">
-                    <label class="sr-only" [for]="'own-' + o.id">New owner of {{ o.name }}</label>
+                    <label class="sr-only" [for]="'own-' + o.id" i18n>New owner of {{ o.name }}</label>
                     <select [id]="'own-' + o.id" [class]="selectClass" #ownSel>
                       @for (t of teams(); track t.id) {
                         <option [value]="t.id" [selected]="t.id === o.ownerTeamId">{{ t.name }}</option>
                       }
                     </select>
-                    <button hlmBtn type="button" variant="outline" class="h-10 shrink-0" (click)="objAction(o, 'set_owner', ownSel.value)" [disabled]="!teams().length">Set owner</button>
+                    <button hlmBtn type="button" variant="outline" class="h-10 shrink-0" (click)="objAction(o, 'set_owner', ownSel.value)" [disabled]="!teams().length" i18n>Set owner</button>
                   </div>
                   <div class="flex gap-1.5">
                     <button hlmBtn type="button" variant="ghost" class="h-10 flex-1" (click)="locate(o)">
-                      <ng-icon name="lucideCrosshair" size="14" aria-hidden="true" /> Show on map
+                      <ng-icon name="lucideCrosshair" size="14" aria-hidden="true" /> <ng-container i18n>Show on map</ng-container>
                     </button>
                     <a hlmBtn variant="ghost" class="h-10 flex-1" [routerLink]="['/gm/events', eventId(), 'objectives', o.id]" [queryParams]="{ returnTo: controlUrl() }">
-                      <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> Edit
+                      <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
                     </a>
                   </div>
                 </div>
@@ -449,15 +453,15 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <ng-template #capturesTpl>
       <section aria-labelledby="h-caps">
         <div class="mb-2 flex items-center justify-between">
-          <h2 id="h-caps" class="label-caps">Recent captures</h2>
-          <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="loadCaptures()" aria-label="Reload captures">
+          <h2 id="h-caps" class="label-caps" i18n>Recent captures</h2>
+          <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="loadCaptures()" aria-label="Reload captures" i18n-aria-label>
             <ng-icon name="lucideRefreshCw" size="14" aria-hidden="true" />
           </button>
         </div>
         @if (capturesError()) {
           <zeus-error-state [error]="capturesError()" (retry)="loadCaptures()" />
         } @else if (!captures().length) {
-          <p class="text-sm text-muted-foreground">No captures yet.</p>
+          <p class="text-sm text-muted-foreground" i18n>No captures yet.</p>
         }
         <ul class="flex flex-col gap-1.5">
           @for (c of captures(); track c.id) {
@@ -467,20 +471,20 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                   <p class="truncate font-semibold" [class.line-through]="c.revoked">{{ c.objectiveName }}</p>
                   <p class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     <zeus-team-badge [team]="teamById().get(c.teamId)" size="sm" [showIcon]="false" />
-                    {{ c.nickname ?? (c.method === 'gm' ? 'GM' : '—') }} · <span class="num uppercase">{{ c.method }}</span> · <time [attr.datetime]="c.createdAt" [title]="abs(c.createdAt)">{{ rel(c.createdAt) }}</time>
+                    {{ c.nickname ?? (c.method === 'gm' ? txt.gm : '—') }} · <span class="num uppercase">{{ c.method }}</span> · <time [attr.datetime]="c.createdAt" [title]="abs(c.createdAt)">{{ rel(c.createdAt) }}</time>
                   </p>
                 </div>
                 @if (c.revoked) {
-                  <zeus-status-chip label="Revoked" glyph="✕" tone="danger" />
+                  <zeus-status-chip label="Revoked" glyph="✕" tone="danger" i18n-label />
                 }
               </div>
               @if (!c.revoked) {
                 <div class="mt-1.5 flex items-center justify-between gap-2">
                   <label class="flex min-h-10 cursor-pointer items-center gap-2 text-xs">
                     <input type="checkbox" class="size-5 accent-primary" [checked]="!keepRewards().has(c.id)" (change)="toggleSet(keepRewards, c.id, !$any($event.target).checked)" />
-                    Reverse {{ n(c.points) }} pts / {{ n(c.currency) }} cr
+                    <ng-container i18n>Reverse {{ n(c.points) }} pts / {{ n(c.currency) }} cr</ng-container>
                   </label>
-                  <button hlmBtn type="button" variant="destructive" class="h-10" (click)="revokeCapture(c)">Revoke</button>
+                  <button hlmBtn type="button" variant="destructive" class="h-10" (click)="revokeCapture(c)" i18n>Revoke</button>
                 </div>
               }
             </li>
@@ -492,9 +496,14 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <!-- ---------- players ---------- -->
     <ng-template #playersTpl>
       <section aria-labelledby="h-players">
-        <h2 id="h-players" class="label-caps mb-2">Players · {{ onlineCount() }}/{{ players().length }} online{{ suspiciousCount() ? ' · ' + suspiciousCount() + ' flagged' : '' }}</h2>
+        <h2 id="h-players" class="label-caps mb-2">
+          <ng-container i18n>Players · {{ onlineCount() }}/{{ players().length }} online</ng-container>
+          @if (suspiciousCount()) {
+            · <ng-container i18n>{{ suspiciousCount() }} flagged</ng-container>
+          }
+        </h2>
         @if (!filteredPlayers().length) {
-          <zeus-empty-state icon="lucideUsers" [title]="players().length ? 'No players match the filters' : 'No approved players'" />
+          <zeus-empty-state icon="lucideUsers" [title]="players().length ? txt.noPlayersMatchThe : txt.noApprovedPlayers" />
         }
         <ul class="flex flex-col">
           @for (p of filteredPlayers(); track p.member.userId) {
@@ -513,14 +522,14 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 }
                 <span class="min-w-0 flex-1">
                   <span class="block truncate font-semibold">{{ p.member.nickname }}</span>
-                  <span class="block truncate text-xs text-muted-foreground">{{ p.team?.name ?? 'No team' }}{{ p.squad ? ' · ' + (p.squad.callsign || p.squad.name) : '' }}</span>
+                  <span class="block truncate text-xs text-muted-foreground">{{ p.team?.name ?? txt.noTeam }}{{ p.squad ? ' · ' + (p.squad.callsign || p.squad.name) : '' }}</span>
                 </span>
                 @if (p.suspicious) {
-                  <span class="text-xs font-semibold text-destructive" title="Suspicious GPS">▲ GPS</span>
+                  <span class="text-xs font-semibold text-destructive" title="Suspicious GPS" i18n i18n-title>▲ GPS</span>
                 }
                 <span class="flex w-20 flex-col items-end text-xs">
                   <span [class]="presence(p.presence).cls"><span aria-hidden="true">{{ presence(p.presence).glyph }}</span> {{ presence(p.presence).label }}</span>
-                  <span class="num text-muted-foreground">{{ p.accuracy !== null ? '±' + round(p.accuracy) + ' m' : '—' }} · {{ p.lastUpdate ? rel(p.lastUpdate) : 'never' }}</span>
+                  <span class="num text-muted-foreground">{{ p.accuracy !== null ? '±' + round(p.accuracy) + ' m' : '—' }} · {{ p.lastUpdate ? rel(p.lastUpdate) : txt.never }}</span>
                 </span>
               </button>
             </li>
@@ -544,46 +553,46 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               }
             </div>
           </div>
-          <button hlmBtn type="button" variant="ghost" size="icon" class="size-10 shrink-0" (click)="selectedPlayerId.set(null)" aria-label="Close player details">
+          <button hlmBtn type="button" variant="ghost" size="icon" class="size-10 shrink-0" (click)="selectedPlayerId.set(null)" aria-label="Close player details" i18n-aria-label>
             <ng-icon name="lucideX" size="16" aria-hidden="true" />
           </button>
         </div>
         <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-          <dt class="text-muted-foreground">Status</dt>
+          <dt class="text-muted-foreground" i18n>Status</dt>
           <dd [class]="presence(p.presence).cls"><span aria-hidden="true">{{ presence(p.presence).glyph }}</span> {{ presence(p.presence).label }}</dd>
-          <dt class="text-muted-foreground">GPS</dt>
-          <dd class="num">{{ p.accuracy !== null ? '±' + round(p.accuracy) + ' m' : 'No fix' }}{{ p.member.trackingActive ? '' : ' · not sharing' }}</dd>
-          <dt class="text-muted-foreground">Last update</dt>
-          <dd>{{ p.lastUpdate ? rel(p.lastUpdate) + ' · ' + time(p.lastUpdate) : 'Never' }}</dd>
+          <dt class="text-muted-foreground" i18n>GPS</dt>
+          <dd class="num">{{ p.accuracy !== null ? '±' + round(p.accuracy) + ' m' : txt.noFix }}{{ p.member.trackingActive ? '' : txt.notSharing }}</dd>
+          <dt class="text-muted-foreground" i18n>Last update</dt>
+          <dd>{{ p.lastUpdate ? rel(p.lastUpdate) + ' · ' + time(p.lastUpdate) : txt.never }}</dd>
           @if (p.suspicious || p.flags.length) {
-            <dt class="text-destructive">Flags</dt>
-            <dd class="text-destructive">▲ {{ p.flags.length ? p.flags.join(', ') : 'Suspicious movement' }}</dd>
+            <dt class="text-destructive" i18n>Flags</dt>
+            <dd class="text-destructive">▲ {{ p.flags.length ? p.flags.join(', ') : txt.suspiciousMovement }}</dd>
           }
         </dl>
         <div class="grid grid-cols-2 gap-1.5">
           <button hlmBtn type="button" variant="outline" class="h-10" (click)="locatePlayer(p)" [disabled]="!p.pos">
-            <ng-icon name="lucideCrosshair" size="14" aria-hidden="true" /> Locate
+            <ng-icon name="lucideCrosshair" size="14" aria-hidden="true" /> <ng-container i18n>Locate</ng-container>
           </button>
           <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAnnounce('player', null, p.member.userId)">
-            <ng-icon name="lucideMessageSquare" size="14" aria-hidden="true" /> Message
+            <ng-icon name="lucideMessageSquare" size="14" aria-hidden="true" /> <ng-container i18n>Message</ng-container>
           </button>
           <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAdjust(p.member.teamId, p.member.userId)" [disabled]="!p.member.teamId">
-            <ng-icon name="lucideSlidersHorizontal" size="14" aria-hidden="true" /> Team score
+            <ng-icon name="lucideSlidersHorizontal" size="14" aria-hidden="true" /> <ng-container i18n>Team score</ng-container>
           </button>
           @if (p.member.role === 'player') {
             <button hlmBtn type="button" variant="destructive" class="h-10" (click)="removePlayer(p.member)">
-              <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> Remove
+              <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> <ng-container i18n>Remove</ng-container>
             </button>
           }
         </div>
         <div class="flex gap-1.5">
-          <label class="sr-only" for="cc-move-team">Move {{ p.member.nickname }} to team</label>
+          <label class="sr-only" for="cc-move-team" i18n>Move {{ p.member.nickname }} to team</label>
           <select id="cc-move-team" [class]="selectClass" #moveSel>
             @for (t of teams(); track t.id) {
               <option [value]="t.id" [selected]="t.id === p.member.teamId">{{ t.name }}</option>
             }
           </select>
-          <button hlmBtn type="button" variant="outline" class="h-10 shrink-0" (click)="movePlayer(p.member, moveSel.value)">Move</button>
+          <button hlmBtn type="button" variant="outline" class="h-10 shrink-0" (click)="movePlayer(p.member, moveSel.value)" i18n>Move</button>
         </div>
       </div>
     </ng-template>
@@ -610,7 +619,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       <div class="hud absolute left-2 right-16 top-2 z-10 flex flex-col gap-2 p-2">
         <div class="flex items-center gap-2">
           <div class="relative min-w-0 flex-1">
-            <label for="cc-search" class="sr-only">Find a player</label>
+            <label for="cc-search" class="sr-only" i18n>Find a player</label>
             <ng-icon name="lucideSearch" size="14" class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
               #search
@@ -623,12 +632,12 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               aria-keyshortcuts="/"
               [value]="query()"
               (input)="onSearch($any($event.target).value)"
-              (keydown.enter)="selectFirstMatch()"
+              (keydown.enter)="selectFirstMatch()" i18n-placeholder
             />
             <kbd class="num pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-sm border border-border px-1 text-xs text-muted-foreground sm:block" aria-hidden="true">/</kbd>
           </div>
           <button hlmBtn type="button" [variant]="filtersOpen() || filtersActive() ? 'secondary' : 'outline'" class="h-10" (click)="filtersOpen.set(!filtersOpen())" [attr.aria-expanded]="filtersOpen()">
-            <ng-icon name="lucideFilter" size="14" aria-hidden="true" /> Filters{{ filtersActive() ? ' •' : '' }}
+            <ng-icon name="lucideFilter" size="14" aria-hidden="true" /> <ng-container i18n>Filters{{ filtersActive() ? ' •' : '' }}</ng-container>
           </button>
         </div>
         @if (filtersOpen()) {
@@ -645,27 +654,27 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               </button>
             }
             @if (squads().length) {
-              <select [class]="selectClass + ' w-auto!'" [value]="squadFilter()" (change)="squadFilter.set($any($event.target).value)" aria-label="Filter by squad">
-                <option value="">All squads</option>
+              <select [class]="selectClass + ' w-auto!'" [value]="squadFilter()" (change)="squadFilter.set($any($event.target).value)" aria-label="Filter by squad" i18n-aria-label>
+                <option value="" i18n>All squads</option>
                 @for (s of squads(); track s.id) {
                   <option [value]="s.id">{{ s.callsign || s.name }}</option>
                 }
               </select>
             }
-            <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status">
-              <option value="">All objectives</option>
+            <select [class]="selectClass + ' w-auto!'" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)" aria-label="Filter objectives by status" i18n-aria-label>
+              <option value="" i18n>All objectives</option>
               @for (s of objStatuses; track s) {
                 <option [value]="s">{{ objStatusLabels[s] }}</option>
               }
             </select>
             <label class="flex h-10 cursor-pointer items-center gap-2 rounded-sm border border-border px-2 text-xs font-semibold">
-              <input type="checkbox" class="size-4 accent-primary" [checked]="onlineOnly()" (change)="onlineOnly.set($any($event.target).checked)" /> Online only
+              <input type="checkbox" class="size-4 accent-primary" [checked]="onlineOnly()" (change)="onlineOnly.set($any($event.target).checked)" /> <ng-container i18n>Online only</ng-container>
             </label>
             <label class="flex h-10 cursor-pointer items-center gap-2 rounded-sm border border-border px-2 text-xs font-semibold">
-              <input type="checkbox" class="size-4 accent-primary" [checked]="showMapLabels()" (change)="showMapLabels.set($any($event.target).checked)" /> Names
+              <input type="checkbox" class="size-4 accent-primary" [checked]="showMapLabels()" (change)="showMapLabels.set($any($event.target).checked)" /> <ng-container i18n>Names</ng-container>
             </label>
             @if (filtersActive()) {
-              <button hlmBtn type="button" variant="ghost" class="h-10 text-xs" (click)="clearFilters()">Clear</button>
+              <button hlmBtn type="button" variant="ghost" class="h-10 text-xs" (click)="clearFilters()" i18n>Clear</button>
             }
           </div>
         }
@@ -681,7 +690,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <ng-template #alertsTpl>
       <section aria-labelledby="h-alerts">
         <div class="mb-2 flex flex-wrap items-center gap-1.5">
-          <h2 id="h-alerts" class="label-caps mr-auto">Alerts</h2>
+          <h2 id="h-alerts" class="label-caps mr-auto" i18n>Alerts</h2>
           @for (s of severities; track s) {
             @if (alertCounts()[s]) {
               <zeus-status-chip [label]="alertCounts()[s] + ' ' + sevSpec(s).label.toLowerCase()" [glyph]="sevSpec(s).glyph" [tone]="sevSpec(s).tone" />
@@ -689,7 +698,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           }
         </div>
         @if (!sortedAlerts().length) {
-          <p class="text-sm text-muted-foreground">No alerts.</p>
+          <p class="text-sm text-muted-foreground" i18n>No alerts.</p>
         }
         <ul class="flex flex-col gap-1.5">
           @for (a of sortedAlerts(); track a.id) {
@@ -704,10 +713,10 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               @if (!a.acknowledged || a.userId) {
                 <div class="mt-1.5 flex justify-end gap-1.5">
                   @if (a.userId) {
-                    <button hlmBtn type="button" variant="ghost" class="h-10" (click)="selectPlayer(a.userId, true)">Locate</button>
+                    <button hlmBtn type="button" variant="ghost" class="h-10" (click)="selectPlayer(a.userId, true)" i18n>Locate</button>
                   }
                   @if (!a.acknowledged) {
-                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="ack(a)" [disabled]="busyId() === a.id">Acknowledge</button>
+                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="ack(a)" [disabled]="busyId() === a.id" i18n>Acknowledge</button>
                   }
                 </div>
               }
@@ -720,9 +729,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <!-- ---------- purchase requests ---------- -->
     <ng-template #purchasesTpl>
       <section aria-labelledby="h-reqs">
-        <h2 id="h-reqs" class="label-caps mb-2">Purchase requests · {{ pendingPurchases().length }}</h2>
+        <h2 id="h-reqs" class="label-caps mb-2" i18n>Purchase requests · {{ pendingPurchases().length }}</h2>
         @if (!pendingPurchases().length) {
-          <p class="text-sm text-muted-foreground">No requests waiting.</p>
+          <p class="text-sm text-muted-foreground" i18n>No requests waiting.</p>
         }
         <ul class="flex flex-col gap-1.5">
           @for (p of pendingPurchases(); track p.id) {
@@ -730,14 +739,14 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               <p class="font-semibold">{{ p.perkName }} <span class="text-xs font-normal text-muted-foreground">· {{ perkTypeLabels[p.perkType] }}</span></p>
               <p class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                 <zeus-team-badge [team]="teamById().get(p.teamId)" size="sm" [showIcon]="false" />
-                {{ p.buyerNickname ?? '' }} · <span class="num">{{ n(p.price) }} cr</span> · {{ rel(p.createdAt) }}
+                {{ p.buyerNickname ?? '' }} · <span class="num" i18n>{{ n(p.price) }} cr</span> · {{ rel(p.createdAt) }}
                 @if (p.targetTeamId) {
-                  · target {{ teamById().get(p.targetTeamId)?.name }}
+                  <ng-container i18n>· target {{ teamById().get(p.targetTeamId)?.name }}</ng-container>
                 }
               </p>
               <div class="mt-1.5 grid grid-cols-2 gap-1.5">
-                <button hlmBtn type="button" variant="destructive" class="h-10" (click)="reviewPurchase(p, false)" [disabled]="busyId() === p.id">Reject</button>
-                <button hlmBtn type="button" class="h-10" (click)="reviewPurchase(p, true)" [disabled]="busyId() === p.id">Approve</button>
+                <button hlmBtn type="button" variant="destructive" class="h-10" (click)="reviewPurchase(p, false)" [disabled]="busyId() === p.id" i18n>Reject</button>
+                <button hlmBtn type="button" class="h-10" (click)="reviewPurchase(p, true)" [disabled]="busyId() === p.id" i18n>Approve</button>
               </div>
             </li>
           }
@@ -748,9 +757,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <!-- ---------- active perks / effects ---------- -->
     <ng-template #effectsTpl>
       <section aria-labelledby="h-effects">
-        <h2 id="h-effects" class="label-caps mb-2">Active perks · {{ activePurchases().length }}</h2>
+        <h2 id="h-effects" class="label-caps mb-2" i18n>Active perks · {{ activePurchases().length }}</h2>
         @if (!activePurchases().length) {
-          <p class="text-sm text-muted-foreground">No perk is active.</p>
+          <p class="text-sm text-muted-foreground" i18n>No perk is active.</p>
         }
         <ul class="flex flex-col gap-1.5">
           @for (p of activePurchases(); track p.id) {
@@ -764,7 +773,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                       → {{ teamById().get(p.targetTeamId)?.name }}
                     }
                     @if (p.expiresAt) {
-                      · <span class="num">{{ remaining(p.expiresAt) }}</span> left
+                      · <ng-container i18n><span class="num">{{ remaining(p.expiresAt) }}</span> left</ng-container>
                     }
                   </p>
                 </div>
@@ -773,15 +782,15 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               <div class="mt-1.5 flex items-center justify-between gap-2">
                 <label class="flex min-h-10 cursor-pointer items-center gap-2 text-xs">
                   <input type="checkbox" class="size-5 accent-primary" [checked]="refundIds().has(p.id)" [disabled]="p.refunded" (change)="toggleSet(refundIds, p.id, $any($event.target).checked)" />
-                  Refund {{ n(p.price) }} cr
+                  <ng-container i18n>Refund {{ n(p.price) }} cr</ng-container>
                 </label>
-                <button hlmBtn type="button" variant="destructive" class="h-10" (click)="cancelPurchase(p)" [disabled]="busyId() === p.id">Cancel perk</button>
+                <button hlmBtn type="button" variant="destructive" class="h-10" (click)="cancelPurchase(p)" [disabled]="busyId() === p.id" i18n>Cancel perk</button>
               </div>
             </li>
           }
         </ul>
         @if (otherEffects().length) {
-          <h3 class="label-caps mb-1 mt-3">Other effects</h3>
+          <h3 class="label-caps mb-1 mt-3" i18n>Other effects</h3>
           <ul class="flex flex-col gap-1 text-xs">
             @for (e of otherEffects(); track e.id) {
               <li class="flex items-center gap-2">
@@ -799,11 +808,11 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <ng-template #feedTpl>
       <section aria-labelledby="h-feed">
         <div class="mb-2 flex items-center justify-between">
-          <h2 id="h-feed" class="label-caps">Activity</h2>
-          <a [routerLink]="['/gm/events', eventId(), 'activity']" class="text-xs text-muted-foreground underline-offset-4 hover:underline">Full log</a>
+          <h2 id="h-feed" class="label-caps" i18n>Activity</h2>
+          <a [routerLink]="['/gm/events', eventId(), 'activity']" class="text-xs text-muted-foreground underline-offset-4 hover:underline" i18n>Full log</a>
         </div>
         @if (!store.activity().length) {
-          <p class="text-sm text-muted-foreground">Nothing yet.</p>
+          <p class="text-sm text-muted-foreground" i18n>Nothing yet.</p>
         }
         <ol class="flex flex-col" aria-live="polite" aria-relevant="additions">
           @for (a of feed(); track a.id) {
@@ -811,7 +820,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
               <time class="num w-12 shrink-0 text-xs text-muted-foreground" [attr.datetime]="a.createdAt" [title]="abs(a.createdAt)">{{ time(a.createdAt) }}</time>
               <span class="min-w-0 flex-1">{{ a.message }}</span>
               @if (a.scope === 'gm') {
-                <span class="text-[0.65rem] font-semibold text-muted-foreground">GM</span>
+                <span class="text-[0.65rem] font-semibold text-muted-foreground" i18n>GM</span>
               }
             </li>
           }
@@ -822,10 +831,10 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     <!-- ---------- settings and links ---------- -->
     <ng-template #settingsTpl>
       <section class="flex flex-col gap-3" aria-labelledby="h-vis">
-        <h2 id="h-vis" class="label-caps">Map visibility (applies immediately)</h2>
+        <h2 id="h-vis" class="label-caps" i18n>Map visibility (applies immediately)</h2>
         @if (rules(); as r) {
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="cc-ally">Teammates' precision</label>
+            <label hlmLabel for="cc-ally" i18n>Teammates' precision</label>
             <select id="cc-ally" [class]="selectClass" [value]="r.allyPrecision" (change)="setRule('allyPrecision', $event, precisionLabels)">
               @for (p of precisions; track p) {
                 <option [value]="p">{{ precisionLabels[p] }}</option>
@@ -833,7 +842,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="cc-enemy">Enemy positions</label>
+            <label hlmLabel for="cc-enemy" i18n>Enemy positions</label>
             <select id="cc-enemy" [class]="selectClass" [value]="r.enemies" (change)="setRule('enemies', $event, enemyLabels)">
               <option value="never">{{ enemyLabels['never'] }}</option>
               <option value="perk_only">{{ enemyLabels['perk_only'] }}</option>
@@ -841,32 +850,32 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             </select>
           </div>
           <label class="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-            <input type="checkbox" class="size-5 accent-primary" [checked]="r.showNicknames" (change)="setNicknames($event)" /> Show nicknames on players' maps
+            <input type="checkbox" class="size-5 accent-primary" [checked]="r.showNicknames" (change)="setNicknames($event)" /> <ng-container i18n>Show nicknames on players' maps</ng-container>
           </label>
         }
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="cc-interval">Location update interval</label>
+          <label hlmLabel for="cc-interval" i18n>Location update interval</label>
           <select id="cc-interval" [class]="selectClass" [value]="intervalValue()" (change)="setInterval($event)">
             @for (s of intervals; track s) {
-              <option [value]="s">Every {{ s }} s</option>
+              <option [value]="s" i18n>Every {{ s }} s</option>
             }
           </select>
-          <p class="text-xs text-muted-foreground">Shorter is more precise but uses more battery.</p>
+          <p class="text-xs text-muted-foreground" i18n>Shorter is more precise but uses more battery.</p>
         </div>
       </section>
-      <nav class="mt-4 flex flex-col" aria-label="GM tools">
-        <h2 class="label-caps mb-1">Tools</h2>
-        <a [routerLink]="['/events', eventId(), 'results', 'export']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideFileDown" size="16" aria-hidden="true" /> Export results</a>
-        <a [routerLink]="['/gm/events', eventId(), 'activity']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideHistory" size="16" aria-hidden="true" /> Activity log</a>
-        <a [routerLink]="['/gm/events', eventId(), 'scores']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideTrophy" size="16" aria-hidden="true" /> Score manager</a>
-        <a [routerLink]="['/gm/events', eventId(), 'players']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideUsers" size="16" aria-hidden="true" /> Player management</a>
-        <a [routerLink]="['/gm/events', eventId(), 'map']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideMap" size="16" aria-hidden="true" /> Map editor</a>
+      <nav class="mt-4 flex flex-col" aria-label="GM tools" i18n-aria-label>
+        <h2 class="label-caps mb-1" i18n>Tools</h2>
+        <a [routerLink]="['/events', eventId(), 'results', 'export']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideFileDown" size="16" aria-hidden="true" /> <ng-container i18n>Export results</ng-container></a>
+        <a [routerLink]="['/gm/events', eventId(), 'activity']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideHistory" size="16" aria-hidden="true" /> <ng-container i18n>Activity log</ng-container></a>
+        <a [routerLink]="['/gm/events', eventId(), 'scores']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideTrophy" size="16" aria-hidden="true" /> <ng-container i18n>Score manager</ng-container></a>
+        <a [routerLink]="['/gm/events', eventId(), 'players']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Player management</ng-container></a>
+        <a [routerLink]="['/gm/events', eventId(), 'map']" class="flex min-h-11 items-center gap-3 rounded-sm px-2 text-sm hover:bg-muted"><ng-icon name="lucideMap" size="16" aria-hidden="true" /> <ng-container i18n>Map editor</ng-container></a>
       </nav>
-      <p class="mt-3 text-xs text-muted-foreground">Shortcuts: <kbd class="num rounded-sm border border-border px-1">/</kbd> find player · <kbd class="num rounded-sm border border-border px-1">Esc</kbd> clear selection</p>
+      <p class="mt-3 text-xs text-muted-foreground" i18n>Shortcuts: <kbd class="num rounded-sm border border-border px-1">/</kbd> find player · <kbd class="num rounded-sm border border-border px-1">Esc</kbd> clear selection</p>
     </ng-template>
 
     <!-- ======================= dialogs ======================= -->
-    <zeus-ops-dialog [open]="dialog() === 'announce'" title="Send announcement" (closed)="dialog.set(null)">
+    <zeus-ops-dialog [open]="dialog() === 'announce'" title="Send announcement" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'announce') {
         <zeus-announce-form
           [eventId]="eventId()"
@@ -881,26 +890,26 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       }
     </zeus-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'emergency'" title="Emergency alert" (closed)="dialog.set(null)">
+    <zeus-ops-dialog [open]="dialog() === 'emergency'" title="Emergency alert" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'emergency') {
         <zeus-announce-form [eventId]="eventId()" [teams]="teams()" [members]="store.members()" [emergency]="true" (sent)="dialog.set(null)" (cancel)="dialog.set(null)" />
       }
     </zeus-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'extend'" title="Extend game time" [subtitle]="endsAtLabel()" (closed)="dialog.set(null)">
+    <zeus-ops-dialog [open]="dialog() === 'extend'" title="Extend game time" [subtitle]="endsAtLabel()" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'extend') {
         <div class="flex flex-col gap-4">
           <div class="grid grid-cols-3 gap-2">
             @for (m of [5, 10, 15]; track m) {
-              <button hlmBtn type="button" variant="outline" class="num h-12 text-base" (click)="extend(m)" [disabled]="busy()">+{{ m }} min</button>
+              <button hlmBtn type="button" variant="outline" class="num h-12 text-base" (click)="extend(m)" [disabled]="busy()" i18n>+{{ m }} min</button>
             }
           </div>
           <form class="flex items-end gap-2" (submit)="$event.preventDefault(); extend(customMinutes.valueAsNumber)">
             <div class="flex flex-1 flex-col gap-1.5">
-              <label hlmLabel for="cc-ext">Custom (minutes)</label>
+              <label hlmLabel for="cc-ext" i18n>Custom (minutes)</label>
               <input hlmInput #customMinutes id="cc-ext" type="number" min="1" max="600" step="1" value="30" class="num h-11" />
             </div>
-            <button hlmBtn type="submit" class="h-11" [disabled]="busy()">Extend</button>
+            <button hlmBtn type="submit" class="h-11" [disabled]="busy()" i18n>Extend</button>
           </form>
         </div>
       }
@@ -921,6 +930,21 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
   `,
 })
 export class ControlCenterScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    loading: $localize`Loading…`,
+    gm: $localize`GM`,
+    noTeam: $localize`No team`,
+    noFix: $localize`No fix`,
+    notSharing: $localize` · not sharing`,
+    never: $localize`Never`,
+    suspiciousMovement: $localize`Suspicious movement`,
+    noObjectivesWithThis: $localize`No objectives with this status`,
+    noObjectives: $localize`No objectives`,
+    noPlayersMatchThe: $localize`No players match the filters`,
+    noApprovedPlayers: $localize`No approved players`,
+  };
+
   protected readonly store = inject(LiveStore);
   private readonly api = inject(ApiService);
   private readonly theme = inject(ThemeService);
@@ -938,21 +962,21 @@ export class ControlCenterScreen {
   protected readonly roleLabels: Record<string, string> = PLAYER_ROLE_LABELS;
   protected readonly precisionLabels: Record<string, string> = PRECISION_LABELS;
   protected readonly precisions = Object.keys(PRECISION_LABELS) as Precision[];
-  protected readonly enemyLabels: Record<string, string> = { never: 'Never shown', perk_only: 'Only with a perk (UAV, recon)', always: 'Always shown' };
+  protected readonly enemyLabels: Record<string, string> = { never: $localize`Never shown`, perk_only: $localize`Only with a perk (UAV, recon)`, always: $localize`Always shown` };
   protected readonly intervals = [5, 10, 15, 30, 60];
   protected readonly severities: GmAlert['severity'][] = ['critical', 'warning', 'info'];
   protected readonly leftTabs: { id: LeftTab; label: string }[] = [
-    { id: 'objectives', label: 'Objectives' },
-    { id: 'players', label: 'Players' },
-    { id: 'captures', label: 'Captures' },
+    { id: 'objectives', label: $localize`Objectives` },
+    { id: 'players', label: $localize`Players` },
+    { id: 'captures', label: $localize`Captures` },
   ];
   protected readonly phoneTabs: { id: PhoneTab; label: string; icon: string }[] = [
-    { id: 'teams', label: 'Teams', icon: 'lucideTrophy' },
-    { id: 'objectives', label: 'Objectives', icon: 'lucideFlag' },
-    { id: 'players', label: 'Players', icon: 'lucideUsers' },
-    { id: 'alerts', label: 'Alerts', icon: 'lucideBell' },
-    { id: 'feed', label: 'Feed', icon: 'lucideActivity' },
-    { id: 'actions', label: 'Actions', icon: 'lucideSlidersHorizontal' },
+    { id: 'teams', label: $localize`Teams`, icon: 'lucideTrophy' },
+    { id: 'objectives', label: $localize`Objectives`, icon: 'lucideFlag' },
+    { id: 'players', label: $localize`Players`, icon: 'lucideUsers' },
+    { id: 'alerts', label: $localize`Alerts`, icon: 'lucideBell' },
+    { id: 'feed', label: $localize`Feed`, icon: 'lucideActivity' },
+    { id: 'actions', label: $localize`Actions`, icon: 'lucideSlidersHorizontal' },
   ];
   protected readonly statusChip = eventStatusChip;
   protected readonly objChip = objectiveStatusChip;
@@ -1106,7 +1130,7 @@ export class ControlCenterScreen {
 
   protected readonly endsAtLabel = computed(() => {
     const ends = this.store.clock()?.endsAt;
-    return ends ? `The game currently ends at ${formatTime(ends)}.` : 'The game has no end time yet.';
+    return ends ? $localize`The game currently ends at ${formatTime(ends)}:ends:.` : $localize`The game has no end time yet.`;
   });
 
   constructor() {
@@ -1144,7 +1168,7 @@ export class ControlCenterScreen {
     await this.store.load(id);
     const err = this.store.error();
     if ((this.store.event() && !this.store.isGm()) || (err && (err.status === 403 || err.status === 404))) {
-      if (err?.status !== 404) this.toast.warning('The control center is for Game Masters');
+      if (err?.status !== 404) this.toast.warning($localize`The control center is for Game Masters`);
       await this.router.navigate(['/events', id], { replaceUrl: true });
       return;
     }
@@ -1282,11 +1306,11 @@ export class ControlCenterScreen {
 
   protected async openLobby(): Promise<void> {
     const ok = await this.confirm.ask({
-      title: 'Open the lobby?',
-      consequences: ['Players can check in, mark themselves ready and see their team.', 'From the lobby you can start the game.'],
-      confirmLabel: 'Open lobby',
+      title: $localize`Open the lobby?`,
+      consequences: [$localize`Players can check in, mark themselves ready and see their team.`, $localize`From the lobby you can start the game.`],
+      confirmLabel: $localize`Open lobby`,
     });
-    if (ok) await this.setStatus('lobby', 'Lobby open');
+    if (ok) await this.setStatus('lobby', $localize`Lobby open`);
   }
 
   protected async start(): Promise<void> {
@@ -1296,72 +1320,72 @@ export class ControlCenterScreen {
     const s = ev.scoring;
     const ready = this.store.members().filter((m) => m.role === 'player' && m.status === 'approved');
     const consequences = [
-      `The game clock starts now and runs for ${formatDuration(Math.max(60_000, dur))}.`,
+      $localize`The game clock starts now and runs for ${formatDuration(Math.max(60_000, dur))}:duration:.`,
       s.startingPoints || s.startingCurrency
-        ? `Every team gets its starting balance (${formatNumber(s.startingPoints)} points, ${formatNumber(s.startingCurrency)} credits).`
-        : 'Teams start at 0 points and 0 credits.',
-      `${ready.length} players are notified; location sharing starts for players who consented.`,
-      'Objectives become capturable according to their availability.',
+        ? $localize`Every team gets its starting balance (${formatNumber(s.startingPoints)}:startingPoints: points, ${formatNumber(s.startingCurrency)}:startingCurrency: credits).`
+        : $localize`Teams start at 0 points and 0 credits.`,
+      $localize`${ready.length}:length: players are notified; location sharing starts for players who consented.`,
+      $localize`Objectives become capturable according to their availability.`,
     ];
     const noTeam = ready.filter((m) => !m.teamId).length;
-    if (noTeam) consequences.push(`${noTeam} approved player(s) have no team and cannot capture.`);
-    const ok = await this.confirm.ask({ title: 'Start the game?', consequences, confirmLabel: 'Start game' });
-    if (ok) await this.setStatus('live', 'Game started');
+    if (noTeam) consequences.push(noTeam === 1 ? $localize`1 approved player has no team and cannot capture.` : $localize`${noTeam}:count: approved players have no team and cannot capture.`);
+    const ok = await this.confirm.ask({ title: $localize`Start the game?`, consequences, confirmLabel: $localize`Start game` });
+    if (ok) await this.setStatus('live', $localize`Game started`);
   }
 
   protected async pause(): Promise<void> {
     const stopTracking = this.store.event()?.tracking.stopWhenPaused;
     const reason = await this.confirm.askReason({
-      title: 'Pause the game?',
+      title: $localize`Pause the game?`,
       consequences: [
-        'The game clock, capture timers and points for held objectives stop.',
-        'Players see the game as paused and cannot capture or buy perks.',
-        stopTracking ? 'Location sharing pauses until you resume.' : 'Location sharing continues so you can still see everyone.',
+        $localize`The game clock, capture timers and points for held objectives stop.`,
+        $localize`Players see the game as paused and cannot capture or buy perks.`,
+        stopTracking ? $localize`Location sharing pauses until you resume.` : $localize`Location sharing continues so you can still see everyone.`,
       ],
-      confirmLabel: 'Pause game',
-      reason: { label: 'Message to players (optional)', required: false, placeholder: 'e.g. Injury at the north gate' },
+      confirmLabel: $localize`Pause game`,
+      reason: { label: $localize`Message to players (optional)`, required: false, placeholder: $localize`e.g. Injury at the north gate` },
     });
-    if (reason !== null) await this.setStatus('paused', 'Game paused', reason.trim() || undefined);
+    if (reason !== null) await this.setStatus('paused', $localize`Game paused`, reason.trim() || undefined);
   }
 
   protected async resume(): Promise<void> {
     const ok = await this.confirm.ask({
-      title: 'Resume the game?',
-      consequences: ['The clock restarts; the end time moves later by the length of the pause.', 'Captures, perks and held-objective points resume.'],
-      confirmLabel: 'Resume game',
+      title: $localize`Resume the game?`,
+      consequences: [$localize`The clock restarts; the end time moves later by the length of the pause.`, $localize`Captures, perks and held-objective points resume.`],
+      confirmLabel: $localize`Resume game`,
     });
-    if (ok) await this.setStatus('live', 'Game resumed');
+    if (ok) await this.setStatus('live', $localize`Game resumed`);
   }
 
   protected async endGame(): Promise<void> {
     const leader = this.rankedTeams()[0];
     const ok = await this.confirm.ask({
-      title: 'End the game now?',
+      title: $localize`End the game now?`,
       consequences: [
-        'Final scores are locked' + (leader ? ` (${leader.name} leads with ${formatNumber(leader.points)} points).` : '.'),
-        'Location tracking stops for all players.',
-        'No more captures, purchases or perks.',
-        'This cannot be undone.',
+        leader ? $localize`Final scores are locked (${leader.name}:leader: leads with ${formatNumber(leader.points)}:points: points).` : $localize`Final scores are locked.`,
+        $localize`Location tracking stops for all players.`,
+        $localize`No more captures, purchases or perks.`,
+        $localize`This cannot be undone.`,
       ],
-      confirmLabel: 'End game',
+      confirmLabel: $localize`End game`,
       destructive: true,
-      requireText: 'END',
+      requireText: $localize`:typed confirmation word|:END`,
     });
-    if (ok) await this.setStatus('completed', 'Game over: final scores locked');
+    if (ok) await this.setStatus('completed', $localize`Game over: final scores locked`);
   }
 
   protected async extend(minutes: number): Promise<void> {
     if (!Number.isFinite(minutes) || minutes < 1 || minutes > 600) {
-      this.toast.warning('Enter between 1 and 600 minutes');
+      this.toast.warning($localize`Enter between 1 and 600 minutes`);
       return;
     }
     minutes = Math.round(minutes);
     const ends = this.store.clock()?.endsAt;
     const newEnd = ends ? new Date(new Date(ends).getTime() + minutes * 60_000).toISOString() : null;
     const ok = await this.confirm.ask({
-      title: `Extend by ${minutes} minutes?`,
-      consequences: [ends && newEnd ? `The game ends at ${formatTime(newEnd)} instead of ${formatTime(ends)}.` : `The game gets ${minutes} more minutes.`, 'Players see the new remaining time immediately.'],
-      confirmLabel: `Add ${minutes} min`,
+      title: $localize`Extend by ${minutes}:minutes: minutes?`,
+      consequences: [ends && newEnd ? $localize`The game ends at ${formatTime(newEnd)}:newEnd: instead of ${formatTime(ends)}:ends:.` : $localize`The game gets ${minutes}:minutes: more minutes.`, $localize`Players see the new remaining time immediately.`],
+      confirmLabel: $localize`Add ${minutes}:minutes: min`,
     });
     if (!ok) return;
     this.busy.set(true);
@@ -1370,7 +1394,7 @@ export class ControlCenterScreen {
       this.store.event.set(ev);
       this.store.clock.set(ev.clock);
       this.dialog.set(null);
-      this.toast.success(`Game extended by ${minutes} min`, ev.clock.endsAt ? `Ends at ${formatTime(ev.clock.endsAt)}.` : undefined);
+      this.toast.success($localize`Game extended by ${minutes}:minutes: min`, ev.clock.endsAt ? $localize`Ends at ${formatTime(ev.clock.endsAt)}:endsAt:.` : undefined);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -1385,36 +1409,36 @@ export class ControlCenterScreen {
     const team = teamId ? this.teamById().get(teamId) : null;
     const owner = o.ownerTeamId ? this.teamById().get(o.ownerTeamId) : null;
     const spec: Record<GmObjectiveAction, { title: string; consequences: string[]; destructive?: boolean; label: string }> = {
-      activate: { title: `Activate ${o.name}?`, label: 'Activate', consequences: ['It becomes visible and capturable again (subject to its rules).', 'Players are notified.'] },
-      disable: { title: `Disable ${o.name}?`, label: 'Disable', destructive: true, consequences: ['Nobody can capture it until you activate it again.', 'Its current owner keeps it.', 'Players are notified.'] },
+      activate: { title: $localize`Activate ${o.name}:name:?`, label: $localize`Activate`, consequences: [$localize`It becomes visible and capturable again (subject to its rules).`, $localize`Players are notified.`] },
+      disable: { title: $localize`Disable ${o.name}:name:?`, label: $localize`Disable`, destructive: true, consequences: [$localize`Nobody can capture it until you activate it again.`, $localize`Its current owner keeps it.`, $localize`Players are notified.`] },
       set_owner: {
-        title: `Give ${o.name} to ${team?.name ?? 'team'}?`,
-        label: 'Set owner',
+        title: $localize`Give ${o.name}:name: to ${team?.name ?? $localize`the team`}:team:?`,
+        label: $localize`Set owner`,
         consequences: live
-          ? [`Counts as a capture by ${team?.name}: they receive its rewards (${formatNumber(o.rewards.points)} points, ${formatNumber(o.rewards.currency)} credits or their team override).`, 'Players are notified like a normal capture.']
-          : [`${team?.name} becomes the owner. No rewards are given before the game is live.`],
+          ? [$localize`Counts as a capture by ${team?.name}:name:: they receive its rewards (${formatNumber(o.rewards.points)}:points: points, ${formatNumber(o.rewards.currency)}:currency: credits or their team override).`, $localize`Players are notified like a normal capture.`]
+          : [$localize`${team?.name}:name: becomes the owner. No rewards are given before the game is live.`],
       },
-      clear_owner: { title: `Clear the owner of ${o.name}?`, label: 'Clear owner', destructive: true, consequences: [`${owner?.name ?? 'The owner'} no longer holds it; points for holding it stop.`, 'Points already earned are kept.'] },
-      contest: { title: `Mark ${o.name} as contested?`, label: 'Mark contested', consequences: ['Captures are blocked until you clear the contest.', 'Players see it as contested.'] },
-      uncontest: { title: `Clear the contest on ${o.name}?`, label: 'Clear contest', consequences: ['Captures are possible again; geofence presence is reset.'] },
+      clear_owner: { title: $localize`Clear the owner of ${o.name}:name:?`, label: $localize`Clear owner`, destructive: true, consequences: [owner ? $localize`${owner.name}:owner: no longer holds it; points for holding it stop.` : $localize`The owner no longer holds it; points for holding it stop.`, $localize`Points already earned are kept.`] },
+      contest: { title: $localize`Mark ${o.name}:name: as contested?`, label: $localize`Mark contested`, consequences: [$localize`Captures are blocked until you clear the contest.`, $localize`Players see it as contested.`] },
+      uncontest: { title: $localize`Clear the contest on ${o.name}:name:?`, label: $localize`Clear contest`, consequences: [$localize`Captures are possible again; geofence presence is reset.`] },
       reset: {
-        title: `Reset ${o.name}?`,
-        label: 'Reset objective',
+        title: $localize`Reset ${o.name}:name:?`,
+        label: $localize`Reset objective`,
         destructive: true,
-        consequences: ['Owner, capture count, cooldown, contest and capture progress are cleared.', 'Points and credits already awarded stay in the ledger.'],
+        consequences: [$localize`Owner, capture count, cooldown, contest and capture progress are cleared.`, $localize`Points and credits already awarded stay in the ledger.`],
       },
     };
     const s = spec[action];
     const reason = await this.confirm.askReason({
       title: s.title,
-      consequences: [...s.consequences, 'Logged in the audit log with your reason.'],
+      consequences: [...s.consequences, $localize`Logged in the audit log with your reason.`],
       confirmLabel: s.label,
       destructive: s.destructive,
-      reason: { label: 'Reason', required: true, placeholder: 'At least 3 characters' },
+      reason: { label: $localize`Reason`, required: true, placeholder: $localize`At least 3 characters` },
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      this.toast.warning('Give a reason of at least 3 characters');
+      this.toast.warning($localize`Give a reason of at least 3 characters`);
       return;
     }
     this.busyId.set(o.id);
@@ -1422,7 +1446,7 @@ export class ControlCenterScreen {
       const updated = await this.api.gmObjectiveAction(this.eventId(), o.id, action, reason.trim(), teamId ?? null);
       if (updated) this.store.objectives.update((l) => l.map((x) => (x.id === updated.id ? updated : x)));
       this.store.refresh('objectives', 'event');
-      this.toast.success(`${o.name}: ${s.label.toLowerCase()} done`);
+      this.toast.success($localize`${o.name}:name:: ${s.label.toLowerCase()}:label: done`);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -1442,28 +1466,28 @@ export class ControlCenterScreen {
 
   protected async revokeCapture(c: Capture): Promise<void> {
     const reverse = !this.keepRewards().has(c.id);
-    const team = this.teamById().get(c.teamId)?.name ?? 'The team';
+    const team = this.teamById().get(c.teamId)?.name ?? $localize`The team`;
     const reason = await this.confirm.askReason({
-      title: `Revoke the capture of ${c.objectiveName}?`,
+      title: $localize`Revoke the capture of ${c.objectiveName}:objectiveName:?`,
       consequences: [
-        `${team}'s capture${c.nickname ? ' by ' + c.nickname : ''} is marked as revoked.`,
-        reverse ? `${team} loses the ${formatNumber(c.points)} points and ${formatNumber(c.currency)} credits it awarded.` : 'Points and credits already awarded are kept.',
-        'Logged in the audit log with your reason.',
+        c.nickname ? $localize`The capture by ${c.nickname}:nickname: (${team}:team:) is marked as revoked.` : $localize`The capture by ${team}:team: is marked as revoked.`,
+        reverse ? $localize`${team}:team: loses the ${formatNumber(c.points)}:points: points and ${formatNumber(c.currency)}:currency: credits it awarded.` : $localize`Points and credits already awarded are kept.`,
+        $localize`Logged in the audit log with your reason.`,
       ],
-      confirmLabel: 'Revoke capture',
+      confirmLabel: $localize`Revoke capture`,
       destructive: true,
-      reason: { label: 'Reason', required: true, placeholder: 'e.g. Code shared over the radio' },
+      reason: { label: $localize`Reason`, required: true, placeholder: $localize`e.g. Code shared over the radio` },
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      this.toast.warning('Give a reason of at least 3 characters');
+      this.toast.warning($localize`Give a reason of at least 3 characters`);
       return;
     }
     try {
       await this.api.revokeCapture(this.eventId(), c.id, reverse, reason.trim());
       this.captures.update((l) => l.map((x) => (x.id === c.id ? { ...x, revoked: true } : x)));
       this.store.refresh('objectives', 'event');
-      this.toast.success('Capture revoked', reverse ? 'Rewards reversed.' : 'Rewards kept.');
+      this.toast.success($localize`Capture revoked`, reverse ? $localize`Rewards reversed.` : $localize`Rewards kept.`);
     } catch (e) {
       this.toast.error(e);
     }
@@ -1472,22 +1496,22 @@ export class ControlCenterScreen {
   // ------------------------------------------------------------------ purchases
 
   protected async reviewPurchase(p: PerkPurchase, approve: boolean): Promise<void> {
-    const team = this.teamById().get(p.teamId)?.name ?? 'The team';
+    const team = this.teamById().get(p.teamId)?.name ?? $localize`The team`;
     let reason: string | null = null;
     if (approve) {
       const ok = await this.confirm.ask({
-        title: `Approve ${p.perkName} for ${team}?`,
-        consequences: [`${team} keeps the ${formatNumber(p.price)} credits already paid.`, 'The perk becomes ready or active according to its settings.'],
-        confirmLabel: 'Approve',
+        title: $localize`Approve ${p.perkName}:perkName: for ${team}:team:?`,
+        consequences: [$localize`${team}:team: keeps the ${formatNumber(p.price)}:price: credits already paid.`, $localize`The perk becomes ready or active according to its settings.`],
+        confirmLabel: $localize`Approve`,
       });
       if (!ok) return;
     } else {
       reason = await this.confirm.askReason({
-        title: `Reject ${p.perkName}?`,
-        consequences: [`${team} gets the ${formatNumber(p.price)} credits back.`, 'The buyer sees your reason.'],
-        confirmLabel: 'Reject',
+        title: $localize`Reject ${p.perkName}:perkName:?`,
+        consequences: [$localize`${team}:team: gets the ${formatNumber(p.price)}:price: credits back.`, $localize`The buyer sees your reason.`],
+        confirmLabel: $localize`Reject`,
         destructive: true,
-        reason: { label: 'Reason', required: true },
+        reason: { label: $localize`Reason`, required: true },
       });
       if (reason === null) return;
     }
@@ -1496,7 +1520,7 @@ export class ControlCenterScreen {
       const updated = await this.api.reviewPurchase(this.eventId(), p.id, approve, reason?.trim() || undefined);
       this.store.purchases.update((l) => l.map((x) => (x.id === updated.id ? updated : x)));
       this.store.refresh('purchases', 'effects', 'event', 'alerts');
-      this.toast.success(approve ? 'Request approved' : 'Request rejected');
+      this.toast.success(approve ? $localize`Request approved` : $localize`Request rejected`);
     } catch (e) {
       const err = ApiError.from(e);
       if (err.code === 'invalid_state') this.store.refresh('purchases');
@@ -1508,22 +1532,22 @@ export class ControlCenterScreen {
 
   protected async cancelPurchase(p: PerkPurchase): Promise<void> {
     const refund = this.refundIds().has(p.id) && !p.refunded;
-    const team = this.teamById().get(p.teamId)?.name ?? 'The team';
+    const team = this.teamById().get(p.teamId)?.name ?? $localize`The team`;
     const reason = await this.confirm.askReason({
-      title: `Cancel ${p.perkName}?`,
+      title: $localize`Cancel ${p.perkName}:perkName:?`,
       consequences: [
-        'Its effect ends immediately.',
-        refund ? `${team} gets the ${formatNumber(p.price)} credits back.` : `No refund: ${team} does not get the credits back.`,
-        'Logged in the audit log with your reason.',
+        $localize`Its effect ends immediately.`,
+        refund ? $localize`${team}:team: gets the ${formatNumber(p.price)}:price: credits back.` : $localize`No refund: ${team}:team: does not get the credits back.`,
+        $localize`Logged in the audit log with your reason.`,
       ],
-      confirmLabel: 'Cancel perk',
-      cancelLabel: 'Keep it',
+      confirmLabel: $localize`Cancel perk`,
+      cancelLabel: $localize`Keep it`,
       destructive: true,
-      reason: { label: 'Reason', required: true },
+      reason: { label: $localize`Reason`, required: true },
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      this.toast.warning('Give a reason of at least 3 characters');
+      this.toast.warning($localize`Give a reason of at least 3 characters`);
       return;
     }
     this.busyId.set(p.id);
@@ -1531,7 +1555,7 @@ export class ControlCenterScreen {
       const updated = await this.api.cancelPurchase(this.eventId(), p.id, refund, reason.trim());
       this.store.purchases.update((l) => l.map((x) => (x.id === updated.id ? updated : x)));
       this.store.refresh('purchases', 'effects', 'event');
-      this.toast.success('Perk cancelled', refund ? 'Credits refunded.' : undefined);
+      this.toast.success($localize`Perk cancelled`, refund ? $localize`Credits refunded.` : undefined);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -1559,21 +1583,21 @@ export class ControlCenterScreen {
   protected async movePlayer(m: Member, teamId: string): Promise<void> {
     if (!teamId || teamId === m.teamId) return;
     const from = m.teamId ? this.teamById().get(m.teamId)?.name : null;
-    const to = this.teamById().get(teamId)?.name ?? 'the team';
+    const to = this.teamById().get(teamId)?.name ?? $localize`the team`;
     const ok = await this.confirm.ask({
-      title: `Move ${m.nickname} to ${to}?`,
+      title: $localize`Move ${m.nickname}:nickname: to ${to}:to:?`,
       consequences: [
-        `${m.nickname} leaves ${from ?? 'no team'} and their squad, and joins ${to}.`,
-        `They see ${to}'s map, objectives and store from now on.`,
-        'Points already earned stay with the previous team.',
+        from ? $localize`${m.nickname}:nickname: leaves ${from}:from: and their squad, and joins ${to}:to:.` : $localize`${m.nickname}:nickname: joins ${to}:to:.`,
+        $localize`They see ${to}:to:'s map, objectives and store from now on.`,
+        $localize`Points already earned stay with the previous team.`,
       ],
-      confirmLabel: `Move to ${to}`,
+      confirmLabel: $localize`Move to ${to}:to:`,
     });
     if (!ok) return;
     try {
       await this.api.assignMember(this.eventId(), m.userId, { teamId, squadId: null });
       this.store.refresh('members', 'event');
-      this.toast.success(`${m.nickname} moved to ${to}`);
+      this.toast.success($localize`${m.nickname}:nickname: moved to ${to}:to:`);
     } catch (e) {
       this.toast.error(e);
     }
@@ -1581,18 +1605,18 @@ export class ControlCenterScreen {
 
   protected async removePlayer(m: Member): Promise<void> {
     const reason = await this.confirm.askReason({
-      title: `Remove ${m.nickname} from the event?`,
-      consequences: ['They lose access to the live game immediately and their location stops being shared.', 'They cannot rejoin with the join code.', 'Their past captures stay in the results.'],
-      confirmLabel: 'Remove player',
+      title: $localize`Remove ${m.nickname}:nickname: from the event?`,
+      consequences: [$localize`They lose access to the live game immediately and their location stops being shared.`, $localize`They cannot rejoin with the join code.`, $localize`Their past captures stay in the results.`],
+      confirmLabel: $localize`Remove player`,
       destructive: true,
-      reason: { label: 'Reason (shown to the player)', required: true },
+      reason: { label: $localize`Reason (shown to the player)`, required: true },
     });
     if (reason === null) return;
     try {
       await this.api.removeMember(this.eventId(), m.userId, reason.trim());
       this.selectedPlayerId.set(null);
       this.store.refresh('members', 'event');
-      this.toast.success(`${m.nickname} removed`);
+      this.toast.success($localize`${m.nickname}:nickname: removed`);
     } catch (e) {
       this.toast.error(e);
     }
@@ -1605,12 +1629,12 @@ export class ControlCenterScreen {
     const prev = this.rules()?.[key] ?? '';
     const value = el.value;
     const ok = await this.confirm.ask({
-      title: 'Change map visibility?',
+      title: $localize`Change map visibility?`,
       consequences: [
         `${key === 'allyPrecision' ? "Teammates' positions" : 'Enemy positions'}: ${labels[prev] ?? prev} → ${labels[value] ?? value}.`,
-        'Applies to all players immediately.',
+        $localize`Applies to all players immediately.`,
       ],
-      confirmLabel: 'Apply',
+      confirmLabel: $localize`Apply`,
     });
     if (!ok) {
       el.value = prev;
@@ -1623,9 +1647,9 @@ export class ControlCenterScreen {
     const el = ev.target as HTMLInputElement;
     const value = el.checked;
     const ok = await this.confirm.ask({
-      title: value ? 'Show nicknames on maps?' : 'Hide nicknames on maps?',
-      consequences: [value ? 'Players see the nicknames of the people they are allowed to see.' : 'Players see markers without nicknames.', 'Applies to all players immediately.'],
-      confirmLabel: 'Apply',
+      title: value ? $localize`Show nicknames on maps?` : $localize`Hide nicknames on maps?`,
+      consequences: [value ? $localize`Players see the nicknames of the people they are allowed to see.` : $localize`Players see markers without nicknames.`, $localize`Applies to all players immediately.`],
+      confirmLabel: $localize`Apply`,
     });
     if (!ok) {
       el.checked = !value;
@@ -1638,7 +1662,7 @@ export class ControlCenterScreen {
     try {
       const ev = await this.api.updateEvent(this.eventId(), { visibilityRules: patch });
       this.store.event.set(ev);
-      this.toast.success('Map visibility updated');
+      this.toast.success($localize`Map visibility updated`);
     } catch (e) {
       revert();
       this.toast.error(e);
@@ -1650,12 +1674,12 @@ export class ControlCenterScreen {
     const prev = this.intervalValue();
     const sec = Number(el.value);
     const ok = await this.confirm.ask({
-      title: `Update positions every ${sec} s?`,
+      title: $localize`Update positions every ${sec}:sec: s?`,
       consequences: [
-        sec < Number(prev) ? 'More precise positions; phones use more battery and data.' : 'Saves battery; positions on the map are less fresh.',
-        'Applies to all players within a few seconds.',
+        sec < Number(prev) ? $localize`More precise positions; phones use more battery and data.` : $localize`Saves battery; positions on the map are less fresh.`,
+        $localize`Applies to all players within a few seconds.`,
       ],
-      confirmLabel: 'Apply',
+      confirmLabel: $localize`Apply`,
     });
     if (!ok) {
       el.value = prev;
@@ -1664,7 +1688,7 @@ export class ControlCenterScreen {
     try {
       const updated = await this.api.updateEvent(this.eventId(), { tracking: { intervalSec: sec } });
       this.store.event.set(updated);
-      this.toast.success(`Location updates every ${sec} s`);
+      this.toast.success($localize`Location updates every ${sec}:sec: s`);
     } catch (e) {
       el.value = prev;
       this.toast.error(e);

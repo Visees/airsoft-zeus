@@ -17,10 +17,10 @@ import { NotificationRow, notificationLink } from './notification-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Notifications" [subtitle]="subtitle()">
+      <zeus-page-header title="Notifications" [subtitle]="subtitle()" i18n-title>
         @if (unreadCount() > 0) {
           <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="markingAll()" (click)="markAllRead()">
-            <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> {{ markingAll() ? 'Marking…' : 'Mark all read' }}
+            <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> {{ markingAll() ? txt.marking : txt.markAllRead }}
           </button>
         }
       </zeus-page-header>
@@ -31,15 +31,15 @@ import { NotificationRow, notificationLink } from './notification-ui';
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
         <zeus-empty-state icon="lucideBell" title="No notifications yet"
-          message="Invitations, registration updates and messages from Game Masters will appear here." />
+          message="Invitations, registration updates and messages from Game Masters will appear here." i18n-title i18n-message />
       } @else {
         @if (error()) {
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted p-3 text-sm" role="status">
             <zeus-connection-status />
-            <span class="text-muted-foreground">Showing the last loaded notifications.</span>
+            <span class="text-muted-foreground" i18n>Showing the last loaded notifications.</span>
           </div>
         }
-        <ul class="panel divide-y divide-border overflow-hidden" aria-label="Notifications">
+        <ul class="panel divide-y divide-border overflow-hidden" aria-label="Notifications" i18n-aria-label>
           @for (n of items(); track n.id) {
             <li>
               <zeus-notification-row [notification]="n" [now]="now()" [clamp]="expandedId() !== n.id" (open)="open($event)" />
@@ -50,20 +50,26 @@ import { NotificationRow, notificationLink } from './notification-ui';
           <div class="mt-4 flex justify-center">
             <button hlmBtn variant="outline" type="button" class="h-11 min-w-40" [disabled]="loadingMore()" (click)="loadMore()">
               @if (loadingMore()) {
-                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Loading…
+                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Loading…</ng-container>
               } @else {
-                Load more
+                <ng-container i18n>Load more</ng-container>
               }
             </button>
           </div>
         } @else {
-          <p class="mt-4 text-center text-xs text-muted-foreground">That's everything.</p>
+          <p class="mt-4 text-center text-xs text-muted-foreground" i18n>That's everything.</p>
         }
       }
     </div>
   `,
 })
 export class NotificationsScreen implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    marking: $localize`Marking…`,
+    markAllRead: $localize`Mark all read`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly center = inject(NotificationCenter);
   private readonly router = inject(Router);
@@ -81,7 +87,8 @@ export class NotificationsScreen implements OnInit {
   protected readonly unreadCount = computed(() => this.items().filter((n) => !n.read).length);
   protected readonly subtitle = computed(() => {
     const c = this.unreadCount();
-    return c ? `${c} unread${this.nextCursor() ? ' on this page' : ''}` : this.items().length ? 'All caught up' : null;
+    if (c) return this.nextCursor() ? $localize`${c}:count: unread on this page` : $localize`${c}:count: unread`;
+    return this.items().length ? $localize`All caught up` : null;
   });
 
   constructor() {

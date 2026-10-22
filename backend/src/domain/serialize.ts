@@ -7,22 +7,23 @@ import { isAdminEmail } from '../auth/middleware.js';
 import type { Row } from '../db.js';
 import { geofence, rewards, scoring, tracking, visibility } from './defaults.js';
 import type { CaptureBlockReason, ObjectiveStatus } from './rules.js';
+import { pick, tr } from '../i18n/index.js';
 
 export const iso = (d: Date | string | null | undefined): string | null => (d ? new Date(d).toISOString() : null);
 
-export const BADGES: Record<string, { label: string; description: string }> = {
-  first_game: { label: 'First deployment', description: 'Played a first event to the end.' },
-  first_capture: { label: 'First capture', description: 'Captured a first objective.' },
-  ten_captures: { label: 'Objective runner', description: 'Captured 10 objectives.' },
-  fifty_captures: { label: 'Objective specialist', description: 'Captured 50 objectives.' },
-  veteran: { label: 'Veteran', description: 'Played 10 events.' },
-  winner: { label: 'Winning side', description: 'Was on the winning team.' },
-  mvp: { label: 'Event MVP', description: 'Earned the most points in an event.' },
-  game_master: { label: 'Game Master', description: 'Ran an event to completion.' },
-};
+export const BADGES = (): Record<string, { label: string; description: string }> => ({
+  first_game: { label: tr`First deployment`, description: tr`Played a first event to the end.` },
+  first_capture: { label: tr`First capture`, description: tr`Captured a first objective.` },
+  ten_captures: { label: tr`Objective runner`, description: tr`Captured 10 objectives.` },
+  fifty_captures: { label: tr`Objective specialist`, description: tr`Captured 50 objectives.` },
+  veteran: { label: tr`Veteran`, description: tr`Played 10 events.` },
+  winner: { label: tr`Winning side`, description: tr`Was on the winning team.` },
+  mvp: { label: tr`Event MVP`, description: tr`Earned the most points in an event.` },
+  game_master: { label: tr`Game Master`, description: tr`Ran an event to completion.` },
+});
 
 export function badge(r: Row) {
-  const meta = BADGES[r.code] ?? { label: r.code, description: '' };
+  const meta = BADGES()[r.code] ?? { label: r.code, description: '' };
   return { code: r.code, label: meta.label, description: meta.description, awardedAt: iso(r.awarded_at)!, eventId: r.event_id ?? null };
 }
 
@@ -61,7 +62,7 @@ export function meUser(u: Row, badges: Row[]) {
 
 export function publicProfile(u: Row, badges: Row[]) {
   if (u.deleted_at) {
-    return { id: u.id, nickname: 'Deleted player', avatarUrl: null, clubId: null, clubName: null, playerRole: null, customRole: null, bio: null, country: null, stats: null, badges: [], deleted: true };
+    return { id: u.id, nickname: tr`Deleted player`, avatarUrl: null, clubId: null, clubName: null, playerRole: null, customRole: null, bio: null, country: null, stats: null, badges: [], deleted: true };
   }
   const p = { ...DEFAULT_PRIVACY, ...(u.privacy ?? {}) };
   return {
@@ -414,18 +415,18 @@ export const PURCHASE_SELECT = `
   LEFT JOIN users u ON u.id = pp.buyer_id
 `;
 
-const EFFECT_LABELS: Record<string, string> = {
-  uav: 'UAV active',
-  recon: 'Recon scan',
-  jammer: 'Objective jammed',
-  shield: 'Objective shielded',
-  double_points: 'Double points',
-  instant_respawn: 'Instant respawn',
-  supply_drop: 'Supply drop',
-  comms_jammer: 'Comms jammer',
-  custom: 'Perk active',
-  theft: 'Currency theft',
-};
+const EFFECT_LABELS = (): Record<string, string> => ({
+  uav: tr`UAV active`,
+  recon: tr`Recon scan`,
+  jammer: tr`Objective jammed`,
+  shield: tr`Objective shielded`,
+  double_points: tr`Double points`,
+  instant_respawn: tr`Instant respawn`,
+  supply_drop: tr`Supply drop`,
+  comms_jammer: tr`Comms jammer`,
+  custom: tr`Perk active`,
+  theft: tr`Currency theft`,
+});
 
 export function effect(e: Row) {
   return {
@@ -438,7 +439,7 @@ export function effect(e: Row) {
     startsAt: iso(e.starts_at)!,
     expiresAt: iso(e.expires_at)!,
     status: e.status,
-    label: e.perk_name ?? EFFECT_LABELS[e.type] ?? e.type,
+    label: e.perk_name ?? EFFECT_LABELS()[e.type] ?? e.type,
   };
 }
 
@@ -458,7 +459,7 @@ export function ledger(l: Row) {
     objectiveName: l.objective_name ?? null,
     perkId: l.perk_id,
     purchaseId: l.purchase_id,
-    reason: l.reason,
+    reason: pick(l.reason_i18n, l.reason),
     actorId: l.actor_id,
     actorNickname: l.actor_nickname ?? null,
     createdAt: iso(l.created_at)!,
@@ -515,7 +516,8 @@ export function activity(a: Row) {
   return {
     id: String(a.id),
     type: a.type,
-    message: a.message,
+    // Reader's language; data.messages has all of them for socket broadcasts.
+    message: pick(a.data?.messages, a.message),
     scope: a.scope,
     teamId: a.team_id,
     userId: a.user_id,
@@ -532,7 +534,7 @@ export function alert(a: Row) {
     severity: a.severity,
     userId: a.user_id,
     nickname: a.nickname ?? null,
-    message: a.message,
+    message: pick(a.data?.messages, a.message),
     data: a.data ?? {},
     acknowledged: !!a.acknowledged_at,
     createdAt: iso(a.created_at)!,

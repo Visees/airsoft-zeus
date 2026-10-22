@@ -6,9 +6,9 @@ import { ToastService } from '../../../core/ui/toast.service';
 import { SaveState, SaveStateIndicator, SegmentOption, SegmentedControl, SwitchRow, nextId } from './controls';
 
 export const TEAM_SELECTION_OPTIONS: SegmentOption<EventDetail['teamSelection']>[] = [
-  { value: 'gm', label: 'Game Master assigns', hint: 'You place every player in a team.' },
-  { value: 'auto', label: 'Auto-balance', hint: 'Players are spread evenly across teams when approved.' },
-  { value: 'player', label: 'Players choose', hint: 'Players pick a team that still has room.' },
+  { value: 'gm', label: $localize`Game Master assigns`, hint: $localize`You place every player in a team.` },
+  { value: 'auto', label: $localize`Auto-balance`, hint: $localize`Players are spread evenly across teams when approved.` },
+  { value: 'player', label: $localize`Players choose`, hint: $localize`Players pick a team that still has room.` },
 ];
 
 /** Team selection mode + lock switch, saved immediately. */
@@ -21,10 +21,10 @@ export const TEAM_SELECTION_OPTIONS: SegmentOption<EventDetail['teamSelection']>
     @let e = event();
     <section class="panel flex flex-col gap-3 p-4" [attr.aria-labelledby]="id + '-h'">
       <div class="flex items-center justify-between gap-2">
-        <h2 [id]="id + '-h'" class="label-caps">Team selection</h2>
+        <h2 [id]="id + '-h'" class="label-caps" i18n>Team selection</h2>
         <zeus-save-state [state]="state()" />
       </div>
-      <span hlmLabel [id]="id + '-l'" class="sr-only">How players get a team</span>
+      <span hlmLabel [id]="id + '-l'" class="sr-only" i18n>How players get a team</span>
       @for (k of [rev()]; track k) {
       <zeus-segmented [options]="options" [value]="e.teamSelection" [labelledby]="id + '-l'" stacked (valueChange)="save({ teamSelection: $event })" />
       <zeus-switch-row
@@ -32,7 +32,7 @@ export const TEAM_SELECTION_OPTIONS: SegmentOption<EventDetail['teamSelection']>
         description="Players can no longer choose or change their team. You can still move them."
         [checked]="e.teamsLocked"
         [disabled]="state() === 'saving'"
-        (checkedChange)="save({ teamsLocked: $event })"
+        (checkedChange)="save({ teamsLocked: $event })" i18n-label i18n-description
       />
       }
     </section>

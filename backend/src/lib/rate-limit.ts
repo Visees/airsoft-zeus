@@ -1,5 +1,6 @@
 import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import { tooMany } from '../errors.js';
+import { tr } from '../i18n/index.js';
 
 /**
  * In-process rate limits. The API runs as a single instance (see docs/ARCHITECTURE.md);
@@ -24,7 +25,7 @@ export async function consume(name: string, key: string, points: number, duratio
   } catch (e) {
     if (e instanceof RateLimiterRes) {
       const wait = Math.ceil(e.msBeforeNext / 1000);
-      throw tooMany(message ?? `Too many attempts. Try again in ${wait} s.`);
+      throw tooMany(message ?? tr`Too many attempts. Try again in ${wait} s.`);
     }
     throw e;
   }

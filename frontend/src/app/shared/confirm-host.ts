@@ -63,12 +63,12 @@ import { ConfirmService } from '../core/ui/confirm.service';
           }
           @if (r.requireText) {
             <div class="mt-4 flex flex-col gap-1.5">
-              <label hlmLabel for="confirm-text">Type <span class="num font-bold">{{ r.requireText }}</span> to confirm</label>
+              <label hlmLabel for="confirm-text" i18n>Type <span class="num font-bold">{{ r.requireText }}</span> to confirm</label>
               <input hlmInput id="confirm-text" [(ngModel)]="typed" name="typed" autocomplete="off" autocapitalize="characters" />
             </div>
           }
           <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button hlmBtn type="button" variant="outline" class="h-12 sm:h-10" (click)="close(false)">{{ r.cancelLabel ?? 'Cancel' }}</button>
+            <button hlmBtn type="button" variant="outline" class="h-12 sm:h-10" (click)="close(false)">{{ r.cancelLabel ?? txt.cancel }}</button>
             <button
               hlmBtn
               type="submit"
@@ -76,7 +76,7 @@ import { ConfirmService } from '../core/ui/confirm.service';
               [class]="r.destructive ? '!bg-destructive !text-destructive-foreground hover:!bg-destructive/85' : ''"
               [disabled]="!canConfirm()"
             >
-              {{ r.confirmLabel ?? 'Confirm' }}
+              {{ r.confirmLabel ?? txt.confirm }}
             </button>
           </div>
         </form>
@@ -85,6 +85,12 @@ import { ConfirmService } from '../core/ui/confirm.service';
   `,
 })
 export class ConfirmHost {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    cancel: $localize`Cancel`,
+    confirm: $localize`Confirm`,
+  };
+
   private readonly confirm = inject(ConfirmService);
   private readonly dlg = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
   protected readonly req = this.confirm.current;

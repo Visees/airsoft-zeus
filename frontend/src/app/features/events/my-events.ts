@@ -14,17 +14,17 @@ import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../share
 type Tab = 'upcoming' | 'past' | 'gm' | 'invitations';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'upcoming', label: 'Upcoming', icon: 'lucideCalendar' },
-  { id: 'past', label: 'Past', icon: 'lucideHistory' },
-  { id: 'invitations', label: 'Invitations', icon: 'lucideMail' },
-  { id: 'gm', label: 'As Game Master', icon: 'lucideShield' },
+  { id: 'upcoming', label: $localize`Upcoming`, icon: 'lucideCalendar' },
+  { id: 'past', label: $localize`Past`, icon: 'lucideHistory' },
+  { id: 'invitations', label: $localize`Invitations`, icon: 'lucideMail' },
+  { id: 'gm', label: $localize`As Game Master`, icon: 'lucideShield' },
 ];
 
 const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
-  upcoming: { icon: 'lucideCalendar', title: 'No upcoming events', message: 'Events you join or request to join appear here.' },
-  past: { icon: 'lucideHistory', title: 'No past events', message: 'Finished games and their results appear here.' },
-  invitations: { icon: 'lucideMail', title: 'No invitations', message: 'When a Game Master invites you to a private event it appears here.' },
-  gm: { icon: 'lucideShield', title: 'You are not running any events', message: 'Create an event to set up teams, objectives and the map.' },
+  upcoming: { icon: 'lucideCalendar', title: $localize`No upcoming events`, message: $localize`Events you join or request to join appear here.` },
+  past: { icon: 'lucideHistory', title: $localize`No past events`, message: $localize`Finished games and their results appear here.` },
+  invitations: { icon: 'lucideMail', title: $localize`No invitations`, message: $localize`When a Game Master invites you to a private event it appears here.` },
+  gm: { icon: 'lucideShield', title: $localize`You are not running any events`, message: $localize`Create an event to set up teams, objectives and the map.` },
 };
 
 /** My events with tabs bound to ?tab=. */
@@ -34,15 +34,15 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="My events">
+      <zeus-page-header title="My events" i18n-title>
         @if (activeTab() === 'gm') {
-          <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Create event</a>
+          <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
         } @else {
-          <a hlmBtn variant="outline" class="tap" routerLink="/events/discover"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> Discover</a>
+          <a hlmBtn variant="outline" class="tap" routerLink="/events/discover"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover</ng-container></a>
         }
       </zeus-page-header>
 
-      <nav aria-label="Event lists" class="-mx-4 mb-4 overflow-x-auto px-4">
+      <nav aria-label="Event lists" class="-mx-4 mb-4 overflow-x-auto px-4" i18n-aria-label>
         <ul class="flex min-w-max gap-1 border-b border-border">
           @for (t of tabs; track t.id) {
             <li>
@@ -63,7 +63,7 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
 
       @if (offline() && items().length) {
         <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
-          <span>Showing the last list loaded.</span>
+          <span i18n>Showing the last list loaded.</span>
           <zeus-connection-status />
         </div>
       }
@@ -76,13 +76,13 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
         <zeus-empty-state [icon]="empty().icon" [title]="empty().title" [message]="empty().message">
           @switch (activeTab()) {
             @case ('gm') {
-              <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Create event</a>
+              <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
             }
             @case ('invitations') {
-              <a hlmBtn variant="outline" class="tap" routerLink="/events/join">Join with a code</a>
+              <a hlmBtn variant="outline" class="tap" routerLink="/events/join" i18n>Join with a code</a>
             }
             @default {
-              <a hlmBtn class="tap" routerLink="/events/discover">Discover events</a>
+              <a hlmBtn class="tap" routerLink="/events/discover" i18n>Discover events</a>
             }
           }
         </zeus-empty-state>
@@ -95,10 +95,10 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
               @if (activeTab() === 'invitations' && e.myStatus === 'invited') {
                 <div class="flex gap-2">
                   <button hlmBtn class="h-11 flex-1" type="button" [disabled]="busy() === e.id" (click)="respond(e, true)">
-                    <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> Accept
+                    <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> <ng-container i18n>Accept</ng-container>
                   </button>
                   <button hlmBtn variant="outline" class="h-11 flex-1" type="button" [disabled]="busy() === e.id" (click)="respond(e, false)">
-                    <ng-icon name="lucideX" size="16" aria-hidden="true" /> Decline
+                    <ng-icon name="lucideX" size="16" aria-hidden="true" /> <ng-container i18n>Decline</ng-container>
                   </button>
                 </div>
               }
@@ -170,12 +170,12 @@ export class MyEventsScreen {
   protected async respond(e: EventSummary, accept: boolean): Promise<void> {
     if (!accept) {
       const ok = await this.confirm.ask({
-        title: `Decline ${e.name}?`,
+        title: $localize`Decline ${e.name}:name:?`,
         consequences: [
-          'The Game Master sees that you declined.',
-          e.visibility === 'private' ? 'To join later you need the join code or a new invitation.' : 'You can still request to join later.',
+          $localize`The Game Master sees that you declined.`,
+          e.visibility === 'private' ? $localize`To join later you need the join code or a new invitation.` : $localize`You can still request to join later.`,
         ],
-        confirmLabel: 'Decline invitation',
+        confirmLabel: $localize`Decline invitation`,
       });
       if (!ok) return;
     }
@@ -184,10 +184,10 @@ export class MyEventsScreen {
       const res = await this.api.respondToInvitation(e.id, accept);
       this.items.update((list) => list.filter((x) => x.id !== e.id));
       if (accept) {
-        this.toast.success(res.status === 'approved' ? `You joined ${e.name}` : `Request sent to the Game Master of ${e.name}`);
+        this.toast.success(res.status === 'approved' ? $localize`You joined ${e.name}:name:` : $localize`Request sent to the Game Master of ${e.name}:name:`);
         void this.router.navigate(['/events', e.id]);
       } else {
-        this.toast.info(`Invitation to ${e.name} declined`);
+        this.toast.info($localize`Invitation to ${e.name}:name: declined`);
       }
     } catch (err) {
       this.toast.error(err);

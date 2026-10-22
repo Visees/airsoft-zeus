@@ -10,6 +10,7 @@ import { ApiService } from '../../../core/api/api.service';
 import { Member, Squad, Team } from '../../../core/api/models';
 import { ConfirmService } from '../../../core/ui/confirm.service';
 import { ToastService } from '../../../core/ui/toast.service';
+import { formatPlayerCount } from '../../../core/util/format';
 import { TEAM_ICONS, TeamBadge } from '../../../shared/team-badge';
 import { SaveState, SaveStateIndicator, nextId } from './controls';
 import { applyServerErrors, controlError, formTick } from './form-utils';
@@ -26,39 +27,39 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
     @let s = squad();
     <div [formGroup]="form" [class]="advanced() ? 'grid grid-cols-2 gap-2 rounded-sm border border-border p-2' : 'grid grid-cols-2 gap-2 rounded-sm border border-border p-2 sm:grid-cols-[1fr_1fr_auto]'" [attr.data-rev]="tick()">
       <div class="flex flex-col gap-1">
-        <label hlmLabel class="text-xs" [for]="id + '-n'">Squad name</label>
+        <label hlmLabel class="text-xs" [for]="id + '-n'" i18n>Squad name</label>
         <input hlmInput [id]="id + '-n'" class="h-11" formControlName="name" (change)="save('name')" [attr.aria-invalid]="!!err('name')" />
         @if (err('name'); as e) {
           <p class="field-error">{{ e }}</p>
         }
       </div>
       <div class="flex flex-col gap-1">
-        <label hlmLabel class="text-xs" [for]="id + '-c'">Callsign</label>
+        <label hlmLabel class="text-xs" [for]="id + '-c'" i18n>Callsign</label>
         <input hlmInput [id]="id + '-c'" class="h-11 uppercase" formControlName="callsign" placeholder="VIPER" (change)="save('callsign')" />
       </div>
       @if (advanced()) {
         <div class="flex flex-col gap-1">
-          <label hlmLabel class="text-xs" [for]="id + '-i'">Icon</label>
+          <label hlmLabel class="text-xs" [for]="id + '-i'" i18n>Icon</label>
           <select [id]="id + '-i'" class="h-11 rounded-md border border-input bg-background px-2 text-sm dark:bg-input/30" formControlName="icon" (change)="save('icon')">
-            <option value="">None</option>
+            <option value="" i18n>None</option>
             @for (i of icons; track i.value) {
               <option [value]="i.value">{{ i.label }}</option>
             }
           </select>
         </div>
         <div class="flex flex-col gap-1">
-          <label hlmLabel class="text-xs" [for]="id + '-l'">Squad leader</label>
+          <label hlmLabel class="text-xs" [for]="id + '-l'" i18n>Squad leader</label>
           <select #leaderSel [id]="id + '-l'" class="h-11 rounded-md border border-input bg-background px-2 text-sm dark:bg-input/30" [disabled]="busy()" (change)="setLeader(leaderSel)">
-            <option value="" [selected]="!s.leaderId">No leader</option>
+            <option value="" [selected]="!s.leaderId" i18n>No leader</option>
             @for (m of teamMembers(); track m.userId) {
-              <option [value]="m.userId" [selected]="m.userId === s.leaderId">{{ m.nickname }}{{ m.squadId && m.squadId !== s.id ? ' (other squad)' : '' }}</option>
+              <option [value]="m.userId" [selected]="m.userId === s.leaderId">{{ m.nickname }}{{ m.squadId && m.squadId !== s.id ? txt.otherSquad : '' }}</option>
             }
           </select>
         </div>
       }
       <div [class]="advanced() ? 'col-span-2 flex items-center justify-between gap-2' : 'col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-end'">
         <zeus-save-state [state]="state()" />
-        <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" [attr.aria-label]="'Delete squad ' + (s.callsign || s.name)">
+        <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" aria-label="Delete squad {{ s.callsign || s.name }}" i18n-aria-label>
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>
       </div>
@@ -66,6 +67,11 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
   `,
 })
 export class SquadRow {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    otherSquad: $localize` (other squad)`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
@@ -135,7 +141,7 @@ export class SquadRow {
     try {
       if (!userId) {
         await this.api.updateSquad(this.eventId(), s.id, { leaderId: null });
-        this.toast.success(`${s.callsign || s.name} has no leader`);
+        this.toast.success($localize`${s.callsign || s.name}:value: has no leader`);
         this.changed.emit();
         return;
       }
@@ -156,15 +162,15 @@ export class SquadRow {
     const s = this.squad();
     const count = this.members().filter((m) => m.squadId === s.id).length;
     const ok = await this.confirm.ask({
-      title: `Delete squad ${s.callsign || s.name}?`,
-      consequences: [count ? `${count} players stay in the team without a squad.` : 'No players are in this squad.', 'This cannot be undone.'],
+      title: $localize`Delete squad ${s.callsign || s.name}:value:?`,
+      consequences: [count ? $localize`${count}:count: players stay in the team without a squad.` : $localize`No players are in this squad.`, $localize`This cannot be undone.`],
       destructive: true,
-      confirmLabel: 'Delete squad',
+      confirmLabel: $localize`Delete squad`,
     });
     if (!ok) return;
     try {
       await this.api.deleteSquad(this.eventId(), s.id);
-      this.toast.success('Squad deleted');
+      this.toast.success($localize`Squad deleted`);
       this.changed.emit();
     } catch (err) {
       this.toast.error(err);
@@ -183,10 +189,10 @@ export class SquadRow {
   host: { class: 'block' },
   template: `
     @let t = team();
-    <article class="panel flex flex-col" [attr.aria-label]="'Team ' + t.name">
+    <article class="panel flex flex-col" aria-label="Team {{ t.name }}" i18n-aria-label>
       <header class="flex flex-wrap items-center gap-2 p-3" [class.border-b]="expanded()" [class.border-border]="expanded()">
         <zeus-team-badge [team]="t" size="lg" class="min-w-0 flex-1" />
-        <span class="num text-sm text-muted-foreground" [attr.aria-label]="t.memberCount + ' players' + (t.capacity ? ' of ' + t.capacity : '')">
+        <span class="num text-sm text-muted-foreground" [attr.aria-label]="playerCount(t.memberCount, t.capacity)">
           {{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }}
           <ng-icon name="lucideUsers" size="14" aria-hidden="true" />
         </span>
@@ -201,7 +207,7 @@ export class SquadRow {
           [attr.aria-controls]="id + '-body'"
           (click)="expanded.set(!expanded())"
         >
-          <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucidePencil'" size="14" aria-hidden="true" /> {{ expanded() ? 'Close' : 'Edit' }}
+          <ng-icon [name]="expanded() ? 'lucideChevronUp' : 'lucidePencil'" size="14" aria-hidden="true" /> {{ expanded() ? txt.close : txt.edit }}
         </button>
         <button
           hlmBtn
@@ -210,9 +216,9 @@ export class SquadRow {
           class="tap text-destructive"
           type="button"
           [disabled]="running()"
-          [attr.title]="running() ? 'Teams cannot be deleted once the game has started' : null"
+          [attr.title]="running() ? txt.teamsCannotBeDeleted : null"
           (click)="remove()"
-          [attr.aria-label]="'Delete team ' + t.name"
+          aria-label="Delete team {{ t.name }}" i18n-aria-label
         >
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>
@@ -225,9 +231,9 @@ export class SquadRow {
       @if (showSquads()) {
         <section class="flex flex-col gap-2 border-t border-border p-3" [attr.aria-labelledby]="id + '-sq'">
           <div class="flex items-center justify-between gap-2">
-            <h3 [id]="id + '-sq'" class="label-caps">Squads · {{ teamSquads().length }}</h3>
+            <h3 [id]="id + '-sq'" class="label-caps" i18n>Squads · {{ teamSquads().length }}</h3>
             <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="addSquad()" [disabled]="addingSquad()">
-              <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> {{ addingSquad() ? 'Adding…' : 'Add squad' }}
+              <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> {{ addingSquad() ? txt.adding : txt.addSquad }}
             </button>
           </div>
           @for (s of teamSquads(); track s.id) {
@@ -242,7 +248,7 @@ export class SquadRow {
               (changed)="changed.emit()"
             />
           } @empty {
-            <p class="text-xs text-muted-foreground">No squads. Optional: split the team into squads with their own callsign and leader.</p>
+            <p class="text-xs text-muted-foreground" i18n>No squads. Optional: split the team into squads with their own callsign and leader.</p>
           }
         </section>
       }
@@ -251,6 +257,16 @@ export class SquadRow {
   `,
 })
 export class TeamEditor {
+  protected readonly playerCount = formatPlayerCount;
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    close: $localize`Close`,
+    edit: $localize`Edit`,
+    adding: $localize`Adding…`,
+    addSquad: $localize`Add squad`,
+    teamsCannotBeDeleted: $localize`Teams cannot be deleted once the game has started`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
@@ -318,7 +334,7 @@ export class TeamEditor {
     if (f.invalid) {
       f.markAllAsTouched();
       this.state.set('failed');
-      this.saveError.set('Fix the highlighted fields.');
+      this.saveError.set($localize`Fix the highlighted fields.`);
       return;
     }
     this.state.set('saving');
@@ -353,15 +369,15 @@ export class TeamEditor {
   protected async remove(): Promise<void> {
     const t = this.team();
     const consequences = [
-      t.memberCount ? `${t.memberCount} players become unassigned.` : 'No players are in this team.',
-      this.teamSquads().length ? `${this.teamSquads().length} squads are deleted.` : null,
-      'This cannot be undone.',
+      t.memberCount ? $localize`${t.memberCount}:memberCount: players become unassigned.` : $localize`No players are in this team.`,
+      this.teamSquads().length ? $localize`${this.teamSquads().length}:length: squads are deleted.` : null,
+      $localize`This cannot be undone.`,
     ].filter((x): x is string => !!x);
-    const ok = await this.confirm.ask({ title: `Delete team ${t.name}?`, consequences, destructive: true, confirmLabel: 'Delete team' });
+    const ok = await this.confirm.ask({ title: $localize`Delete team ${t.name}:name:?`, consequences, destructive: true, confirmLabel: $localize`Delete team` });
     if (!ok) return;
     try {
       await this.api.deleteTeam(this.eventId(), t.id);
-      this.toast.success(`Team ${t.name} deleted`);
+      this.toast.success($localize`Team ${t.name}:name: deleted`);
       this.changed.emit();
     } catch (err) {
       this.toast.error(err);

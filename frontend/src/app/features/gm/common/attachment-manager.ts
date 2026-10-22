@@ -30,8 +30,8 @@ let nextKey = 0;
   template: `
     <section class="panel flex flex-col gap-3 p-4" aria-labelledby="att-h">
       <div>
-        <h3 id="att-h" class="label-caps">Attachments · <span class="num">{{ items().length + queue().length }}</span></h3>
-        <p class="mt-1 text-sm text-muted-foreground">
+        <h3 id="att-h" class="label-caps" i18n>Attachments · <span class="num">{{ items().length + queue().length }}</span></h3>
+        <p class="mt-1 text-sm text-muted-foreground" i18n>
           Game book, briefing, maps or forms. Registered players can download them from the event page.
         </p>
       </div>
@@ -46,7 +46,7 @@ let nextKey = 0;
                 <span class="block text-xs text-muted-foreground">{{ kind(a.mimeType) }} · <span class="num">{{ size(a.sizeBytes) }}</span></span>
               </span>
               @if (!readonly()) {
-                <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" [disabled]="deleting() === a.id" (click)="remove(a)" [attr.aria-label]="'Delete ' + a.fileName">
+                <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" [disabled]="deleting() === a.id" (click)="remove(a)" aria-label="Delete {{ a.fileName }}" i18n-aria-label>
                   <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                 </button>
               }
@@ -58,15 +58,15 @@ let nextKey = 0;
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-sm font-semibold" [title]="q.file.name">{{ q.file.name }}</span>
                 @if (q.progress !== null) {
-                  <span class="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" [attr.aria-label]="'Uploading ' + q.file.name" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct(q.progress)">
+                  <span class="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Uploading {{ q.file.name }}" i18n-aria-label aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct(q.progress)">
                     <span class="block h-full bg-primary transition-[width]" [style.width.%]="pct(q.progress)"></span>
                   </span>
                 } @else {
-                  <span class="block text-xs text-muted-foreground"><span class="num">{{ size(q.file.size) }}</span> · {{ eventId() ? 'Waiting…' : 'Uploaded when the draft is created' }}</span>
+                  <span class="block text-xs text-muted-foreground"><span class="num">{{ size(q.file.size) }}</span> · {{ eventId() ? txt.waiting : txt.uploadedWhenTheDraft }}</span>
                 }
               </span>
               @if (!eventId()) {
-                <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="unqueue(q)" [attr.aria-label]="'Remove ' + q.file.name">
+                <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="unqueue(q)" aria-label="Remove {{ q.file.name }}" i18n-aria-label>
                   <ng-icon name="lucideX" size="16" aria-hidden="true" />
                 </button>
               }
@@ -82,16 +82,24 @@ let nextKey = 0;
             [class]="full() || uploading() ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-muted'"
           >
             <ng-icon name="lucideUpload" size="16" aria-hidden="true" />
-            {{ uploading() ? 'Uploading…' : 'Add files' }}
+            {{ uploading() ? txt.uploading : txt.addFiles }}
             <input type="file" multiple class="sr-only" [accept]="accept" [disabled]="full() || uploading()" (change)="onPick($event)" />
           </label>
-          <p class="text-xs text-muted-foreground">PDF, images, Word, Excel, PowerPoint or OpenDocument · up to {{ size(maxBytes()) }} each · max {{ max }} files</p>
+          <p class="text-xs text-muted-foreground" i18n>PDF, images, Word, Excel, PowerPoint or OpenDocument · up to {{ size(maxBytes()) }} each · max {{ max }} files</p>
         </div>
       }
     </section>
   `,
 })
 export class AttachmentManager {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    waiting: $localize`Waiting…`,
+    uploadedWhenTheDraft: $localize`Uploaded when the draft is created`,
+    uploading: $localize`Uploading…`,
+    addFiles: $localize`Add files`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly config = inject(ConfigService);
   private readonly toast = inject(ToastService);
@@ -131,10 +139,10 @@ export class AttachmentManager {
     const ok: File[] = [];
     for (const f of files) {
       const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
-      if (!ATTACHMENT_EXTENSIONS.includes(ext)) this.toast.error(`${f.name}: file type not supported`, 'Use PDF, images or Office documents.');
-      else if (f.size > this.maxBytes()) this.toast.error(`${f.name} is too large`, `The limit is ${formatBytes(this.maxBytes())} per file.`);
+      if (!ATTACHMENT_EXTENSIONS.includes(ext)) this.toast.error($localize`${f.name}:name:: file type not supported`, $localize`Use PDF, images or Office documents.`);
+      else if (f.size > this.maxBytes()) this.toast.error($localize`${f.name}:name: is too large`, $localize`The limit is ${formatBytes(this.maxBytes())}:maxBytes: per file.`);
       else if (ok.length >= room) {
-        this.toast.error(`An event can have at most ${MAX_ATTACHMENTS} attachments.`);
+        this.toast.error($localize`An event can have at most ${MAX_ATTACHMENTS}:MAX_ATTACHMENTS: attachments.`);
         break;
       } else ok.push(f);
     }
@@ -177,10 +185,10 @@ export class AttachmentManager {
     const id = this.eventId();
     if (!id) return;
     const ok = await this.confirm.ask({
-      title: `Delete ${a.fileName}?`,
-      consequences: ['Players can no longer download it.', 'Copies they already downloaded stay on their phones.'],
+      title: $localize`Delete ${a.fileName}:fileName:?`,
+      consequences: [$localize`Players can no longer download it.`, $localize`Copies they already downloaded stay on their phones.`],
       destructive: true,
-      confirmLabel: 'Delete file',
+      confirmLabel: $localize`Delete file`,
     });
     if (!ok) return;
     this.deleting.set(a.id);

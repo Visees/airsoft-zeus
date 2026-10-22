@@ -31,12 +31,12 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { n: 1, label: 'Basics', title: 'Basic information', intro: 'Name, date, meeting point and the rules players accept before they play.' },
-  { n: 2, label: 'Teams', title: 'Teams', intro: 'At least two teams. Each one gets a colour, a pattern and an icon so nobody depends on colour alone.' },
-  { n: 3, label: 'Map', title: 'Tactical map', intro: 'Draw the playable area, bases, safe zones and points of interest.' },
-  { n: 4, label: 'Objectives', title: 'Objectives', intro: 'What teams capture, how, and what it is worth.' },
-  { n: 5, label: 'Rules of play', title: 'Rules of play', intro: 'Scoring, the perk store, who sees whom on the map, and location tracking.' },
-  { n: 6, label: 'Review', title: 'Review and publish', intro: 'Check what is missing, then publish or keep it as a draft.' },
+  { n: 1, label: $localize`Basics`, title: $localize`Basic information`, intro: $localize`Name, date, meeting point and the rules players accept before they play.` },
+  { n: 2, label: $localize`Teams`, title: $localize`Teams`, intro: $localize`At least two teams. Each one gets a colour, a pattern and an icon so nobody depends on colour alone.` },
+  { n: 3, label: $localize`Map`, title: $localize`Tactical map`, intro: $localize`Draw the playable area, bases, safe zones and points of interest.` },
+  { n: 4, label: $localize`Objectives`, title: $localize`Objectives`, intro: $localize`What teams capture, how, and what it is worth.` },
+  { n: 5, label: $localize`Rules of play`, title: $localize`Rules of play`, intro: $localize`Scoring, the perk store, who sees whom on the map, and location tracking.` },
+  { n: 6, label: $localize`Review`, title: $localize`Review and publish`, intro: $localize`Check what is missing, then publish or keep it as a draft.` },
 ];
 
 interface MapContent {
@@ -83,10 +83,10 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
   template: `
     <div class="page pb-44 lg:pb-8" #root>
       <zeus-page-header
-        [title]="event()?.name || 'Create event'"
-        [eyebrow]="event() ? 'Event setup' : 'New event'"
+        [title]="event()?.name || txt.createEvent"
+        [eyebrow]="event() ? txt.eventSetup : txt.newEvent"
         [back]="event() ? '/gm/events/' + event()!.id : '/events/mine'"
-        [backLabel]="event() ? 'Event editor' : 'My events'"
+        [backLabel]="event() ? txt.eventEditor : txt.myEvents"
       >
         @if (event(); as e) {
           <zeus-status-chip [spec]="statusChip(e.status)" />
@@ -94,8 +94,8 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
       </zeus-page-header>
 
       @if (currentStep() > 0) {
-        <nav aria-label="Setup steps" class="mb-6">
-          <p class="label-caps mb-2 sm:hidden">Step {{ currentStep() }} of {{ steps.length }} · {{ currentDef().label }}</p>
+        <nav aria-label="Setup steps" class="mb-6" i18n-aria-label>
+          <p class="label-caps mb-2 sm:hidden" i18n>Step {{ currentStep() }} of {{ steps.length }} · {{ currentDef().label }}</p>
           <ol class="grid grid-cols-6 gap-1 sm:gap-2">
             @for (s of steps; track s.n) {
               @let state = stepState(s.n);
@@ -105,7 +105,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   class="group flex w-full flex-col items-stretch gap-1.5 text-left disabled:cursor-not-allowed"
                   [disabled]="!event() || busy()"
                   [attr.aria-current]="state === 'current' ? 'step' : null"
-                  [attr.aria-label]="'Step ' + s.n + ': ' + s.label + (state === 'complete' ? ', complete' : state === 'current' ? ', current step' : '')"
+                  aria-label="Step {{ s.n }}: {{ s.label }}{{ state === 'complete' ? txt.complete : state === 'current' ? txt.currentStep : '' }}" i18n-aria-label
                   (click)="jump(s.n)"
                 >
                   <span
@@ -144,9 +144,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
       } @else {
         <section aria-labelledby="wizard-step-title">
           <div class="mb-4">
-            <h2 id="wizard-step-title" tabindex="-1" class="text-xl uppercase outline-none">{{ currentStep() === 0 ? 'How do you want to start?' : currentDef().title }}</h2>
+            <h2 id="wizard-step-title" tabindex="-1" class="text-xl uppercase outline-none">{{ currentStep() === 0 ? txt.howDoYouWant : currentDef().title }}</h2>
             <p class="mt-1 text-sm text-muted-foreground">
-              {{ currentStep() === 0 ? 'Start from scratch or reuse one of your saved event templates.' : currentDef().intro }}
+              {{ currentStep() === 0 ? txt.startFromScratchOr : currentDef().intro }}
             </p>
           </div>
 
@@ -157,20 +157,20 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                 <button type="button" class="panel flex items-start gap-3 p-4 text-left hover:border-primary/60" (click)="goto(1)">
                   <ng-icon name="lucidePlus" size="24" class="text-primary" aria-hidden="true" />
                   <span>
-                    <span class="block font-bold uppercase">Start from scratch</span>
-                    <span class="mt-1 block text-sm text-muted-foreground">An empty draft with sensible defaults for tracking, visibility and scoring.</span>
+                    <span class="block font-bold uppercase" i18n>Start from scratch</span>
+                    <span class="mt-1 block text-sm text-muted-foreground" i18n>An empty draft with sensible defaults for tracking, visibility and scoring.</span>
                   </span>
                 </button>
                 <div class="panel flex flex-col gap-3 p-4">
-                  <h3 class="font-bold uppercase">From a template</h3>
+                  <h3 class="font-bold uppercase" i18n>From a template</h3>
                   @if (templatesLoading()) {
                     <zeus-loading-skeleton [rows]="2" />
                   } @else if (templatesError(); as err) {
                     <zeus-error-state [error]="err" (retry)="loadTemplates()" />
                   } @else if (!templates().length) {
-                    <p class="text-sm text-muted-foreground">No templates yet. Save an event as a template from its editor to reuse teams, rules and the map.</p>
+                    <p class="text-sm text-muted-foreground" i18n>No templates yet. Save an event as a template from its editor to reuse teams, rules and the map.</p>
                   } @else {
-                    <ul class="flex flex-col gap-1.5" role="radiogroup" aria-label="Event templates">
+                    <ul class="flex flex-col gap-1.5" role="radiogroup" aria-label="Event templates" i18n-aria-label>
                       @for (t of templates(); track t.id) {
                         <li>
                           <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-sm border px-3 py-2 has-focus-visible:ring-2 has-focus-visible:ring-ring"
@@ -179,7 +179,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                             <span aria-hidden="true" class="num text-xs" [class.text-primary]="selectedTemplate() === t.id">{{ selectedTemplate() === t.id ? '●' : '○' }}</span>
                             <span class="min-w-0 flex-1">
                               <span class="block truncate font-semibold">{{ t.name }}</span>
-                              <span class="block text-xs text-muted-foreground">{{ modeLabel(t.gameMode) }} · saved {{ date(t.createdAt) }}</span>
+                              <span class="block text-xs text-muted-foreground" i18n>{{ modeLabel(t.gameMode) }} · saved {{ date(t.createdAt) }}</span>
                             </span>
                           </label>
                         </li>
@@ -188,7 +188,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                     @if (selectedTemplate()) {
                       <form [formGroup]="templateForm" (ngSubmit)="createFromTemplate()" class="flex flex-col gap-3 border-t border-border pt-3" [attr.data-rev]="templateTick()">
                         <div class="flex flex-col gap-1.5">
-                          <label hlmLabel for="tf-name">New event name</label>
+                          <label hlmLabel for="tf-name" i18n>New event name</label>
                           <input hlmInput id="tf-name" class="h-11" formControlName="name" [attr.aria-invalid]="!!tErr('name')" />
                           @if (tErr('name'); as e) {
                             <p class="field-error">{{ e }}</p>
@@ -196,23 +196,23 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                           <div class="flex flex-col gap-1.5">
-                            <label hlmLabel for="tf-date">Date</label>
+                            <label hlmLabel for="tf-date" i18n>Date</label>
                             <input hlmInput id="tf-date" type="date" class="h-11" formControlName="date" />
                           </div>
                           <div class="flex flex-col gap-1.5">
-                            <label hlmLabel for="tf-start">Start</label>
+                            <label hlmLabel for="tf-start" i18n>Start</label>
                             <input hlmInput id="tf-start" type="time" class="h-11" formControlName="startTime" />
                           </div>
                           <div class="flex flex-col gap-1.5">
-                            <label hlmLabel for="tf-end">End</label>
+                            <label hlmLabel for="tf-end" i18n>End</label>
                             <input hlmInput id="tf-end" type="time" class="h-11" formControlName="endTime" [attr.aria-invalid]="!!templateForm.errors?.['endBeforeStart']" />
                           </div>
                         </div>
                         @if (templateForm.errors?.['endBeforeStart']) {
-                          <p class="field-error">The end time must be after the start time.</p>
+                          <p class="field-error" i18n>The end time must be after the start time.</p>
                         }
                         <button hlmBtn type="submit" class="h-12" [disabled]="busy()">
-                          {{ busy() ? 'Creating…' : 'Create from template' }}
+                          {{ busy() ? txt.creating : txt.createFromTemplate }}
                         </button>
                       </form>
                     }
@@ -236,16 +236,16 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   @if (sortedTeams().length < 2) {
                     <div class="flex gap-2 rounded-sm border border-warning/50 bg-warning-surface p-3 text-sm text-warning" role="status">
                       <span aria-hidden="true">◐</span>
-                      <span>The game needs at least two teams to start. You can add them later, but publishing now shows this as a warning.</span>
+                      <span i18n>The game needs at least two teams to start. You can add them later, but publishing now shows this as a warning.</span>
                     </div>
                   }
                   @if (!sortedTeams().length) {
-                    <zeus-empty-state icon="lucideUsers" title="No teams yet" message="Add the usual two-team setup in one click, then rename and recolour as you like.">
+                    <zeus-empty-state icon="lucideUsers" title="No teams yet" message="Add the usual two-team setup in one click, then rename and recolour as you like." i18n-title i18n-message>
                       <button hlmBtn class="h-11" type="button" (click)="addTwoTeams()" [disabled]="busy()">
-                        <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> Add two teams (Alpha and Bravo)
+                        <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> <ng-container i18n>Add two teams (Alpha and Bravo)</ng-container>
                       </button>
                       <button hlmBtn variant="outline" class="h-11" type="button" (click)="addTeam()" [disabled]="busy()">
-                        <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Add one team
+                        <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Add one team</ng-container>
                       </button>
                     </zeus-empty-state>
                   } @else {
@@ -256,7 +256,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                     </div>
                     <div>
                       <button hlmBtn variant="outline" class="h-11" type="button" (click)="addTeam()" [disabled]="busy()">
-                        <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> {{ busy() ? 'Adding…' : 'Add team' }}
+                        <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> {{ busy() ? txt.adding : txt.addTeam }}
                       </button>
                     </div>
                   }
@@ -270,7 +270,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
               @if (event(); as e) {
                 <div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
                   <section class="panel flex flex-col gap-4 p-4" aria-labelledby="map-sum">
-                    <h3 id="map-sum" class="label-caps">Map content</h3>
+                    <h3 id="map-sum" class="label-caps" i18n>Map content</h3>
                     @if (contentLoading() && !content()) {
                       <zeus-loading-skeleton [rows]="1" />
                     } @else if (contentError(); as err) {
@@ -278,43 +278,43 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                     } @else {
                       <dl class="grid grid-cols-3 gap-3 text-center">
                         <div class="rounded-sm bg-muted p-3">
-                          <dt class="label-caps">Zones</dt>
+                          <dt class="label-caps" i18n>Zones</dt>
                           <dd class="num text-2xl font-bold">{{ content()?.zones?.length ?? 0 }}</dd>
                         </div>
                         <div class="rounded-sm bg-muted p-3">
-                          <dt class="label-caps">Points</dt>
+                          <dt class="label-caps" i18n>Points</dt>
                           <dd class="num text-2xl font-bold">{{ content()?.pois?.length ?? 0 }}</dd>
                         </div>
                         <div class="rounded-sm bg-muted p-3">
-                          <dt class="label-caps">Objectives</dt>
+                          <dt class="label-caps" i18n>Objectives</dt>
                           <dd class="num text-2xl font-bold">{{ content()?.objectives?.length ?? 0 }}</dd>
                         </div>
                       </dl>
                       <p class="text-sm" [class.text-warning]="!hasPlayableArea()" [class.text-primary]="hasPlayableArea()">
-                        {{ hasPlayableArea() ? '✓ Playable area drawn' : '◐ No playable area yet: draw its boundary so players get out-of-bounds warnings.' }}
+                        {{ hasPlayableArea() ? txt.playableAreaDrawn : '◐ No playable area yet: draw its boundary so players get out-of-bounds warnings.' }}
                       </p>
                     }
                     <a hlmBtn class="h-12" [routerLink]="['/gm/events', e.id, 'map']">
-                      <ng-icon name="lucideMap" size="18" aria-hidden="true" /> Open map editor
+                      <ng-icon name="lucideMap" size="18" aria-hidden="true" /> <ng-container i18n>Open map editor</ng-container>
                     </a>
-                    <p class="text-xs text-muted-foreground">The editor opens full screen. Use your browser's back button to return here.</p>
+                    <p class="text-xs text-muted-foreground" i18n>The editor opens full screen. Use your browser's back button to return here.</p>
                   </section>
 
                   <section class="panel flex flex-col gap-3 p-4" aria-labelledby="map-tpl">
-                    <h3 id="map-tpl" class="label-caps">Apply a saved map template</h3>
+                    <h3 id="map-tpl" class="label-caps" i18n>Apply a saved map template</h3>
                     @if (mapTemplatesLoading()) {
                       <zeus-loading-skeleton [rows]="2" />
                     } @else if (!mapTemplates().length) {
-                      <p class="text-sm text-muted-foreground">No map templates yet. Save one from the map editor of a finished event to reuse its zones, points and objectives.</p>
+                      <p class="text-sm text-muted-foreground" i18n>No map templates yet. Save one from the map editor of a finished event to reuse its zones, points and objectives.</p>
                     } @else {
                       <ul class="flex flex-col gap-2">
                         @for (t of mapTemplates(); track t.id) {
                           <li class="flex items-center gap-3 rounded-sm border border-border p-2">
                             <span class="min-w-0 flex-1">
                               <span class="block truncate font-semibold">{{ t.name }}</span>
-                              <span class="num block text-xs text-muted-foreground">{{ t.zoneCount }} zones · {{ t.poiCount }} points · {{ t.objectiveCount }} objectives</span>
+                              <span class="num block text-xs text-muted-foreground" i18n>{{ t.zoneCount }} zones · {{ t.poiCount }} points · {{ t.objectiveCount }} objectives</span>
                             </span>
-                            <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="applyMapTemplate(t)" [disabled]="busy()">Apply</button>
+                            <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="applyMapTemplate(t)" [disabled]="busy()" i18n>Apply</button>
                           </li>
                         }
                       </ul>
@@ -329,18 +329,18 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
               @if (event(); as e) {
                 <div class="flex flex-col gap-4">
                   <section class="panel p-4 text-sm" aria-labelledby="cap-methods">
-                    <h3 id="cap-methods" class="label-caps mb-2">Capture methods</h3>
+                    <h3 id="cap-methods" class="label-caps mb-2" i18n>Capture methods</h3>
                     <ul class="grid gap-3 sm:grid-cols-3">
-                      <li class="flex gap-2"><ng-icon name="lucideKeyRound" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span><strong>Code</strong> — players type a code written at the objective.</span></li>
-                      <li class="flex gap-2"><ng-icon name="lucideQrCode" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span><strong>QR</strong> — players scan a printed QR code placed on site.</span></li>
-                      <li class="flex gap-2"><ng-icon name="lucideCrosshair" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span><strong>Hold zone</strong> — players stay inside a radius for a set time; GPS checks it.</span></li>
+                      <li class="flex gap-2"><ng-icon name="lucideKeyRound" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>Code</strong> — players type a code written at the objective.</span></li>
+                      <li class="flex gap-2"><ng-icon name="lucideQrCode" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>QR</strong> — players scan a printed QR code placed on site.</span></li>
+                      <li class="flex gap-2"><ng-icon name="lucideCrosshair" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>Hold zone</strong> — players stay inside a radius for a set time; GPS checks it.</span></li>
                     </ul>
                   </section>
 
                   <div class="flex items-center justify-between gap-2">
-                    <h3 class="label-caps">Objectives · {{ content()?.objectives?.length ?? 0 }}</h3>
+                    <h3 class="label-caps" i18n>Objectives · {{ content()?.objectives?.length ?? 0 }}</h3>
                     <a hlmBtn class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', 'new']" [queryParams]="{ returnTo: returnTo() }">
-                      <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Add objective
+                      <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Add objective</ng-container>
                     </a>
                   </div>
                   @if (contentLoading() && !content()) {
@@ -357,19 +357,19 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                           <span class="min-w-0 flex-1">
                             <span class="block truncate font-semibold uppercase">{{ o.name }}</span>
                             <span class="block text-xs text-muted-foreground">
-                              {{ methodsLabel(o) }} · <span class="num">+{{ fmt(o.rewards.points) }} pts · +{{ fmt(o.rewards.currency) }} cr</span>
+                              {{ methodsLabel(o) }} · <span class="num" i18n>+{{ fmt(o.rewards.points) }} pts · +{{ fmt(o.rewards.currency) }} cr</span>
                               @if (!o.enabled) {
-                                · Disabled
+                                <ng-container i18n>· Disabled</ng-container>
                               }
                             </span>
                           </span>
-                          <a hlmBtn variant="outline" size="sm" class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', o.id]" [queryParams]="{ returnTo: returnTo() }" [attr.aria-label]="'Edit ' + o.name">
-                            <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> Edit
+                          <a hlmBtn variant="outline" size="sm" class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', o.id]" [queryParams]="{ returnTo: returnTo() }" aria-label="Edit {{ o.name }}" i18n-aria-label>
+                            <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
                           </a>
                         </li>
                       } @empty {
                         <li>
-                          <zeus-empty-state icon="lucideTarget" title="No objectives yet" message="Add control points, intel drops or flags. You can also place them from the map editor." />
+                          <zeus-empty-state icon="lucideTarget" title="No objectives yet" message="Add control points, intel drops or flags. You can also place them from the map editor." i18n-title i18n-message />
                         </li>
                       }
                     </ul>
@@ -390,7 +390,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
               @if (event(); as e) {
                 <div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
                   <section class="panel p-4" aria-labelledby="chk">
-                    <h3 id="chk" class="label-caps mb-2">Checklist · {{ warnings().length }} {{ warnings().length === 1 ? 'warning' : 'warnings' }}</h3>
+                    <h3 id="chk" class="label-caps mb-2" i18n>Checklist · {warnings().length, plural, =1 {1 warning} other {{{ warnings().length }} warnings}}</h3>
                     @if (contentLoading() && !content()) {
                       <zeus-loading-skeleton [rows]="3" />
                     } @else {
@@ -402,12 +402,12 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                             }}</span>
                             <span class="min-w-0 flex-1">
                               <span class="block text-sm font-semibold">
-                                <span class="sr-only">{{ c.ok ? 'Done: ' : c.severity === 'warning' ? 'Warning: ' : 'Optional: ' }}</span>{{ c.label }}
+                                <span class="sr-only">{{ c.ok ? txt.done : c.severity === 'warning' ? txt.warning : txt.optional }}</span>{{ c.label }}
                               </span>
                               <span class="block text-xs text-muted-foreground">{{ c.detail }}</span>
                             </span>
                             @if (!c.ok) {
-                              <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="jump(c.step)">Fix</button>
+                              <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="jump(c.step)" i18n>Fix</button>
                             }
                           </li>
                         }
@@ -417,38 +417,38 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
 
                   <section class="flex flex-col gap-4" aria-labelledby="pub">
                     <div class="panel flex flex-col gap-2 p-4 text-sm">
-                      <h3 class="label-caps">Summary</h3>
+                      <h3 class="label-caps" i18n>Summary</h3>
                       <p class="font-semibold uppercase">{{ e.name }}</p>
                       <p class="text-muted-foreground">
                         {{ e.customModeName || modeLabel(e.gameMode) }} · <span class="num">{{ date(e.startAt) }} {{ time(e.startAt) }}–{{ time(e.endAt) }}</span>
                       </p>
-                      <p class="text-muted-foreground">
-                        {{ e.visibility === 'private' ? 'Private (join code)' : 'Public' }} · {{ e.requiresApproval ? 'Manual approval' : 'Automatic approval' }} ·
+                      <p class="text-muted-foreground" i18n>
+                        {{ e.visibility === 'private' ? txt.privateJoinCode : txt.public }} · {{ e.requiresApproval ? txt.manualApproval : txt.automaticApproval }} ·
                         <span class="num">{{ e.minPlayers }}–{{ e.maxPlayers }}</span> players
                       </p>
                       <p class="text-muted-foreground">{{ visibilitySummary() }}</p>
                       <p class="text-muted-foreground">
-                        <span class="num">{{ e.attachmentCount }}</span> {{ e.attachmentCount === 1 ? 'attachment' : 'attachments' }} for the players
-                        <button type="button" class="tap ml-1 underline underline-offset-4 hover:text-foreground" (click)="jump(1)">Edit</button>
+                        <ng-container i18n>{e.attachmentCount, plural, =1 {<span class="num">1</span> attachment for the players} other {<span class="num">{{ e.attachmentCount }}</span> attachments for the players}}</ng-container>
+                        <button type="button" class="tap ml-1 underline underline-offset-4 hover:text-foreground" (click)="jump(1)" i18n>Edit</button>
                       </p>
                     </div>
 
                     <div class="panel flex flex-col gap-2 p-4">
-                      <h3 id="pub" class="label-caps">Publish</h3>
+                      <h3 id="pub" class="label-caps" i18n>Publish</h3>
                       @if (e.status === 'draft') {
-                        <p class="text-sm text-muted-foreground">Drafts are only visible to Game Masters. Publish to show the event; open registration to let players join.</p>
+                        <p class="text-sm text-muted-foreground" i18n>Drafts are only visible to Game Masters. Publish to show the event; open registration to let players join.</p>
                         <button hlmBtn class="h-12" type="button" (click)="changeStatus('registration_open')" [disabled]="busy()">
-                          <ng-icon name="lucideUserPlus" size="18" aria-hidden="true" /> Open registration
+                          <ng-icon name="lucideUserPlus" size="18" aria-hidden="true" /> <ng-container i18n>Open registration</ng-container>
                         </button>
                         <button hlmBtn variant="outline" class="h-12" type="button" (click)="changeStatus('published')" [disabled]="busy()">
-                          <ng-icon name="lucideEye" size="18" aria-hidden="true" /> Publish (registration closed)
+                          <ng-icon name="lucideEye" size="18" aria-hidden="true" /> <ng-container i18n>Publish (registration closed)</ng-container>
                         </button>
                         <a hlmBtn variant="ghost" class="h-12" [routerLink]="['/gm/events', e.id]">
-                          <ng-icon name="lucideSave" size="18" aria-hidden="true" /> Save as draft
+                          <ng-icon name="lucideSave" size="18" aria-hidden="true" /> <ng-container i18n>Save as draft</ng-container>
                         </a>
                       } @else {
-                        <p class="text-sm text-muted-foreground">This event is already {{ statusChip(e.status).label.toLowerCase() }}. Manage its status from the event editor.</p>
-                        <a hlmBtn class="h-12" [routerLink]="['/gm/events', e.id]">Go to event editor</a>
+                        <p class="text-sm text-muted-foreground" i18n>This event is already {{ statusChip(e.status).label.toLowerCase() }}. Manage its status from the event editor.</p>
+                        <a hlmBtn class="h-12" [routerLink]="['/gm/events', e.id]" i18n>Go to event editor</a>
                       }
                     </div>
                   </section>
@@ -467,19 +467,19 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
           <div class="mx-auto flex max-w-6xl items-center gap-3">
             @if (currentStep() > 1 || !event()) {
               <button hlmBtn variant="outline" class="h-12 min-w-24" type="button" (click)="back()" [disabled]="busy()">
-                <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> Back
+                <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> <ng-container i18n>Back</ng-container>
               </button>
             }
             <span class="num ml-auto hidden text-sm text-muted-foreground sm:inline">{{ currentStep() }} / {{ steps.length }}</span>
             @if (currentStep() < steps.length) {
               <button hlmBtn class="ml-auto h-12 min-w-32 sm:ml-0" type="button" (click)="next()" [disabled]="busy()">
-                {{ busy() ? 'Saving…' : currentStep() === 1 && !event() ? 'Create draft' : 'Next' }}
+                {{ busy() ? txt.saving : currentStep() === 1 && !event() ? txt.createDraft : txt.next }}
                 @if (!busy()) {
                   <ng-icon name="lucideArrowRight" size="16" aria-hidden="true" />
                 }
               </button>
             } @else if (event(); as e) {
-              <a hlmBtn variant="outline" class="ml-auto h-12 sm:ml-0" [routerLink]="['/gm/events', e.id]">Finish later</a>
+              <a hlmBtn variant="outline" class="ml-auto h-12 sm:ml-0" [routerLink]="['/gm/events', e.id]" i18n>Finish later</a>
             }
           </div>
         </div>
@@ -488,6 +488,34 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
   `,
 })
 export class CreateEventWizardScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    howDoYouWant: $localize`How do you want to start?`,
+    startFromScratchOr: $localize`Start from scratch or reuse one of your saved event templates.`,
+    creating: $localize`Creating…`,
+    createFromTemplate: $localize`Create from template`,
+    adding: $localize`Adding…`,
+    addTeam: $localize`Add team`,
+    playableAreaDrawn: $localize`✓ Playable area drawn`,
+    done: $localize`Done: `,
+    warning: $localize`Warning: `,
+    optional: $localize`Optional: `,
+    privateJoinCode: $localize`Private (join code)`,
+    public: $localize`Public`,
+    manualApproval: $localize`Manual approval`,
+    automaticApproval: $localize`Automatic approval`,
+    saving: $localize`Saving…`,
+    createDraft: $localize`Create draft`,
+    next: $localize`Next`,
+    createEvent: $localize`Create event`,
+    eventSetup: $localize`Event setup`,
+    newEvent: $localize`New event`,
+    eventEditor: $localize`Event editor`,
+    myEvents: $localize`My events`,
+    complete: $localize`, complete`,
+    currentStep: $localize`, current step`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -556,43 +584,43 @@ export class CreateEventWizardScreen {
     return [
       {
         ok: e.teams.length >= 2,
-        label: e.teams.length >= 2 ? `${e.teams.length} teams` : `Fewer than 2 teams (${e.teams.length})`,
-        detail: e.teams.length >= 2 ? 'Ready to start.' : 'The game cannot start with fewer than two teams.',
+        label: e.teams.length >= 2 ? $localize`${e.teams.length}:length: teams` : $localize`Fewer than 2 teams (${e.teams.length}:length:)`,
+        detail: e.teams.length >= 2 ? $localize`Ready to start.` : $localize`The game cannot start with fewer than two teams.`,
         step: 2,
         severity: 'warning',
       },
       {
         ok: objectives > 0,
-        label: objectives ? `${objectives} objectives` : 'No objectives',
-        detail: objectives ? 'Players have something to capture.' : 'Without objectives only GM adjustments change the score.',
+        label: objectives ? $localize`${objectives}:objectives: objectives` : $localize`No objectives`,
+        detail: objectives ? $localize`Players have something to capture.` : $localize`Without objectives only GM adjustments change the score.`,
         step: 4,
         severity: 'warning',
       },
       {
         ok: this.hasPlayableArea(),
-        label: this.hasPlayableArea() ? 'Playable area drawn' : 'No playable area zone',
-        detail: this.hasPlayableArea() ? 'Players are warned when they leave it.' : 'Draw the boundary in the map editor so players see where they can go.',
+        label: this.hasPlayableArea() ? $localize`Playable area drawn` : $localize`No playable area zone`,
+        detail: this.hasPlayableArea() ? $localize`Players are warned when they leave it.` : $localize`Draw the boundary in the map editor so players see where they can go.`,
         step: 3,
         severity: 'warning',
       },
       {
         ok: !!e.safetyRules?.trim(),
-        label: e.safetyRules?.trim() ? 'Safety rules written' : 'No safety rules',
-        detail: e.safetyRules?.trim() ? 'Players accept them before the game.' : 'Add eye protection, safe zone and emergency procedures.',
+        label: e.safetyRules?.trim() ? $localize`Safety rules written` : $localize`No safety rules`,
+        detail: e.safetyRules?.trim() ? $localize`Players accept them before the game.` : $localize`Add eye protection, safe zone and emergency procedures.`,
         step: 1,
         severity: 'warning',
       },
       {
         ok: !!e.meetingAddress || e.meetingLat !== null,
-        label: e.meetingAddress || e.meetingLat !== null ? 'Meeting point set' : 'No meeting point',
-        detail: 'Optional, but players need to know where to park.',
+        label: e.meetingAddress || e.meetingLat !== null ? $localize`Meeting point set` : $localize`No meeting point`,
+        detail: $localize`Optional, but players need to know where to park.`,
         step: 1,
         severity: 'info',
       },
       {
         ok: !e.storeEnabled || (c?.perks.length ?? 0) > 0,
-        label: !e.storeEnabled ? 'Perk store off' : (c?.perks.length ?? 0) > 0 ? `${c?.perks.length} perks in the store` : 'Store open but empty',
-        detail: !e.storeEnabled || (c?.perks.length ?? 0) > 0 ? 'Store settings are consistent.' : 'Add the default perks or turn the store off.',
+        label: !e.storeEnabled ? $localize`Perk store off` : (c?.perks.length ?? 0) > 0 ? $localize`${c?.perks.length}:length: perks in the store` : $localize`Store open but empty`,
+        detail: !e.storeEnabled || (c?.perks.length ?? 0) > 0 ? $localize`Store settings are consistent.` : $localize`Add the default perks or turn the store off.`,
         step: 5,
         severity: 'info',
       },
@@ -657,7 +685,7 @@ export class CreateEventWizardScreen {
   }
 
   protected methodsLabel(o: Objective): string {
-    return o.methods.map((m) => (m === 'code' ? 'Code' : m === 'qr' ? 'QR' : 'Hold zone')).join(' / ') || 'No capture method';
+    return o.methods.map((m) => (m === 'code' ? $localize`Code` : m === 'qr' ? $localize`QR` : $localize`Hold zone`)).join(' / ') || $localize`No capture method`;
   }
 
   // --- data ------------------------------------------------------------------------
@@ -786,7 +814,7 @@ export class CreateEventWizardScreen {
     if (f.invalid) {
       f.markAllAsTouched();
       focusFirstInvalid(this.root()?.nativeElement);
-      this.toast.error('Check the highlighted fields.');
+      this.toast.error($localize`Check the highlighted fields.`);
       return false;
     }
     const existing = this.event();
@@ -797,7 +825,7 @@ export class CreateEventWizardScreen {
       const e = existing ? await this.api.updateEvent(existing.id, body) : await this.api.createEvent(body);
       this.setEvent(e, true);
       if (!existing) {
-        this.toast.success('Draft created', e.visibility === 'private' && e.joinCode ? `Join code ${e.joinCode}` : 'It stays a draft until you publish it.');
+        this.toast.success($localize`Draft created`, e.visibility === 'private' && e.joinCode ? $localize`Join code ${e.joinCode}:joinCode:` : $localize`It stays a draft until you publish it.`);
         // Files picked before the draft existed.
         const failed = await this.attachmentManager()?.uploadPending(e.id);
         if (failed) {
@@ -811,7 +839,7 @@ export class CreateEventWizardScreen {
       const unplaced = applyServerErrors(f, err, BASICS_FIELD_MAP);
       focusFirstInvalid(this.root()?.nativeElement);
       if (unplaced.length || !Object.keys(ApiError.from(err).fields).length) this.toast.error(err);
-      else this.toast.error('Check the highlighted fields.');
+      else this.toast.error($localize`Check the highlighted fields.`);
       return false;
     } finally {
       this.busy.set(false);
@@ -825,7 +853,7 @@ export class CreateEventWizardScreen {
     if (f.invalid) {
       f.markAllAsTouched();
       focusFirstInvalid(this.root()?.nativeElement);
-      this.toast.error('Check the highlighted fields.');
+      this.toast.error($localize`Check the highlighted fields.`);
       return false;
     }
     if (!f.dirty) return e.id;
@@ -867,7 +895,7 @@ export class CreateEventWizardScreen {
         endAt: new Date(`${v.date}T${v.endTime}`).toISOString(),
       });
       this.setEvent(e, true);
-      this.toast.success('Draft created from template', 'Check each step before publishing.');
+      this.toast.success($localize`Draft created from template`, $localize`Check each step before publishing.`);
       this.goto(1, e.id);
     } catch (err) {
       applyServerErrors(f, err, { startAt: 'startTime', endAt: 'endTime' });
@@ -887,7 +915,7 @@ export class CreateEventWizardScreen {
       for (const preset of TWO_TEAM_PRESET) {
         if (!e.teams.some((t) => t.name.toLowerCase() === preset.name!.toLowerCase())) await this.api.createTeam(e.id, preset);
       }
-      this.toast.success('Teams Alpha and Bravo added');
+      this.toast.success($localize`Teams Alpha and Bravo added`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -902,7 +930,7 @@ export class CreateEventWizardScreen {
     this.busy.set(true);
     try {
       const t = await this.api.createTeam(e.id, nextTeamPreset(e.teams));
-      this.toast.success(`Team ${t.name} added`);
+      this.toast.success($localize`Team ${t.name}:name: added`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -919,18 +947,18 @@ export class CreateEventWizardScreen {
     const c = this.content();
     const existing = (c?.zones.length ?? 0) + (c?.pois.length ?? 0) + (c?.objectives.length ?? 0);
     const ok = await this.confirm.ask({
-      title: `Apply map template ${t.name}?`,
+      title: $localize`Apply map template ${t.name}:name:?`,
       consequences: [
-        `Adds ${t.zoneCount} zones, ${t.poiCount} points of interest and ${t.objectiveCount} objectives to this event.`,
-        existing ? `The ${existing} items already on this map stay; check for duplicates afterwards.` : 'The map is empty, nothing is overwritten.',
+        $localize`Adds ${t.zoneCount}:zoneCount: zones, ${t.poiCount}:poiCount: points of interest and ${t.objectiveCount}:objectiveCount: objectives to this event.`,
+        existing ? $localize`The ${existing}:existing: items already on this map stay; check for duplicates afterwards.` : $localize`The map is empty, nothing is overwritten.`,
       ],
-      confirmLabel: 'Apply template',
+      confirmLabel: $localize`Apply template`,
     });
     if (!ok) return;
     this.busy.set(true);
     try {
       const r = await this.api.applyMapTemplate(e.id, t.id);
-      this.toast.success('Map template applied', `${r.zones} zones, ${r.pois} points, ${r.objectives} objectives added.`);
+      this.toast.success($localize`Map template applied`, $localize`${r.zones}:zones: zones, ${r.pois}:pois: points, ${r.objectives}:objectives: objectives added.`);
       await this.loadContent();
     } catch (err) {
       this.toast.error(err);

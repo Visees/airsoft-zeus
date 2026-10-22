@@ -33,11 +33,11 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." back="/events/discover" backLabel="Discover" />
+      <zeus-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." back="/events/discover" backLabel="Discover" i18n-title i18n-subtitle i18n-backLabel />
 
       <form class="panel flex flex-col gap-4 p-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="join-code">Join code</label>
+          <label hlmLabel for="join-code" i18n>Join code</label>
           <input
             hlmInput
             id="join-code"
@@ -53,58 +53,58 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
             [attr.aria-invalid]="codeError() ? 'true' : null"
             (input)="onCodeInput($event)"
           />
-          <p id="join-code-hint" class="text-sm text-muted-foreground">6–10 letters and numbers. Spaces and dashes are ignored.</p>
+          <p id="join-code-hint" class="text-sm text-muted-foreground" i18n>6–10 letters and numbers. Spaces and dashes are ignored.</p>
           @if (codeError()) {
             <p id="join-code-error" class="field-error" role="alert">{{ codeError() }}</p>
           }
         </div>
         <button hlmBtn type="submit" class="h-12" [disabled]="searching()">
           @if (searching()) {
-            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Finding event…
+            <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Finding event…</ng-container>
           } @else {
-            <ng-icon name="lucideArrowRight" size="18" aria-hidden="true" /> Find event
+            <ng-icon name="lucideArrowRight" size="18" aria-hidden="true" /> <ng-container i18n>Find event</ng-container>
           }
         </button>
       </form>
 
       <div class="my-4 flex items-center gap-3 text-xs text-muted-foreground" aria-hidden="true">
-        <span class="h-px flex-1 bg-border"></span> OR <span class="h-px flex-1 bg-border"></span>
+        <span class="h-px flex-1 bg-border"></span> <ng-container i18n>OR</ng-container> <span class="h-px flex-1 bg-border"></span>
       </div>
 
       <section class="panel flex flex-col gap-3 p-4" aria-labelledby="scan-title">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <h2 id="scan-title" class="text-lg uppercase">Scan invitation QR</h2>
-            <p class="text-sm text-muted-foreground">Point the camera at the QR code on the invitation or the Game Master's screen.</p>
+            <h2 id="scan-title" class="text-lg uppercase" i18n>Scan invitation QR</h2>
+            <p class="text-sm text-muted-foreground" i18n>Point the camera at the QR code on the invitation or the Game Master's screen.</p>
           </div>
           <ng-icon name="lucideScanQrCode" size="28" class="shrink-0 text-primary" aria-hidden="true" />
         </div>
 
         <div class="relative overflow-hidden rounded-md bg-black" [hidden]="!cameraVisible()">
-          <video #video class="aspect-square w-full object-cover" playsinline muted aria-label="Camera preview"></video>
+          <video #video class="aspect-square w-full object-cover" playsinline muted aria-label="Camera preview" i18n-aria-label></video>
           <div class="pointer-events-none absolute inset-[15%] rounded-md border-2 border-primary/80" aria-hidden="true"></div>
           @if (scanState() === 'starting') {
-            <div class="absolute inset-0 grid place-items-center bg-black/60 text-sm text-white" role="status">Starting camera…</div>
+            <div class="absolute inset-0 grid place-items-center bg-black/60 text-sm text-white" role="status" i18n>Starting camera…</div>
           }
         </div>
 
         @switch (scanState()) {
           @case ('scanning') {
-            <p class="text-sm" role="status">Scanning… hold the code steady inside the frame.</p>
+            <p class="text-sm" role="status" i18n>Scanning… hold the code steady inside the frame.</p>
           }
           @case ('denied') {
-            <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">
+            <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert" i18n>
               Camera access is blocked. Allow the camera for this site in your browser settings, or type the code above.
             </p>
           }
           @case ('no-camera') {
-            <p class="rounded-md border border-border bg-muted p-3 text-sm" role="alert">No camera found on this device. Type the code above.</p>
+            <p class="rounded-md border border-border bg-muted p-3 text-sm" role="alert" i18n>No camera found on this device. Type the code above.</p>
           }
           @case ('unsupported') {
-            <p class="rounded-md border border-border bg-muted p-3 text-sm" role="alert">This browser cannot use the camera here. Type the code above.</p>
+            <p class="rounded-md border border-border bg-muted p-3 text-sm" role="alert" i18n>This browser cannot use the camera here. Type the code above.</p>
           }
           @case ('error') {
-            <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">{{ scanError() || 'The camera could not start.' }}</p>
+            <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">{{ scanError() || txt.theCameraCouldNot }}</p>
           }
         }
         @if (scanHint()) {
@@ -113,22 +113,29 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
 
         @if (cameraVisible()) {
           <button hlmBtn variant="outline" type="button" class="h-12" (click)="stopScan()">
-            <ng-icon name="lucideX" size="18" aria-hidden="true" /> Close camera
+            <ng-icon name="lucideX" size="18" aria-hidden="true" /> <ng-container i18n>Close camera</ng-container>
           </button>
         } @else {
           <button hlmBtn variant="secondary" type="button" class="h-12" (click)="startScan()">
-            <ng-icon name="lucideCamera" size="18" aria-hidden="true" /> {{ scanState() === 'off' ? 'Scan invitation QR' : 'Try the camera again' }}
+            <ng-icon name="lucideCamera" size="18" aria-hidden="true" /> {{ scanState() === 'off' ? txt.scanInvitationQr : txt.tryTheCameraAgain }}
           </button>
         }
       </section>
 
-      <p class="mt-6 text-center text-sm text-muted-foreground">
+      <p class="mt-6 text-center text-sm text-muted-foreground" i18n>
         Looking for a public game? <a routerLink="/events/discover" class="font-semibold text-primary underline-offset-4 hover:underline">Discover events</a>
       </p>
     </div>
   `,
 })
 export class JoinEventScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    theCameraCouldNot: $localize`The camera could not start.`,
+    scanInvitationQr: $localize`Scan invitation QR`,
+    tryTheCameraAgain: $localize`Try the camera again`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
@@ -181,11 +188,11 @@ export class JoinEventScreen {
     const ctrl = this.form.controls.code;
     const c = normalizeCode(ctrl.value);
     if (!c) {
-      this.codeError.set('Enter the join code.');
+      this.codeError.set($localize`Enter the join code.`);
       return;
     }
     if (!JOIN_CODE_PATTERN.test(c)) {
-      this.codeError.set('Codes are 6–10 letters and numbers.');
+      this.codeError.set($localize`Codes are 6–10 letters and numbers.`);
       return;
     }
     void this.lookup(c);
@@ -201,7 +208,7 @@ export class JoinEventScreen {
       await this.router.navigate(['/events', eventId], { queryParams: { code } });
     } catch (err) {
       const e = ApiError.from(err);
-      this.codeError.set(e.fields['code'] ?? (e.status === 404 ? 'No event uses this code. Check it with your Game Master.' : e.message));
+      this.codeError.set(e.fields['code'] ?? (e.status === 404 ? $localize`No event uses this code. Check it with your Game Master.` : e.message));
     } finally {
       this.searching.set(false);
     }
@@ -246,10 +253,10 @@ export class JoinEventScreen {
         this.scanState.set('no-camera');
       } else if (name === 'NotReadableError') {
         this.scanState.set('error');
-        this.scanError.set('The camera is in use by another app. Close it and try again.');
+        this.scanError.set($localize`The camera is in use by another app. Close it and try again.`);
       } else {
         this.scanState.set('error');
-        this.scanError.set('The camera could not start. Type the code instead.');
+        this.scanError.set($localize`The camera could not start. Type the code instead.`);
       }
     }
   }
@@ -270,7 +277,7 @@ export class JoinEventScreen {
     if (this.searching()) return;
     const code = codeFromQr(text);
     if (!code) {
-      this.scanHint.set('This QR code is not an AirsoftHub invitation.');
+      this.scanHint.set($localize`This QR code is not an AirsoftHub invitation.`);
       return;
     }
     this.scanHint.set(null);

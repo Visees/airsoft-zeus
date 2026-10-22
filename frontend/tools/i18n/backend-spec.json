@@ -1,0 +1,15 @@
+{
+  "config.ts": { "skip": "all" },
+  "db.ts": { "skip": "all" },
+  "index.ts": { "skip": "all" },
+  "logger.ts": { "skip": "all" },
+  "migrate.ts": { "skip": "all" },
+  "push.ts": { "skip": "all" },
+  "mail.ts": { "skip": "all" },
+  "lib/ids.ts": { "skip": "all" },
+  "auth/password.ts": { "skip": "all" },
+  "auth/tokens.ts": { "skip": "all" },
+  "seed/seed.ts": { "skip": "all" },
+  "i18n/index.ts": { "skip": "all" },
+  "i18n/it.ts": { "skip": "all" }
+}

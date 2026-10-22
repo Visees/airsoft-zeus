@@ -30,7 +30,7 @@ import { CaptureFeedback } from './capture-feedback';
 import { LiveSession } from './live-session';
 import { bearingLabel, distanceFrom, isFuture, liveLink, remaining } from './live-util';
 
-const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR', geofence: 'Zone', gm: 'Game Master' };
+const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $localize`QR`, geofence: $localize`Zone`, gm: $localize`Game Master` };
 
 /** One objective: state, conditions, capture controls (code / QR / zone) and capture history. */
 @Component({
@@ -54,7 +54,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
   template: `
     <div class="mx-auto flex max-w-3xl flex-col gap-4 px-4 pt-2 pb-8">
       <a [routerLink]="listLink()" class="tap -ml-2 inline-flex items-center gap-1 self-start px-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
-        <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> Objectives
+        <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" /> <ng-container i18n>Objectives</ng-container>
       </a>
 
       @if (objective(); as o) {
@@ -64,21 +64,21 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
             <zeus-status-chip [spec]="chip()" />
             <span class="label-caps">{{ typeLabel() }}</span>
             @if (jamLeft()) {
-              <zeus-status-chip label="Jammed" glyph="⌁" tone="danger" />
+              <zeus-status-chip label="Jammed" glyph="⌁" tone="danger" i18n-label />
             }
             @if (shieldLeft()) {
-              <zeus-status-chip label="Shielded" glyph="⛉" tone="nav" />
+              <zeus-status-chip label="Shielded" glyph="⛉" tone="nav" i18n-label />
             }
           </div>
           <h2 class="text-3xl uppercase">{{ o.name }}</h2>
           <p class="flex flex-wrap items-center gap-2 text-sm">
             @if (owner(); as t) {
-              <span class="label-caps">Held by</span> <zeus-team-badge [team]="t" />
+              <span class="label-caps" i18n>Held by</span> <zeus-team-badge [team]="t" />
               @if (o.ownerTeamId === myTeamId()) {
-                <span class="font-semibold text-primary">(your team)</span>
+                <span class="font-semibold text-primary" i18n>(your team)</span>
               }
             } @else {
-              <span class="text-muted-foreground">Not held by any team</span>
+              <span class="text-muted-foreground" i18n>Not held by any team</span>
             }
           </p>
         </header>
@@ -89,51 +89,51 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
             <ng-icon name="lucideNavigation2" size="28" class="shrink-0 text-nav" aria-hidden="true" [style.transform]="'rotate(' + d.deg + 'deg)'" />
             <div class="min-w-0 flex-1">
               <p class="num text-2xl font-bold text-nav">{{ distanceLabel() }}</p>
-              <p class="num text-sm font-semibold">{{ d.point }} · {{ d.deg }}° from you</p>
+              <p class="num text-sm font-semibold" i18n>{{ d.point }} · {{ d.deg }}° from you</p>
             </div>
           } @else {
             <ng-icon name="lucideLocateOff" size="24" class="shrink-0 text-muted-foreground" aria-hidden="true" />
-            <p class="flex-1 text-sm text-muted-foreground">No GPS fix yet — distance and direction appear when your position is known.</p>
+            <p class="flex-1 text-sm text-muted-foreground" i18n>No GPS fix yet — distance and direction appear when your position is known.</p>
           }
           <a hlmBtn variant="outline" class="h-12 shrink-0" [routerLink]="mapLink()" [queryParams]="{ focus: o.id }">
-            <ng-icon name="lucideMap" size="18" aria-hidden="true" /> Map
+            <ng-icon name="lucideMap" size="18" aria-hidden="true" /> <ng-container i18n>Map</ng-container>
           </a>
         </div>
 
         <!-- Rewards -->
         <section class="panel p-3" aria-labelledby="rewards-title">
-          <h3 id="rewards-title" class="label-caps">Rewards</h3>
+          <h3 id="rewards-title" class="label-caps" i18n>Rewards</h3>
           <dl class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div>
-              <dt class="text-xs text-muted-foreground">Points</dt>
+              <dt class="text-xs text-muted-foreground" i18n>Points</dt>
               <dd class="num text-2xl font-bold text-primary">+{{ fmt(rewards().points) }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-muted-foreground">Credits</dt>
+              <dt class="text-xs text-muted-foreground" i18n>Credits</dt>
               <dd class="num text-2xl font-bold text-warning">+{{ fmt(rewards().currency) }}</dd>
             </div>
             @if (o.rewards.recurringPointsPerMinute || o.rewards.recurringCurrencyPerMinute) {
               <div class="col-span-2">
-                <dt class="text-xs text-muted-foreground">While held, per minute</dt>
-                <dd class="num text-lg font-bold">
+                <dt class="text-xs text-muted-foreground" i18n>While held, per minute</dt>
+                <dd class="num text-lg font-bold" i18n>
                   +{{ o.rewards.recurringPointsPerMinute }} pts · +{{ o.rewards.recurringCurrencyPerMinute }} cr
                 </dd>
               </div>
             }
           </dl>
           @if (rewards().custom) {
-            <p class="mt-2 text-xs text-muted-foreground">Rewards shown are the ones for your team.</p>
+            <p class="mt-2 text-xs text-muted-foreground" i18n>Rewards shown are the ones for your team.</p>
           }
           @if (o.rewards.captureBonus || o.rewards.defenseBonus || o.rewards.completionBonus) {
             <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               @if (o.rewards.captureBonus) {
-                <li>First capture <span class="num font-semibold">+{{ o.rewards.captureBonus }}</span></li>
+                <li i18n>First capture <span class="num font-semibold">+{{ o.rewards.captureBonus }}</span></li>
               }
               @if (o.rewards.defenseBonus) {
-                <li>Defense <span class="num font-semibold">+{{ o.rewards.defenseBonus }}</span></li>
+                <li i18n>Defense <span class="num font-semibold">+{{ o.rewards.defenseBonus }}</span></li>
               }
               @if (o.rewards.completionBonus) {
-                <li>Completion <span class="num font-semibold">+{{ o.rewards.completionBonus }}</span></li>
+                <li i18n>Completion <span class="num font-semibold">+{{ o.rewards.completionBonus }}</span></li>
               }
             </ul>
           }
@@ -141,11 +141,11 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
 
         <!-- Conditions -->
         @if (conditions().length || contested()) {
-          <section class="flex flex-col gap-2" aria-label="Conditions">
+          <section class="flex flex-col gap-2" aria-label="Conditions" i18n-aria-label>
             @if (contested()) {
               <div class="rounded-md border-2 border-destructive bg-destructive/10 p-3" role="status">
-                <p class="font-bold text-destructive">▲ Contested</p>
-                <p class="text-sm">Enemy players are in the zone. Clear it to continue the capture.</p>
+                <p class="font-bold text-destructive" i18n>▲ Contested</p>
+                <p class="text-sm" i18n>Enemy players are in the zone. Clear it to continue the capture.</p>
               </div>
             }
             @if (conditions().length) {
@@ -166,24 +166,24 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
 
         <!-- Capture -->
         <section class="flex flex-col gap-3" aria-labelledby="capture-title">
-          <h3 id="capture-title" class="label-caps">Capture</h3>
+          <h3 id="capture-title" class="label-caps" i18n>Capture</h3>
 
           @if (block(); as reason) {
             <div class="panel flex items-start gap-2 border-warning/60 p-3" role="status">
               <ng-icon name="lucideLock" size="18" class="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-              <p class="text-sm"><span class="font-bold">Cannot capture now.</span> {{ blockLabel(reason) }}</p>
+              <p class="text-sm"><span class="font-bold" i18n>Cannot capture now.</span> {{ blockLabel(reason) }}</p>
             </div>
           }
 
           @if (o.requireGeofence) {
             <div class="panel p-3 text-sm" [class.border-primary]="geo()?.armed">
               @if (geo()?.armed) {
-                <p class="font-bold text-primary">✓ Zone held — the code or QR is accepted now</p>
+                <p class="font-bold text-primary" i18n>✓ Zone held — the code or QR is accepted now</p>
               } @else {
-                <p class="font-bold">Hold the zone first</p>
-                <p class="text-muted-foreground">
+                <p class="font-bold" i18n>Hold the zone first</p>
+                <p class="text-muted-foreground" i18n>
                   Your team must be inside the zone (radius <span class="num">{{ o.geofence.radiusM }}</span> m) before the
-                  {{ hasCode() && hasQr() ? 'code or QR' : hasQr() ? 'QR' : 'code' }} is accepted.
+                  {{ hasCode() && hasQr() ? txt.codeOrQr : hasQr() ? txt.qr : txt.code }} is accepted.
                 </p>
               }
             </div>
@@ -195,65 +195,65 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
                 <zeus-capture-progress [status]="g" [canAccrue]="canAccrue(o)" />
               } @else if (!sharingActive()) {
                 <div class="flex flex-col gap-2 text-sm">
-                  <p class="font-bold">Location sharing is off</p>
-                  <p class="text-muted-foreground">Holding the zone only counts when your position is shared with the game.</p>
+                  <p class="font-bold" i18n>Location sharing is off</p>
+                  <p class="text-muted-foreground" i18n>Holding the zone only counts when your position is shared with the game.</p>
                   <button hlmBtn variant="outline" type="button" class="h-12" (click)="enableSharing()">
-                    <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> Turn on location sharing
+                    <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" /> <ng-container i18n>Turn on location sharing</ng-container>
                   </button>
                 </div>
               } @else if (!fix()) {
                 <p class="flex items-center gap-2 text-sm text-muted-foreground" role="status">
-                  <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Waiting for GPS…
+                  <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Waiting for GPS…</ng-container>
                 </p>
               } @else {
                 <div class="text-sm" role="status">
                   @if (toEdge() !== null && toEdge()! > 0) {
-                    <p class="font-bold">Move closer</p>
-                    <p class="text-muted-foreground">
+                    <p class="font-bold" i18n>Move closer</p>
+                    <p class="text-muted-foreground" i18n>
                       About <span class="num font-semibold text-nav">{{ dist(toEdge()) }}</span> to the edge of the zone.
                     </p>
                   } @else {
                     <p class="flex items-center gap-2 font-bold">
-                      <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Checking your position with the server…
+                      <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Checking your position with the server…</ng-container>
                     </p>
                   }
                 </div>
               }
               @if (accuracyTooLow()) {
-                <p class="mt-2 text-sm font-semibold text-warning">
+                <p class="mt-2 text-sm font-semibold text-warning" i18n>
                   ◐ GPS accuracy ±<span class="num">{{ fixAccuracy() }}</span> m — this zone needs ±<span class="num">{{ o.geofence.maxAccuracyM }}</span> m
                   or better. Move into the open.
                 </p>
               } @else if (fix() && usesZone()) {
                 <p class="mt-2 text-sm text-muted-foreground" [class.text-warning]="roughForZone()">
-                  GPS ±<span class="num">{{ fixAccuracy() }}</span> m
+                  <ng-container i18n>GPS ±<span class="num">{{ fixAccuracy() }}</span></ng-container> m
                   @if (roughForZone()) {
-                    — rough for a <span class="num">{{ o.geofence.radiusM }}</span> m zone. Open sky gives the best fix: step out from under trees or away from walls.
+                    <ng-container i18n>— rough for a <span class="num">{{ o.geofence.radiusM }}</span> m zone. Open sky gives the best fix: step out from under trees or away from walls.</ng-container>
                   }
                 </p>
               }
               @if (tracker.wakeLockUnreliable) {
-                <p class="mt-2 text-sm font-semibold text-warning">
+                <p class="mt-2 text-sm font-semibold text-warning" i18n>
                   ▲ This iPhone can't keep the screen on from the app, and GPS stops when it locks. Set Settings › Display &amp; Brightness › Auto-Lock to Never during the game.
                 </p>
               }
               <p class="mt-2 text-xs text-muted-foreground">
-                Hold for <span class="num">{{ holdLabel() }}</span>.
-                @if (o.geofence.resetOnExit) { Leaving the zone resets the progress. }
+                <ng-container i18n>Hold for <span class="num">{{ holdLabel() }}</span></ng-container>.
+                @if (o.geofence.resetOnExit) { <ng-container i18n>Leaving the zone resets the progress.</ng-container> }
                 @if (o.geofence.contestable && o.geofence.contestRule === 'majority') {
-                  If several teams are inside, the one with the most players keeps capturing.
+                  <ng-container i18n>If several teams are inside, the one with the most players keeps capturing.</ng-container>
                 } @else if (o.geofence.contestable) {
-                  Enemies inside stop the capture.
+                  <ng-container i18n>Enemies inside stop the capture.</ng-container>
                 }
-                @if (o.geofence.multiPlayerBoost) { More teammates inside make it faster. }
-                @if (o.geofence.requireScreenOpen) { Keep this screen open while you hold it. }
+                @if (o.geofence.multiPlayerBoost) { <ng-container i18n>More teammates inside make it faster.</ng-container> }
+                @if (o.geofence.requireScreenOpen) { <ng-container i18n>Keep this screen open while you hold it.</ng-container> }
               </p>
             </div>
           }
 
           @if (hasCode()) {
             <form [formGroup]="form" (ngSubmit)="submitCode()" class="panel flex flex-col gap-2 p-4" novalidate>
-              <label hlmLabel for="capture-code" class="font-semibold">Capture code</label>
+              <label hlmLabel for="capture-code" class="font-semibold" i18n>Capture code</label>
               <input
                 hlmInput
                 id="capture-code"
@@ -272,13 +272,13 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
               @if (codeError()) {
                 <p id="capture-code-error" class="field-error">{{ codeError() }}</p>
               } @else {
-                <p id="capture-code-hint" class="text-xs text-muted-foreground">The code is written on the objective. Capitals, spaces and dashes do not matter.</p>
+                <p id="capture-code-hint" class="text-xs text-muted-foreground" i18n>The code is written on the objective. Capitals, spaces and dashes do not matter.</p>
               }
               <button hlmBtn type="submit" class="h-14 text-base font-bold" [disabled]="attempt.state() === 'pending' || !!block()">
                 @if (attempt.state() === 'pending' && attempt.objectiveId() === o.id) {
-                  <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Checking…
+                  <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Checking…</ng-container>
                 } @else {
-                  <ng-icon name="lucideKeyRound" size="18" aria-hidden="true" /> Capture objective
+                  <ng-icon name="lucideKeyRound" size="18" aria-hidden="true" /> <ng-container i18n>Capture objective</ng-container>
                 }
               </button>
             </form>
@@ -296,7 +296,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
               [routerLink]="scanLink()"
               [queryParams]="{ objective: o.id }"
             >
-              <ng-icon name="lucideScanQrCode" size="20" aria-hidden="true" /> Scan the QR code
+              <ng-icon name="lucideScanQrCode" size="20" aria-hidden="true" /> <ng-container i18n>Scan the QR code</ng-container>
             </a>
           }
 
@@ -306,22 +306,22 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
         <!-- Briefing -->
         @if (o.description || o.instructions || o.imageUrl || o.documentUrl) {
           <section class="panel flex flex-col gap-3 p-4" aria-labelledby="brief-title">
-            <h3 id="brief-title" class="label-caps">Briefing</h3>
+            <h3 id="brief-title" class="label-caps" i18n>Briefing</h3>
             @if (o.description) {
               <p class="whitespace-pre-line">{{ o.description }}</p>
             }
             @if (o.instructions) {
               <div>
-                <p class="label-caps">Instructions</p>
+                <p class="label-caps" i18n>Instructions</p>
                 <p class="mt-1 whitespace-pre-line">{{ o.instructions }}</p>
               </div>
             }
             @if (o.imageUrl) {
-              <img [src]="o.imageUrl" [alt]="'Photo of ' + o.name" class="max-h-72 w-full rounded-sm object-cover" loading="lazy" />
+              <img [src]="o.imageUrl" alt="Photo of {{ o.name }}" i18n-alt class="max-h-72 w-full rounded-sm object-cover" loading="lazy" />
             }
             @if (o.documentUrl) {
               <a hlmBtn variant="outline" class="h-12 self-start" [href]="o.documentUrl" target="_blank" rel="noopener">
-                <ng-icon name="lucideFileText" size="18" aria-hidden="true" /> Open briefing document
+                <ng-icon name="lucideFileText" size="18" aria-hidden="true" /> <ng-container i18n>Open briefing document</ng-container>
                 <ng-icon name="lucideExternalLink" size="14" aria-hidden="true" />
               </a>
             }
@@ -331,7 +331,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
         <!-- History -->
         <section class="flex flex-col gap-2" aria-labelledby="history-title">
           <h3 id="history-title" class="label-caps">
-            Capture history
+            <ng-container i18n>Capture history</ng-container>
             @if (captures().length) {
               · <span class="num">{{ captures().length }}</span>
             }
@@ -339,9 +339,9 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
           @if (detailLoading() && !captures().length) {
             <zeus-loading-skeleton [rows]="2" />
           } @else if (detailError() && !captures().length) {
-            <zeus-error-state [error]="detailError()" title="Could not load the history" (retry)="loadDetail()" />
+            <zeus-error-state [error]="detailError()" title="Could not load the history" (retry)="loadDetail()" i18n-title />
           } @else if (!captures().length) {
-            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Not captured yet.</p>
+            <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>Not captured yet.</p>
           } @else {
             <ol class="panel flex flex-col divide-y divide-border">
               @for (c of captures(); track c.id) {
@@ -350,12 +350,12 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
                   <span class="min-w-0 flex-1">
                     <span class="flex flex-wrap items-center gap-x-2">
                       <zeus-team-badge [team]="teamOf(c.teamId)" size="sm" [showIcon]="false" />
-                      <span [class.line-through]="c.revoked">{{ c.nickname || 'Game Master' }}</span>
+                      <span [class.line-through]="c.revoked">{{ c.nickname || txt.gameMaster }}</span>
                     </span>
                     <span class="text-xs text-muted-foreground">
                       {{ methodLabel(c.method) }}
                       @if (c.revoked) {
-                        · ✕ Revoked by the Game Master
+                        <ng-container i18n>· ✕ Revoked by the Game Master</ng-container>
                       }
                     </span>
                   </span>
@@ -372,15 +372,23 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: 'QR
           [error]="detailError()"
           title="Objective not available"
           [showRetry]="!!detailError()"
-          (retry)="loadDetail()"
+          (retry)="loadDetail()" i18n-title
         >
-          <a hlmBtn variant="outline" class="tap" [routerLink]="listLink()">All objectives</a>
+          <a hlmBtn variant="outline" class="tap" [routerLink]="listLink()" i18n>All objectives</a>
         </zeus-error-state>
       }
     </div>
   `,
 })
 export class ObjectiveDetailsScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    codeOrQr: $localize`code or QR`,
+    qr: $localize`QR`,
+    code: $localize`code`,
+    gameMaster: $localize`Game Master`,
+  };
+
   readonly objectiveId = input.required<string>();
 
   protected readonly store = inject(LiveStore);
@@ -505,33 +513,33 @@ export class ObjectiveDetailsScreen {
     const now = this.serverNow();
     const list: { icon: string; text: string; time: string | null; tone: string }[] = [];
     if (o.availabilityStart && isFuture(o.availabilityStart, now)) {
-      list.push({ icon: 'lucideClock', text: `Opens at ${formatTime(o.availabilityStart)}`, time: remaining(o.availabilityStart, now), tone: 'text-warning' });
+      list.push({ icon: 'lucideClock', text: $localize`Opens at ${formatTime(o.availabilityStart)}:availabilityStart:`, time: remaining(o.availabilityStart, now), tone: 'text-warning' });
     }
     if (o.availabilityEnd) {
       const open = isFuture(o.availabilityEnd, now);
       list.push({
         icon: 'lucideHourglass',
-        text: open ? `Closes at ${formatTime(o.availabilityEnd)}` : `Closed at ${formatTime(o.availabilityEnd)}`,
+        text: open ? $localize`Closes at ${formatTime(o.availabilityEnd)}:availabilityEnd:` : $localize`Closed at ${formatTime(o.availabilityEnd)}:availabilityEnd:`,
         time: open ? remaining(o.availabilityEnd, now) : null,
         tone: open ? 'text-warning' : 'text-muted-foreground',
       });
     }
     const cd = remaining(o.cooldownUntil, now);
-    if (cd) list.push({ icon: 'lucideTimer', text: 'Cooling down — capturable again in', time: cd, tone: 'text-warning' });
+    if (cd) list.push({ icon: 'lucideTimer', text: $localize`Cooling down — capturable again in`, time: cd, tone: 'text-warning' });
     const jam = this.jamLeft();
-    if (jam) list.push({ icon: 'lucideAntenna', text: 'Jammed for your team by an enemy perk', time: jam, tone: 'text-destructive' });
+    if (jam) list.push({ icon: 'lucideAntenna', text: $localize`Jammed for your team by an enemy perk`, time: jam, tone: 'text-destructive' });
     const shield = this.shieldLeft();
     if (shield) {
       const by = o.shieldedTeamId ? this.store.teamById().get(o.shieldedTeamId)?.name : null;
-      list.push({ icon: 'lucideShieldCheck', text: by ? `Shielded by ${by}` : 'Shielded', time: shield, tone: 'text-nav' });
+      list.push({ icon: 'lucideShieldCheck', text: by ? $localize`Shielded by ${by}:by:` : $localize`Shielded`, time: shield, tone: 'text-nav' });
     }
     if (o.maxCaptures > 0) {
-      list.push({ icon: 'lucideFlag', text: `Captured ${o.captureCount} of ${o.maxCaptures} allowed times`, time: null, tone: 'text-muted-foreground' });
+      list.push({ icon: 'lucideFlag', text: $localize`Captured ${o.captureCount}:captureCount: of ${o.maxCaptures}:maxCaptures: allowed times`, time: null, tone: 'text-muted-foreground' });
     }
     if (o.lastCapturedAt) {
       list.push({
         icon: 'lucideHistory',
-        text: `Last captured at ${formatTime(o.lastCapturedAt)}${o.lastCapturedByNickname ? ' by ' + o.lastCapturedByNickname : ''}`,
+        text: o.lastCapturedByNickname ? $localize`Last captured at ${formatTime(o.lastCapturedAt)}:time: by ${o.lastCapturedByNickname}:nickname:` : $localize`Last captured at ${formatTime(o.lastCapturedAt)}:time:`,
         time: null,
         tone: 'text-muted-foreground',
       });
@@ -541,7 +549,7 @@ export class ObjectiveDetailsScreen {
 
   protected readonly codeError = computed(() => {
     if (!this.submitted()) return null;
-    return this.codeValue().trim() ? null : 'Enter the code written on the objective.';
+    return this.codeValue().trim() ? null : $localize`Enter the code written on the objective.`;
   });
 
   constructor() {

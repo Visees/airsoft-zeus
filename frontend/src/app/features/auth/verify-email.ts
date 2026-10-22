@@ -28,86 +28,86 @@ type State = 'starting' | 'verifying' | 'verified' | 'failed' | 'inbox' | 'alrea
         @case ('starting') {
           <div class="flex flex-col items-center gap-3 py-10" role="status">
             <ng-icon name="lucideLoader2" size="28" class="animate-spin text-muted-foreground" aria-hidden="true" />
-            <span class="text-sm text-muted-foreground">Loading…</span>
+            <span class="text-sm text-muted-foreground" i18n>Loading…</span>
           </div>
         }
         @case ('verifying') {
           <div class="flex flex-col items-center gap-3 py-10" role="status">
             <ng-icon name="lucideLoader2" size="28" class="animate-spin text-muted-foreground" aria-hidden="true" />
-            <span class="text-sm text-muted-foreground">Verifying your email…</span>
+            <span class="text-sm text-muted-foreground" i18n>Verifying your email…</span>
           </div>
         }
         @case ('verified') {
           <div class="flex flex-col items-start gap-3" role="status">
             <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true"><ng-icon name="lucideCircleCheck" size="24" /></span>
-            <h1 class="text-3xl uppercase">Email verified</h1>
+            <h1 class="text-3xl uppercase" i18n>Email verified</h1>
             <p class="text-muted-foreground">
               @if (auth.isLoggedIn()) {
-                Your account is ready. Next, choose which permissions to give the app for live games.
+                <ng-container i18n>Your account is ready. Next, choose which permissions to give the app for live games.</ng-container>
               } @else {
-                Your account is ready. Log in to continue.
+                <ng-container i18n>Your account is ready. Log in to continue.</ng-container>
               }
             </p>
             <button hlmBtn type="button" class="mt-2 h-12 w-full text-base" (click)="continue()">
-              {{ auth.isLoggedIn() ? 'Continue' : 'Log in' }}
+              {{ auth.isLoggedIn() ? txt.continue : txt.logIn }}
             </button>
           </div>
         }
         @case ('already') {
           <div class="flex flex-col items-start gap-3" role="status">
             <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true"><ng-icon name="lucideCircleCheck" size="24" /></span>
-            <h1 class="text-3xl uppercase">Already verified</h1>
-            <p class="text-muted-foreground">Your email address <span class="font-semibold text-foreground">{{ email() }}</span> is verified.</p>
-            <button hlmBtn type="button" class="mt-2 h-12 w-full text-base" (click)="continue()">Continue</button>
+            <h1 class="text-3xl uppercase" i18n>Already verified</h1>
+            <p class="text-muted-foreground" i18n>Your email address <span class="font-semibold text-foreground">{{ email() }}</span> is verified.</p>
+            <button hlmBtn type="button" class="mt-2 h-12 w-full text-base" (click)="continue()" i18n>Continue</button>
           </div>
         }
         @case ('failed') {
           <div class="flex flex-col items-start gap-3" role="alert">
             <span class="grid size-12 place-items-center rounded-md bg-warning-surface text-warning" aria-hidden="true"><ng-icon name="lucideHourglass" size="24" /></span>
-            <h1 class="text-3xl uppercase">Link not valid</h1>
+            <h1 class="text-3xl uppercase" i18n>Link not valid</h1>
             <p class="text-muted-foreground">{{ failMessage() }}</p>
             @if (auth.isLoggedIn()) {
               <button hlmBtn type="button" class="mt-2 h-12 w-full text-base" [disabled]="resending() || cooldownLeft() > 0" (click)="resend()">
                 {{ resendLabel() }}
               </button>
-              <button hlmBtn type="button" variant="ghost" class="h-11 w-full" (click)="state.set('inbox')">Back</button>
+              <button hlmBtn type="button" variant="ghost" class="h-11 w-full" (click)="state.set('inbox')" i18n>Back</button>
             } @else {
-              <a hlmBtn routerLink="/auth/login" [queryParams]="{ next: '/auth/verify-email' }" class="mt-2 h-12 w-full text-base">Log in to get a new link</a>
+              <a hlmBtn routerLink="/auth/login" [queryParams]="{ next: '/auth/verify-email' }" class="mt-2 h-12 w-full text-base" i18n>Log in to get a new link</a>
             }
           </div>
         }
         @case ('signed-out') {
           <div class="flex flex-col items-start gap-3">
             <span class="grid size-12 place-items-center rounded-md bg-muted text-muted-foreground" aria-hidden="true"><ng-icon name="lucideMail" size="24" /></span>
-            <h1 class="text-3xl uppercase">Verify your email</h1>
-            <p class="text-muted-foreground">Open the link in the email we sent when you signed up. To get a new link, log in first.</p>
-            <a hlmBtn routerLink="/auth/login" class="mt-2 h-12 w-full text-base">Log in</a>
+            <h1 class="text-3xl uppercase" i18n>Verify your email</h1>
+            <p class="text-muted-foreground" i18n>Open the link in the email we sent when you signed up. To get a new link, log in first.</p>
+            <a hlmBtn routerLink="/auth/login" class="mt-2 h-12 w-full text-base" i18n>Log in</a>
           </div>
         }
         @default {
           <!-- inbox -->
           <div class="flex flex-col items-start gap-3">
             <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true"><ng-icon name="lucideMail" size="24" /></span>
-            <h1 class="text-3xl uppercase">Check your inbox</h1>
-            <p class="text-muted-foreground">
+            <h1 class="text-3xl uppercase" i18n>Check your inbox</h1>
+            <p class="text-muted-foreground" i18n>
               We sent a verification link to <span class="font-semibold break-all text-foreground">{{ email() }}</span>.
               Open it on this device to activate your account.
             </p>
             <ul class="flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
-              <li>Look in spam or promotions if it has not arrived within a few minutes.</li>
-              <li>Only the newest link works if you ask for another one.</li>
+              <li i18n>Look in spam or promotions if it has not arrived within a few minutes.</li>
+              <li i18n>Only the newest link works if you ask for another one.</li>
             </ul>
             @if (notice()) {
               <p class="w-full rounded-md border border-border bg-muted p-3 text-sm" role="status">{{ notice() }}</p>
             }
             <div class="mt-2 flex w-full flex-col gap-2">
               <button hlmBtn type="button" class="h-12 text-base" [disabled]="checking()" (click)="checkVerified()">
-                {{ checking() ? 'Checking…' : "I've verified it" }}
+                {{ checking() ? txt.checking : txt.iVeVerifiedIt }}
               </button>
               <button hlmBtn type="button" variant="outline" class="h-11" [disabled]="resending() || cooldownLeft() > 0" (click)="resend()">
                 <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> {{ resendLabel() }}
               </button>
-              <button hlmBtn type="button" variant="ghost" class="h-11" (click)="auth.logout()">Use another account</button>
+              <button hlmBtn type="button" variant="ghost" class="h-11" (click)="auth.logout()" i18n>Use another account</button>
             </div>
           </div>
         }
@@ -116,6 +116,14 @@ type State = 'starting' | 'verifying' | 'verified' | 'failed' | 'inbox' | 'alrea
   `,
 })
 export class VerifyEmailScreen implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    continue: $localize`Continue`,
+    logIn: $localize`Log in`,
+    checking: $localize`Checking…`,
+    iVeVerifiedIt: $localize`I've verified it`,
+  };
+
   protected readonly auth = inject(AuthService);
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
@@ -124,7 +132,7 @@ export class VerifyEmailScreen implements OnInit {
   readonly token = input<string | undefined>();
 
   protected readonly state = signal<State>('starting');
-  protected readonly failMessage = signal('This verification link has expired or was already used.');
+  protected readonly failMessage = signal($localize`This verification link has expired or was already used.`);
   protected readonly notice = signal<string | null>(null);
   protected readonly checking = signal(false);
   protected readonly resending = signal(false);
@@ -137,9 +145,9 @@ export class VerifyEmailScreen implements OnInit {
     return at ? Math.max(0, Math.ceil((at + RESEND_COOLDOWN_MS - this.now()) / 1000)) : 0;
   });
   protected readonly resendLabel = computed(() => {
-    if (this.resending()) return 'Sending…';
+    if (this.resending()) return $localize`Sending…`;
     const left = this.cooldownLeft();
-    return left > 0 ? `Resend email in ${left}s` : 'Resend email';
+    return left > 0 ? $localize`Resend email in ${left}:left:s` : $localize`Resend email`;
   });
 
   async ngOnInit(): Promise<void> {
@@ -168,7 +176,7 @@ export class VerifyEmailScreen implements OnInit {
     } catch (e) {
       const err = ApiError.from(e);
       if (err.isNetwork || err.status >= 500) {
-        this.failMessage.set(`${err.message} Open the link again when you have signal.`);
+        this.failMessage.set($localize`${err.message}:message: Open the link again when you have signal.`);
       } else {
         // Already verified (e.g. the link was opened twice) is a success for the user.
         if (this.auth.isLoggedIn()) {
@@ -178,7 +186,7 @@ export class VerifyEmailScreen implements OnInit {
             return;
           }
         }
-        this.failMessage.set(err.fields['token'] ?? 'This verification link has expired or was already used.');
+        this.failMessage.set(err.fields['token'] ?? $localize`This verification link has expired or was already used.`);
       }
       this.state.set('failed');
     }
@@ -195,10 +203,10 @@ export class VerifyEmailScreen implements OnInit {
     try {
       const user = await this.auth.reloadUser();
       if (user?.emailVerified) {
-        this.toast.success('Email verified');
+        this.toast.success($localize`Email verified`);
         await this.router.navigateByUrl(postAuthUrl(user));
       } else {
-        this.notice.set('Not verified yet. Open the link in the email, then tap this button again.');
+        this.notice.set($localize`Not verified yet. Open the link in the email, then tap this button again.`);
       }
     } finally {
       this.checking.set(false);
@@ -213,7 +221,7 @@ export class VerifyEmailScreen implements OnInit {
       await this.api.resendVerification();
       this.lastSentAt.set(Date.now());
       this.state.set('inbox');
-      this.notice.set(`New link sent to ${this.email()}.`);
+      this.notice.set($localize`New link sent to ${this.email()}:email:.`);
     } catch (e) {
       const err = ApiError.from(e);
       if (err.status === 429) this.lastSentAt.set(Date.now());

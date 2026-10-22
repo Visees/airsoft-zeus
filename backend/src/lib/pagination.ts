@@ -1,5 +1,6 @@
 import type { Row } from '../db.js';
 import { badRequest } from '../errors.js';
+import { tr } from '../i18n/index.js';
 
 /** Keyset cursor over (created_at, id), encoded as base64url JSON. */
 export interface Cursor {
@@ -19,7 +20,7 @@ export function decodeCursor(raw: unknown): Cursor | null {
     if (typeof c.at !== 'string' || typeof c.id !== 'string' || isNaN(Date.parse(c.at))) throw new Error();
     return c;
   } catch {
-    throw badRequest('Invalid cursor.', 'invalid_cursor');
+    throw badRequest(tr`Invalid cursor.`, 'invalid_cursor');
   }
 }
 

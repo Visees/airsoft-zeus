@@ -1,11 +1,12 @@
 import { Capture, EventResults, TeamResult } from '../../core/api/models';
+import { activeLanguage } from '../../core/i18n/language';
 import { formatClock } from '../../core/util/format';
 
 export const CAPTURE_METHOD_LABELS: Record<Capture['method'], string> = {
-  code: 'Code',
-  qr: 'QR scan',
-  geofence: 'Zone hold',
-  gm: 'Game Master',
+  code: $localize`Code`,
+  qr: $localize`QR scan`,
+  geofence: $localize`Zone hold`,
+  gm: $localize`Game Master`,
 };
 
 export function teamsById(r: EventResults): Map<string, TeamResult> {
@@ -47,6 +48,7 @@ export function leaders(r: EventResults): TeamResult[] {
 }
 
 export function ordinal(n: number): string {
+  if (activeLanguage() === 'it') return `${n}°`;
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);

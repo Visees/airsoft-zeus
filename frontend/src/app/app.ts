@@ -18,10 +18,10 @@ import { ConfirmHost } from './shared/confirm-host';
     <router-outlet />
     @if (showSplash()) {
       <!-- Splash: shown while the session is restored -->
-      <div class="fixed inset-0 z-50 grid place-items-center bg-background" role="status" aria-label="Starting AirsoftHub">
+      <div class="fixed inset-0 z-50 grid place-items-center bg-background" role="status" aria-label="Starting AirsoftHub" i18n-aria-label>
         <div class="flex flex-col items-center gap-4">
           <span class="grid size-14 place-items-center rounded-md bg-primary font-mono text-2xl font-bold text-primary-foreground" aria-hidden="true">AH</span>
-          <span class="label-caps">AirsoftHub · connecting</span>
+          <span class="label-caps" i18n>AirsoftHub · connecting</span>
           <span class="h-0.5 w-32 overflow-hidden bg-muted"><span class="block h-full w-1/3 animate-pulse bg-primary"></span></span>
         </div>
       </div>

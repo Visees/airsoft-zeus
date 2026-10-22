@@ -16,6 +16,7 @@ import {
   formatTime,
   initials,
 } from '../core/util/format';
+import { activeLocale } from '../core/i18n/language';
 import { CaptureBar, showCaptureBar, zoneCanAccrue } from './capture-bar';
 import { CurrencyDisplay } from './currency-display';
 import { SquadBadge } from './squad-badge';
@@ -53,19 +54,19 @@ import { TeamBadge } from './team-badge';
         <div class="flex flex-wrap items-center gap-1.5">
           <zeus-status-chip [spec]="statusChip()" />
           @if (e.visibility === 'private') {
-            <span class="inline-flex items-center gap-1 text-xs text-muted-foreground"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> Private</span>
+            <span class="inline-flex items-center gap-1 text-xs text-muted-foreground"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> <ng-container i18n>Private</ng-container></span>
           }
           @if (e.isGm) {
-            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">Game Master</span>
+            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary" i18n>Game Master</span>
           } @else if (e.myStatus === 'pending') {
-            <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning">◐ Awaiting approval</span>
+            <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning" i18n>◐ Awaiting approval</span>
           } @else if (e.myStatus === 'invited') {
-            <span class="rounded-sm bg-nav/15 px-1.5 py-0.5 text-xs font-semibold text-nav">✉ Invited</span>
+            <span class="rounded-sm bg-nav/15 px-1.5 py-0.5 text-xs font-semibold text-nav" i18n>✉ Invited</span>
           } @else if (e.myStatus === 'approved') {
-            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">✓ Joined</span>
+            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary" i18n>✓ Joined</span>
           }
           @if (e.isTestData) {
-            <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs text-muted-foreground">Test data</span>
+            <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs text-muted-foreground" i18n>Test data</span>
           }
         </div>
         <h3 class="truncate text-base font-bold uppercase group-hover:text-primary">{{ e.name }}</h3>
@@ -78,9 +79,9 @@ import { TeamBadge } from './team-badge';
         </p>
         <div class="mt-auto flex items-center gap-3 text-xs text-muted-foreground">
           <span class="inline-flex items-center gap-1"><ng-icon name="lucideUsers" size="13" aria-hidden="true" />
-            <span class="num">{{ e.approvedCount }}/{{ e.maxPlayers }}</span> players</span>
+            <ng-container i18n><span class="num">{{ e.approvedCount }}/{{ e.maxPlayers }}</span> players</ng-container></span>
           @if (e.teamCount) {
-            <span class="num">{{ e.teamCount }} teams</span>
+            <span class="num" i18n>{{ e.teamCount }} teams</span>
           }
         </div>
       </div>
@@ -94,7 +95,7 @@ export class EventCard {
   protected readonly statusChip = computed(() => eventStatusChip(this.event().status));
   protected readonly modeLabel = computed(() => this.event().customModeName || GAME_MODE_LABELS[this.event().gameMode]);
   protected readonly dayLabel = computed(() =>
-    new Intl.DateTimeFormat(undefined, { day: '2-digit', month: 'short' }).format(new Date(this.event().startAt)).toUpperCase(),
+    new Intl.DateTimeFormat(activeLocale(), { day: '2-digit', month: 'short' }).format(new Date(this.event().startAt)).toUpperCase(),
   );
   protected readonly timeLabel = computed(() => `${formatTime(this.event().startAt)}–${formatTime(this.event().endAt)}`);
   protected readonly dateLabel = computed(() => formatDate(this.event().startAt));
@@ -123,10 +124,10 @@ export class EventCard {
       <div class="flex items-center gap-2">
         <span class="truncate font-semibold">{{ m.nickname }}</span>
         @if (m.role === 'gm') {
-          <span class="rounded-sm bg-primary/15 px-1 text-xs font-semibold text-primary">GM</span>
+          <span class="rounded-sm bg-primary/15 px-1 text-xs font-semibold text-primary" i18n>GM</span>
         }
         @if (isSelf()) {
-          <span class="text-xs text-muted-foreground">(you)</span>
+          <span class="text-xs text-muted-foreground" i18n>(you)</span>
         }
       </div>
       <div class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -136,13 +137,21 @@ export class EventCard {
         @if (squad()) {
           <zeus-squad-badge [squad]="squad()" [leader]="m.isSquadLeader" />
         } @else if (m.isSquadLeader) {
-          <span class="font-semibold text-primary">Squad leader</span>
+          <span class="font-semibold text-primary" i18n>Squad leader</span>
         }
         @if (m.playerRole) {
           <span>{{ roleLabel(m.playerRole) }}</span>
         }
         @if (showPresence()) {
-          <span>{{ m.online ? 'Online' : m.lastSeenAt ? 'Seen ' + relative(m.lastSeenAt) : 'Offline' }}</span>
+          <span>
+            @if (m.online) {
+              {{ txt.online }}
+            } @else if (m.lastSeenAt) {
+              <ng-container i18n>Seen {{ relative(m.lastSeenAt) }}</ng-container>
+            } @else {
+              {{ txt.offline }}
+            }
+          </span>
         }
         @if (m.gpsAccuracy !== null && showGps()) {
           <span class="num inline-flex items-center gap-0.5"><ng-icon name="lucideLocateFixed" size="11" aria-hidden="true" />±{{ m.gpsAccuracy.toFixed(0) }}m</span>
@@ -153,6 +162,12 @@ export class EventCard {
   `,
 })
 export class PlayerListItem {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    online: $localize`Online`,
+    offline: $localize`Offline`,
+  };
+
   readonly member = input.required<Member>();
   readonly team = input<Team | null | undefined>(null);
   readonly squad = input<Squad | null | undefined>(null);
@@ -173,7 +188,7 @@ export class PlayerListItem {
   template: `
     @let o = objective();
     <article class="panel flex flex-col gap-2 p-3" [class.opacity-70]="o.status === 'disabled' || o.status === 'completed'">
-      <button type="button" class="flex items-start gap-3 text-left" (click)="open.emit(o)" [attr.aria-label]="'Open ' + o.name">
+      <button type="button" class="flex items-start gap-3 text-left" (click)="open.emit(o)" aria-label="Open {{ o.name }}" i18n-aria-label>
         <span class="grid size-11 shrink-0 place-items-center rounded-md border-2" [style.border-color]="o.color" [style.color]="o.color" aria-hidden="true">
           <ng-icon [name]="methodIcon()" size="20" />
         </span>
@@ -181,18 +196,18 @@ export class PlayerListItem {
           <span class="flex flex-wrap items-center gap-1.5">
             <zeus-status-chip [spec]="chip()" />
             @if (o.jammedUntil) {
-              <span class="rounded-sm border border-destructive/50 px-1.5 py-0.5 text-xs font-semibold text-destructive">⌁ Jammed</span>
+              <span class="rounded-sm border border-destructive/50 px-1.5 py-0.5 text-xs font-semibold text-destructive" i18n>⌁ Jammed</span>
             }
             @if (o.shieldedUntil) {
-              <span class="rounded-sm border border-nav/50 px-1.5 py-0.5 text-xs font-semibold text-nav">⛉ Shielded</span>
+              <span class="rounded-sm border border-nav/50 px-1.5 py-0.5 text-xs font-semibold text-nav" i18n>⛉ Shielded</span>
             }
           </span>
           <span class="mt-1 block truncate font-bold uppercase">{{ o.name }}</span>
           <span class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            <span class="num"><span class="text-primary">+{{ fmt(o.rewards.points) }}</span> pts</span>
-            <span class="num"><span class="text-warning">+{{ fmt(o.rewards.currency) }}</span> cr</span>
+            <span class="num" i18n><span class="text-primary">+{{ fmt(o.rewards.points) }}</span> pts</span>
+            <span class="num" i18n><span class="text-warning">+{{ fmt(o.rewards.currency) }}</span> cr</span>
             @if (o.rewards.recurringPointsPerMinute) {
-              <span class="num">+{{ o.rewards.recurringPointsPerMinute }}/min held</span>
+              <span class="num" i18n>+{{ o.rewards.recurringPointsPerMinute }}/min held</span>
             }
             <span class="inline-flex items-center gap-1">{{ methodsLabel() }}</span>
           </span>
@@ -209,14 +224,14 @@ export class PlayerListItem {
       }
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
         @if (owner()) {
-          <span class="inline-flex items-center gap-1.5 text-sm"><span class="label-caps">Held by</span> <zeus-team-badge [team]="owner()" size="sm" [showIcon]="false" /></span>
+          <span class="inline-flex items-center gap-1.5 text-sm"><span class="label-caps" i18n>Held by</span> <zeus-team-badge [team]="owner()" size="sm" [showIcon]="false" /></span>
         } @else if (!o.canCapture && o.blockedReason) {
           <span class="text-xs text-muted-foreground">{{ blockedLabel() }}</span>
         } @else {
-          <span class="text-xs text-muted-foreground">Unclaimed</span>
+          <span class="text-xs text-muted-foreground" i18n>Unclaimed</span>
         }
-        <button hlmBtn size="sm" variant="outline" class="tap" type="button" (click)="navigate.emit(o)" [attr.aria-label]="'Show ' + o.name + ' on map'">
-          <ng-icon name="lucideNavigation" size="16" class="text-nav" aria-hidden="true" /> Map
+        <button hlmBtn size="sm" variant="outline" class="tap" type="button" (click)="navigate.emit(o)" aria-label="Show {{ o.name }} on map" i18n-aria-label>
+          <ng-icon name="lucideNavigation" size="16" class="text-nav" aria-hidden="true" /> <ng-container i18n>Map</ng-container>
         </button>
       </div>
     </article>
@@ -249,22 +264,22 @@ export class ObjectiveCard {
   });
   protected readonly methodsLabel = computed(() =>
     this.objective()
-      .methods.map((m) => (m === 'code' ? 'Code' : m === 'qr' ? 'QR' : 'Hold zone'))
+      .methods.map((m) => (m === 'code' ? $localize`Code` : m === 'qr' ? $localize`QR` : $localize`Hold zone`))
       .join(' / '),
   );
   protected readonly timeLeft = computed(() => {
     const o = this.objective();
     const now = this.now();
     if (o.cooldownUntil && new Date(o.cooldownUntil).getTime() > now) {
-      return `Cooldown ${formatDuration(new Date(o.cooldownUntil).getTime() - now)}`;
+      return $localize`Cooldown ${formatDuration(new Date(o.cooldownUntil).getTime() - now)}:getTime:`;
     }
     if (o.availabilityEnd && o.status !== 'completed') {
       const ms = new Date(o.availabilityEnd).getTime() - now;
-      if (ms > 0) return `Closes in ${formatDuration(ms)}`;
+      if (ms > 0) return $localize`Closes in ${formatDuration(ms)}:ms:`;
     }
     if (o.availabilityStart && o.status === 'inactive') {
       const ms = new Date(o.availabilityStart).getTime() - now;
-      if (ms > 0) return `Opens in ${formatDuration(ms)}`;
+      if (ms > 0) return $localize`Opens in ${formatDuration(ms)}:ms:`;
     }
     return null;
   });
@@ -294,31 +309,37 @@ export class ObjectiveCard {
       <p class="text-sm text-muted-foreground">{{ p.description }}</p>
       <dl class="grid grid-cols-3 gap-2 text-xs">
         <div>
-          <dt class="label-caps">Duration</dt>
-          <dd class="num">{{ p.durationSec ? dur(p.durationSec * 1000) : 'Instant' }}</dd>
+          <dt class="label-caps" i18n>Duration</dt>
+          <dd class="num">{{ p.durationSec ? dur(p.durationSec * 1000) : txt.instant }}</dd>
         </div>
         <div>
-          <dt class="label-caps">Cooldown</dt>
-          <dd class="num">{{ p.cooldownSec ? dur(p.cooldownSec * 1000) : 'None' }}</dd>
+          <dt class="label-caps" i18n>Cooldown</dt>
+          <dd class="num">{{ p.cooldownSec ? dur(p.cooldownSec * 1000) : txt.none }}</dd>
         </div>
         <div>
-          <dt class="label-caps">Left</dt>
+          <dt class="label-caps" i18n>Left</dt>
           <dd class="num">{{ p.remainingQuantity === null ? '∞' : p.remainingQuantity }}</dd>
         </div>
       </dl>
       @if (p.requiresApproval) {
-        <p class="text-xs text-warning">◐ Needs Game Master approval</p>
+        <p class="text-xs text-warning" i18n>◐ Needs Game Master approval</p>
       }
       <div class="mt-auto flex items-center justify-between gap-2">
         <span class="text-xs text-muted-foreground">{{ availabilityLabel() }}</span>
-        <button hlmBtn class="h-11 min-w-28" type="button" [disabled]="!canBuy()" (click)="buy.emit(p)" [attr.aria-label]="'Buy ' + p.name + ' for ' + p.price + ' credits'">
-          <ng-icon name="lucideShoppingCart" size="16" aria-hidden="true" /> Buy
+        <button hlmBtn class="h-11 min-w-28" type="button" [disabled]="!canBuy()" (click)="buy.emit(p)" aria-label="Buy {{ p.name }} for {{ p.price }} credits" i18n-aria-label>
+          <ng-icon name="lucideShoppingCart" size="16" aria-hidden="true" /> <ng-container i18n>Buy</ng-container>
         </button>
       </div>
     </article>
   `,
 })
 export class PerkCard {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    instant: $localize`Instant`,
+    none: $localize`None`,
+  };
+
   readonly perk = input.required<Perk>();
   readonly buy = output<Perk>();
   protected readonly dur = formatDuration;
@@ -327,26 +348,26 @@ export class PerkCard {
   protected readonly canBuy = computed(() => this.perk().availability?.canBuy ?? false);
   protected readonly availabilityLabel = computed(() => {
     const a = this.perk().availability;
-    if (!a || a.canBuy) return a?.teamPurchases ? `Bought ${a.teamPurchases}× by your team` : '';
+    if (!a || a.canBuy) return a?.teamPurchases ? $localize`Bought ${a.teamPurchases}:teamPurchases:× by your team` : '';
     switch (a.reason) {
       case 'insufficient_funds':
-        return 'Not enough credits';
+        return $localize`Not enough credits`;
       case 'cooldown':
-        return a.cooldownUntil ? `Cooldown until ${formatTime(a.cooldownUntil)}` : 'Cooling down';
+        return a.cooldownUntil ? $localize`Cooldown until ${formatTime(a.cooldownUntil)}:cooldownUntil:` : $localize`Cooling down`;
       case 'sold_out':
-        return 'Sold out';
+        return $localize`Sold out`;
       case 'team_limit':
-        return 'Team limit reached';
+        return $localize`Team limit reached`;
       case 'not_eligible':
-        return 'Your role cannot buy this';
+        return $localize`Your role cannot buy this`;
       case 'store_disabled':
-        return 'Store closed';
+        return $localize`Store closed`;
       case 'not_live':
-        return 'Available during the game';
+        return $localize`Available during the game`;
       case 'no_team':
-        return 'Join a team first';
+        return $localize`Join a team first`;
       default:
-        return 'Unavailable';
+        return $localize`Unavailable`;
     }
   });
 }

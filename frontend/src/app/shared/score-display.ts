@@ -18,11 +18,11 @@ import { formatNumber } from '../core/util/format';
       [class.text-3xl]="size() === 'lg'"
       [class.text-lg]="size() === 'md'"
       [class.text-sm]="size() === 'sm'"
-      [attr.aria-label]="fmt(points()) + ' points'"
+      aria-label="{{ fmt(points()) }} points" i18n-aria-label
       >{{ fmt(points()) }}</span
     >
     @if (showUnit()) {
-      <span class="text-xs text-muted-foreground" aria-hidden="true">pts</span>
+      <span class="text-xs text-muted-foreground" aria-hidden="true" i18n>pts</span>
     }
   `,
 })

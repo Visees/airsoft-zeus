@@ -18,7 +18,7 @@ import { MARKER_COLORS } from './map-defaults';
         [class.border-transparent]="!same(c)"
         [class.ring-2]="same(c)"
         [class.ring-ring]="same(c)"
-        [attr.aria-label]="'Colour ' + c"
+        aria-label="Colour {{ c }}" i18n-aria-label
         [attr.aria-pressed]="same(c)"
         [disabled]="disabled()"
         (click)="pick(c)"
@@ -31,7 +31,7 @@ import { MARKER_COLORS } from './map-defaults';
         [value]="value()"
         [disabled]="disabled()"
         (input)="pick($any($event.target).value)"
-        [attr.aria-label]="label() + ': custom colour'"
+        aria-label="{{ label() }}: custom colour" i18n-aria-label
       />
       <span class="num text-xs uppercase text-muted-foreground">{{ value() }}</span>
     </label>
@@ -39,7 +39,7 @@ import { MARKER_COLORS } from './map-defaults';
 })
 export class ColorField implements ControlValueAccessor {
   readonly swatches = input<string[]>(MARKER_COLORS);
-  readonly label = input('Colour');
+  readonly label = input($localize`Colour`);
 
   protected readonly value = signal('#E6B04F');
   protected readonly disabled = signal(false);

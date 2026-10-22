@@ -21,15 +21,15 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Discover events" subtitle="Public games you can request to join.">
+      <zeus-page-header title="Discover events" subtitle="Public games you can request to join." i18n-title i18n-subtitle>
         <a hlmBtn variant="outline" class="tap" routerLink="/events/join">
-          <ng-icon name="lucideKeyRound" size="16" aria-hidden="true" /> Join with a code
+          <ng-icon name="lucideKeyRound" size="16" aria-hidden="true" /> <ng-container i18n>Join with a code</ng-container>
         </a>
       </zeus-page-header>
 
       <form class="panel mb-4 grid gap-3 p-3 sm:grid-cols-[1fr_12rem_11rem]" role="search" (submit)="$event.preventDefault(); flushSearch()">
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="discover-q">Search</label>
+          <label hlmLabel for="discover-q" i18n>Search</label>
           <div class="relative">
             <ng-icon name="lucideSearch" size="16" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
@@ -41,26 +41,26 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
               autocomplete="off"
               enterkeyhint="search"
               [value]="searchText()"
-              (input)="searchText.set($any($event.target).value)"
+              (input)="searchText.set($any($event.target).value)" i18n-placeholder
             />
           </div>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="discover-mode">Game mode</label>
+          <label hlmLabel for="discover-mode" i18n>Game mode</label>
           <select
             id="discover-mode"
             class="h-11 rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30"
             [value]="mode()"
             (change)="mode.set($any($event.target).value)"
           >
-            <option value="">All modes</option>
+            <option value="" i18n>All modes</option>
             @for (m of modes; track m[0]) {
               <option [value]="m[0]">{{ m[1] }}</option>
             }
           </select>
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="discover-from">From date</label>
+          <label hlmLabel for="discover-from" i18n>From date</label>
           <input
             hlmInput
             id="discover-from"
@@ -75,21 +75,21 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
       <div class="mb-2 flex min-h-6 items-center justify-between gap-2">
         <h2 class="label-caps" aria-live="polite">
           @if (loading()) {
-            Searching…
+            <ng-container i18n>Searching…</ng-container>
           } @else {
-            Events · <span class="num">{{ items().length }}{{ nextCursor() ? '+' : '' }}</span>
+            <ng-container i18n>Events · <span class="num">{{ items().length }}{{ nextCursor() ? '+' : '' }}</span></ng-container>
           }
         </h2>
         @if (hasFilters()) {
           <button hlmBtn variant="ghost" size="sm" class="tap" type="button" (click)="clearFilters()">
-            <ng-icon name="lucideX" size="14" aria-hidden="true" /> Clear filters
+            <ng-icon name="lucideX" size="14" aria-hidden="true" /> <ng-container i18n>Clear filters</ng-container>
           </button>
         }
       </div>
 
       @if (offline() && items().length) {
         <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
-          <span>Showing the last results loaded.</span>
+          <span i18n>Showing the last results loaded.</span>
           <zeus-connection-status />
         </div>
       }
@@ -101,13 +101,13 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
       } @else if (!items().length) {
         <zeus-empty-state
           icon="lucideSearch"
-          [title]="hasFilters() ? 'No events match these filters' : 'No public events scheduled'"
-          [message]="hasFilters() ? 'Try another name, mode or date.' : 'Private games are joined with a code from the Game Master.'"
+          [title]="hasFilters() ? txt.noEventsMatchThese : txt.noPublicEventsScheduled"
+          [message]="hasFilters() ? txt.tryAnotherNameMode : txt.privateGamesAreJoined"
         >
           @if (hasFilters()) {
-            <button hlmBtn variant="outline" class="tap" type="button" (click)="clearFilters()">Clear filters</button>
+            <button hlmBtn variant="outline" class="tap" type="button" (click)="clearFilters()" i18n>Clear filters</button>
           }
-          <a hlmBtn class="tap" routerLink="/events/join">Join with a code</a>
+          <a hlmBtn class="tap" routerLink="/events/join" i18n>Join with a code</a>
         </zeus-empty-state>
       } @else {
         <ul class="grid gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
@@ -122,9 +122,9 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
           <div class="mt-4 flex justify-center">
             <button hlmBtn variant="outline" class="h-11 min-w-40" type="button" [disabled]="loadingMore()" (click)="loadMore()">
               @if (loadingMore()) {
-                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Loading…
+                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Loading…</ng-container>
               } @else {
-                Load more
+                <ng-container i18n>Load more</ng-container>
               }
             </button>
           </div>
@@ -136,8 +136,8 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
           <ng-icon name="lucideQrCode" size="22" />
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block font-semibold">Have a code? Join a private event</span>
-          <span class="block text-sm text-muted-foreground">Type the code or scan the invitation QR from your Game Master.</span>
+          <span class="block font-semibold" i18n>Have a code? Join a private event</span>
+          <span class="block text-sm text-muted-foreground" i18n>Type the code or scan the invitation QR from your Game Master.</span>
         </span>
         <ng-icon name="lucideChevronRight" size="18" class="text-muted-foreground" aria-hidden="true" />
       </a>
@@ -145,6 +145,14 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
   `,
 })
 export class DiscoverScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    noEventsMatchThese: $localize`No events match these filters`,
+    noPublicEventsScheduled: $localize`No public events scheduled`,
+    tryAnotherNameMode: $localize`Try another name, mode or date.`,
+    privateGamesAreJoined: $localize`Private games are joined with a code from the Game Master.`,
+  };
+
   private readonly api = inject(ApiService);
 
   protected readonly modes = MODES;

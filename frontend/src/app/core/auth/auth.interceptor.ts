@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/comm
 import { inject } from '@angular/core';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { ApiError } from '../api/api-error';
+import { activeLanguage } from '../i18n/language';
 import { AuthService } from './auth.service';
 
 const NO_RETRY = ['/api/auth/login', '/api/auth/refresh', '/api/auth/register', '/api/auth/logout'];
@@ -16,7 +17,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const withToken = (r: HttpRequest<unknown>) => {
     const token = auth.token();
-    return token ? r.clone({ setHeaders: { Authorization: `Bearer ${token}` }, withCredentials: true }) : r.clone({ withCredentials: true });
+    const headers: Record<string, string> = { 'Accept-Language': activeLanguage() };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return r.clone({ setHeaders: headers, withCredentials: true });
   };
 
   return next(withToken(req)).pipe(

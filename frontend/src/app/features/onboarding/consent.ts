@@ -20,17 +20,17 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <zeus-auth-layout [center]="false" width="wide">
-      <button layoutAction type="button" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" (click)="auth.logout()">
+      <button layoutAction type="button" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" (click)="auth.logout()" i18n>
         Log out
       </button>
 
-      <p class="label-caps">Before you continue</p>
-      <h1 class="mt-1 text-3xl uppercase">Terms and privacy</h1>
+      <p class="label-caps" i18n>Before you continue</p>
+      <h1 class="mt-1 text-3xl uppercase" i18n>Terms and privacy</h1>
       <p class="mt-1 text-sm text-muted-foreground">
         @if (isUpdate()) {
-          We updated our terms. Here is what matters, in short. Read the full texts if you want the details.
+          <ng-container i18n>We updated our terms. Here is what matters, in short. Read the full texts if you want the details.</ng-container>
         } @else {
-          Here is what matters, in short. Read the full texts if you want the details.
+          <ng-container i18n>Here is what matters, in short. Read the full texts if you want the details.</ng-container>
         }
       </p>
 
@@ -39,7 +39,7 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
           <section class="panel p-4" [attr.aria-labelledby]="'c-' + d.id">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
               <h2 [id]="'c-' + d.id" class="text-lg uppercase">{{ d.title }}</h2>
-              <span class="label-caps">Version <span class="num">{{ versionOf(d) }}</span></span>
+              <span class="label-caps" i18n>Version <span class="num">{{ versionOf(d) }}</span></span>
             </div>
             <ul class="mt-3 flex flex-col gap-2 text-sm">
               @for (s of d.summary; track $index) {
@@ -47,7 +47,7 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
               }
             </ul>
             <button hlmBtn type="button" variant="outline" class="mt-4 h-11" (click)="legal().open(d)">
-              <ng-icon name="lucideFileText" size="16" aria-hidden="true" /> Read the full {{ d.title }}
+              <ng-icon name="lucideFileText" size="16" aria-hidden="true" /> <ng-container i18n>Read the full {{ d.title }}</ng-container>
             </button>
           </section>
         }
@@ -56,11 +56,11 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
       <form class="mt-6 flex flex-col gap-4" (ngSubmit)="accept()">
         <label class="panel flex min-h-14 cursor-pointer items-start gap-3 p-4" for="c-terms">
           <input id="c-terms" type="checkbox" class="mt-0.5 size-6 shrink-0 accent-primary" name="terms" [(ngModel)]="termsChecked" />
-          <span class="text-sm leading-6">I have read and accept the <strong>Terms of Service</strong>.</span>
+          <span class="text-sm leading-6" i18n>I have read and accept the <strong>Terms of Service</strong>.</span>
         </label>
         <label class="panel flex min-h-14 cursor-pointer items-start gap-3 p-4" for="c-privacy">
           <input id="c-privacy" type="checkbox" class="mt-0.5 size-6 shrink-0 accent-primary" name="privacy" [(ngModel)]="privacyChecked" />
-          <span class="text-sm leading-6">I have read the <strong>Privacy Policy</strong> and understand how my location and data are used.</span>
+          <span class="text-sm leading-6" i18n>I have read the <strong>Privacy Policy</strong> and understand how my location and data are used.</span>
         </label>
         @if (error()) {
           <p class="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm" role="alert">{{ error() }}</p>
@@ -68,10 +68,10 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
         <div class="sticky bottom-0 -mx-4 border-t border-border bg-background/95 px-4 pt-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
           style="padding-bottom: calc(0.75rem + var(--safe-bottom))">
           <button hlmBtn type="submit" class="h-12 w-full text-base sm:w-auto sm:px-8" [disabled]="!canSubmit() || saving()">
-            {{ saving() ? 'Saving…' : 'Accept and continue' }}
+            {{ saving() ? txt.saving : txt.acceptAndContinue }}
           </button>
           @if (!canSubmit()) {
-            <p class="mt-2 text-xs text-muted-foreground">Tick both boxes to continue.</p>
+            <p class="mt-2 text-xs text-muted-foreground" i18n>Tick both boxes to continue.</p>
           }
         </div>
       </form>
@@ -80,6 +80,12 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
   `,
 })
 export class ConsentScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    saving: $localize`Saving…`,
+    acceptAndContinue: $localize`Accept and continue`,
+  };
+
   protected readonly auth = inject(AuthService);
   private readonly api = inject(ApiService);
   private readonly config = inject(ConfigService);
@@ -112,10 +118,10 @@ export class ConsentScreen {
       await this.api.recordConsent('privacy', true, cfg.privacyVersion);
       const user = await this.auth.reloadUser();
       if (user && !user.termsAccepted) {
-        this.error.set('Your acceptance was saved but the server still asks for it. Reload the app and try again.');
+        this.error.set($localize`Your acceptance was saved but the server still asks for it. Reload the app and try again.`);
         return;
       }
-      this.toast.success('Thanks — you are all set');
+      this.toast.success($localize`Thanks — you are all set`);
       await this.router.navigateByUrl(safeNext(this.next()) ?? '/');
     } catch (e) {
       this.error.set(errorMessage(e));

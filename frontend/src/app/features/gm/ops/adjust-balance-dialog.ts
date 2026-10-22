@@ -34,13 +34,13 @@ export interface BalanceAdjusted {
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, OpsDialog, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-ops-dialog [open]="open()" title="Adjust points or credits" subtitle="Every change is written to the ledger with your name and reason." (closed)="closed.emit()">
+    <zeus-ops-dialog [open]="open()" title="Adjust points or credits" subtitle="Every change is written to the ledger with your name and reason." (closed)="closed.emit()" i18n-title i18n-subtitle>
       @if (open()) {
         <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4" novalidate>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="adj-team">Team</label>
+            <label hlmLabel for="adj-team" i18n>Team</label>
             <select id="adj-team" formControlName="teamId" class="h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30">
-              <option value="" disabled>Choose a team</option>
+              <option value="" disabled i18n>Choose a team</option>
               @for (t of teams(); track t.id) {
                 <option [value]="t.id">{{ t.name }}</option>
               }
@@ -51,23 +51,23 @@ export interface BalanceAdjusted {
           </div>
 
           <fieldset class="flex flex-col gap-1.5">
-            <legend class="mb-1.5 text-sm font-medium">Balance</legend>
+            <legend class="mb-1.5 text-sm font-medium" i18n>Balance</legend>
             <div class="grid grid-cols-2 gap-2" role="radiogroup">
               <label class="flex h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                 <input type="radio" formControlName="kind" value="points" class="size-4 accent-primary" />
-                <ng-icon name="lucideTrophy" size="16" class="text-primary" aria-hidden="true" /> Victory points
+                <ng-icon name="lucideTrophy" size="16" class="text-primary" aria-hidden="true" /> <ng-container i18n>Victory points</ng-container>
               </label>
               <label class="flex h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                 <input type="radio" formControlName="kind" value="currency" class="size-4 accent-primary" />
-                <ng-icon name="lucideCoins" size="16" class="text-warning" aria-hidden="true" /> Credits
+                <ng-icon name="lucideCoins" size="16" class="text-warning" aria-hidden="true" /> <ng-container i18n>Credits</ng-container>
               </label>
             </div>
           </fieldset>
 
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="adj-amount">Amount (negative to deduct)</label>
+            <label hlmLabel for="adj-amount" i18n>Amount (negative to deduct)</label>
             <div class="flex gap-2">
-              <button hlmBtn type="button" variant="outline" class="h-11 w-14 num" (click)="flipSign()" aria-label="Switch between adding and deducting">±</button>
+              <button hlmBtn type="button" variant="outline" class="h-11 w-14 num" (click)="flipSign()" aria-label="Switch between adding and deducting" i18n-aria-label>±</button>
               <input hlmInput id="adj-amount" type="number" inputmode="numeric" step="1" formControlName="amount" class="num h-11" placeholder="e.g. -150" />
             </div>
             <div class="flex flex-wrap gap-1.5">
@@ -83,22 +83,22 @@ export interface BalanceAdjusted {
           @if (amountValue() < 0) {
             <label class="flex min-h-11 cursor-pointer items-center gap-3">
               <input type="checkbox" formControlName="penalty" class="size-5 accent-primary" />
-              <span>Record as a penalty <span class="text-sm text-muted-foreground">(shown as "Penalty" in the ledger and results)</span></span>
+              <span i18n>Record as a penalty <span class="text-sm text-muted-foreground">(shown as "Penalty" in the ledger and results)</span></span>
             </label>
           }
 
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="adj-reason">Reason <span aria-hidden="true">*</span></label>
-            <input hlmInput id="adj-reason" formControlName="reason" class="h-11" placeholder="e.g. Safety violation at the north gate" maxlength="500" autocomplete="off" />
+            <label hlmLabel for="adj-reason"><ng-container i18n>Reason</ng-container> <span aria-hidden="true">*</span></label>
+            <input hlmInput id="adj-reason" formControlName="reason" class="h-11" placeholder="e.g. Safety violation at the north gate" maxlength="500" autocomplete="off" i18n-placeholder />
             @if (err('reason', 'Reason'); as e) {
               <p class="field-error">{{ e }}</p>
             }
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="adj-user">Player (optional)</label>
+            <label hlmLabel for="adj-user" i18n>Player (optional)</label>
             <select id="adj-user" formControlName="userId" class="h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30">
-              <option value="">Whole team</option>
+              <option value="" i18n>Whole team</option>
               @for (m of teamMembers(); track m.userId) {
                 <option [value]="m.userId">{{ m.nickname }}</option>
               }
@@ -118,9 +118,9 @@ export interface BalanceAdjusted {
           }
 
           <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button hlmBtn type="button" variant="outline" class="h-11" (click)="closed.emit()">Cancel</button>
+            <button hlmBtn type="button" variant="outline" class="h-11" (click)="closed.emit()" i18n>Cancel</button>
             <button hlmBtn type="submit" class="h-11" [disabled]="saving()">
-              {{ saving() ? 'Saving…' : 'Review and apply' }}
+              {{ saving() ? txt.saving : txt.reviewAndApply }}
             </button>
           </div>
         </form>
@@ -129,6 +129,12 @@ export interface BalanceAdjusted {
   `,
 })
 export class AdjustBalanceDialog {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    saving: $localize`Saving…`,
+    reviewAndApply: $localize`Review and apply`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
@@ -178,13 +184,13 @@ export class AdjustBalanceDialog {
     let next = current + amount;
     let clampNote: string | null = null;
     if (next < 0 && (!isPoints || !this.allowNegativePoints())) {
-      clampNote = `The balance can't go below 0: only ${formatNumber(current)} will be deducted.`;
+      clampNote = $localize`The balance can't go below 0: only ${formatNumber(current)}:current: will be deducted.`;
       next = 0;
     } else if (!isPoints && this.maxCurrency() > 0 && next > this.maxCurrency()) {
-      clampNote = `Credits are capped at ${formatNumber(this.maxCurrency())}: only ${formatNumber(this.maxCurrency() - current)} will be added.`;
+      clampNote = $localize`Credits are capped at ${formatNumber(this.maxCurrency())}:maxCurrency:: only ${formatNumber(this.maxCurrency() - current)}:maxCurrency2: will be added.`;
       next = this.maxCurrency();
     }
-    return { team, current: formatNumber(current), next: formatNumber(next), unit: isPoints ? 'points' : 'credits', clampNote };
+    return { team, current: formatNumber(current), next: formatNumber(next), unit: unitLabel(v.kind ?? 'points'), clampNote };
   });
 
   constructor() {
@@ -228,24 +234,37 @@ export class AdjustBalanceDialog {
     this.form.markAllAsTouched();
     const v = this.form.getRawValue();
     const amount = Math.trunc(num(v.amount));
-    if (!amount) this.form.controls.amount.setErrors({ message: 'Enter an amount other than 0.' });
+    if (!amount) this.form.controls.amount.setErrors({ message: $localize`Enter an amount other than 0.` });
     if (!v.reason.trim()) this.form.controls.reason.setErrors({ required: true });
     if (this.form.invalid || !amount) return;
 
     const team = this.teams().find((t) => t.id === v.teamId)!;
-    const unit = v.kind === 'points' ? 'points' : 'credits';
     const p = this.preview();
     const member = this.members().find((m) => m.userId === v.userId);
+    const unit = unitLabel(v.kind);
+    const size = formatNumber(Math.abs(amount));
+    const next = p?.next ?? '—';
+    const reason = v.reason.trim();
+    const penalty = amount < 0 && v.penalty;
+    const logged = member
+      ? penalty
+        ? $localize`Logged as a penalty for ${member.nickname}:nickname:: "${reason}:reason:".`
+        : $localize`Logged as a GM adjustment for ${member.nickname}:nickname:: "${reason}:reason:".`
+      : penalty
+        ? $localize`Logged as a penalty: "${reason}:reason:".`
+        : $localize`Logged as a GM adjustment: "${reason}:reason:".`;
     const consequences = [
-      `${team.name} ${amount > 0 ? 'gets' : 'loses'} ${formatNumber(Math.abs(amount))} ${unit}.`,
-      `New balance: ${p?.next ?? '—'} ${unit}${p?.clampNote ? ' (' + p.clampNote + ')' : ''}.`,
-      `Logged as ${amount < 0 && v.penalty ? 'a penalty' : 'a GM adjustment'}${member ? ' for ' + member.nickname : ''}: "${v.reason.trim()}".`,
-      'Players see the new balance immediately.',
+      amount > 0 ? $localize`${team.name}:team: gets ${size}:amount: ${unit}:unit:.` : $localize`${team.name}:team: loses ${size}:amount: ${unit}:unit:.`,
+      p?.clampNote
+        ? $localize`New balance: ${next}:balance: ${unit}:unit: (${p.clampNote}:note:).`
+        : $localize`New balance: ${next}:balance: ${unit}:unit:.`,
+      logged,
+      $localize`Players see the new balance immediately.`,
     ];
     const ok = await this.confirm.ask({
-      title: `${amount > 0 ? 'Add' : 'Deduct'} ${formatNumber(Math.abs(amount))} ${unit}?`,
+      title: amount > 0 ? $localize`Add ${size}:amount: ${unit}:unit:?` : $localize`Deduct ${size}:amount: ${unit}:unit:?`,
       consequences,
-      confirmLabel: `${amount > 0 ? 'Add' : 'Deduct'} ${unit}`,
+      confirmLabel: amount > 0 ? $localize`Add ${unit}:unit:` : $localize`Deduct ${unit}:unit:`,
       destructive: amount < 0,
     });
     if (!ok) return;
@@ -262,9 +281,9 @@ export class AdjustBalanceDialog {
         clientTxId: this.txId,
       });
       if (res.applied !== amount) {
-        this.toast.warning(`${team.name}: ${formatSigned(res.applied)} ${unit} applied`, `${formatSigned(amount)} requested; balance limits applied. New balance ${formatNumber(res.balance)}.`);
+        this.toast.warning($localize`${team.name}:team:: ${formatSigned(res.applied)}:applied: ${unit}:unit: applied`, $localize`${formatSigned(amount)}:amount: requested; balance limits applied. New balance ${formatNumber(res.balance)}:balance:.`);
       } else {
-        this.toast.success(`${team.name}: ${formatSigned(res.applied)} ${unit}`, `New balance ${formatNumber(res.balance)}.`);
+        this.toast.success(`${team.name}: ${formatSigned(res.applied)} ${unit}`, $localize`New balance ${formatNumber(res.balance)}:balance:.`);
       }
       this.adjusted.emit({ teamId: v.teamId, kind: v.kind, balance: res.balance, applied: res.applied });
       this.txId = newClientTxId();
@@ -277,4 +296,8 @@ export class AdjustBalanceDialog {
       this.saving.set(false);
     }
   }
+}
+
+function unitLabel(kind: LedgerKind): string {
+  return kind === 'points' ? $localize`points` : $localize`credits`;
 }

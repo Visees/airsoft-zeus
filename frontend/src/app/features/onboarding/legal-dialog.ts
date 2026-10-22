@@ -39,16 +39,16 @@ import { LegalDoc } from './legal-text';
         <div class="flex h-full flex-col">
           <header class="flex items-start justify-between gap-3 border-b border-border px-4 py-3 sm:px-6" style="padding-top: calc(0.75rem + var(--safe-top))">
             <div>
-              <p class="label-caps">Version <span class="num">{{ version() }}</span></p>
+              <p class="label-caps" i18n>Version <span class="num">{{ version() }}</span></p>
               <h2 id="legal-title" class="text-xl uppercase">{{ d.title }}</h2>
             </div>
-            <button type="button" class="tap -mr-2 grid place-items-center rounded-sm hover:bg-muted" aria-label="Close" (click)="close()">
+            <button type="button" class="tap -mr-2 grid place-items-center rounded-sm hover:bg-muted" aria-label="Close" (click)="close()" i18n-aria-label>
               <ng-icon name="lucideX" size="20" aria-hidden="true" />
             </button>
           </header>
-          <div class="flex-1 overflow-y-auto px-4 py-4 sm:px-6" tabindex="0" aria-label="Document text">
+          <div class="flex-1 overflow-y-auto px-4 py-4 sm:px-6" tabindex="0" aria-label="Document text" i18n-aria-label>
             <section class="panel bg-muted/50 p-4" aria-labelledby="legal-summary">
-              <h3 id="legal-summary" class="label-caps">In short</h3>
+              <h3 id="legal-summary" class="label-caps" i18n>In short</h3>
               <ul class="mt-2 flex flex-col gap-2 text-sm">
                 @for (s of d.summary; track $index) {
                   <li class="flex gap-2"><span aria-hidden="true" class="text-primary">▸</span><span>{{ s }}</span></li>
@@ -65,7 +65,7 @@ import { LegalDoc } from './legal-text';
             }
           </div>
           <footer class="border-t border-border px-4 py-3 sm:px-6" style="padding-bottom: calc(0.75rem + var(--safe-bottom))">
-            <button hlmBtn type="button" class="h-11 w-full sm:w-auto" (click)="close()">Close</button>
+            <button hlmBtn type="button" class="h-11 w-full sm:w-auto" (click)="close()" i18n>Close</button>
           </footer>
         </div>
       }

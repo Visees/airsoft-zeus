@@ -5,7 +5,7 @@ import { NgIcon } from '@ng-icons/core';
 import { ApiService } from '../../core/api/api.service';
 
 export const NICKNAME_PATTERN = /^[A-Za-z0-9_.-]{3,24}$/;
-export const NICKNAME_FORMAT_HELP = '3–24 characters: letters, numbers, dot, dash or underscore. No spaces.';
+export const NICKNAME_FORMAT_HELP = $localize`3–24 characters: letters, numbers, dot, dash or underscore. No spaces.`;
 
 export type NicknameStatus = 'empty' | 'invalid' | 'unchanged' | 'checking' | 'available' | 'taken' | 'error';
 
@@ -64,30 +64,35 @@ export function createNicknameCheck(control: FormControl<string>, current: () =>
     @switch (status()) {
       @case ('checking') {
         <ng-icon name="lucideLoader2" size="14" class="animate-spin text-muted-foreground" aria-hidden="true" />
-        <span class="text-muted-foreground">Checking availability…</span>
+        <span class="text-muted-foreground" i18n>Checking availability…</span>
       }
       @case ('available') {
         <span aria-hidden="true" class="text-primary">✓</span>
-        <span class="text-primary">Available</span>
+        <span class="text-primary" i18n>Available</span>
       }
       @case ('taken') {
         <span aria-hidden="true" class="text-destructive">✕</span>
-        <span class="text-destructive">{{ reason() || 'Already taken. Try another one.' }}</span>
+        <span class="text-destructive">{{ reason() || txt.alreadyTakenTryAnother }}</span>
       }
       @case ('invalid') {
         <span aria-hidden="true" class="text-warning">!</span>
         <span class="text-muted-foreground">{{ formatHelp }}</span>
       }
       @case ('unchanged') {
-        <span class="text-muted-foreground">This is your current nickname.</span>
+        <span class="text-muted-foreground" i18n>This is your current nickname.</span>
       }
       @case ('error') {
-        <span class="text-muted-foreground">Could not check availability right now. It will be checked when you save.</span>
+        <span class="text-muted-foreground" i18n>Could not check availability right now. It will be checked when you save.</span>
       }
     }
   `,
 })
 export class NicknameStatusLine {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    alreadyTakenTryAnother: $localize`Already taken. Try another one.`,
+  };
+
   readonly status = input.required<NicknameStatus>();
   readonly reason = input<string | null>(null);
   protected readonly formatHelp = NICKNAME_FORMAT_HELP;

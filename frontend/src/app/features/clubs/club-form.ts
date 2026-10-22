@@ -9,6 +9,7 @@ import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
 import { ConfigService } from '../../core/api/config.service';
 import { Club } from '../../core/api/models';
+import { formatDecimal } from '../../core/util/format';
 import { applyServerErrors, fieldError, focusFirstInvalid } from '../auth/form-utils';
 import { COMMON_COUNTRIES, countryOptions } from '../profile/countries';
 
@@ -31,31 +32,35 @@ const URL_PATTERN = /^(https?:\/\/)?[^\s/$.?#][^\s]*\.[^\s]{2,}$/i;
       <div class="flex flex-wrap items-center gap-4">
         <div class="grid size-20 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted">
           @if (logoPreview() ?? form.controls.logoUrl.value; as src) {
-            <img [src]="src" alt="Club logo" class="size-full object-cover" />
+            <img [src]="src" alt="Club logo" class="size-full object-cover" i18n-alt />
           } @else {
             <ng-icon name="lucideShield" size="28" class="text-muted-foreground" aria-hidden="true" />
           }
         </div>
         <div class="flex min-w-0 flex-1 flex-col gap-2">
-          <span class="label-caps">Logo</span>
+          <span class="label-caps" i18n>Logo</span>
           <div class="flex flex-wrap gap-2">
             <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="uploading()" (click)="file.click()">
               @if (uploading()) {
-                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Uploading…
+                <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Uploading…</ng-container>
               } @else {
-                <ng-icon name="lucideUpload" size="16" aria-hidden="true" /> {{ form.controls.logoUrl.value ? 'Change logo' : 'Upload logo' }}
+                <ng-icon name="lucideUpload" size="16" aria-hidden="true" /> {{ form.controls.logoUrl.value ? txt.changeLogo : txt.uploadLogo }}
               }
             </button>
           </div>
           <input #file type="file" class="sr-only" accept="image/jpeg,image/png,image/webp" tabindex="-1" aria-hidden="true" (change)="onFile($event)" />
           <p class="text-xs" [class.text-destructive]="logoError()" [class.text-muted-foreground]="!logoError()" aria-live="polite">
-            {{ logoError() ?? 'Square JPG, PNG or WebP, up to ' + maxLabel() + '.' }}
+            @if (logoError(); as err) {
+              {{ err }}
+            } @else {
+              <ng-container i18n>Square JPG, PNG or WebP, up to {{ maxLabel() }}.</ng-container>
+            }
           </p>
         </div>
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label hlmLabel for="cf-name">Club name</label>
+        <label hlmLabel for="cf-name" i18n>Club name</label>
         <input hlmInput id="cf-name" class="h-11" formControlName="name" maxlength="100" autocomplete="organization"
           [attr.aria-invalid]="!!err('name')" [attr.aria-describedby]="err('name') ? 'cf-name-err' : null" />
         @if (err('name'); as e) { <p id="cf-name-err" class="field-error">{{ e }}</p> }
@@ -63,52 +68,61 @@ const URL_PATTERN = /^(https?:\/\/)?[^\s/$.?#][^\s]*\.[^\s]{2,}$/i;
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="cf-country">Country</label>
+          <label hlmLabel for="cf-country" i18n>Country</label>
           <select id="cf-country" formControlName="country" class="h-11 w-full rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30">
-            <option value="">Not set</option>
+            <option value="" i18n>Not set</option>
             @for (c of countries; track c.code) {
               <option [value]="c.code">{{ c.name }}</option>
             }
-            <option [value]="other">Other…</option>
+            <option [value]="other" i18n>Other…</option>
           </select>
         </div>
         @if (form.controls.country.value === other) {
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="cf-country-other">Country name</label>
+            <label hlmLabel for="cf-country-other" i18n>Country name</label>
             <input hlmInput id="cf-country-other" class="h-11" formControlName="countryOther" maxlength="60" />
           </div>
         }
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="cf-city">City or area</label>
+          <label hlmLabel for="cf-city" i18n>City or area</label>
           <input hlmInput id="cf-city" class="h-11" formControlName="city" maxlength="80" autocomplete="address-level2" [attr.aria-invalid]="!!err('city')" />
           @if (err('city'); as e) { <p class="field-error">{{ e }}</p> }
         </div>
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label hlmLabel for="cf-web">Website <span class="font-normal text-muted-foreground">(optional)</span></label>
+        <label hlmLabel for="cf-web" i18n>Website <span class="font-normal text-muted-foreground">(optional)</span></label>
         <input hlmInput id="cf-web" type="url" class="h-11" formControlName="website" inputmode="url" autocapitalize="off" placeholder="https://example.com"
           [attr.aria-invalid]="!!err('website')" [attr.aria-describedby]="err('website') ? 'cf-web-err' : null" />
         @if (err('website'); as e) { <p id="cf-web-err" class="field-error">{{ e }}</p> }
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label hlmLabel for="cf-desc">About the club</label>
+        <label hlmLabel for="cf-desc" i18n>About the club</label>
         <textarea hlmTextarea id="cf-desc" formControlName="description" rows="4" maxlength="2000"
-          placeholder="Where you play, how often, and whether you take new players" aria-describedby="cf-desc-count"></textarea>
+          placeholder="Where you play, how often, and whether you take new players" aria-describedby="cf-desc-count" i18n-placeholder></textarea>
         <p id="cf-desc-count" class="text-right text-xs text-muted-foreground"><span class="num">{{ descLength() }}</span>/2000</p>
       </div>
 
       <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button hlmBtn type="button" variant="ghost" class="h-11" (click)="cancel.emit()">Cancel</button>
+        <button hlmBtn type="button" variant="ghost" class="h-11" (click)="cancel.emit()" i18n>Cancel</button>
         <button hlmBtn type="submit" class="h-11 min-w-32" [disabled]="saving() || uploading()">
-          {{ saving() ? 'Saving…' : club() ? 'Save club' : 'Create club' }}
+          {{ saving() ? txt.saving : club() ? txt.saveClub : txt.createClub }}
         </button>
       </div>
     </form>
   `,
 })
 export class ClubForm implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    changeLogo: $localize`Change logo`,
+    uploadLogo: $localize`Upload logo`,
+    saving: $localize`Saving…`,
+    saveClub: $localize`Save club`,
+    createClub: $localize`Create club`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly config = inject(ConfigService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -166,9 +180,9 @@ export class ClubForm implements OnInit {
 
   protected err(name: 'name' | 'city' | 'website'): string | null {
     return fieldError(this.form.controls[name], {
-      pattern: 'Enter a web address like https://example.com.',
-      minlength: 'Use at least 2 characters.',
-      required: 'Give the club a name.',
+      pattern: $localize`Enter a web address like https://example.com.`,
+      minlength: $localize`Use at least 2 characters.`,
+      required: $localize`Give the club a name.`,
     });
   }
 
@@ -178,9 +192,9 @@ export class ClubForm implements OnInit {
     el.value = '';
     if (!file) return;
     this.logoError.set(null);
-    if (!IMAGE_TYPES.includes(file.type)) return this.logoError.set('Use a JPG, PNG or WebP image.');
+    if (!IMAGE_TYPES.includes(file.type)) return this.logoError.set($localize`Use a JPG, PNG or WebP image.`);
     if (file.size > this.config.config().maxUploadBytes) {
-      return this.logoError.set(`This image is ${(file.size / (1024 * 1024)).toFixed(1)} MB. The limit is ${this.maxLabel()}.`);
+      return this.logoError.set($localize`This image is ${formatDecimal(file.size / (1024 * 1024), 1)}:size: MB. The limit is ${this.maxLabel()}:limit:.`);
     }
     const old = this.logoPreview();
     if (old) URL.revokeObjectURL(old);
@@ -226,7 +240,7 @@ export class ClubForm implements OnInit {
     } catch (e) {
       const err = ApiError.from(e);
       const unmatched = applyServerErrors(this.form, err);
-      this.formError.set(Object.keys(err.fields).length ? (unmatched[0] ?? 'Check the highlighted fields.') : err.message);
+      this.formError.set(Object.keys(err.fields).length ? (unmatched[0] ?? $localize`Check the highlighted fields.`) : err.message);
       queueMicrotask(() => focusFirstInvalid(this.host.nativeElement));
     } finally {
       this.saving.set(false);

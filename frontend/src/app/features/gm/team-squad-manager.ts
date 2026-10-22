@@ -28,11 +28,11 @@ interface RosterGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Teams and squads" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor">
+      <zeus-page-header title="Teams and squads" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
         <zeus-connection-status [compact]="true" />
         @if (event()) {
           <button hlmBtn variant="outline" class="h-11" type="button" (click)="addTeam()" [disabled]="busy() || event()!.teams.length >= 16">
-            <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> Add team
+            <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Add team</ng-container>
           </button>
         }
       </zeus-page-header>
@@ -45,7 +45,7 @@ interface RosterGroup {
         @if (running()) {
           <div class="mb-4 flex gap-2 rounded-sm border border-warning/50 bg-warning-surface p-3 text-sm text-warning" role="status">
             <ng-icon name="lucideTriangleAlert" size="18" class="shrink-0" aria-hidden="true" />
-            <p>The game is {{ e.status }}. Moving a player changes what they see on the map immediately. Teams cannot be deleted any more.</p>
+            <p i18n>{e.status, select, paused {The game is paused.} other {The game is live.}} Moving a player changes what they see on the map immediately. Teams cannot be deleted any more.</p>
           </div>
         }
 
@@ -54,9 +54,9 @@ interface RosterGroup {
 
           <section class="panel flex flex-col gap-3 p-4" aria-labelledby="unassigned-h">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <h2 id="unassigned-h" class="label-caps">Without a team · {{ unassigned().length }}</h2>
+              <h2 id="unassigned-h" class="label-caps" i18n>Without a team · {{ unassigned().length }}</h2>
               <button hlmBtn variant="outline" class="h-11" type="button" (click)="autoBalance()" [disabled]="busy() || !unassigned().length || e.teams.length < 1">
-                <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> Auto-balance teams
+                <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Auto-balance teams</ng-container>
               </button>
             </div>
             @if (unassigned().length) {
@@ -69,20 +69,20 @@ interface RosterGroup {
                 }
               </ul>
             } @else {
-              <p class="text-sm text-muted-foreground">Every approved player has a team.</p>
+              <p class="text-sm text-muted-foreground" i18n>Every approved player has a team.</p>
             }
           </section>
         </div>
 
         @if (!sortedTeams().length) {
-          <zeus-empty-state icon="lucideUsers" title="No teams yet" message="A game needs at least two teams. Each team gets a colour, a pattern and an icon.">
+          <zeus-empty-state icon="lucideUsers" title="No teams yet" message="A game needs at least two teams. Each team gets a colour, a pattern and an icon." i18n-title i18n-message>
             <button hlmBtn class="h-11" type="button" (click)="addTwoTeams()" [disabled]="busy()">
-              <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> Add two teams (Alpha and Bravo)
+              <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> <ng-container i18n>Add two teams (Alpha and Bravo)</ng-container>
             </button>
           </zeus-empty-state>
         } @else {
           @if (sortedTeams().length < 2) {
-            <p class="mb-3 text-sm text-warning" role="status">◐ Add a second team: the game cannot start with one.</p>
+            <p class="mb-3 text-sm text-warning" role="status" i18n>◐ Add a second team: the game cannot start with one.</p>
           }
           <div class="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
             @for (t of sortedTeams(); track t.id) {
@@ -96,11 +96,11 @@ interface RosterGroup {
                 advanced
                 (changed)="load()"
               >
-                <section class="border-t border-border p-3" [attr.aria-label]="'Roster of ' + t.name">
-                  <h3 class="label-caps mb-1">Roster · {{ rosterCount(t) }}{{ t.capacity ? ' / ' + t.capacity : '' }}</h3>
+                <section class="border-t border-border p-3" aria-label="Roster of {{ t.name }}" i18n-aria-label>
+                  <h3 class="label-caps mb-1" i18n>Roster · {{ rosterCount(t) }}{{ t.capacity ? ' / ' + t.capacity : '' }}</h3>
                   @for (g of roster(t); track g.squad?.id ?? 'none') {
                     @if (g.squad || roster(t).length > 1) {
-                      <p class="mt-2 text-xs font-semibold uppercase text-muted-foreground">{{ g.squad ? g.squad.callsign || g.squad.name : 'No squad' }}</p>
+                      <p class="mt-2 text-xs font-semibold uppercase text-muted-foreground">{{ g.squad ? g.squad.callsign || g.squad.name : txt.noSquad }}</p>
                     }
                     <ul class="divide-y divide-border">
                       @for (m of g.members; track m.userId) {
@@ -111,7 +111,7 @@ interface RosterGroup {
                       }
                     </ul>
                   } @empty {
-                    <p class="text-sm text-muted-foreground">No players yet.</p>
+                    <p class="text-sm text-muted-foreground" i18n>No players yet.</p>
                   }
                 </section>
               </zeus-team-editor>
@@ -123,6 +123,11 @@ interface RosterGroup {
   `,
 })
 export class TeamSquadManagerScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    noSquad: $localize`No squad`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
@@ -208,21 +213,21 @@ export class TeamSquadManagerScreen {
     if (!e) return;
     const n = this.unassigned().length;
     const ok = await this.confirm.ask({
-      title: 'Auto-balance teams?',
+      title: $localize`Auto-balance teams?`,
       consequences: [
-        `Reassigns ${n} unassigned ${n === 1 ? 'player' : 'players'} evenly across the teams that still have room.`,
-        'Players who already have a team are not moved.',
-        'Full teams (capacity reached) receive nobody.',
-        ...(this.running() ? ['The game is running: their map visibility changes immediately.'] : []),
+        n === 1 ? $localize`Places the unassigned player in a team that still has room.` : $localize`Reassigns ${n}:count: unassigned players evenly across the teams that still have room.`,
+        $localize`Players who already have a team are not moved.`,
+        $localize`Full teams (capacity reached) receive nobody.`,
+        ...(this.running() ? [$localize`The game is running: their map visibility changes immediately.`] : []),
       ],
-      confirmLabel: 'Auto-balance',
+      confirmLabel: $localize`Auto-balance`,
     });
     if (!ok) return;
     this.busy.set(true);
     try {
       const { assigned } = await this.api.autoBalance(e.id);
-      if (assigned < n) this.toast.warning(`${assigned} of ${n} players assigned`, 'The remaining teams are full. Raise a capacity or add a team.');
-      else this.toast.success(`${assigned} players assigned`);
+      if (assigned < n) this.toast.warning($localize`${assigned}:assigned: of ${n}:n: players assigned`, $localize`The remaining teams are full. Raise a capacity or add a team.`);
+      else this.toast.success($localize`${assigned}:assigned: players assigned`);
       await this.load();
     } catch (err) {
       this.toast.error(err);
@@ -239,7 +244,7 @@ export class TeamSquadManagerScreen {
       for (const preset of TWO_TEAM_PRESET) {
         if (!e.teams.some((t) => t.name.toLowerCase() === preset.name!.toLowerCase())) await this.api.createTeam(e.id, preset);
       }
-      this.toast.success('Teams Alpha and Bravo added');
+      this.toast.success($localize`Teams Alpha and Bravo added`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -254,7 +259,7 @@ export class TeamSquadManagerScreen {
     this.busy.set(true);
     try {
       const t = await this.api.createTeam(e.id, nextTeamPreset(e.teams));
-      this.toast.success(`Team ${t.name} added`, 'Rename it and pick its colour below.');
+      this.toast.success($localize`Team ${t.name}:name: added`, $localize`Rename it and pick its colour below.`);
     } catch (err) {
       this.toast.error(err);
     } finally {

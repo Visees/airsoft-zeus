@@ -6,7 +6,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
 import { EventResults } from '../../core/api/models';
-import { GAME_MODE_LABELS, formatDate, formatDuration } from '../../core/util/format';
+import { GAME_MODE_LABELS, formatDate, formatDuration, formatList } from '../../core/util/format';
 import { ErrorState } from '../../shared/states';
 import { ResultsLeaderboard, ResultsTimeline, ResultsTopPlayers, ResultsWinner } from './results-parts';
 import { leaders } from './results-utils';
@@ -26,18 +26,18 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
   template: `
     <header class="border-b border-border bg-card">
       <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
-        <a routerLink="/welcome" class="flex items-center gap-2" aria-label="AirsoftHub home">
+        <a routerLink="/welcome" class="flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
           <span class="grid size-9 place-items-center rounded-md bg-primary font-mono text-lg font-bold text-primary-foreground" aria-hidden="true">AH</span>
           <span class="text-sm font-bold tracking-wide uppercase" style="font-stretch: 80%">AirsoftHub</span>
         </a>
-        <a hlmBtn variant="outline" class="tap" routerLink="/welcome">Create your own event</a>
+        <a hlmBtn variant="outline" class="tap" routerLink="/welcome" i18n>Create your own event</a>
       </div>
     </header>
 
     <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
       @switch (state()) {
         @case ('loading') {
-          <div class="flex flex-col gap-4" role="status" aria-label="Loading results">
+          <div class="flex flex-col gap-4" role="status" aria-label="Loading results" i18n-aria-label>
             <div class="h-10 w-2/3 animate-pulse rounded-sm bg-muted"></div>
             <div class="h-28 animate-pulse rounded-md bg-muted"></div>
             <div class="h-48 animate-pulse rounded-md bg-muted"></div>
@@ -46,20 +46,20 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
         @case ('not-found') {
           <div class="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
             <ng-icon name="lucideEyeOff" size="32" class="text-muted-foreground" aria-hidden="true" />
-            <h1 class="text-2xl uppercase">Results not available</h1>
-            <p class="text-muted-foreground">The link may be mistyped, or the organiser has not published (or has unpublished) these results.</p>
-            <a hlmBtn class="tap mt-2" routerLink="/welcome">Create your own event</a>
+            <h1 class="text-2xl uppercase" i18n>Results not available</h1>
+            <p class="text-muted-foreground" i18n>The link may be mistyped, or the organiser has not published (or has unpublished) these results.</p>
+            <a hlmBtn class="tap mt-2" routerLink="/welcome" i18n>Create your own event</a>
           </div>
         }
         @case ('error') {
-          <zeus-error-state [error]="error()" title="Could not load these results" (retry)="retry()" />
+          <zeus-error-state [error]="error()" title="Could not load these results" (retry)="retry()" i18n-title />
         }
         @case ('ready') {
           @if (results(); as r) {
             <div class="mb-6">
-              <p class="label-caps">After-action report</p>
+              <p class="label-caps" i18n>After-action report</p>
               <h1 class="text-3xl uppercase md:text-4xl">{{ r.eventName }}</h1>
-              <p class="mt-1 text-sm text-muted-foreground">
+              <p class="mt-1 text-sm text-muted-foreground" i18n>
                 {{ modeLabel() }} · {{ dateLabel() }} · <span class="num">{{ duration() }}</span> played · <span class="num">{{ r.players.length }}</span> players
               </p>
             </div>
@@ -73,9 +73,9 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
               <aside class="flex flex-col gap-6">
                 <zeus-results-top-players [results]="r" [limit]="10" />
                 <section class="panel p-4" aria-labelledby="cta-title">
-                  <h2 id="cta-title" class="font-bold uppercase">Run your own game</h2>
-                  <p class="mt-1 text-sm text-muted-foreground">Objectives, live map, team scores and a results page like this one for your next airsoft event.</p>
-                  <a hlmBtn class="mt-3 h-11 w-full" routerLink="/welcome">Create your own event</a>
+                  <h2 id="cta-title" class="font-bold uppercase" i18n>Run your own game</h2>
+                  <p class="mt-1 text-sm text-muted-foreground" i18n>Objectives, live map, team scores and a results page like this one for your next airsoft event.</p>
+                  <a hlmBtn class="mt-3 h-11 w-full" routerLink="/welcome" i18n>Create your own event</a>
                 </section>
               </aside>
             </div>
@@ -84,7 +84,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
       }
     </main>
 
-    <footer class="border-t border-border py-4 text-center text-xs text-muted-foreground">
+    <footer class="border-t border-border py-4 text-center text-xs text-muted-foreground" i18n>
       Published with AirsoftHub. Player positions are never shown on public pages.
     </footer>
   `,
@@ -132,26 +132,26 @@ export class PublicResultsScreen {
       if (e.status === 404) {
         this.state.set('not-found');
         if (this.responseInit) this.responseInit.status = 404;
-        this.titleService.setTitle('Results not available — AirsoftHub');
+        this.titleService.setTitle($localize`Results not available — AirsoftHub`);
         this.meta.updateTag({ name: 'robots', content: 'noindex' });
       } else {
         this.error.set(err);
         this.state.set('error');
-        this.titleService.setTitle('Event results — AirsoftHub');
+        this.titleService.setTitle($localize`Event results — AirsoftHub`);
       }
     }
   }
 
   private setMeta(r: EventResults): void {
     const mode = GAME_MODE_LABELS[r.gameMode];
-    const title = `${r.eventName} — results`;
+    const title = $localize`${r.eventName}:eventName: — results`;
     const winner = r.teams.find((t) => t.teamId === r.winnerTeamId);
     const outcome = r.isDraw
-      ? `Draw between ${leaders(r).map((t) => t.name).join(' and ')}`
+      ? $localize`Draw between ${formatList(leaders(r).map((t) => t.name))}:teams:`
       : winner
-        ? `${winner.name} won with ${winner.points} points`
-        : 'Final results';
-    const description = `${outcome}. ${mode} · ${r.teams.length} teams · ${r.players.length} players · ${formatDuration(r.durationMs)} played.`;
+        ? $localize`${winner.name}:name: won with ${winner.points}:points: points`
+        : $localize`Final results`;
+    const description = $localize`${outcome}:outcome:. ${mode}:mode: · ${r.teams.length}:length: teams · ${r.players.length}:length2: players · ${formatDuration(r.durationMs)}:durationMs: played.`;
     this.titleService.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
     this.meta.updateTag({ property: 'og:title', content: title });

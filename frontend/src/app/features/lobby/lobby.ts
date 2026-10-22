@@ -49,17 +49,17 @@ import { LobbyRoster } from './lobby-roster';
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
         <zeus-loading-skeleton [rows]="6" [avatar]="true" />
       } @else if (error() && !event()) {
-        <zeus-page-header title="Lobby" [back]="'/events/' + eventId()" backLabel="Event" />
+        <zeus-page-header title="Lobby" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
         <zeus-error-state [error]="error()" (retry)="loadAll()" />
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" eyebrow="Lobby" [back]="'/events/' + e.id" backLabel="Event details">
+        <zeus-page-header [title]="e.name" eyebrow="Lobby" [back]="'/events/' + e.id" backLabel="Event details" i18n-eyebrow i18n-backLabel>
           <zeus-status-chip [spec]="statusChip()" />
           <zeus-connection-status [compact]="true" />
         </zeus-page-header>
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
-            <span>Showing the last data loaded. Changes need a connection.</span>
+            <span i18n>Showing the last data loaded. Changes need a connection.</span>
             <zeus-connection-status />
           </div>
         }
@@ -69,63 +69,63 @@ import { LobbyRoster } from './lobby-roster';
           @case ('live') {
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-primary bg-primary/10 p-4" role="alert">
               <div>
-                <p class="font-bold uppercase">● The game is live</p>
+                <p class="font-bold uppercase" i18n>● The game is live</p>
                 @if (!e.isGm && !myTeamId()) {
-                  <p class="text-sm text-muted-foreground">You have no team yet. Ask a Game Master to assign you.</p>
+                  <p class="text-sm text-muted-foreground" i18n>You have no team yet. Ask a Game Master to assign you.</p>
                 }
               </div>
               @if (e.isGm) {
-                <a hlmBtn class="h-12" [routerLink]="['/gm/events', e.id, 'control']"><ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> Control center</a>
+                <a hlmBtn class="h-12" [routerLink]="['/gm/events', e.id, 'control']"><ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Control center</ng-container></a>
               } @else {
-                <a hlmBtn class="h-12" [routerLink]="['/events', e.id, 'live']"><ng-icon name="lucideMap" size="18" aria-hidden="true" /> Open live map</a>
+                <a hlmBtn class="h-12" [routerLink]="['/events', e.id, 'live']"><ng-icon name="lucideMap" size="18" aria-hidden="true" /> <ng-container i18n>Open live map</ng-container></a>
               }
             </div>
           }
           @case ('paused') {
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning bg-warning-surface p-4" role="status">
-              <p class="font-bold uppercase">❚❚ Game paused</p>
-              <a hlmBtn class="h-12" [routerLink]="e.isGm ? ['/gm/events', e.id, 'control'] : ['/events', e.id, 'live']">{{ e.isGm ? 'Control center' : 'Open live map' }}</a>
+              <p class="font-bold uppercase" i18n>❚❚ Game paused</p>
+              <a hlmBtn class="h-12" [routerLink]="e.isGm ? ['/gm/events', e.id, 'control'] : ['/events', e.id, 'live']">{{ e.isGm ? txt.controlCenter : txt.openLiveMap }}</a>
             </div>
           }
           @case ('completed') {
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-muted p-4" role="status">
-              <p class="font-bold uppercase">✓ The game has ended</p>
-              <a hlmBtn class="h-11" [routerLink]="['/events', e.id, 'results']"><ng-icon name="lucideTrophy" size="16" aria-hidden="true" /> View results</a>
+              <p class="font-bold uppercase" i18n>✓ The game has ended</p>
+              <a hlmBtn class="h-11" [routerLink]="['/events', e.id, 'results']"><ng-icon name="lucideTrophy" size="16" aria-hidden="true" /> <ng-container i18n>View results</ng-container></a>
             </div>
           }
           @case ('cancelled') {
             <div class="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-4" role="alert">
-              <p class="font-bold uppercase">✕ Event cancelled</p>
-              <p class="text-sm text-muted-foreground">The Game Master cancelled this event. No game takes place and nothing is tracked.</p>
+              <p class="font-bold uppercase" i18n>✕ Event cancelled</p>
+              <p class="text-sm text-muted-foreground" i18n>The Game Master cancelled this event. No game takes place and nothing is tracked.</p>
             </div>
           }
         }
 
         <!-- Summary -->
-        <section class="panel mb-4 grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center" aria-label="Event summary">
+        <section class="panel mb-4 grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center" aria-label="Event summary" i18n-aria-label>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
             <div>
-              <dt class="label-caps">Mode</dt>
+              <dt class="label-caps" i18n>Mode</dt>
               <dd class="font-semibold">{{ modeLabel() }}</dd>
             </div>
             <div>
-              <dt class="label-caps">Start</dt>
+              <dt class="label-caps" i18n>Start</dt>
               <dd class="font-semibold">{{ dateLabel() }}</dd>
               <dd class="num text-muted-foreground">{{ timeLabel() }}</dd>
             </div>
             <div>
-              <dt class="label-caps">Players</dt>
+              <dt class="label-caps" i18n>Players</dt>
               <dd class="font-semibold"><span class="num">{{ playerCount() }}/{{ e.maxPlayers }}</span></dd>
-              <dd class="text-muted-foreground">min <span class="num">{{ e.minPlayers }}</span> · <span class="num">{{ readyCount() }}</span> ready</dd>
+              <dd class="text-muted-foreground" i18n>min <span class="num">{{ e.minPlayers }}</span> · <span class="num">{{ readyCount() }}</span> ready</dd>
             </div>
             @if (e.meetingAddress || e.meetingLat !== null) {
               <div class="col-span-2 sm:col-span-3">
-                <dt class="label-caps">Meeting point</dt>
+                <dt class="label-caps" i18n>Meeting point</dt>
                 <dd class="flex flex-wrap items-center gap-2">
-                  <span>{{ e.meetingAddress || 'Pinned location' }}</span>
+                  <span>{{ e.meetingAddress || txt.pinnedLocation }}</span>
                   @if (e.meetingLat !== null && e.meetingLng !== null) {
                     <a class="inline-flex items-center gap-1 text-sm font-semibold text-nav underline-offset-4 hover:underline" [href]="'https://www.google.com/maps/dir/?api=1&destination=' + e.meetingLat + ',' + e.meetingLng" target="_blank" rel="noopener noreferrer">
-                      <ng-icon name="lucideNavigation" size="14" aria-hidden="true" /> Directions<span class="sr-only"> (opens Google Maps)</span>
+                      <ng-icon name="lucideNavigation" size="14" aria-hidden="true" /> <ng-container i18n>Directions<span class="sr-only"> (opens Google Maps)</span></ng-container>
                     </a>
                   }
                 </dd>
@@ -136,7 +136,7 @@ import { LobbyRoster } from './lobby-roster';
             <div class="flex flex-col items-start gap-1 border-t border-border pt-3 sm:items-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
               <zeus-game-timer [clock]="e.clock" [startAt]="e.startAt" [serverOffsetMs]="serverOffset()" size="lg" />
               @if (startOverdue()) {
-                <p class="text-xs text-warning">▲ Start time passed — waiting for the Game Master</p>
+                <p class="text-xs text-warning" i18n>▲ Start time passed — waiting for the Game Master</p>
               }
             </div>
           }
@@ -172,9 +172,9 @@ import { LobbyRoster } from './lobby-roster';
             }
 
             <section aria-labelledby="ann-list-title">
-              <h2 id="ann-list-title" class="label-caps mb-2">Announcements · <span class="num">{{ announcements().length }}</span></h2>
+              <h2 id="ann-list-title" class="label-caps mb-2" i18n>Announcements · <span class="num">{{ announcements().length }}</span></h2>
               @if (!announcements().length) {
-                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No announcements yet. Messages from the Game Master appear here.</p>
+                <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No announcements yet. Messages from the Game Master appear here.</p>
               } @else {
                 <ul class="flex flex-col gap-2" aria-live="polite">
                   @for (a of announcements(); track a.id) {
@@ -183,7 +183,7 @@ import { LobbyRoster } from './lobby-roster';
                 </ul>
                 @if (annCursor()) {
                   <button hlmBtn variant="ghost" type="button" class="tap mt-2 w-full" [disabled]="annLoading()" (click)="loadOlderAnnouncements()">
-                    {{ annLoading() ? 'Loading…' : 'Older announcements' }}
+                    {{ annLoading() ? txt.loading : txt.olderAnnouncements }}
                   </button>
                 }
               }
@@ -191,7 +191,7 @@ import { LobbyRoster } from './lobby-roster';
 
             @if (!e.isGm && preGame()) {
               <button hlmBtn variant="ghost" type="button" class="tap self-start text-destructive" [disabled]="leaving()" (click)="leave()">
-                <ng-icon name="lucideLogOut" size="16" aria-hidden="true" /> Leave event
+                <ng-icon name="lucideLogOut" size="16" aria-hidden="true" /> <ng-container i18n>Leave event</ng-container>
               </button>
             }
           </div>
@@ -201,6 +201,15 @@ import { LobbyRoster } from './lobby-roster';
   `,
 })
 export class LobbyScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    controlCenter: $localize`Control center`,
+    openLiveMap: $localize`Open live map`,
+    pinnedLocation: $localize`Pinned location`,
+    loading: $localize`Loading…`,
+    olderAnnouncements: $localize`Older announcements`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly realtime = inject(RealtimeService);
@@ -315,7 +324,7 @@ export class LobbyScreen {
       .pipe(takeUntilDestroyed())
       .subscribe((p) => {
         if (p.eventId !== this.eventId()) return;
-        this.toast.warning('You were removed from this event', p.reason || undefined);
+        this.toast.warning($localize`You were removed from this event`, p.reason || undefined);
         void this.router.navigate(['/events', p.eventId], { replaceUrl: true });
       });
   }
@@ -425,13 +434,13 @@ export class LobbyScreen {
     if (!e) return;
     const team = e.teams.find((t) => t.id === this.myTeamId());
     const ok = await this.confirm.ask({
-      title: `Leave ${e.name}?`,
+      title: $localize`Leave ${e.name}:name:?`,
       consequences: [
-        team ? `You give up your place in ${team.name}.` : 'You give up your place in this event.',
-        'Your location will not be tracked for this event.',
-        e.requiresApproval ? 'Coming back needs a new request and Game Master approval.' : 'You can join again while registration is open.',
+        team ? $localize`You give up your place in ${team.name}:name:.` : $localize`You give up your place in this event.`,
+        $localize`Your location will not be tracked for this event.`,
+        e.requiresApproval ? $localize`Coming back needs a new request and Game Master approval.` : $localize`You can join again while registration is open.`,
       ],
-      confirmLabel: 'Leave event',
+      confirmLabel: $localize`Leave event`,
       destructive: true,
     });
     if (!ok) return;
@@ -439,7 +448,7 @@ export class LobbyScreen {
     try {
       await this.api.leaveEvent(e.id);
       if (this.tracker.eventId() === e.id) this.tracker.stop();
-      this.toast.info(`You left ${e.name}`);
+      this.toast.info($localize`You left ${e.name}:name:`);
       void this.router.navigate(['/events/mine']);
     } catch (err) {
       this.toast.error(err);
@@ -458,7 +467,7 @@ export class LobbyScreen {
     if (e.isGm || e.me?.status === 'approved') return true;
     if (!this.redirected) {
       this.redirected = true;
-      this.toast.info(e.me?.status === 'pending' ? 'Your registration is waiting for approval' : 'Join the event to enter the lobby');
+      this.toast.info(e.me?.status === 'pending' ? $localize`Your registration is waiting for approval` : $localize`Join the event to enter the lobby`);
       void this.router.navigate(['/events', e.id], { replaceUrl: true });
     }
     return false;
@@ -470,7 +479,7 @@ export class LobbyScreen {
     if (!e || e.isGm || this.redirected) return;
     if (e.status !== 'live' || e.me?.status !== 'approved' || !this.myTeamId()) return;
     this.redirected = true;
-    if (announce) this.toast.success('The game has started', 'Opening the live map.');
+    if (announce) this.toast.success($localize`The game has started`, $localize`Opening the live map.`);
     void this.router.navigate(['/events', e.id, 'live']);
   }
 }

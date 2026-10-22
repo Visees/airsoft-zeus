@@ -22,7 +22,7 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
   `err.isNetwork` means offline.
 * Types: `core/api/models.ts` is the API contract. Don't redefine API types locally.
 * Selector prefix `zeus-`. One screen per file under `features/<area>/`.
-* English UI copy. No lorem ipsum.
+* UI copy is written in English and translated to Italian (see "Translations" below). No lorem ipsum.
 
 ## Building blocks (read-only for feature work)
 
@@ -106,10 +106,47 @@ Plain and specific. Name the action ("Capture objective", "Send to Team Bravo"),
 facts in empty states ("No objectives yet"), no rhetorical-question placeholders, no
 "unlock / seamless / elevate / journey / dive in".
 
+## Translations (English + Italian)
+
+The app uses Angular's `@angular/localize` with translations loaded at runtime: one build,
+English written inline, Italian in `src/locale/messages.it.json`. The language is picked in
+`main.ts` (stored choice `zeus.lang` → browser → English) before the app is imported, and is
+fixed for the page load: `switchLanguage()` (`core/i18n/language.ts`) stores it and reloads.
+Signed in, the profile language wins (`AuthService`); Settings and Edit profile change it.
+
+* Every text in a template gets `i18n` (element text) or `i18n-<attr>` (`aria-label`, `title`,
+  `placeholder`, `alt`, and component inputs that show text such as `title`, `message`,
+  `backLabel`). Wrap text next to icons or inside `@if` blocks in `<ng-container i18n>`.
+* No English inside template expressions (`{{ busy() ? 'Saving…' : 'Save' }}`): put the strings
+  in the component (`protected readonly txt = { saving: $localize\`Saving…\`, … }`), or use
+  `@if` with `i18n` blocks, or ICU (`{n, plural, =1 {1 player} other {{{ n }} players}}`).
+* Strings in TypeScript use `` $localize`…` ``; name placeholders: `` $localize`${n}:count: players` ``.
+  Build whole sentences per case instead of gluing fragments (`'Join ' + name`), so Italian can
+  change the word order. Plurals: two messages (`n === 1 ? … : …`) or ICU in templates.
+* Short words whose Italian form depends on gender or context get a meaning:
+  `` $localize`:event status|:Completed` `` / `i18n="event status|"`. The `|` is required —
+  without it the text is only a description and both uses share one translation.
+* Dates and numbers: the helpers in `core/util/format.ts` (they use `activeLocale()`), never
+  `toLocaleString()` without a locale or `toFixed()` for shown numbers (`formatDecimal`).
+* Server texts (errors, notifications, the activity feed) come translated from the API, which
+  reads `Accept-Language` (sent by `authInterceptor`).
+
+After changing UI text:
+
+```bash
+cd frontend
+npm run i18n:check     # extracts messages; lists ones missing from messages.it.json or with wrong placeholders
+```
+
+New or changed English messages get new ids: add their Italian text to `src/locale/messages.it.json`
+(`node tools/i18n/check.mjs --prune` drops ids that no longer exist). `tools/i18n/` also has the
+scripts used for the first pass (marking templates, wrapping strings).
+
 ## Checking your work
 
 ```bash
 cd frontend
 npx ngc -p tsconfig.app.json --noEmit   # full type + template check, fast, safe to run in parallel
+npm run i18n:check                       # every message has an Italian text
 npx ng build                             # production bundle (run once at the end)
 ```

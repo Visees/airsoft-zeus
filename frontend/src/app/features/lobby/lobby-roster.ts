@@ -31,24 +31,24 @@ interface TeamGroup {
     @let e = event();
     <section aria-labelledby="roster-title">
       <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="roster-title" class="label-caps">
+        <h2 id="roster-title" class="label-caps" i18n>
           Players · <span class="num">{{ players().length }}/{{ e.maxPlayers }}</span> · <span class="num">{{ readyCount() }}</span> ready
         </h2>
         <p class="text-xs" [class]="players().length >= e.minPlayers ? 'text-primary' : 'text-warning'">
           @if (players().length >= e.minPlayers) {
-            ✓ Minimum of <span class="num">{{ e.minPlayers }}</span> reached
+            <ng-container i18n>✓ Minimum of <span class="num">{{ e.minPlayers }}</span> reached</ng-container>
           } @else {
-            ▲ <span class="num">{{ e.minPlayers - players().length }}</span> more needed (min <span class="num">{{ e.minPlayers }}</span>)
+            ▲ <ng-container i18n><span class="num">{{ e.minPlayers - players().length }}</span> more needed (min <span class="num">{{ e.minPlayers }}</span></ng-container>)
           }
         </p>
       </div>
 
       @if (unavailable()) {
-        <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+        <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground" i18n>
           The player list is not available right now. <span class="num">{{ e.approvedCount }}</span> players are registered.
         </p>
       } @else if (!players().length) {
-        <p class="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No players registered yet.</p>
+        <p class="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground" i18n>No players registered yet.</p>
       } @else {
         <div class="flex flex-col gap-3">
           @for (g of groups(); track g.team?.id ?? 'none') {
@@ -57,9 +57,9 @@ interface TeamGroup {
                 @if (g.team) {
                   <zeus-team-badge [team]="g.team" />
                 } @else {
-                  <span class="font-semibold text-muted-foreground">No team yet</span>
+                  <span class="font-semibold text-muted-foreground" i18n>No team yet</span>
                 }
-                <span class="num text-xs text-muted-foreground">
+                <span class="num text-xs text-muted-foreground" i18n>
                   {{ g.count }}{{ g.team?.capacity ? '/' + g.team!.capacity : '' }} · {{ g.ready }} ready
                 </span>
               </div>
@@ -67,7 +67,7 @@ interface TeamGroup {
                 @if (s.squad) {
                   <div class="px-3 pt-2"><zeus-squad-badge [squad]="s.squad" /></div>
                 } @else if (g.squads.length > 1) {
-                  <p class="label-caps px-3 pt-2">No squad</p>
+                  <p class="label-caps px-3 pt-2" i18n>No squad</p>
                 }
                 <ul class="divide-y divide-border px-3">
                   @for (m of s.members; track m.userId) {
@@ -76,35 +76,35 @@ interface TeamGroup {
                         @if (m.role === 'gm') {
                           <!-- A Game Master playing on this team: no checklist. -->
                         } @else if (m.ready) {
-                          <span class="inline-flex items-center gap-1 rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">✓ <span class="hidden sm:inline">Ready</span><span class="sr-only sm:hidden">Ready</span></span>
+                          <span class="inline-flex items-center gap-1 rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">✓ <span class="hidden sm:inline" i18n>Ready</span><span class="sr-only sm:hidden" i18n>Ready</span></span>
                         } @else {
-                          <span class="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-xs text-muted-foreground">○ <span class="hidden sm:inline">Not ready</span><span class="sr-only sm:hidden">Not ready</span></span>
+                          <span class="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-xs text-muted-foreground">○ <span class="hidden sm:inline" i18n>Not ready</span><span class="sr-only sm:hidden" i18n>Not ready</span></span>
                         }
                         @if (isGm() && m.role === 'player') {
                           @if (!m.rulesAccepted) {
-                            <span class="hidden text-xs text-warning md:inline" title="Rules not accepted">▲ Rules</span>
+                            <span class="hidden text-xs text-warning md:inline" title="Rules not accepted" i18n i18n-title>▲ Rules</span>
                           }
                           @if (!m.trackingConsented) {
-                            <span class="hidden text-xs text-muted-foreground md:inline" title="No location consent">◌ GPS</span>
+                            <span class="hidden text-xs text-muted-foreground md:inline" title="No location consent" i18n i18n-title>◌ GPS</span>
                           }
                         }
                       </zeus-player-list-item>
                       @if (isGm()) {
                         <div class="flex items-center gap-2 pb-2 pl-13">
-                          <label class="sr-only" [for]="'assign-' + m.userId">Team for {{ m.nickname }}</label>
+                          <label class="sr-only" [for]="'assign-' + m.userId" i18n>Team for {{ m.nickname }}</label>
                           <select
                             [id]="'assign-' + m.userId"
                             class="h-11 min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 text-sm dark:bg-input/30"
                             [disabled]="busy() === m.userId"
                             (change)="assign(m, $any($event.target).value, $event)"
                           >
-                            <option value="" [selected]="!m.teamId">No team</option>
+                            <option value="" [selected]="!m.teamId" i18n>No team</option>
                             @for (t of sortedTeams(); track t.id) {
                               <option [value]="t.id" [selected]="t.id === m.teamId">{{ t.name }} ({{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }})</option>
                             }
                           </select>
                           @if (m.role === 'player') {
-                            <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" [attr.aria-label]="'Remove ' + m.nickname">
+                            <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" aria-label="Remove {{ m.nickname }}" i18n-aria-label>
                               <ng-icon name="lucideUserMinus" size="18" aria-hidden="true" />
                             </button>
                           }
@@ -173,7 +173,7 @@ export class LobbyRoster {
     try {
       await this.api.assignMember(this.event().id, m.userId, { teamId: target });
       const name = this.event().teams.find((t) => t.id === target)?.name;
-      this.toast.success(name ? `${m.nickname} moved to ${name}` : `${m.nickname} has no team now`);
+      this.toast.success(name ? $localize`${m.nickname}:nickname: moved to ${name}:name:` : $localize`${m.nickname}:nickname: has no team now`);
       this.changed.emit();
     } catch (err) {
       select.value = m.teamId ?? '';
@@ -185,21 +185,21 @@ export class LobbyRoster {
 
   protected async remove(m: Member): Promise<void> {
     const reason = await this.confirm.askReason({
-      title: `Remove ${m.nickname}?`,
+      title: $localize`Remove ${m.nickname}:nickname:?`,
       consequences: [
-        `${m.nickname} is removed from the event and notified with your reason.`,
-        'Their team place is released.',
-        'They cannot rejoin unless you invite or approve them again.',
+        $localize`${m.nickname}:nickname: is removed from the event and notified with your reason.`,
+        $localize`Their team place is released.`,
+        $localize`They cannot rejoin unless you invite or approve them again.`,
       ],
-      reason: { label: 'Reason', required: true, placeholder: 'e.g. No-show, safety violation' },
-      confirmLabel: 'Remove player',
+      reason: { label: $localize`Reason`, required: true, placeholder: $localize`e.g. No-show, safety violation` },
+      confirmLabel: $localize`Remove player`,
       destructive: true,
     });
     if (reason === null) return;
     this.busy.set(m.userId);
     try {
       await this.api.removeMember(this.event().id, m.userId, reason);
-      this.toast.info(`${m.nickname} removed`);
+      this.toast.info($localize`${m.nickname}:nickname: removed`);
       this.changed.emit();
     } catch (err) {
       this.toast.error(err);

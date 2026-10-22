@@ -20,29 +20,29 @@ import { ReportDialog } from './report-dialog';
       @if (loading()) {
         <zeus-loading-skeleton [rows]="3" [avatar]="true" />
       } @else if (notFound()) {
-        <zeus-page-header title="Player" />
-        <zeus-empty-state icon="lucideUserX" title="Player not found" message="This profile does not exist or the link is wrong.">
-          <a hlmBtn routerLink="/home" class="h-11">Go home</a>
+        <zeus-page-header title="Player" i18n-title />
+        <zeus-empty-state icon="lucideUserX" title="Player not found" message="This profile does not exist or the link is wrong." i18n-title i18n-message>
+          <a hlmBtn routerLink="/home" class="h-11" i18n>Go home</a>
         </zeus-empty-state>
       } @else if (error() && !profile()) {
-        <zeus-page-header title="Player" />
+        <zeus-page-header title="Player" i18n-title />
         <zeus-error-state [error]="error()" (retry)="load(userId())" />
       } @else if (profile(); as p) {
         @if (p.deleted) {
-          <zeus-page-header title="Deleted player" />
+          <zeus-page-header title="Deleted player" i18n-title />
           <div class="panel flex items-center gap-4 p-4">
             <span class="grid size-16 place-items-center rounded-full border border-dashed border-border text-muted-foreground" aria-hidden="true">
               <ng-icon name="lucideUserX" size="26" />
             </span>
-            <p class="text-sm text-muted-foreground">This player deleted their account. Their results stay in past events under “Deleted player”.</p>
+            <p class="text-sm text-muted-foreground" i18n>This player deleted their account. Their results stay in past events under “Deleted player”.</p>
           </div>
         } @else {
-          <zeus-page-header [title]="p.nickname" eyebrow="Player">
+          <zeus-page-header [title]="p.nickname" eyebrow="Player" i18n-eyebrow>
             @if (isSelf()) {
-              <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> Edit</a>
+              <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit</ng-container></a>
             } @else {
               <button hlmBtn variant="ghost" type="button" class="h-11 text-muted-foreground" (click)="report()?.open()">
-                <ng-icon name="lucideFlag" size="16" aria-hidden="true" /> Report
+                <ng-icon name="lucideFlag" size="16" aria-hidden="true" /> <ng-container i18n>Report</ng-container>
               </button>
             }
           </zeus-page-header>
@@ -50,18 +50,18 @@ import { ReportDialog } from './report-dialog';
           @if (isSelf()) {
             <p class="mb-3 flex items-center gap-2 rounded-md border border-border bg-muted p-3 text-sm">
               <ng-icon name="lucideEye" size="16" class="shrink-0 text-muted-foreground" aria-hidden="true" />
-              <span>This is how other players see you. Change what is shown in <a routerLink="/settings/privacy" class="font-semibold text-primary underline-offset-2 hover:underline">Privacy settings</a>.</span>
+              <span i18n>This is how other players see you. Change what is shown in <a routerLink="/settings/privacy" class="font-semibold text-primary underline-offset-2 hover:underline">Privacy settings</a>.</span>
             </p>
           }
 
-          <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Player summary">
-            <zeus-avatar [url]="p.avatarUrl" [nickname]="p.nickname" [size]="88" [alt]="'Avatar of ' + p.nickname" />
+          <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Player summary" i18n-aria-label>
+            <zeus-avatar [url]="p.avatarUrl" [nickname]="p.nickname" [size]="88" alt="Avatar of {{ p.nickname }}" i18n-alt />
             <div class="flex min-w-0 flex-1 flex-col gap-3">
               @if (hasDetails()) {
                 <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                   @if (p.clubName) {
                     <div>
-                      <dt class="label-caps">Club</dt>
+                      <dt class="label-caps" i18n>Club</dt>
                       <dd>
                         @if (p.clubId) {
                           <a [routerLink]="['/clubs', p.clubId]" class="font-semibold text-primary underline-offset-2 hover:underline">{{ p.clubName }}</a>
@@ -73,13 +73,13 @@ import { ReportDialog } from './report-dialog';
                   }
                   @if (role()) {
                     <div>
-                      <dt class="label-caps">Role</dt>
+                      <dt class="label-caps" i18n>Role</dt>
                       <dd>{{ role() }}</dd>
                     </div>
                   }
                   @if (country()) {
                     <div>
-                      <dt class="label-caps">Country</dt>
+                      <dt class="label-caps" i18n>Country</dt>
                       <dd>{{ country() }}</dd>
                     </div>
                   }
@@ -89,21 +89,21 @@ import { ReportDialog } from './report-dialog';
                 <p class="text-sm whitespace-pre-line text-muted-foreground">{{ p.bio }}</p>
               }
               @if (!hasDetails() && !p.bio) {
-                <p class="text-sm text-muted-foreground">This player keeps their profile details private.</p>
+                <p class="text-sm text-muted-foreground" i18n>This player keeps their profile details private.</p>
               }
             </div>
           </section>
 
           @if (p.stats) {
             <section class="mt-6" aria-labelledby="pp-stats">
-              <h2 id="pp-stats" class="label-caps mb-2">Statistics</h2>
+              <h2 id="pp-stats" class="label-caps mb-2" i18n>Statistics</h2>
               <zeus-stat-tiles [stats]="p.stats" />
             </section>
           }
 
           @if (p.badges.length) {
             <section class="mt-6" aria-labelledby="pp-badges">
-              <h2 id="pp-badges" class="label-caps mb-2">Badges · <span class="num">{{ p.badges.length }}</span></h2>
+              <h2 id="pp-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ p.badges.length }}</span></h2>
               <zeus-badge-grid [badges]="p.badges" />
             </section>
           }

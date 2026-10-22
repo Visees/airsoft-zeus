@@ -12,7 +12,7 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center gap-4' },
   template: `
-    <div class="relative size-28 shrink-0" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct()" [attr.aria-label]="'Capture progress ' + pct() + '%'">
+    <div class="relative size-28 shrink-0" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct()" aria-label="Capture progress {{ pct() }}%" i18n-aria-label>
       <svg viewBox="0 0 100 100" class="size-full -rotate-90">
         <circle cx="50" cy="50" r="44" fill="none" stroke="var(--muted)" stroke-width="9" />
         <circle
@@ -38,41 +38,41 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
       </div>
     </div>
     <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-      <dt class="label-caps self-center">Zone</dt>
+      <dt class="label-caps self-center" i18n>Zone</dt>
       <dd class="font-semibold" [class.text-primary]="status()?.inside" [class.text-muted-foreground]="!status()?.inside">
         @if (stale()) {
-          ◌ No answer from the server — check your signal
+          <ng-container i18n>◌ No answer from the server — check your signal</ng-container>
         } @else if (status()?.inside) {
-          ● Inside
+          <ng-container i18n>● Inside</ng-container>
         } @else if (status()?.blocked === 'confirming') {
-          ◌ Confirming your position…
+          <ng-container i18n>◌ Confirming your position…</ng-container>
         } @else {
-          ○ Outside
+          <ng-container i18n>○ Outside</ng-container>
         }
       </dd>
-      <dt class="label-caps self-center">Distance</dt>
+      <dt class="label-caps self-center" i18n>Distance</dt>
       <dd class="num text-nav">{{ distance() }}</dd>
-      <dt class="label-caps self-center">Time left</dt>
+      <dt class="label-caps self-center" i18n>Time left</dt>
       <dd class="num">{{ timeLeft() }}</dd>
       @if (status()?.contested) {
-        <dt class="label-caps self-center">State</dt>
-        <dd class="font-semibold text-destructive">▲ Contested — enemies in zone</dd>
+        <dt class="label-caps self-center" i18n>State</dt>
+        <dd class="font-semibold text-destructive" i18n>▲ Contested — enemies in zone</dd>
       } @else if (status()?.outnumbered) {
-        <dt class="label-caps self-center">State</dt>
-        <dd class="font-semibold text-destructive">▲ Outnumbered — your team needs more players inside</dd>
+        <dt class="label-caps self-center" i18n>State</dt>
+        <dd class="font-semibold text-destructive" i18n>▲ Outnumbered — your team needs more players inside</dd>
       }
       @if (status()?.armed) {
-        <dt class="label-caps self-center">State</dt>
-        <dd class="font-semibold text-primary">✓ Zone held — enter the code</dd>
+        <dt class="label-caps self-center" i18n>State</dt>
+        <dd class="font-semibold text-primary" i18n>✓ Zone held — enter the code</dd>
       }
       @if (status()?.blocked === 'low_accuracy') {
-        <dt class="label-caps self-center">GPS</dt>
-        <dd class="font-semibold text-warning">
+        <dt class="label-caps self-center" i18n>GPS</dt>
+        <dd class="font-semibold text-warning" i18n>
           ▲ Too imprecise — needs ±<span class="num">{{ status()!.maxAccuracyM }}</span> m or better. Move into the open and wait for a GPS fix.
         </dd>
       } @else if (status()?.blocked === 'screen_closed') {
-        <dt class="label-caps self-center">State</dt>
-        <dd class="font-semibold text-warning">▲ Keep this screen open to hold the zone</dd>
+        <dt class="label-caps self-center" i18n>State</dt>
+        <dd class="font-semibold text-warning" i18n>▲ Keep this screen open to hold the zone</dd>
       }
     </dl>
   `,

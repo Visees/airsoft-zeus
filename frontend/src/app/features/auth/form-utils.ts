@@ -36,15 +36,15 @@ export function fieldError(ctrl: AbstractControl | null | undefined, messages: E
     const m = messages[key] ?? DEFAULT_MESSAGES[key];
     if (m) return typeof m === 'function' ? m(errors[key]) : m;
   }
-  return 'Check this field.';
+  return $localize`Check this field.`;
 }
 
 const DEFAULT_MESSAGES: ErrorMessages = {
-  required: 'Required.',
-  email: 'Enter a valid email address, like name@example.com.',
-  minlength: (e) => `Use at least ${(e as { requiredLength: number }).requiredLength} characters.`,
-  maxlength: (e) => `Use at most ${(e as { requiredLength: number }).requiredLength} characters.`,
-  pattern: 'The format is not valid.',
+  required: $localize`Required.`,
+  email: $localize`Enter a valid email address, like name@example.com.`,
+  minlength: (e) => $localize`Use at least ${(e as { requiredLength: number }).requiredLength}:requiredLength: characters.`,
+  maxlength: (e) => $localize`Use at most ${(e as { requiredLength: number }).requiredLength}:requiredLength: characters.`,
+  pattern: $localize`The format is not valid.`,
 };
 
 /** Move focus to the first invalid field inside `host` after a failed submit. */

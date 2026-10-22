@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { config } from './config.js';
+import { type Lang, type Translate, trIn } from './i18n/index.js';
 import { logger } from './logger.js';
 
 const transport = config.SMTP_HOST
@@ -37,50 +38,66 @@ async function send(to: string, subject: string, html: string, text: string): Pr
   }
 }
 
-export async function sendVerificationEmail(to: string, nickname: string, token: string): Promise<void> {
+export async function sendVerificationEmail(to: string, nickname: string, token: string, lang: Lang): Promise<void> {
+  const tr = trIn(lang);
   const url = `${config.SITE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`;
   await send(
     to,
-    'Confirm your email address',
-    layout('Confirm your email', [`Hi ${nickname}, confirm this address to join and run events on AirsoftHub.`, 'The link is valid for 24 hours.'], {
-      label: 'Confirm email',
+    tr`Confirm your email address`,
+    layout(tr`Confirm your email`, [tr`Hi ${nickname}, confirm this address to join and run events on AirsoftHub.`, tr`The link is valid for 24 hours.`], {
+      label: tr`Confirm email`,
       url,
     }),
-    `Hi ${nickname}, confirm your email address: ${url} (valid for 24 hours)`,
+    tr`Hi ${nickname}, confirm your email address: ${url} (valid for 24 hours)`,
   );
 }
 
-export async function sendPasswordResetEmail(to: string, nickname: string, token: string): Promise<void> {
+export async function sendPasswordResetEmail(to: string, nickname: string, token: string, lang: Lang): Promise<void> {
+  const tr = trIn(lang);
   const url = `${config.SITE_URL}/auth/reset-password?token=${encodeURIComponent(token)}`;
   await send(
     to,
-    'Reset your password',
-    layout('Reset your password', [`Hi ${nickname}, someone asked to reset the password of this account.`, 'If it was not you, ignore this email. The link is valid for 1 hour.'], {
-      label: 'Choose a new password',
+    tr`Reset your password`,
+    layout(tr`Reset your password`, [tr`Hi ${nickname}, someone asked to reset the password of this account.`, tr`If it was not you, ignore this email. The link is valid for 1 hour.`], {
+      label: tr`Choose a new password`,
       url,
     }),
-    `Reset your AirsoftHub password: ${url} (valid for 1 hour). If you did not ask for this, ignore this email.`,
+    tr`Reset your AirsoftHub password: ${url} (valid for 1 hour). If you did not ask for this, ignore this email.`,
   );
 }
 
-export async function sendAccountDeletedEmail(to: string): Promise<void> {
+export async function sendAccountDeletedEmail(to: string, lang: Lang): Promise<void> {
+  const tr = trIn(lang);
   await send(
     to,
-    'Your account was deleted',
-    layout('Account deleted', ['Your AirsoftHub account and personal data were deleted. Event results keep an anonymous "Deleted player" entry.']),
-    'Your AirsoftHub account and personal data were deleted.',
+    tr`Your account was deleted`,
+    layout(tr`Account deleted`, [tr`Your AirsoftHub account and personal data were deleted. Event results keep an anonymous "Deleted player" entry.`]),
+    tr`Your AirsoftHub account and personal data were deleted.`,
   );
 }
 
-/** New support message (or a reply from the player): tell the platform admins. */
-export async function sendSupportEmail(to: string[], ticket: { id: string; subject: string; category: string }, from: string, text: string): Promise<void> {
-  if (!to.length) return;
+/** New support message (or a reply from the player): tell the platform admins, each in their language. */
+export async function sendSupportEmail(
+  to: { email: string; lang: Lang }[],
+  ticket: { id: string; subject: string; category: string },
+  from: string,
+  text: string,
+): Promise<void> {
   const url = `${config.SITE_URL}/support/${ticket.id}`;
   const excerpt = text.length > 600 ? `${text.slice(0, 600)}…` : text;
-  await send(
-    to.join(', '),
-    `[Support · ${ticket.category}] ${ticket.subject}`,
-    layout(ticket.subject, [`${from} wrote:`, excerpt], { label: 'Open the conversation', url }),
-    `${from} wrote (${ticket.category}): ${ticket.subject}\n\n${excerpt}\n\n${url}`,
-  );
+  for (const r of to) {
+    const tr = trIn(r.lang);
+    const category = supportCategoryLabel(tr, ticket.category);
+    await send(
+      r.email,
+      tr`[Support · ${category}] ${ticket.subject}`,
+      layout(ticket.subject, [tr`${from} wrote:`, excerpt], { label: tr`Open the conversation`, url }),
+      `${tr`${from} wrote (${category}): ${ticket.subject}`}\n\n${excerpt}\n\n${url}`,
+    );
+  }
+}
+
+function supportCategoryLabel(tr: Translate, category: string): string {
+  const labels: Record<string, string> = { bug: tr`Bug`, report: tr`Report`, general: tr`General` };
+  return labels[category] ?? category;
 }

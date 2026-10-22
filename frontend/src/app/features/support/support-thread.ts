@@ -19,7 +19,7 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header [eyebrow]="staff() ? 'Admin' : 'Help & feedback'" title="Conversation" [back]="staff() ? '/admin/tickets' : '/support'" [backLabel]="staff() ? 'All tickets' : 'All messages'" />
+      <zeus-page-header [eyebrow]="staff() ? txt.admin : txt.helpFeedback" title="Conversation" [back]="staff() ? '/admin/tickets' : '/support'" [backLabel]="staff() ? txt.allTickets : txt.allMessages" i18n-title />
 
       @if (loading()) {
         <zeus-loading-skeleton [rows]="5" />
@@ -32,29 +32,29 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
           <zeus-status-chip [spec]="categoryChip()" />
           <zeus-status-chip [spec]="statusChip()" />
           @if (staff() && t.userNickname) {
-            <span>· from <b class="text-foreground">{{ t.userNickname }}</b></span>
+            <span i18n>· from <b class="text-foreground">{{ t.userNickname }}</b></span>
           }
           <span class="num">· {{ date(t.createdAt) }}</span>
         </div>
 
         @if (staff() && hasContext()) {
           <details class="panel mb-4 p-3 text-sm">
-            <summary class="cursor-pointer font-semibold">Device details</summary>
+            <summary class="cursor-pointer font-semibold" i18n>Device details</summary>
             <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               @if (t.context.page) {
-                <dt class="text-muted-foreground">Page</dt><dd class="num break-all">{{ t.context.page }}</dd>
+                <dt class="text-muted-foreground" i18n>Page</dt><dd class="num break-all">{{ t.context.page }}</dd>
               }
               @if (t.context.screen) {
-                <dt class="text-muted-foreground">Screen</dt><dd class="num">{{ t.context.screen }}</dd>
+                <dt class="text-muted-foreground" i18n>Screen</dt><dd class="num">{{ t.context.screen }}</dd>
               }
               @if (t.context.userAgent) {
-                <dt class="text-muted-foreground">Browser</dt><dd class="num break-all">{{ t.context.userAgent }}</dd>
+                <dt class="text-muted-foreground" i18n>Browser</dt><dd class="num break-all">{{ t.context.userAgent }}</dd>
               }
             </dl>
           </details>
         }
 
-        <ol class="flex flex-col gap-3" aria-label="Messages">
+        <ol class="flex flex-col gap-3" aria-label="Messages" i18n-aria-label>
           @for (m of t.messages; track m.id) {
             <li class="flex flex-col gap-1" [class.items-end]="mine(m.fromAdmin)" [class.items-start]="!mine(m.fromAdmin)">
               <div class="max-w-[85%] rounded-md border px-3 py-2"
@@ -64,9 +64,9 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
               <p class="flex items-center gap-1 px-1 text-xs text-muted-foreground">
                 @if (m.fromAdmin) {
                   <ng-icon name="lucideLifeBuoy" size="12" class="text-primary" aria-hidden="true" />
-                  <span class="font-semibold text-primary">AirsoftHub team</span>
+                  <span class="font-semibold text-primary" i18n>AirsoftHub team</span>
                 } @else {
-                  <span class="font-semibold">{{ mine(false) ? 'You' : m.authorNickname || 'Player' }}</span>
+                  <span class="font-semibold">{{ mine(false) ? txt.you : m.authorNickname || txt.player }}</span>
                 }
                 <span aria-hidden="true">·</span>
                 <time [attr.datetime]="m.createdAt">{{ dateTime(m.createdAt) }}</time>
@@ -77,21 +77,21 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
 
         @if (t.status === 'closed') {
           <div class="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-3">
-            <p class="text-sm text-muted-foreground">This conversation is closed.</p>
-            <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy()" (click)="setStatus('open')">Reopen</button>
+            <p class="text-sm text-muted-foreground" i18n>This conversation is closed.</p>
+            <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy()" (click)="setStatus('open')" i18n>Reopen</button>
           </div>
         } @else {
           <!-- Plain (submit), not (ngSubmit): there is no [formGroup]/NgForm on this form to emit it. -->
           <form class="mt-6 flex flex-col gap-2" (submit)="$event.preventDefault(); send()" novalidate>
-            <label hlmLabel for="sup-reply">{{ staff() ? 'Answer' : 'Add a message' }}</label>
+            <label hlmLabel for="sup-reply">{{ staff() ? txt.answer : txt.addAMessage }}</label>
             <textarea hlmTextarea id="sup-reply" [formControl]="reply" rows="4" maxlength="5000"
-              [placeholder]="staff() ? 'The player gets a notification with your answer.' : 'More details, a follow-up, a thank you…'"></textarea>
+              [placeholder]="staff() ? txt.thePlayerGetsA : txt.moreDetailsAFollow"></textarea>
             <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
               <button hlmBtn variant="ghost" type="button" class="h-11 text-muted-foreground" [disabled]="busy()" (click)="setStatus('closed')">
-                <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> {{ staff() ? 'Close' : 'Solved, close it' }}
+                <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> {{ staff() ? txt.close : txt.solvedCloseIt }}
               </button>
               <button hlmBtn type="submit" class="h-12 sm:h-10" [disabled]="busy() || reply.invalid">
-                <ng-icon name="lucideSend" size="16" aria-hidden="true" /> {{ busy() ? 'Sending…' : 'Send' }}
+                <ng-icon name="lucideSend" size="16" aria-hidden="true" /> {{ busy() ? txt.sending : txt.send }}
               </button>
             </div>
           </form>
@@ -101,6 +101,24 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
   `,
 })
 export class SupportThreadScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    you: $localize`You`,
+    player: $localize`Player`,
+    answer: $localize`Answer`,
+    addAMessage: $localize`Add a message`,
+    close: $localize`Close`,
+    solvedCloseIt: $localize`Solved, close it`,
+    sending: $localize`Sending…`,
+    send: $localize`Send`,
+    admin: $localize`Admin`,
+    helpFeedback: $localize`Help & feedback`,
+    allTickets: $localize`All tickets`,
+    allMessages: $localize`All messages`,
+    thePlayerGetsA: $localize`The player gets a notification with your answer.`,
+    moreDetailsAFollow: $localize`More details, a follow-up, a thank you…`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
 
@@ -161,7 +179,7 @@ export class SupportThreadScreen {
     this.busy.set(true);
     try {
       this.ticket.set(await this.api.setSupportStatus(this.ticketId(), status));
-      this.toast.success(status === 'closed' ? 'Conversation closed' : 'Conversation reopened');
+      this.toast.success(status === 'closed' ? $localize`Conversation closed` : $localize`Conversation reopened`);
     } catch (e) {
       this.toast.error(e);
     } finally {

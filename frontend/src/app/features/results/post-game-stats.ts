@@ -46,19 +46,19 @@ let uid = 0;
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
         <zeus-loading-skeleton [rows]="6" />
       } @else if (notFinished()) {
-        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId()" backLabel="Event" />
-        <zeus-empty-state icon="lucideChartColumn" title="Statistics appear when the game ends" message="Come back after the Game Master ends the game.">
-          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]">Back to the event</a>
+        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
+        <zeus-empty-state icon="lucideChartColumn" title="Statistics appear when the game ends" message="Come back after the Game Master ends the game." i18n-title i18n-message>
+          <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to the event</a>
         </zeus-empty-state>
       } @else if (error() && !results()) {
-        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId() + '/results'" backLabel="Results" />
+        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId() + '/results'" backLabel="Results" i18n-title i18n-backLabel />
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (results(); as r) {
-        <zeus-page-header title="Statistics" [eyebrow]="r.eventName" [back]="'/events/' + r.eventId + '/results'" backLabel="Results" />
+        <zeus-page-header title="Statistics" [eyebrow]="r.eventName" [back]="'/events/' + r.eventId + '/results'" backLabel="Results" i18n-title i18n-backLabel />
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
-            <span>Showing the statistics loaded earlier.</span>
+            <span i18n>Showing the statistics loaded earlier.</span>
             <zeus-connection-status />
           </div>
         }
@@ -83,7 +83,7 @@ let uid = 0;
         <div class="flex flex-col gap-8">
           <!-- Team comparison -->
           <section aria-labelledby="cmp-title">
-            <h2 id="cmp-title" class="label-caps mb-3">Team comparison</h2>
+            <h2 id="cmp-title" class="label-caps mb-3" i18n>Team comparison</h2>
             <div class="grid gap-4 md:grid-cols-2">
               @for (metric of metrics; track metric.key) {
                 <div class="panel p-4">
@@ -111,23 +111,23 @@ let uid = 0;
 
           <!-- Captures per objective -->
           <section aria-labelledby="obj-title">
-            <h2 id="obj-title" class="label-caps mb-3">Captures per objective · <span class="num">{{ objectiveRows().length }}</span></h2>
+            <h2 id="obj-title" class="label-caps mb-3" i18n>Captures per objective · <span class="num">{{ objectiveRows().length }}</span></h2>
             @if (!objectiveRows().length) {
-              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No objective was captured in this game.</p>
+              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No objective was captured in this game.</p>
             } @else {
               <div class="panel overflow-x-auto">
                 <table class="w-full min-w-md text-sm">
-                  <caption class="sr-only">Number of captures of each objective by team</caption>
+                  <caption class="sr-only" i18n>Number of captures of each objective by team</caption>
                   <thead>
                     <tr class="border-b border-border text-left">
-                      <th scope="col" class="label-caps p-3">Objective</th>
+                      <th scope="col" class="label-caps p-3" i18n>Objective</th>
                       @for (t of teams(); track t.teamId) {
                         <th scope="col" class="p-3 text-right">
                           <span class="inline-flex items-center gap-1 text-xs font-semibold"><zeus-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="12" />{{ t.name }}</span>
                         </th>
                       }
-                      <th scope="col" class="label-caps p-3 text-right">Total</th>
-                      <th scope="col" class="label-caps p-3">Held at end</th>
+                      <th scope="col" class="label-caps p-3 text-right" i18n>Total</th>
+                      <th scope="col" class="label-caps p-3" i18n>Held at end</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -140,10 +140,10 @@ let uid = 0;
                         <td class="num p-3 text-right font-bold">
                           {{ o.total }}
                           @if (o.revoked) {
-                            <span class="block text-xs font-normal text-destructive">✕ {{ o.revoked }} revoked</span>
+                            <span class="block text-xs font-normal text-destructive" i18n>✕ {{ o.revoked }} revoked</span>
                           }
                         </td>
-                        <td class="p-3"><zeus-team-badge [team]="teamBadge(o.holder)" size="sm" [showIcon]="false" emptyLabel="Nobody" /></td>
+                        <td class="p-3"><zeus-team-badge [team]="teamBadge(o.holder)" size="sm" [showIcon]="false" emptyLabel="Nobody" i18n-emptyLabel /></td>
                       </tr>
                     }
                   </tbody>
@@ -155,16 +155,16 @@ let uid = 0;
           <!-- Control over time -->
           @if (objectiveRows().length && span()) {
             <section aria-labelledby="ctl-title">
-              <h2 id="ctl-title" class="label-caps mb-1">Objective control over time</h2>
-              <p class="mb-3 text-sm text-muted-foreground">Each bar shows which team held the objective, from its capture until the next capture or the end. Ticks mark captures.</p>
-              <ul class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Legend">
+              <h2 id="ctl-title" class="label-caps mb-1" i18n>Objective control over time</h2>
+              <p class="mb-3 text-sm text-muted-foreground" i18n>Each bar shows which team held the objective, from its capture until the next capture or the end. Ticks mark captures.</p>
+              <ul class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Legend" i18n-aria-label>
                 @for (t of teams(); track t.teamId) {
                   <li class="flex items-center gap-1.5">
                     <svg width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="2" [attr.fill]="t.color" /><rect width="14" height="14" rx="2" [attr.fill]="'url(#' + patternId(t.teamId) + ')'" /></svg>
                     {{ t.name }}
                   </li>
                 }
-                <li class="flex items-center gap-1.5"><span class="inline-block h-3.5 w-3.5 rounded-sm bg-muted" aria-hidden="true"></span> Not held</li>
+                <li class="flex items-center gap-1.5"><span class="inline-block h-3.5 w-3.5 rounded-sm bg-muted" aria-hidden="true"></span> <ng-container i18n>Not held</ng-container></li>
               </ul>
               <div class="panel p-3">
                 @for (o of objectiveRows(); track o.id) {
@@ -189,17 +189,17 @@ let uid = 0;
                 </div>
               </div>
               <details class="mt-2">
-                <summary class="tap inline-flex cursor-pointer items-center text-sm font-semibold text-primary">Show captures as a table</summary>
+                <summary class="tap inline-flex cursor-pointer items-center text-sm font-semibold text-primary" i18n>Show captures as a table</summary>
                 <div class="panel mt-2 overflow-x-auto">
                   <table class="w-full min-w-120 text-sm">
-                    <caption class="sr-only">All captures by objective</caption>
+                    <caption class="sr-only" i18n>All captures by objective</caption>
                     <thead>
                       <tr class="border-b border-border text-left">
-                        <th scope="col" class="label-caps p-2">Objective</th>
-                        <th scope="col" class="label-caps p-2">Game time</th>
-                        <th scope="col" class="label-caps p-2">Team</th>
-                        <th scope="col" class="label-caps p-2">Player</th>
-                        <th scope="col" class="label-caps p-2">Method</th>
+                        <th scope="col" class="label-caps p-2" i18n>Objective</th>
+                        <th scope="col" class="label-caps p-2" i18n>Game time</th>
+                        <th scope="col" class="label-caps p-2" i18n>Team</th>
+                        <th scope="col" class="label-caps p-2" i18n>Player</th>
+                        <th scope="col" class="label-caps p-2" i18n>Method</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -210,7 +210,7 @@ let uid = 0;
                             <td class="num p-2">{{ elapsed(c.createdAt) }} <span class="text-muted-foreground">({{ time(c.createdAt) }})</span></td>
                             <td class="p-2">{{ teamName(c.teamId) }}</td>
                             <td class="p-2">{{ c.nickname || '—' }}</td>
-                            <td class="p-2">{{ methodLabel(c.method) }}{{ c.revoked ? ' · revoked' : '' }}</td>
+                            <td class="p-2">{{ methodLabel(c.method) }}{{ c.revoked ? txt.revoked : '' }}</td>
                           </tr>
                         }
                       }
@@ -224,8 +224,8 @@ let uid = 0;
           <!-- Player leaderboard -->
           <section aria-labelledby="pl-title">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 id="pl-title" class="label-caps">Player leaderboard · <span class="num">{{ r.players.length }}</span></h2>
-              <div class="flex rounded-md border border-border p-0.5" role="group" aria-label="Sort players by">
+              <h2 id="pl-title" class="label-caps" i18n>Player leaderboard · <span class="num">{{ r.players.length }}</span></h2>
+              <div class="flex rounded-md border border-border p-0.5" role="group" aria-label="Sort players by" i18n-aria-label>
                 @for (s of sorts; track s.key) {
                   <button
                     type="button"
@@ -238,15 +238,15 @@ let uid = 0;
               </div>
             </div>
             @if (!r.players.length) {
-              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No player data recorded.</p>
+              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No player data recorded.</p>
             } @else {
               <div class="panel overflow-x-auto">
                 <table class="w-full text-sm">
-                  <caption class="sr-only">Players sorted by {{ sortLabel() }}</caption>
+                  <caption class="sr-only" i18n>Players sorted by {{ sortLabel() }}</caption>
                   <thead>
                     <tr class="border-b border-border text-left">
                       <th scope="col" class="label-caps w-12 p-2 pl-3">#</th>
-                      <th scope="col" class="label-caps p-2">Player</th>
+                      <th scope="col" class="label-caps p-2" i18n>Player</th>
                       @for (s of sorts; track s.key) {
                         <th scope="col" class="p-2 text-right" [attr.aria-sort]="sortKey() === s.key ? 'descending' : 'none'">
                           <button type="button" class="label-caps tap inline-flex items-center justify-end gap-0.5" [class.!text-foreground]="sortKey() === s.key" (click)="sortKey.set(s.key)">
@@ -262,7 +262,7 @@ let uid = 0;
                       <tr class="border-b border-border last:border-0" [class]="i < 3 ? 'bg-primary/5' : ''">
                         <td class="num p-2 pl-3 font-bold">
                           @if (i < 3) {
-                            <span class="inline-flex items-center gap-0.5 text-primary" [attr.aria-label]="ordinal(i + 1) + ' place'"><ng-icon name="lucideMedal" size="14" aria-hidden="true" />{{ i + 1 }}</span>
+                            <span class="inline-flex items-center gap-0.5 text-primary" aria-label="{{ ordinal(i + 1) }} place" i18n-aria-label><ng-icon name="lucideMedal" size="14" aria-hidden="true" />{{ i + 1 }}</span>
                           } @else {
                             {{ i + 1 }}
                           }
@@ -284,16 +284,16 @@ let uid = 0;
 
           <!-- Perk usage -->
           <section aria-labelledby="perk-title">
-            <h2 id="perk-title" class="label-caps mb-3">Perk usage · <span class="num">{{ r.perks.length }}</span> purchases</h2>
+            <h2 id="perk-title" class="label-caps mb-3" i18n>Perk usage · <span class="num">{{ r.perks.length }}</span> purchases</h2>
             @if (!perkSummary().length) {
-              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No perks were bought in this game.</p>
+              <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No perks were bought in this game.</p>
             } @else {
               <ul class="grid gap-2 sm:grid-cols-2">
                 @for (p of perkSummary(); track p.name) {
                   <li class="panel p-3">
                     <div class="flex items-start justify-between gap-2">
                       <p class="font-semibold">{{ p.name }}</p>
-                      <p class="num shrink-0 text-sm"><span class="font-bold">{{ p.count }}</span>× · {{ fmt(p.spent) }} cr</p>
+                      <p class="num shrink-0 text-sm" i18n><span class="font-bold">{{ p.count }}</span>× · {{ fmt(p.spent) }} cr</p>
                     </div>
                     <ul class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                       @for (b of p.byTeam; track b.teamId) {
@@ -301,7 +301,7 @@ let uid = 0;
                       }
                     </ul>
                     @if (p.failed) {
-                      <p class="mt-1 text-xs text-muted-foreground">✕ <span class="num">{{ p.failed }}</span> rejected or cancelled · ↺ <span class="num">{{ p.refunded }}</span> refunded</p>
+                      <p class="mt-1 text-xs text-muted-foreground" i18n>✕ <span class="num">{{ p.failed }}</span> rejected or cancelled · ↺ <span class="num">{{ p.refunded }}</span> refunded</p>
                     }
                   </li>
                 }
@@ -314,6 +314,11 @@ let uid = 0;
   `,
 })
 export class PostGameStatsScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    revoked: $localize` · revoked`,
+  };
+
   private readonly api = inject(ApiService);
 
   readonly eventId = input.required<string>();
@@ -324,13 +329,13 @@ export class PostGameStatsScreen {
   protected readonly sortKey = signal<SortKey>('points');
 
   protected readonly metrics = [
-    { key: 'points' as const, label: 'Victory points', unit: 'pts', icon: 'lucideTrophy' },
-    { key: 'currency' as const, label: 'Credits left', unit: 'cr', icon: 'lucideCoins' },
+    { key: 'points' as const, label: $localize`Victory points`, unit: 'pts', icon: 'lucideTrophy' },
+    { key: 'currency' as const, label: $localize`Credits left`, unit: 'cr', icon: 'lucideCoins' },
   ];
   protected readonly sorts: { key: SortKey; label: string; short: string }[] = [
-    { key: 'points', label: 'Points', short: 'Pts' },
-    { key: 'captures', label: 'Captures', short: 'Caps' },
-    { key: 'currencyEarned', label: 'Credits', short: 'Cr' },
+    { key: 'points', label: $localize`Points`, short: $localize`Pts` },
+    { key: 'captures', label: $localize`Captures`, short: $localize`Caps` },
+    { key: 'currencyEarned', label: $localize`Credits`, short: $localize`Cr` },
   ];
 
   protected readonly fmt = formatNumber;
@@ -396,13 +401,16 @@ export class PostGameStatsScreen {
             teamId: c.teamId,
             x,
             w: Math.max(0.4, pct(to) - x),
-            label: `${this.teamName(c.teamId)} from ${formatTime(c.createdAt)}${i + 1 < valid.length ? ' to ' + formatTime(valid[i + 1].createdAt) : ' to the end'}`,
+            label:
+              i + 1 < valid.length
+                ? $localize`${this.teamName(c.teamId)}:team: from ${formatTime(c.createdAt)}:from: to ${formatTime(valid[i + 1].createdAt)}:to:`
+                : $localize`${this.teamName(c.teamId)}:team: from ${formatTime(c.createdAt)}:from: to the end`,
           };
         });
         const holder = valid.length ? valid[valid.length - 1].teamId : null;
         const summary =
-          `${captures[0].objectiveName}: ${valid.length} captures. ` +
-          (segments.length ? segments.map((s) => s.label).join('; ') + '.' : 'Never held.');
+          $localize`${captures[0].objectiveName}:objectiveName:: ${valid.length}:length: captures. ` +
+          (segments.length ? segments.map((s) => s.label).join('; ') + '.' : $localize`Never held.`);
         return {
           id,
           name: captures[0].objectiveName,
@@ -486,7 +494,7 @@ export class PostGameStatsScreen {
     return this.teamMap().get(teamId)?.color ?? 'var(--muted-foreground)';
   }
   protected teamName(teamId: string): string {
-    return this.teamMap().get(teamId)?.name ?? 'Unknown team';
+    return this.teamMap().get(teamId)?.name ?? $localize`Unknown team`;
   }
   protected teamBadge(teamId: string | null) {
     return teamId ? badgeOf(this.teamMap().get(teamId)) : null;

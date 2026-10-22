@@ -29,10 +29,10 @@ type PublishMode = 'draft' | 'now' | 'schedule';
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
   template: `
     <div class="page-narrow">
-      <zeus-page-header eyebrow="News" [title]="isNew() ? 'Write news' : 'Edit news'" [back]="backUrl()" />
+      <zeus-page-header eyebrow="News" [title]="isNew() ? txt.writeNews : txt.editNews" [back]="backUrl()" i18n-eyebrow />
 
       @if (!isAdmin()) {
-        <zeus-empty-state icon="lucideLock" title="Admins only" message="Only the AirsoftHub team can write News." />
+        <zeus-empty-state icon="lucideLock" title="Admins only" message="Only the AirsoftHub team can write News." i18n-title i18n-message />
       } @else if (loading()) {
         <zeus-loading-skeleton [rows]="6" />
       } @else if (loadError()) {
@@ -40,16 +40,16 @@ type PublishMode = 'draft' | 'now' | 'schedule';
       } @else {
         <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-6" novalidate>
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-news-content">
-            <h2 id="h-news-content" class="label-caps">Content</h2>
+            <h2 id="h-news-content" class="label-caps" i18n>Content</h2>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-title">Title <span aria-hidden="true">*</span></label>
+              <label hlmLabel for="n-title"><ng-container i18n>Title</ng-container> <span aria-hidden="true">*</span></label>
               <input hlmInput id="n-title" formControlName="title" class="h-11" maxlength="140" autocomplete="off" />
               @if (e('title', 'Title'); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-cat">Category</label>
+              <label hlmLabel for="n-cat" i18n>Category</label>
               <select id="n-cat" formControlName="category" [class]="selectClass">
                 @for (c of categories; track c) {
                   <option [value]="c">{{ categoryLabels[c] }}</option>
@@ -57,30 +57,30 @@ type PublishMode = 'draft' | 'now' | 'schedule';
               </select>
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-summary">Summary</label>
+              <label hlmLabel for="n-summary" i18n>Summary</label>
               <textarea hlmTextarea id="n-summary" formControlName="summary" rows="2" maxlength="300"></textarea>
-              <p class="text-sm text-muted-foreground">One or two sentences, shown on the home page card.</p>
+              <p class="text-sm text-muted-foreground" i18n>One or two sentences, shown on the home page card.</p>
               @if (e('summary', 'Summary'); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-body">Text</label>
+              <label hlmLabel for="n-body" i18n>Text</label>
               <textarea hlmTextarea id="n-body" formControlName="body" rows="10"></textarea>
-              <p class="text-sm text-muted-foreground">Leave an empty line between paragraphs.</p>
+              <p class="text-sm text-muted-foreground" i18n>Leave an empty line between paragraphs.</p>
               @if (e('body', 'Text'); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <span hlmLabel id="lbl-news-img">Image</span>
+              <span hlmLabel id="lbl-news-img" i18n>Image</span>
               @if (value().imageUrl) {
-                <img [src]="value().imageUrl" alt="News image" class="aspect-video w-full rounded-md border border-border object-cover" />
-                <button hlmBtn type="button" variant="outline" class="h-10" (click)="form.controls.imageUrl.setValue(null)">Remove image</button>
+                <img [src]="value().imageUrl" alt="News image" class="aspect-video w-full rounded-md border border-border object-cover" i18n-alt />
+                <button hlmBtn type="button" variant="outline" class="h-10" (click)="form.controls.imageUrl.setValue(null)" i18n>Remove image</button>
               } @else {
                 <label class="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-input text-sm hover:bg-muted">
                   <ng-icon name="lucideImage" size="16" aria-hidden="true" />
-                  {{ uploading() ? 'Uploading…' : 'Upload image' }}
+                  {{ uploading() ? txt.uploading : txt.uploadImage }}
                   <input type="file" accept="image/*" class="sr-only" aria-labelledby="lbl-news-img" (change)="upload($event)" [disabled]="uploading()" />
                 </label>
               }
@@ -88,25 +88,25 @@ type PublishMode = 'draft' | 'now' | 'schedule';
           </section>
 
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-news-link">
-            <h2 id="h-news-link" class="label-caps">Button</h2>
-            <p class="text-sm text-muted-foreground">Optional: a sponsor's website, a sign-up page, or an app page like <span class="num">/events/discover</span>.</p>
+            <h2 id="h-news-link" class="label-caps" i18n>Button</h2>
+            <p class="text-sm text-muted-foreground" i18n>Optional: a sponsor's website, a sign-up page, or an app page like <span class="num">/events/discover</span>.</p>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-link">Link</label>
+              <label hlmLabel for="n-link" i18n>Link</label>
               <input hlmInput id="n-link" formControlName="linkUrl" class="h-11" maxlength="500" placeholder="https://…" autocomplete="off" inputmode="url" />
               @if (e('linkUrl', 'Link'); as m) {
                 <p class="field-error">{{ m }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="n-link-label">Button text</label>
-              <input hlmInput id="n-link-label" formControlName="linkLabel" class="h-11" maxlength="40" placeholder="Open link" autocomplete="off" />
+              <label hlmLabel for="n-link-label" i18n>Button text</label>
+              <input hlmInput id="n-link-label" formControlName="linkLabel" class="h-11" maxlength="40" placeholder="Open link" autocomplete="off" i18n-placeholder />
             </div>
           </section>
 
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-news-pub">
-            <h2 id="h-news-pub" class="label-caps">Publishing</h2>
+            <h2 id="h-news-pub" class="label-caps" i18n>Publishing</h2>
             <fieldset class="flex flex-col gap-2">
-              <legend class="sr-only">When to publish</legend>
+              <legend class="sr-only" i18n>When to publish</legend>
               @for (m of modes; track m.value) {
                 <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3" [class.border-primary]="value().mode === m.value">
                   <input type="radio" formControlName="mode" [value]="m.value" class="size-4 accent-primary" />
@@ -119,7 +119,7 @@ type PublishMode = 'draft' | 'now' | 'schedule';
             </fieldset>
             @if (value().mode === 'schedule') {
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="n-at">Publish at</label>
+                <label hlmLabel for="n-at" i18n>Publish at</label>
                 <input hlmInput id="n-at" type="datetime-local" formControlName="publishAt" class="h-11" />
                 @if (e('publishAt', 'Date'); as m) {
                   <p class="field-error">{{ m }}</p>
@@ -129,8 +129,8 @@ type PublishMode = 'draft' | 'now' | 'schedule';
             <label class="flex min-h-11 cursor-pointer items-center gap-3">
               <input type="checkbox" formControlName="pinned" class="size-4 accent-primary" />
               <span class="flex flex-col">
-                <span class="font-semibold">Pin to the top</span>
-                <span class="text-sm text-muted-foreground">Pinned news stays first on the home page.</span>
+                <span class="font-semibold" i18n>Pin to the top</span>
+                <span class="text-sm text-muted-foreground" i18n>Pinned news stays first on the home page.</span>
               </span>
             </label>
           </section>
@@ -139,10 +139,10 @@ type PublishMode = 'draft' | 'now' | 'schedule';
             <p class="min-w-0 flex-1 px-1 text-sm" role="status" aria-live="polite">{{ statusText() }}</p>
             @if (!isNew()) {
               <button hlmBtn type="button" variant="destructive" class="h-11" (click)="remove()" [disabled]="saving()">
-                <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete
+                <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Delete</ng-container>
               </button>
             }
-            <button hlmBtn type="submit" class="h-11" [disabled]="saving()">{{ saving() ? 'Saving…' : submitLabel() }}</button>
+            <button hlmBtn type="submit" class="h-11" [disabled]="saving()">{{ saving() ? txt.saving : submitLabel() }}</button>
           </div>
         </form>
       }
@@ -150,6 +150,15 @@ type PublishMode = 'draft' | 'now' | 'schedule';
   `,
 })
 export class NewsEditorScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    uploading: $localize`Uploading…`,
+    uploadImage: $localize`Upload image`,
+    saving: $localize`Saving…`,
+    writeNews: $localize`Write news`,
+    editNews: $localize`Edit news`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -162,9 +171,9 @@ export class NewsEditorScreen {
   protected readonly categories = Object.keys(NEWS_CATEGORY_LABELS) as NewsCategory[];
   protected readonly categoryLabels = NEWS_CATEGORY_LABELS;
   protected readonly modes: { value: PublishMode; label: string; hint: string }[] = [
-    { value: 'draft', label: 'Draft', hint: 'Only admins can see it.' },
-    { value: 'now', label: 'Published', hint: 'Everyone sees it on the home page.' },
-    { value: 'schedule', label: 'Scheduled', hint: 'Appears automatically at the chosen time.' },
+    { value: 'draft', label: $localize`Draft`, hint: $localize`Only admins can see it.` },
+    { value: 'now', label: $localize`Published`, hint: $localize`Everyone sees it on the home page.` },
+    { value: 'schedule', label: $localize`Scheduled`, hint: $localize`Appears automatically at the chosen time.` },
   ];
 
   protected readonly loading = signal(true);
@@ -195,10 +204,10 @@ export class NewsEditorScreen {
 
   protected readonly submitLabel = computed(() => {
     const m = this.value().mode;
-    return m === 'draft' ? 'Save draft' : m === 'schedule' ? 'Schedule' : this.isNew() || this.news()?.publishedAt === null ? 'Publish' : 'Save';
+    return m === 'draft' ? $localize`Save draft` : m === 'schedule' ? $localize`Schedule` : this.isNew() || this.news()?.publishedAt === null ? $localize`Publish` : $localize`Save`;
   });
   protected readonly statusText = computed(() =>
-    this.saving() ? 'Saving…' : this.dirty() ? 'Unsaved changes' : this.isNew() ? 'New, not saved yet' : 'No changes',
+    this.saving() ? $localize`Saving…` : this.dirty() ? $localize`Unsaved changes` : this.isNew() ? $localize`New, not saved yet` : $localize`No changes`,
   );
 
   constructor() {
@@ -247,7 +256,7 @@ export class NewsEditorScreen {
 
   protected e(path: string, label: string): string | null {
     const ctrl = this.form.get(path);
-    if (path === 'linkUrl' && ctrl?.errors?.['pattern'] && (ctrl.touched || ctrl.dirty)) return 'Use a full https:// address or an app path like /events/discover.';
+    if (path === 'linkUrl' && ctrl?.errors?.['pattern'] && (ctrl.touched || ctrl.dirty)) return $localize`Use a full https:// address or an app path like /events/discover.`;
     return controlError(ctrl, label);
   }
 
@@ -259,7 +268,7 @@ export class NewsEditorScreen {
     try {
       const res = await this.api.upload(file, 'news_image');
       this.form.controls.imageUrl.setValue(res.url);
-      this.toast.success('Image uploaded', 'Save to keep it.');
+      this.toast.success($localize`Image uploaded`, $localize`Save to keep it.`);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -285,8 +294,8 @@ export class NewsEditorScreen {
     const v = this.form.getRawValue();
     if (v.mode === 'schedule') {
       const at = fromLocalInput(v.publishAt);
-      if (!at) this.form.controls.publishAt.setErrors({ message: 'Choose when to publish.' });
-      else if (Date.parse(at) <= Date.now()) this.form.controls.publishAt.setErrors({ message: 'Choose a time in the future, or pick "Published".' });
+      if (!at) this.form.controls.publishAt.setErrors({ message: $localize`Choose when to publish.` });
+      else if (Date.parse(at) <= Date.now()) this.form.controls.publishAt.setErrors({ message: $localize`Choose a time in the future, or pick "Published".` });
     }
     if (this.form.invalid) return;
     const body: NewsInput = {
@@ -306,7 +315,7 @@ export class NewsEditorScreen {
       this.news.set(saved);
       this.dirty.set(false);
       const state = newsState(saved);
-      this.toast.success(state === 'draft' ? 'Draft saved' : state === 'scheduled' ? 'News scheduled' : 'News published');
+      this.toast.success(state === 'draft' ? $localize`Draft saved` : state === 'scheduled' ? $localize`News scheduled` : $localize`News published`);
       await this.router.navigate(['/news', saved.id], { replaceUrl: this.isNew() });
     } catch (e) {
       const err = ApiError.from(e);
@@ -321,16 +330,16 @@ export class NewsEditorScreen {
     const n = this.news();
     if (!n) return;
     const ok = await this.confirm.ask({
-      title: `Delete "${n.title}"?`,
-      consequences: ['It disappears from the home page and the News list.', 'This cannot be undone.'],
-      confirmLabel: 'Delete',
+      title: $localize`Delete "${n.title}:title:"?`,
+      consequences: [$localize`It disappears from the home page and the News list.`, $localize`This cannot be undone.`],
+      confirmLabel: $localize`Delete`,
       destructive: true,
     });
     if (!ok) return;
     try {
       await this.api.deleteNews(n.id);
       this.dirty.set(false);
-      this.toast.success('News deleted');
+      this.toast.success($localize`News deleted`);
       await this.router.navigateByUrl('/admin/news', { replaceUrl: true });
     } catch (e) {
       this.toast.error(e);

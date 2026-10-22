@@ -12,6 +12,7 @@ import { sendAccountDeletedEmail } from '../mail.js';
 import * as dto from '../domain/serialize.js';
 import { clearSessionCookies, nicknameProblem } from './auth.js';
 import { latestNews } from './news.js';
+import { requestLang, tr } from '../i18n/index.js';
 
 export const meRouter = Router();
 
@@ -83,7 +84,7 @@ meRouter.patch('/', requireAuth, async (req, res) => {
   }
   if (b.clubId) {
     const c = await one('SELECT name FROM clubs WHERE id = $1', [b.clubId]);
-    if (!c) throw badRequest('Club not found.', 'invalid_argument', { clubId: 'Club not found' });
+    if (!c) throw badRequest(tr`Club not found.`, 'invalid_argument', { clubId: tr`Club not found` });
     params.push(c.name);
     sets.push(`club_name = $${params.length}`);
   }
@@ -108,7 +109,7 @@ meRouter.patch('/', requireAuth, async (req, res) => {
 meRouter.post('/nickname', requireAuth, async (req, res) => {
   const me = currentUser(req);
   const b = body(req, z.object({ nickname: z.string().trim().max(40) }));
-  await consume('nick-change', me.id, 5, 86400, 'You can change your nickname at most 5 times a day.');
+  await consume('nick-change', me.id, 5, 86400, tr`You can change your nickname at most 5 times a day.`);
   const problem = await nicknameProblem(b.nickname, me.id);
   if (problem) throw conflict(problem, 'nickname_taken', { nickname: problem });
   await one('UPDATE users SET nickname = $2, updated_at = now() WHERE id = $1 RETURNING id', [me.id, b.nickname]);
@@ -325,9 +326,9 @@ meRouter.delete('/', requireAuth, async (req, res) => {
   const b = body(req, z.object({ password: z.string().max(200), confirm: z.literal('DELETE') }));
   await consume('delete-account', me.id, 5, 3600);
   const u = await one('SELECT email, password_hash FROM users WHERE id = $1', [me.id]);
-  if (!u || !(await verifyPassword(b.password, u.password_hash))) throw badRequest('The password is wrong.', 'invalid_credentials', { password: 'Wrong password' });
+  if (!u || !(await verifyPassword(b.password, u.password_hash))) throw badRequest(tr`The password is wrong.`, 'invalid_credentials', { password: tr`Wrong password` });
   const owned = await one<{ n: number }>(`SELECT count(*)::int AS n FROM events WHERE owner_id = $1 AND status IN ('live','paused','lobby')`, [me.id]);
-  if (owned?.n) throw conflict('You are running an event right now. End or cancel it first.', 'running_event');
+  if (owned?.n) throw conflict(tr`You are running an event right now. End or cancel it first.`, 'running_event');
   await tx(async (t) => {
     await t.query('DELETE FROM location_history WHERE user_id = $1', [me.id]);
     await t.query('DELETE FROM player_locations WHERE user_id = $1', [me.id]);
@@ -343,7 +344,7 @@ meRouter.delete('/', requireAuth, async (req, res) => {
       [me.id],
     );
   });
-  void sendAccountDeletedEmail(u.email);
+  void sendAccountDeletedEmail(u.email, requestLang());
   clearSessionCookies(res);
   res.json({ ok: true });
 });

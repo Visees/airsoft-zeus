@@ -46,7 +46,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block h-full' },
   template: `
-    <h2 class="sr-only">Map</h2>
+    <h2 class="sr-only" i18n>Map</h2>
     <div class="absolute inset-0">
       <zeus-tactical-map
         #map
@@ -69,13 +69,13 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
 
     <!-- Active effects -->
     @if (effects().length) {
-      <ul class="pointer-events-none absolute top-2 left-2 z-[2] flex max-w-[calc(100%-4.5rem)] flex-col items-start gap-1.5" aria-label="Active perks">
+      <ul class="pointer-events-none absolute top-2 left-2 z-[2] flex max-w-[calc(100%-4.5rem)] flex-col items-start gap-1.5" aria-label="Active perks" i18n-aria-label>
         @for (e of effects(); track e.id) {
           <li class="hud pointer-events-auto flex items-center gap-1.5 px-2 py-1.5 text-xs font-bold" [class.border-destructive]="e.hostile">
             <span aria-hidden="true" [class]="e.hostile ? 'text-destructive' : 'text-primary'">{{ e.hostile ? '▲' : '●' }}</span>
             <span class="truncate">{{ e.label }}</span>
             @if (e.hostile) {
-              <span class="sr-only">(used against your team)</span>
+              <span class="sr-only" i18n>(used against your team)</span>
             }
             @if (e.left) {
               <span class="num text-warning">{{ e.left }}</span>
@@ -87,7 +87,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
 
     <!-- Recent activity -->
     @if (activity().length && !selection()) {
-      <section class="hud absolute bottom-12 left-2 z-[2] w-[min(22rem,calc(100%-4.5rem))]" aria-label="Recent activity">
+      <section class="hud absolute bottom-12 left-2 z-[2] w-[min(22rem,calc(100%-4.5rem))]" aria-label="Recent activity" i18n-aria-label>
         <button
           type="button"
           class="flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left"
@@ -97,7 +97,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         >
           <ng-icon name="lucideActivity" size="16" class="shrink-0 text-muted-foreground" aria-hidden="true" />
           @if (activityOpen()) {
-            <span class="label-caps flex-1">Activity · {{ activity().length }}</span>
+            <span class="label-caps flex-1" i18n>Activity · {{ activity().length }}</span>
           } @else {
             <span class="min-w-0 flex-1 truncate text-sm font-semibold">{{ activity()[0].message }}</span>
           }
@@ -124,7 +124,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         aria-labelledby="map-preview-title"
         (keydown.escape)="clearSelection()"
       >
-        <button type="button" class="tap absolute top-1 right-1 grid place-items-center rounded-sm" (click)="clearSelection()" aria-label="Close preview">
+        <button type="button" class="tap absolute top-1 right-1 grid place-items-center rounded-sm" (click)="clearSelection()" aria-label="Close preview" i18n-aria-label>
           <ng-icon name="lucideX" size="20" aria-hidden="true" />
         </button>
 
@@ -133,16 +133,16 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
             <div class="flex flex-wrap items-center gap-1.5">
               <zeus-status-chip [spec]="chip(o)" />
               @if (owner(o); as t) {
-                <span class="inline-flex items-center gap-1 text-xs"><span class="label-caps">Held by</span><zeus-team-badge [team]="t" size="sm" [showIcon]="false" /></span>
+                <span class="inline-flex items-center gap-1 text-xs"><span class="label-caps" i18n>Held by</span><zeus-team-badge [team]="t" size="sm" [showIcon]="false" /></span>
               }
             </div>
             <h3 id="map-preview-title" tabindex="-1" class="mt-1 text-xl font-bold uppercase outline-none">{{ o.name }}</h3>
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <span class="num font-bold"><span class="text-primary">+{{ fmt(o.rewards.points) }}</span> pts</span>
-            <span class="num font-bold"><span class="text-warning">+{{ fmt(o.rewards.currency) }}</span> cr</span>
+            <span class="num font-bold" i18n><span class="text-primary">+{{ fmt(o.rewards.points) }}</span> pts</span>
+            <span class="num font-bold" i18n><span class="text-warning">+{{ fmt(o.rewards.currency) }}</span> cr</span>
             @if (o.rewards.recurringPointsPerMinute) {
-              <span class="num">+{{ o.rewards.recurringPointsPerMinute }} pts/min held</span>
+              <span class="num" i18n>+{{ o.rewards.recurringPointsPerMinute }} pts/min held</span>
             }
           </div>
           @if (showBar(selectedCapture())) {
@@ -153,10 +153,10 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
               <ng-icon name="lucideNavigation2" size="20" aria-hidden="true" [style.transform]="'rotate(' + d.deg + 'deg)'" />
               <span class="num text-lg font-bold">{{ dist(o) }}</span>
               <span class="num font-semibold">{{ d.point }} · {{ d.deg }}°</span>
-              <span class="sr-only">from your position</span>
+              <span class="sr-only" i18n>from your position</span>
             } @else {
               <ng-icon name="lucideLocateOff" size="18" class="text-muted-foreground" aria-hidden="true" />
-              <span class="text-sm text-muted-foreground">Waiting for GPS to show distance and direction</span>
+              <span class="text-sm text-muted-foreground" i18n>Waiting for GPS to show distance and direction</span>
             }
           </div>
           @if (!o.canCapture && o.blockedReason) {
@@ -164,10 +164,10 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
           }
           <div class="mt-3 flex gap-2">
             <button hlmBtn type="button" class="h-12 flex-1" (click)="openObjective(o)">
-              <ng-icon name="lucideCrosshair" size="18" aria-hidden="true" /> Open objective
+              <ng-icon name="lucideCrosshair" size="18" aria-hidden="true" /> <ng-container i18n>Open objective</ng-container>
             </button>
             <button hlmBtn variant="outline" type="button" class="h-12" (click)="centerOn(o)">
-              <ng-icon name="lucideLocate" size="18" aria-hidden="true" /> Center
+              <ng-icon name="lucideLocate" size="18" aria-hidden="true" /> <ng-container i18n>Center</ng-container>
             </button>
           </div>
         } @else if (selectedPlayer(); as p) {
@@ -180,25 +180,25 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
               />
               <zeus-status-chip [spec]="posChip(p)" />
             </div>
-            <h3 id="map-preview-title" tabindex="-1" class="mt-1 text-xl font-bold outline-none">{{ p.nickname || 'Unknown player' }}</h3>
+            <h3 id="map-preview-title" tabindex="-1" class="mt-1 text-xl font-bold outline-none">{{ p.nickname || txt.unknownPlayer }}</h3>
           </div>
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
             @if (teamOf(p); as t) {
-              <dt class="label-caps self-center">Team</dt>
+              <dt class="label-caps self-center" i18n>Team</dt>
               <dd><zeus-team-badge [team]="t" size="sm" /></dd>
             }
             @if (p.playerRole) {
-              <dt class="label-caps self-center">Role</dt>
+              <dt class="label-caps self-center" i18n>Role</dt>
               <dd>{{ roleLabel(p.playerRole) }}</dd>
             }
-            <dt class="label-caps self-center">Updated</dt>
+            <dt class="label-caps self-center" i18n>Updated</dt>
             <dd class="num">{{ rel(p.sampleAt) }}</dd>
             @if (p.precision !== 'exact') {
-              <dt class="label-caps self-center">Precision</dt>
+              <dt class="label-caps self-center" i18n>Precision</dt>
               <dd>{{ precisionLabel(p.precision) }}@if (p.radiusM) { · ±<span class="num">{{ p.radiusM }}</span> m }</dd>
             }
             @if (dirTo(p); as d) {
-              <dt class="label-caps self-center">Distance</dt>
+              <dt class="label-caps self-center" i18n>Distance</dt>
               <dd class="num font-semibold text-nav">{{ dist(p) }} · {{ d.point }}</dd>
             }
           </dl>
@@ -218,16 +218,21 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
             </p>
           }
           <button hlmBtn variant="outline" type="button" class="mt-3 h-12 w-full" (click)="centerOn(poi)">
-            <ng-icon name="lucideLocate" size="18" aria-hidden="true" /> Center
+            <ng-icon name="lucideLocate" size="18" aria-hidden="true" /> <ng-container i18n>Center</ng-container>
           </button>
         } @else {
-          <p id="map-preview-title" class="pr-10 text-sm text-muted-foreground">This item is no longer visible.</p>
+          <p id="map-preview-title" class="pr-10 text-sm text-muted-foreground" i18n>This item is no longer visible.</p>
         }
       </section>
     }
   `,
 })
 export class LiveMapScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    unknownPlayer: $localize`Unknown player`,
+  };
+
   protected readonly store = inject(LiveStore);
   protected readonly tracker = inject(LocationTracker);
   private readonly router = inject(Router);

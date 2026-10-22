@@ -123,16 +123,16 @@ export class NotificationRow {
   protected readonly link = computed(() => notificationLink(this.notification()));
   protected readonly linkLabel = computed(() => {
     const link = this.link();
-    if (link?.startsWith('/support/')) return 'Open conversation';
-    return link?.endsWith('/live') ? 'Open live game' : 'Open event';
+    if (link?.startsWith('/support/')) return $localize`Open conversation`;
+    return link?.endsWith('/live') ? $localize`Open live game` : $localize`Open event`;
   });
   protected readonly relative = computed(() => formatRelative(this.notification().createdAt, this.now()));
   protected readonly absolute = computed(() => formatDateTime(this.notification().createdAt));
   protected readonly aria = computed(() => {
     const n = this.notification();
     const parts = [
-      n.priority === 'emergency' ? 'Emergency.' : n.priority === 'high' ? 'High priority.' : '',
-      n.read ? '' : 'Unread.',
+      n.priority === 'emergency' ? $localize`Emergency.` : n.priority === 'high' ? $localize`High priority.` : '',
+      n.read ? '' : $localize`Unread.`,
       n.title + '.',
       n.body,
       this.relative() + '.',

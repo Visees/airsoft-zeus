@@ -2,6 +2,7 @@ import type { Tx } from '../db.js';
 import { conflict } from '../errors.js';
 import { hub } from '../realtime/hub.js';
 import type { Scoring } from './defaults.js';
+import { type Msg, render, renderAll, tr } from '../i18n/index.js';
 
 export type LedgerKind = 'points' | 'currency';
 export type LedgerType =
@@ -31,7 +32,8 @@ export interface LedgerInput {
   perkId?: string | null;
   purchaseId?: string | null;
   captureId?: string | null;
-  reason?: string;
+  /** GM text as is, or a system message stored in every language. */
+  reason?: Msg;
   actorId?: string | null;
   clientTxId?: string | null;
   /** Fail instead of clamping when the balance is too low (purchases). */
@@ -56,12 +58,12 @@ export async function applyLedger(t: Tx, input: LedgerInput): Promise<LedgerResu
     input.eventId,
   ]);
   const team = rows[0];
-  if (!team) throw conflict('Team not found in this event.', 'team_not_found');
+  if (!team) throw conflict(tr`Team not found in this event.`, 'team_not_found');
   const current = input.kind === 'points' ? Number(team.points) : Number(team.currency);
 
   let next = current + amount;
   if (input.kind === 'currency') {
-    if (input.requireFunds && next < 0) throw conflict('Your team does not have enough credits.', 'insufficient_funds');
+    if (input.requireFunds && next < 0) throw conflict(tr`Your team does not have enough credits.`, 'insufficient_funds');
     next = Math.max(0, next);
     if (input.scoring.maxCurrency > 0) next = Math.min(input.scoring.maxCurrency, next);
   } else if (!input.scoring.allowNegativePoints) {
@@ -75,8 +77,8 @@ export async function applyLedger(t: Tx, input: LedgerInput): Promise<LedgerResu
   // Log even zero-applied requests (e.g. clamped at the cap) so GMs can see what happened.
   await t.query(
     `INSERT INTO ledger_entries (event_id, team_id, kind, type, amount, requested, balance_after, user_id, objective_id, perk_id, purchase_id,
-                                 capture_id, reason, actor_id, client_tx_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+                                 capture_id, reason, reason_i18n, actor_id, client_tx_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
     [
       input.eventId,
       input.teamId,
@@ -90,7 +92,8 @@ export async function applyLedger(t: Tx, input: LedgerInput): Promise<LedgerResu
       input.perkId ?? null,
       input.purchaseId ?? null,
       input.captureId ?? null,
-      input.reason ?? '',
+      render(input.reason ?? '', 'en'),
+      typeof input.reason === 'function' ? JSON.stringify(renderAll(input.reason)) : null,
       input.actorId ?? null,
       input.clientTxId ?? null,
     ],

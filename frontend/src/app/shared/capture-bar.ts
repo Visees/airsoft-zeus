@@ -66,7 +66,7 @@ export function showCaptureBar(s: GeofenceStatus | null | undefined): s is Geofe
         aria-valuemin="0"
         aria-valuemax="100"
         [attr.aria-valuenow]="pct()"
-        [attr.aria-label]="'Zone capture ' + pct() + '%'"
+        aria-label="Zone capture {{ pct() }}%" i18n-aria-label
       >
         <div class="h-full transition-[width] duration-500 ease-linear" [style.width.%]="pct()" [style.background]="color()"></div>
       </div>
@@ -98,17 +98,17 @@ export class CaptureBar {
 
   protected readonly caption = computed(() => {
     const s = this.status();
-    if (s.armed) return '✓ Zone held — enter the code';
-    if (this.stale()) return '◌ No answer from the server — check your signal';
-    if (s.contested) return '▲ Contested — enemies in the zone';
-    if (s.outnumbered) return '▲ Outnumbered — your team needs more players inside';
-    if (s.blocked === 'low_accuracy') return '▲ GPS too imprecise to count';
-    if (s.blocked === 'screen_closed') return '▲ Open the objective to hold the zone';
-    if (s.blocked === 'confirming') return '◌ Confirming your position…';
-    if (!s.inside) return '○ Outside the zone — paused';
-    if (!this.canAccrue()) return 'Your team cannot capture this now';
+    if (s.armed) return $localize`✓ Zone held — enter the code`;
+    if (this.stale()) return $localize`◌ No answer from the server — check your signal`;
+    if (s.contested) return $localize`▲ Contested — enemies in the zone`;
+    if (s.outnumbered) return $localize`▲ Outnumbered — your team needs more players inside`;
+    if (s.blocked === 'low_accuracy') return $localize`▲ GPS too imprecise to count`;
+    if (s.blocked === 'screen_closed') return $localize`▲ Open the objective to hold the zone`;
+    if (s.blocked === 'confirming') return $localize`◌ Confirming your position…`;
+    if (!s.inside) return $localize`○ Outside the zone — paused`;
+    if (!this.canAccrue()) return $localize`Your team cannot capture this now`;
     const mult = s.multiplier > 1 ? ` · ×${s.multiplier.toFixed(1)}` : '';
-    return `● Holding · ${formatClock(((s.requiredSec - this.held()) / (s.multiplier > 0 ? s.multiplier : 1)) * 1000)} left${mult}`;
+    return $localize`● Holding · ${formatClock(((s.requiredSec - this.held()) / (s.multiplier > 0 ? s.multiplier : 1)) * 1000)}:clock: left${mult}:mult:`;
   });
 
   protected readonly captionClass = computed(() => {

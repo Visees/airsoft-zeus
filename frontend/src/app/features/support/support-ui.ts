@@ -6,28 +6,28 @@ import { formatDateTime, formatRelative } from '../../core/util/format';
 import { ChipSpec, StatusChip } from '../../shared/status-chip';
 
 export const SUPPORT_CATEGORIES: { value: SupportCategory; label: string; hint: string; icon: string }[] = [
-  { value: 'bug', label: 'Bug', hint: 'Something in the app does not work as it should', icon: 'lucideBug' },
-  { value: 'report', label: 'Report', hint: 'A problem with an event, a club or content in the app', icon: 'lucideFlag' },
-  { value: 'general', label: 'General', hint: 'Ideas, questions, partnerships, anything else', icon: 'lucideMessageSquare' },
+  { value: 'bug', label: $localize`Bug`, hint: $localize`Something in the app does not work as it should`, icon: 'lucideBug' },
+  { value: 'report', label: $localize`Report`, hint: $localize`A problem with an event, a club or content in the app`, icon: 'lucideFlag' },
+  { value: 'general', label: $localize`General`, hint: $localize`Ideas, questions, partnerships, anything else`, icon: 'lucideMessageSquare' },
 ];
 
 const CATEGORY_CHIPS: Record<SupportCategory, ChipSpec> = {
-  bug: { label: 'Bug', glyph: '✱', tone: 'danger' },
-  report: { label: 'Report', glyph: '!', tone: 'warning' },
-  general: { label: 'General', glyph: '●', tone: 'nav' },
+  bug: { label: $localize`Bug`, glyph: '✱', tone: 'danger' },
+  report: { label: $localize`Report`, glyph: '!', tone: 'warning' },
+  general: { label: $localize`General`, glyph: '●', tone: 'nav' },
 };
 
 const STATUS_CHIPS: Record<SupportStatus, ChipSpec> = {
-  open: { label: 'Waiting for the team', glyph: '◷', tone: 'neutral' },
-  answered: { label: 'Answered', glyph: '↩', tone: 'primary' },
-  closed: { label: 'Closed', glyph: '✓', tone: 'neutral' },
+  open: { label: $localize`Waiting for the team`, glyph: '◷', tone: 'neutral' },
+  answered: { label: $localize`Answered`, glyph: '↩', tone: 'primary' },
+  closed: { label: $localize`Closed`, glyph: '✓', tone: 'neutral' },
 };
 
 /** Same statuses, worded for the admins' inbox. */
 const ADMIN_STATUS_CHIPS: Record<SupportStatus, ChipSpec> = {
-  open: { label: 'To answer', glyph: '●', tone: 'warning' },
-  answered: { label: 'Answered', glyph: '↩', tone: 'primary' },
-  closed: { label: 'Closed', glyph: '✓', tone: 'neutral' },
+  open: { label: $localize`To answer`, glyph: '●', tone: 'warning' },
+  answered: { label: $localize`Answered`, glyph: '↩', tone: 'primary' },
+  closed: { label: $localize`Closed`, glyph: '✓', tone: 'neutral' },
 };
 
 export const supportCategoryChip = (c: SupportCategory): ChipSpec => CATEGORY_CHIPS[c] ?? CATEGORY_CHIPS.general;

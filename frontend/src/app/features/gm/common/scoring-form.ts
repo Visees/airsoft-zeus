@@ -45,42 +45,42 @@ export function scoringValue(form: ScoringForm): ScoringSettings {
   host: { class: 'block' },
   template: `
     <fieldset [formGroup]="form()" class="panel flex flex-col gap-4 p-4" [attr.data-rev]="tick()">
-      <legend class="label-caps float-left mb-1 w-full">Scoring and economy</legend>
-      <p class="text-sm text-muted-foreground">
+      <legend class="label-caps float-left mb-1 w-full" i18n>Scoring and economy</legend>
+      <p class="text-sm text-muted-foreground" i18n>
         Points decide the winner. Credits are a separate currency teams earn from objectives and spend in the perk store.
       </p>
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="sc-pts">Starting points</label>
+          <label hlmLabel for="sc-pts" i18n>Starting points</label>
           <input hlmInput id="sc-pts" type="number" inputmode="numeric" class="num h-11" formControlName="startingPoints" [attr.aria-invalid]="!!err('startingPoints')" />
           @if (err('startingPoints'); as e) {
             <p class="field-error">{{ e }}</p>
           }
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="sc-cur">Starting credits</label>
+          <label hlmLabel for="sc-cur" i18n>Starting credits</label>
           <input hlmInput id="sc-cur" type="number" min="0" inputmode="numeric" class="num h-11" formControlName="startingCurrency" [attr.aria-invalid]="!!err('startingCurrency')" />
           @if (err('startingCurrency'); as e) {
             <p class="field-error">{{ e }}</p>
           }
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="sc-max">Maximum credits</label>
+          <label hlmLabel for="sc-max" i18n>Maximum credits</label>
           <input hlmInput id="sc-max" type="number" min="0" inputmode="numeric" class="num h-11" formControlName="maxCurrency" aria-describedby="sc-max-h" [attr.aria-invalid]="!!err('maxCurrency')" />
           @if (err('maxCurrency'); as e) {
             <p class="field-error">{{ e }}</p>
           } @else {
-            <p id="sc-max-h" class="text-xs text-muted-foreground">0 = no cap.</p>
+            <p id="sc-max-h" class="text-xs text-muted-foreground" i18n>0 = no cap.</p>
           }
         </div>
       </div>
       <zeus-switch-row
         formControlName="allowNegativePoints"
         label="Allow negative points"
-        description="Penalties can take a team below zero. Off: points stop at 0. Credits never go below zero."
+        description="Penalties can take a team below zero. Off: points stop at 0. Credits never go below zero." i18n-label i18n-description
       />
       <div class="flex flex-col gap-1.5">
-        <span hlmLabel id="sc-win-l">Winner</span>
+        <span hlmLabel id="sc-win-l" i18n>Winner</span>
         <zeus-segmented formControlName="winCondition" [options]="winOptions" labelledby="sc-win-l" stacked />
       </div>
     </fieldset>
@@ -90,8 +90,8 @@ export class ScoringFormComponent {
   readonly form = input.required<ScoringForm>();
   protected readonly tick = formTick(() => this.form());
   protected readonly winOptions: SegmentOption<ScoringSettings['winCondition']>[] = [
-    { value: 'points', label: 'Most points', hint: 'The team with the most points at the end wins.' },
-    { value: 'objectives', label: 'Most objectives held', hint: 'The team holding the most objectives when the game ends wins.' },
+    { value: 'points', label: $localize`Most points`, hint: $localize`The team with the most points at the end wins.` },
+    { value: 'objectives', label: $localize`Most objectives held`, hint: $localize`The team holding the most objectives when the game ends wins.` },
   ];
   protected err(name: keyof ScoringForm['controls']): string | null {
     return controlError(this.form().controls[name]);

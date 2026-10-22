@@ -11,13 +11,13 @@ import { ToastService } from '../../core/ui/toast.service';
 import { applyServerErrors, fieldError } from '../auth/form-utils';
 
 export const REPORT_REASONS: { value: string; label: string }[] = [
-  { value: 'cheating', label: 'Cheating (fake GPS, shared codes, ignoring hits)' },
-  { value: 'unsafe', label: 'Unsafe behaviour on the field' },
-  { value: 'harassment', label: 'Harassment or threats' },
-  { value: 'offensive_profile', label: 'Offensive nickname, photo or bio' },
-  { value: 'impersonation', label: 'Pretending to be someone else' },
-  { value: 'spam', label: 'Spam or fake account' },
-  { value: 'other', label: 'Something else' },
+  { value: 'cheating', label: $localize`Cheating (fake GPS, shared codes, ignoring hits)` },
+  { value: 'unsafe', label: $localize`Unsafe behaviour on the field` },
+  { value: 'harassment', label: $localize`Harassment or threats` },
+  { value: 'offensive_profile', label: $localize`Offensive nickname, photo or bio` },
+  { value: 'impersonation', label: $localize`Pretending to be someone else` },
+  { value: 'spam', label: $localize`Spam or fake account` },
+  { value: 'other', label: $localize`Something else` },
 ];
 
 /** Report a player: reason + details, in a native modal dialog. */
@@ -49,18 +49,18 @@ export const REPORT_REASONS: { value: string; label: string }[] = [
     <dialog #dlg class="border border-border bg-popover p-5 text-popover-foreground shadow-2xl" aria-labelledby="rep-title" (close)="onClosed()">
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="flex items-start justify-between gap-3">
-          <h2 id="rep-title" class="text-lg uppercase">Report {{ nickname() }}</h2>
-          <button type="button" class="tap -mr-2 -mt-2 grid place-items-center rounded-sm hover:bg-muted" aria-label="Close" (click)="close()">
+          <h2 id="rep-title" class="text-lg uppercase" i18n>Report {{ nickname() }}</h2>
+          <button type="button" class="tap -mr-2 -mt-2 grid place-items-center rounded-sm hover:bg-muted" aria-label="Close" (click)="close()" i18n-aria-label>
             <ng-icon name="lucideX" size="20" aria-hidden="true" />
           </button>
         </div>
-        <p class="mt-1 text-sm text-muted-foreground">Reports are private. Our team reviews them; the player is not told who reported them. For danger on the field, tell the Game Master now.</p>
+        <p class="mt-1 text-sm text-muted-foreground" i18n>Reports are private. Our team reviews them; the player is not told who reported them. For danger on the field, tell the Game Master now.</p>
 
         <div class="mt-4 flex flex-col gap-1.5">
-          <label hlmLabel for="rep-reason">Reason</label>
+          <label hlmLabel for="rep-reason" i18n>Reason</label>
           <select id="rep-reason" formControlName="reason" class="h-11 w-full rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30"
             [attr.aria-invalid]="!!err('reason')" [attr.aria-describedby]="err('reason') ? 'rep-reason-err' : null">
-            <option value="" disabled>Choose a reason</option>
+            <option value="" disabled i18n>Choose a reason</option>
             @for (r of reasons; track r.value) {
               <option [value]="r.value">{{ r.label }}</option>
             }
@@ -71,31 +71,38 @@ export const REPORT_REASONS: { value: string; label: string }[] = [
         </div>
 
         <div class="mt-4 flex flex-col gap-1.5">
-          <label hlmLabel for="rep-details">What happened</label>
+          <label hlmLabel for="rep-details" i18n>What happened</label>
           <textarea hlmTextarea id="rep-details" formControlName="details" rows="4" maxlength="1000"
             placeholder="When and where it happened, and in which event"
-            [attr.aria-invalid]="!!err('details')" aria-describedby="rep-details-help"></textarea>
+            [attr.aria-invalid]="!!err('details')" aria-describedby="rep-details-help" i18n-placeholder></textarea>
           <p id="rep-details-help" class="flex justify-between text-xs text-muted-foreground">
-            <span>{{ err('details') ?? 'Optional, but details help us act.' }}</span>
+            <span>{{ err('details') ?? txt.optionalButDetailsHelp }}</span>
             <span class="num">{{ form.controls.details.value.length }}/1000</span>
           </p>
         </div>
 
         <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button hlmBtn type="button" variant="outline" class="h-12 sm:h-10" (click)="close()">Cancel</button>
-          <button hlmBtn type="submit" class="h-12 sm:h-10" [disabled]="saving()">{{ saving() ? 'Sending…' : 'Send report' }}</button>
+          <button hlmBtn type="button" variant="outline" class="h-12 sm:h-10" (click)="close()" i18n>Cancel</button>
+          <button hlmBtn type="submit" class="h-12 sm:h-10" [disabled]="saving()">{{ saving() ? txt.sending : txt.sendReport }}</button>
         </div>
       </form>
     </dialog>
   `,
 })
 export class ReportDialog {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    optionalButDetailsHelp: $localize`Optional, but details help us act.`,
+    sending: $localize`Sending…`,
+    sendReport: $localize`Send report`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly dlg = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
 
   readonly targetUserId = input.required<Uuid>();
-  readonly nickname = input('this player');
+  readonly nickname = input($localize`this player`);
   readonly eventId = input<Uuid | null>(null);
 
   protected readonly reasons = REPORT_REASONS;
@@ -106,7 +113,7 @@ export class ReportDialog {
   });
 
   protected err(name: 'reason' | 'details'): string | null {
-    return fieldError(this.form.controls[name], { required: 'Choose a reason.' });
+    return fieldError(this.form.controls[name], { required: $localize`Choose a reason.` });
   }
 
   open(): void {
@@ -137,7 +144,7 @@ export class ReportDialog {
         reason: v.reason,
         details: v.details.trim() || undefined,
       });
-      this.toast.success('Report sent', 'Thanks. We review every report.');
+      this.toast.success($localize`Report sent`, $localize`Thanks. We review every report.`);
       this.close();
     } catch (e) {
       const err = ApiError.from(e);

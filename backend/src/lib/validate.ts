@@ -1,11 +1,12 @@
 import type { Request } from 'express';
 import { z, ZodType } from 'zod';
 import { badRequest, zodFields } from '../errors.js';
+import { tr, zodErrorMap } from '../i18n/index.js';
 
 /** Parse with a zod schema; throws 400 with per-field messages. */
 export function parse<T extends ZodType>(schema: T, data: unknown): z.infer<T> {
-  const res = schema.safeParse(data);
-  if (!res.success) throw badRequest('Some fields are not valid.', 'invalid_argument', zodFields(res.error));
+  const res = schema.safeParse(data, { error: zodErrorMap() });
+  if (!res.success) throw badRequest(tr`Some fields are not valid.`, 'invalid_argument', zodFields(res.error));
   return res.data;
 }
 
@@ -31,6 +32,6 @@ export const playerRole = z.enum(['rifleman', 'medic', 'support_gunner', 'sniper
 /** Route param as uuid (404 rather than 400 for malformed ids). */
 export function idParam(req: Request, name: string): string {
   const v = req.params[name];
-  if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw badRequest('Invalid id.', 'invalid_id');
+  if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw badRequest(tr`Invalid id.`, 'invalid_id');
   return v;
 }

@@ -36,21 +36,21 @@ export function lifecycleActions(status: EventStatus): LifecycleAction[] {
     if (allowed.includes(to)) out.push({ to, label, icon, variant });
   };
   if (status === 'draft') {
-    add('published', 'Publish', 'lucideEye', 'default');
-    add('registration_open', 'Open registration', 'lucideUserPlus');
+    add('published', $localize`Publish`, 'lucideEye', 'default');
+    add('registration_open', $localize`Open registration`, 'lucideUserPlus');
   } else if (status === 'published') {
-    add('registration_open', 'Open registration', 'lucideUserPlus', 'default');
-    add('lobby', 'Open lobby', 'lucideUsers');
-    add('draft', 'Back to draft', 'lucideEyeOff');
+    add('registration_open', $localize`Open registration`, 'lucideUserPlus', 'default');
+    add('lobby', $localize`Open lobby`, 'lucideUsers');
+    add('draft', $localize`Back to draft`, 'lucideEyeOff');
   } else if (status === 'registration_open') {
-    add('lobby', 'Open lobby', 'lucideUsers', 'default');
-    add('published', 'Close registration', 'lucideLock');
+    add('lobby', $localize`Open lobby`, 'lucideUsers', 'default');
+    add('published', $localize`Close registration`, 'lucideLock');
   } else if (status === 'lobby') {
-    add('registration_open', 'Reopen registration', 'lucideLockOpen');
+    add('registration_open', $localize`Reopen registration`, 'lucideLockOpen');
   } else if (status === 'cancelled') {
-    add('draft', 'Restore as draft', 'lucideRotateCcw', 'default');
+    add('draft', $localize`Restore as draft`, 'lucideRotateCcw', 'default');
   }
-  add('cancelled', 'Cancel event', 'lucideBan', 'destructive');
+  add('cancelled', $localize`Cancel event`, 'lucideBan', 'destructive');
   return out;
 }
 
@@ -59,44 +59,44 @@ function consequencesFor(event: EventDetail, to: EventStatus): { title: string; 
   switch (to) {
     case 'published':
       return {
-        title: `Publish ${event.name}?`,
-        message: 'Players can see the event and its details.',
+        title: $localize`Publish ${event.name}:name:?`,
+        message: $localize`Players can see the event and its details.`,
         consequences: [
-          event.visibility === 'public' ? 'It appears in Discover for everyone.' : 'Only people with the join code or an invitation can find it.',
-          'Registration stays closed until you open it.',
+          event.visibility === 'public' ? $localize`It appears in Discover for everyone.` : $localize`Only people with the join code or an invitation can find it.`,
+          $localize`Registration stays closed until you open it.`,
         ],
-        confirmLabel: 'Publish',
+        confirmLabel: $localize`Publish`,
       };
     case 'registration_open':
       return {
-        title: 'Open registration?',
-        message: 'Players can join the event now.',
+        title: $localize`Open registration?`,
+        message: $localize`Players can join the event now.`,
         consequences: [
-          event.requiresApproval ? 'Each request waits for your approval.' : 'Players are approved automatically.',
-          `Up to ${event.maxPlayers} players can register.`,
+          event.requiresApproval ? $localize`Each request waits for your approval.` : $localize`Players are approved automatically.`,
+          $localize`Up to ${event.maxPlayers}:maxPlayers: players can register.`,
         ],
-        confirmLabel: 'Open registration',
+        confirmLabel: $localize`Open registration`,
       };
     case 'lobby':
       return {
-        title: 'Open the lobby?',
-        message: 'Approved players move to the pre-game lobby to get ready.',
-        consequences: [`${players} approved players are notified.`, 'New registrations are closed.', 'Start the game from the control center when everyone is ready.'],
-        confirmLabel: 'Open lobby',
+        title: $localize`Open the lobby?`,
+        message: $localize`Approved players move to the pre-game lobby to get ready.`,
+        consequences: [$localize`${players}:players: approved players are notified.`, $localize`New registrations are closed.`, $localize`Start the game from the control center when everyone is ready.`],
+        confirmLabel: $localize`Open lobby`,
       };
     case 'draft':
       return {
-        title: 'Back to draft?',
-        message: 'The event is hidden from players until you publish it again.',
-        consequences: ['It disappears from Discover.', 'Registered players keep their place.'],
-        confirmLabel: 'Back to draft',
+        title: $localize`Back to draft?`,
+        message: $localize`The event is hidden from players until you publish it again.`,
+        consequences: [$localize`It disappears from Discover.`, $localize`Registered players keep their place.`],
+        confirmLabel: $localize`Back to draft`,
       };
     default:
       return {
-        title: `Change status to ${EVENT_STATUS_LABELS[to]}?`,
+        title: $localize`Change status to ${EVENT_STATUS_LABELS[to]}:to:?`,
         message: '',
         consequences: [],
-        confirmLabel: 'Confirm',
+        confirmLabel: $localize`Confirm`,
       };
   }
 }
@@ -114,16 +114,16 @@ export function injectLifecycle() {
     let reason: string | undefined;
     if (to === 'cancelled') {
       const r = await confirm.askReason({
-        title: `Cancel ${event.name}?`,
-        message: 'Players see the event as cancelled.',
+        title: $localize`Cancel ${event.name}:name:?`,
+        message: $localize`Players see the event as cancelled.`,
         consequences: [
-          `${event.approvedCount} approved and ${event.pendingCount} pending players are notified with your reason.`,
-          'The event cannot be played; you can restore it as a draft later.',
+          $localize`${event.approvedCount}:approvedCount: approved and ${event.pendingCount}:pendingCount: pending players are notified with your reason.`,
+          $localize`The event cannot be played; you can restore it as a draft later.`,
         ],
         destructive: true,
-        confirmLabel: 'Cancel event',
-        cancelLabel: 'Keep event',
-        reason: { label: 'Reason shown to players', required: true, placeholder: 'Field closed after storm damage' },
+        confirmLabel: $localize`Cancel event`,
+        cancelLabel: $localize`Keep event`,
+        reason: { label: $localize`Reason shown to players`, required: true, placeholder: $localize`Field closed after storm damage` },
       });
       if (r === null) return null;
       reason = r;
@@ -134,12 +134,12 @@ export function injectLifecycle() {
     }
     try {
       const updated = await api.setEventStatus(event.id, to, reason);
-      toast.success(`Status: ${EVENT_STATUS_LABELS[updated.status]}`);
+      toast.success($localize`Status: ${EVENT_STATUS_LABELS[updated.status]}:status:`);
       return updated;
     } catch (err) {
       const e = ApiError.from(err);
-      if (e.code === 'not_enough_teams') toast.error('Create at least two teams first.');
-      else if (e.code === 'invalid_transition') toast.error('That status change is not possible right now. Reload to see the current status.');
+      if (e.code === 'not_enough_teams') toast.error($localize`Create at least two teams first.`);
+      else if (e.code === 'invalid_transition') toast.error($localize`That status change is not possible right now. Reload to see the current status.`);
       else toast.error(e);
       return null;
     }

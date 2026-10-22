@@ -7,6 +7,8 @@ import { applyLedger } from './ledger.js';
 import { settleRecurring, type ObjRow } from './objectives.js';
 import type { EventStatus } from './rules.js';
 import * as dto from './serialize.js';
+import { type Lang, localeOf, tr } from '../i18n/index.js';
+import { statusLabel } from '../i18n/labels.js';
 
 export const TRANSITIONS: Record<EventStatus, EventStatus[]> = {
   draft: ['published', 'registration_open', 'cancelled'],
@@ -32,11 +34,11 @@ async function announceNewEvent(t: Tx, ev: EventContext['event']): Promise<void>
     [ev.id],
     t,
   );
-  const when = new Date(ev.start_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Rome' });
+  const when = (lang: Lang) => new Date(ev.start_at).toLocaleDateString(localeOf(lang), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Rome' });
   await notify(t, rows.map((r) => r.id), {
     type: 'event_published',
-    title: `New event: ${ev.name}`,
-    body: `${when}${ev.meeting_address ? ` · ${ev.meeting_address}` : ''}`,
+    title: (tr) => tr`New event: ${ev.name}`,
+    body: (tr) => `${when(tr.lang)}${ev.meeting_address ? ` · ${ev.meeting_address}` : ''}`,
     eventId: ev.id,
     url: `/events/${ev.id}`,
     push: false,
@@ -55,13 +57,13 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
   const ev = ctx.event;
   const from = ev.status;
   if (from === to) return to;
-  if (!canTransition(from, to)) throw conflict(`An event cannot go from ${from.replace('_', ' ')} to ${to.replace('_', ' ')}.`, 'invalid_transition');
+  if (!canTransition(from, to)) throw conflict(tr`An event cannot go from ${statusLabel(tr, from)} to ${statusLabel(tr, to)}.`, 'invalid_transition');
   const now = Date.now();
   const eventId = ev.id;
 
   if (to === 'live' && from === 'lobby') {
     const teams = await many<{ id: string }>('SELECT id FROM teams WHERE event_id = $1', [eventId], t);
-    if (teams.length < 2) throw precondition('Create at least two teams before starting the game.', 'not_enough_teams');
+    if (teams.length < 2) throw precondition(tr`Create at least two teams before starting the game.`, 'not_enough_teams');
     const durationMs = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime();
     const firstStart = !ev.started_at;
     await t.query(
@@ -74,18 +76,18 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
       if (!already) {
         for (const team of teams) {
           if (ctx.scoring.startingPoints)
-            await applyLedger(t, { eventId, teamId: team.id, kind: 'points', type: 'starting_balance', amount: ctx.scoring.startingPoints, scoring: ctx.scoring, reason: 'Starting points' });
+            await applyLedger(t, { eventId, teamId: team.id, kind: 'points', type: 'starting_balance', amount: ctx.scoring.startingPoints, scoring: ctx.scoring, reason: (tr) => tr`Starting points` });
           if (ctx.scoring.startingCurrency)
-            await applyLedger(t, { eventId, teamId: team.id, kind: 'currency', type: 'starting_balance', amount: ctx.scoring.startingCurrency, scoring: ctx.scoring, reason: 'Starting credits' });
+            await applyLedger(t, { eventId, teamId: team.id, kind: 'currency', type: 'starting_balance', amount: ctx.scoring.startingCurrency, scoring: ctx.scoring, reason: (tr) => tr`Starting credits` });
         }
       }
       await t.query('UPDATE objectives SET recurring_last_at = now() WHERE event_id = $1 AND owner_team_id IS NOT NULL', [eventId]);
     }
-    await activity(t, eventId, { type: 'game_started', message: 'The game has started', scope: 'all' });
+    await activity(t, eventId, { type: 'game_started', message: (tr) => tr`The game has started`, scope: 'all' });
     await notify(t, await eventPlayers(t, eventId), {
       type: 'game_started',
-      title: `${ev.name} has started`,
-      body: 'Open the live map.',
+      title: (tr) => tr`${ev.name} has started`,
+      body: (tr) => tr`Open the live map.`,
       priority: 'high',
       eventId,
       url: `/events/${eventId}/live`,
@@ -95,11 +97,11 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
     const owned = await many<ObjRow>('SELECT * FROM objectives WHERE event_id = $1 AND owner_team_id IS NOT NULL FOR UPDATE', [eventId], t);
     for (const o of owned) await settleRecurring(t, ctx, o, now);
     await t.query(`UPDATE events SET status = 'paused', paused_at = now(), updated_at = now() WHERE id = $1`, [eventId]);
-    await activity(t, eventId, { type: 'game_paused', message: `Game paused${reason ? `: ${reason}` : ''}`, scope: 'all' });
+    await activity(t, eventId, { type: 'game_paused', message: (tr) => (reason ? tr`Game paused: ${reason}` : tr`Game paused`), scope: 'all' });
     await notify(t, await eventPlayers(t, eventId), {
       type: 'game_paused',
-      title: 'Game paused',
-      body: reason ?? 'Wait for the Game Master.',
+      title: (tr) => tr`Game paused`,
+      body: (tr) => (reason ?? tr`Wait for the Game Master.`),
       priority: 'high',
       eventId,
       url: `/events/${eventId}/live`,
@@ -115,15 +117,15 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
     await t.query('UPDATE objectives SET recurring_last_at = now() WHERE event_id = $1 AND owner_team_id IS NOT NULL', [eventId]);
     // Effects keep their wall-clock expiry; geofence progress restarts.
     await t.query(`UPDATE capture_states SET progress = '{}', present = '{}', contested = false WHERE event_id = $1`, [eventId]);
-    await activity(t, eventId, { type: 'game_resumed', message: 'Game resumed', scope: 'all' });
-    await notify(t, await eventPlayers(t, eventId), { type: 'game_resumed', title: 'Game resumed', priority: 'high', eventId, url: `/events/${eventId}/live` });
+    await activity(t, eventId, { type: 'game_resumed', message: (tr) => tr`Game resumed`, scope: 'all' });
+    await notify(t, await eventPlayers(t, eventId), { type: 'game_resumed', title: (tr) => tr`Game resumed`, priority: 'high', eventId, url: `/events/${eventId}/live` });
   } else if (to === 'completed') {
     await completeGame(t, ctx, now);
   } else if (to === 'cancelled') {
     await t.query(`UPDATE events SET status = 'cancelled', updated_at = now() WHERE id = $1`, [eventId]);
     await notify(t, await eventPlayers(t, eventId), {
       type: 'event_cancelled',
-      title: `${ev.name} was cancelled`,
+      title: (tr) => tr`${ev.name} was cancelled`,
       body: reason ?? '',
       priority: 'high',
       eventId,
@@ -136,7 +138,7 @@ export async function transition(t: Tx, ctx: EventContext, to: EventStatus, acto
       await notify(t, await eventPlayers(t, eventId), {
         type: 'event_starting_soon',
         title: `${ev.name}: lobby is open`,
-        body: 'Check the rules, enable location and mark yourself ready.',
+        body: (tr) => tr`Check the rules, enable location and mark yourself ready.`,
         eventId,
         url: `/events/${eventId}/lobby`,
       });
@@ -219,14 +221,14 @@ async function completeGame(t: Tx, ctx: EventContext, now: number): Promise<void
 
   await activity(t, eventId, {
     type: 'game_ended',
-    message: winner ? `Game over — ${winner.name} wins` : 'Game over — draw',
+    message: (tr) => (winner ? tr`Game over — ${winner.name} wins` : tr`Game over — draw`),
     scope: 'all',
     teamId: winner?.id ?? null,
   });
   await notify(t, await eventPlayers(t, eventId), {
     type: 'game_ended',
-    title: winner ? `${winner.name} wins` : 'Game over: draw',
-    body: 'See the final results.',
+    title: (tr) => (winner ? tr`${winner.name} wins` : tr`Game over: draw`),
+    body: (tr) => tr`See the final results.`,
     priority: 'high',
     eventId,
     url: `/events/${eventId}/results`,
@@ -235,13 +237,13 @@ async function completeGame(t: Tx, ctx: EventContext, now: number): Promise<void
 
 /** Add minutes to the end time of a running game. */
 export async function extend(t: Tx, ctx: EventContext, minutes: number, actorId: string): Promise<void> {
-  if (!['live', 'paused', 'lobby'].includes(ctx.event.status)) throw conflict('Only a running game can be extended.', 'invalid_state');
+  if (!['live', 'paused', 'lobby'].includes(ctx.event.status)) throw conflict(tr`Only a running game can be extended.`, 'invalid_state');
   await t.query(
     `UPDATE events SET ends_at = COALESCE(ends_at, now()) + make_interval(mins => $2), end_at = end_at + make_interval(mins => $2), updated_at = now() WHERE id = $1`,
     [ctx.event.id, minutes],
   );
   await audit(t, ctx.event.id, actorId, 'event.extend', { type: 'event', id: ctx.event.id, after: { minutes } });
-  await activity(t, ctx.event.id, { type: 'game_extended', message: `Game time extended by ${minutes} min`, scope: 'all' });
+  await activity(t, ctx.event.id, { type: 'game_extended', message: (tr) => tr`Game time extended by ${minutes} min`, scope: 'all' });
   t.afterCommit(async () => {
     const fresh = await one('SELECT * FROM events WHERE id = $1', [ctx.event.id]);
     if (fresh) hub.emit(ctx.event.id, 'clock', { eventId: ctx.event.id, clock: dto.clock(fresh) });

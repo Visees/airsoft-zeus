@@ -11,7 +11,7 @@ import { body, clientTxId, idParam, lat, lng, playerRole, queryOf, shortText, uu
 import { config } from '../config.js';
 import { hub, positionsFor } from '../realtime/hub.js';
 import { eventContext, FINISHED, requireGm, requireMember, type EventContext } from '../domain/context.js';
-import { DEFAULT_PERKS, perkConfigSchema } from '../domain/defaults.js';
+import { defaultPerks, perkConfigSchema } from '../domain/defaults.js';
 import { activity, alert, audit, eventPlayers, notify } from '../domain/journal.js';
 import { applyLedger } from '../domain/ledger.js';
 import { reportLocation, stopTracking } from '../domain/locations.js';
@@ -22,6 +22,8 @@ import { scopedVisible } from '../domain/rules.js';
 import * as dto from '../domain/serialize.js';
 import { eventDetail, membersFor } from '../domain/views.js';
 import { visiblePois, visibleZones } from './content.js';
+import { tr } from '../i18n/index.js';
+import { objectiveActionLabel } from '../i18n/labels.js';
 
 export const liveRouter = Router();
 
@@ -141,7 +143,7 @@ liveRouter.get('/:eventId/ledger', async (req, res) => {
   const ctx = await requireMember(idParam(req, 'eventId'), currentUser(req).id);
   const q = queryOf(req, z.object({ kind: z.enum(['points', 'currency']).optional(), teamId: uuid.optional(), cursor: z.string().optional() }));
   const teamId = ctx.isGm ? (q.teamId ?? null) : ctx.viewer.teamId;
-  if (!ctx.isGm && (!teamId || (q.teamId && q.teamId !== teamId))) throw forbidden('You can only see your own team’s ledger.');
+  if (!ctx.isGm && (!teamId || (q.teamId && q.teamId !== teamId))) throw forbidden(tr`You can only see your own team’s ledger.`);
   const c = decodeCursor(q.cursor);
   const params: unknown[] = [ctx.event.id];
   const where = ['l.event_id = $1'];
@@ -194,12 +196,12 @@ liveRouter.post('/:eventId/announcements', async (req, res) => {
       priority: z.enum(['normal', 'high', 'emergency']),
     }),
   );
-  if (b.scope === 'team' && !b.teamId) throw badRequest('Choose a team.', 'invalid_argument', { teamId: 'Required' });
-  if (b.scope === 'player' && !b.targetUserId) throw badRequest('Choose a player.', 'invalid_argument', { targetUserId: 'Required' });
+  if (b.scope === 'team' && !b.teamId) throw badRequest(tr`Choose a team.`, 'invalid_argument', { teamId: tr`Required` });
+  if (b.scope === 'player' && !b.targetUserId) throw badRequest(tr`Choose a player.`, 'invalid_argument', { targetUserId: tr`Required` });
   await consume('announce', me.id, 30, 60);
   const row = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
-    if (b.teamId && !(await one('SELECT 1 FROM teams WHERE id = $1 AND event_id = $2', [b.teamId, eventId], t))) throw badRequest('Unknown team.');
+    if (b.teamId && !(await one('SELECT 1 FROM teams WHERE id = $1 AND event_id = $2', [b.teamId, eventId], t))) throw badRequest(tr`Unknown team.`);
     const a = await one(
       `INSERT INTO announcements (event_id, scope, team_id, target_user_id, title, body, priority, author_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING *, (SELECT nickname FROM users WHERE id = $8) AS author_nickname`,
@@ -210,7 +212,7 @@ liveRouter.post('/:eventId/announcements', async (req, res) => {
       b.scope === 'all' ? await eventPlayers(t, eventId) : b.scope === 'team' ? await eventPlayers(t, eventId, b.teamId) : [b.targetUserId!];
     await notify(t, recipients, {
       type: b.priority === 'emergency' ? 'emergency' : b.scope === 'team' ? 'team_announcement' : b.scope === 'player' ? 'gm_message' : 'announcement',
-      title: b.priority === 'emergency' ? `EMERGENCY: ${b.title}` : b.title,
+      title: (tr) => (b.priority === 'emergency' ? tr`EMERGENCY: ${b.title}` : b.title),
       body: b.body,
       priority: b.priority,
       eventId,
@@ -218,7 +220,7 @@ liveRouter.post('/:eventId/announcements', async (req, res) => {
       push: true,
     });
     if (b.priority === 'emergency') {
-      await alert(t, eventId, { type: 'emergency', severity: 'critical', message: `Emergency alert sent: ${b.title}`, data: { announcementId: a!.id } });
+      await alert(t, eventId, { type: 'emergency', severity: 'critical', message: (tr) => tr`Emergency alert sent: ${b.title}`, data: { announcementId: a!.id } });
     }
     await audit(t, eventId, me.id, 'announcement.send', { type: 'announcement', id: a!.id, after: { scope: b.scope, priority: b.priority, title: b.title } });
     const item = dto.announcement(a!);
@@ -286,7 +288,7 @@ liveRouter.post('/:eventId/gm/adjust', async (req, res) => {
   );
   const { result } = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
-    if (ctx.event.status === 'cancelled') throw conflict('This event was cancelled.', 'event_finished');
+    if (ctx.event.status === 'cancelled') throw conflict(tr`This event was cancelled.`, 'event_finished');
     return idempotent(t, me.id, b.clientTxId, 'adjust', async () => {
       const r = await applyLedger(t, {
         eventId,
@@ -301,10 +303,16 @@ liveRouter.post('/:eventId/gm/adjust', async (req, res) => {
         clientTxId: b.clientTxId,
       });
       const team = await one<{ name: string }>('SELECT name FROM teams WHERE id = $1', [b.teamId], t);
-      const unit = b.kind === 'points' ? 'points' : 'credits';
       await activity(t, eventId, {
         type: b.penalty ? 'penalty' : 'gm_adjustment',
-        message: `GM ${r.applied >= 0 ? 'gave' : 'took'} ${Math.abs(r.applied)} ${unit} ${r.applied >= 0 ? 'to' : 'from'} ${team?.name}: ${b.reason}`,
+        message: (tr) =>
+          r.applied >= 0
+            ? b.kind === 'points'
+              ? tr`GM gave ${r.applied} points to ${team?.name}: ${b.reason}`
+              : tr`GM gave ${r.applied} credits to ${team?.name}: ${b.reason}`
+            : b.kind === 'points'
+              ? tr`GM took ${-r.applied} points from ${team?.name}: ${b.reason}`
+              : tr`GM took ${-r.applied} credits from ${team?.name}: ${b.reason}`,
         scope: b.kind === 'points' ? 'all' : 'team',
         teamId: b.teamId,
       });
@@ -330,7 +338,7 @@ liveRouter.post('/:eventId/gm/objectives/:objectiveId', async (req, res) => {
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
     const o = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1 AND event_id = $2 FOR UPDATE', [objectiveId, eventId], t);
-    if (!o) throw notFound('Objective not found.');
+    if (!o) throw notFound(tr`Objective not found.`);
     const now = Date.now();
     switch (b.action) {
       case 'activate':
@@ -351,9 +359,9 @@ liveRouter.post('/:eventId/gm/objectives/:objectiveId', async (req, res) => {
         await t.query('UPDATE objectives SET owner_team_id = NULL, recurring_last_at = NULL WHERE id = $1', [o.id]);
         break;
       case 'set_owner': {
-        if (!b.teamId) throw badRequest('Choose the team.', 'invalid_argument', { teamId: 'Required' });
+        if (!b.teamId) throw badRequest(tr`Choose the team.`, 'invalid_argument', { teamId: tr`Required` });
         const team = await one('SELECT id FROM teams WHERE id = $1 AND event_id = $2', [b.teamId, eventId], t);
-        if (!team) throw badRequest('Unknown team.');
+        if (!team) throw badRequest(tr`Unknown team.`);
         if (ctx.event.status === 'live') {
           // A GM capture: rewards and notifications like a normal capture.
           await t.query('UPDATE objectives SET disabled_by_gm = false, contested_by_gm = false WHERE id = $1', [o.id]);
@@ -373,11 +381,18 @@ liveRouter.post('/:eventId/gm/objectives/:objectiveId', async (req, res) => {
         break;
     }
     await t.query('UPDATE objectives SET updated_at = now() WHERE id = $1', [o.id]);
-    await activity(t, eventId, { type: 'gm_objective', message: `GM: ${o.name} — ${b.action.replace('_', ' ')} (${b.reason})`, scope: 'gm', objectiveId: o.id });
+    await activity(t, eventId, { type: 'gm_objective', message: (tr) => tr`GM: ${o.name} — ${objectiveActionLabel(tr, b.action)} (${b.reason})`, scope: 'gm', objectiveId: o.id });
     if (['disable', 'activate', 'contest', 'reset'].includes(b.action)) {
       await activity(t, eventId, {
         type: 'gm_objective',
-        message: `${o.name} ${b.action === 'disable' ? 'was disabled' : b.action === 'activate' ? 'is active again' : b.action === 'contest' ? 'is contested' : 'was reset'} by the GM`,
+        message: (tr) =>
+          b.action === 'disable'
+            ? tr`${o.name} was disabled by the GM`
+            : b.action === 'activate'
+              ? tr`${o.name} is active again`
+              : b.action === 'contest'
+                ? tr`${o.name} is contested`
+                : tr`${o.name} was reset by the GM`,
         scope: 'all',
         objectiveId: o.id,
       });
@@ -483,7 +498,7 @@ liveRouter.post('/:eventId/perks/defaults', async (req, res) => {
     const existing = new Set((await many<{ type: string }>('SELECT type FROM perks WHERE event_id = $1', [eventId], t)).map((r) => r.type));
     const out = [];
     let order = existing.size;
-    for (const p of DEFAULT_PERKS) {
+    for (const p of defaultPerks()) {
       if (existing.has(p.type)) continue;
       const r = await one(
         `INSERT INTO perks (event_id, name, description, icon, type, price, duration_sec, cooldown_sec, target, requires_approval, eligible, config, sort_order)
@@ -509,7 +524,7 @@ liveRouter.patch('/:eventId/perks/:perkId', async (req, res) => {
   const row = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const cur = await one('SELECT * FROM perks WHERE id = $1 AND event_id = $2 FOR UPDATE', [perkId, eventId], t);
-    if (!cur) throw notFound('Perk not found.');
+    if (!cur) throw notFound(tr`Perk not found.`);
     const sets: string[] = [];
     const params: unknown[] = [perkId];
     for (const [k, col] of Object.entries(PERK_COLS)) {
@@ -548,7 +563,7 @@ liveRouter.delete('/:eventId/perks/:perkId', async (req, res) => {
       await t.query('UPDATE perks SET enabled = false WHERE id = $1 AND event_id = $2', [perkId, eventId]);
     } else {
       const r = await t.query('DELETE FROM perks WHERE id = $1 AND event_id = $2', [perkId, eventId]);
-      if (!r.rowCount) throw notFound('Perk not found.');
+      if (!r.rowCount) throw notFound(tr`Perk not found.`);
     }
     await audit(t, eventId, me.id, used ? 'perk.disable' : 'perk.delete', { type: 'perk', id: perkId });
   });
@@ -560,10 +575,10 @@ liveRouter.post('/:eventId/perks/:perkId/purchase', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
   const b = body(req, z.object({ targetTeamId: uuid.nullable().optional(), targetObjectiveId: uuid.nullable().optional(), clientTxId }));
-  await consume('purchase', me.id, 10, 60, 'Too many purchases. Wait a minute.');
+  await consume('purchase', me.id, 10, 60, tr`Too many purchases. Wait a minute.`);
   const { result: purchaseId } = await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
-    if (!ctx.isGm && ctx.member?.status !== 'approved') throw forbidden('Join the event first.', 'not_member');
+    if (!ctx.isGm && ctx.member?.status !== 'approved') throw forbidden(tr`Join the event first.`, 'not_member');
     return idempotent(t, me.id, b.clientTxId, 'purchase', () =>
       perks.purchase(t, { ctx, perkId: idParam(req, 'perkId'), userId: me.id, targetTeamId: b.targetTeamId, targetObjectiveId: b.targetObjectiveId, clientTxId: b.clientTxId, now: Date.now() }),
     );
@@ -581,7 +596,7 @@ liveRouter.get('/:eventId/effects', async (req, res) => {
 
 async function purchaseDto(eventId: string, purchaseId: string) {
   const row = await one(`SELECT ${dto.PURCHASE_SELECT} WHERE pp.id = $1 AND pp.event_id = $2`, [purchaseId, eventId]);
-  if (!row) throw notFound('Purchase not found.');
+  if (!row) throw notFound(tr`Purchase not found.`);
   return dto.purchase(row);
 }
 
@@ -605,9 +620,9 @@ liveRouter.post('/:eventId/purchases/:purchaseId/activate', async (req, res) => 
   await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t);
     const pp = await one('SELECT team_id, buyer_id FROM perk_purchases WHERE id = $1 AND event_id = $2', [purchaseId, eventId], t);
-    if (!pp) throw notFound('Purchase not found.');
+    if (!pp) throw notFound(tr`Purchase not found.`);
     const allowed = ctx.isGm || pp.buyer_id === me.id || (ctx.member?.status === 'approved' && ctx.member.team_id === pp.team_id && ctx.member.is_squad_leader);
-    if (!allowed) throw forbidden('Only the buyer, a squad leader of the team or the GM can activate it.');
+    if (!allowed) throw forbidden(tr`Only the buyer, a squad leader of the team or the GM can activate it.`);
     await perks.activate(t, ctx, purchaseId, me.id, Date.now());
   });
   res.json(await purchaseDto(eventId, purchaseId));
@@ -643,7 +658,7 @@ liveRouter.post('/:eventId/results/publish', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   const token = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (ctx.event.status !== 'completed') throw conflict('Results can be published when the game is over.', 'not_completed');
+    if (ctx.event.status !== 'completed') throw conflict(tr`Results can be published when the game is over.`, 'not_completed');
     const tok = ctx.event.results_token ?? randomToken(18);
     await t.query('UPDATE events SET results_token = $2, results_published_at = now() WHERE id = $1', [eventId, tok]);
     await audit(t, eventId, me.id, 'results.publish', { type: 'event', id: eventId });
@@ -671,8 +686,8 @@ liveRouter.get('/:eventId/export', async (req, res) => {
   const q = queryOf(req, z.object({ format: z.enum(['csv', 'pdf']), kind: z.enum(['leaderboard', 'players', 'captures', 'ledger', 'perks']).default('leaderboard') }));
   const ctx = await eventContext(eventId, me.id);
   const isPlayer = ctx.member && ['approved', 'left', 'removed'].includes(ctx.member.status);
-  if (!ctx.isGm && !(isPlayer && ctx.event.status === 'completed')) throw forbidden('Exports are available to the GM, and to players once the game is over.');
-  if (!ctx.isGm && q.kind === 'ledger') throw forbidden('The full ledger export is for Game Masters.');
+  if (!ctx.isGm && !(isPlayer && ctx.event.status === 'completed')) throw forbidden(tr`Exports are available to the GM, and to players once the game is over.`);
+  if (!ctx.isGm && q.kind === 'ledger') throw forbidden(tr`The full ledger export is for Game Masters.`);
   await consume('export', me.id, 30, 3600);
   const slug = ctx.event.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'event';
   if (q.format === 'pdf') {

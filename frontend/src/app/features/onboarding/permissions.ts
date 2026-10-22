@@ -20,7 +20,7 @@ type Step = 'location' | 'notifications';
   template: `
     <zeus-auth-layout [center]="false">
       <div class="flex items-center justify-between gap-3">
-        <p class="label-caps">Set up · step <span class="num">{{ stepIndex() + 1 }}</span> of <span class="num">2</span></p>
+        <p class="label-caps"><ng-container i18n>Set up · step <span class="num">{{ stepIndex() + 1 }}</span> of</ng-container> <span class="num">2</span></p>
         <div class="flex gap-1" aria-hidden="true">
           <span class="h-1.5 w-8 rounded-full bg-primary"></span>
           <span class="h-1.5 w-8 rounded-full" [class.bg-primary]="step() === 'notifications'" [class.bg-muted]="step() !== 'notifications'"></span>
@@ -31,46 +31,46 @@ type Step = 'location' | 'notifications';
         <section class="mt-4 flex flex-col gap-4" aria-labelledby="perm-loc-title">
           <span class="grid size-12 place-items-center rounded-md bg-nav/15 text-nav" aria-hidden="true"><ng-icon name="lucideLocateFixed" size="24" /></span>
           <div>
-            <h1 id="perm-loc-title" class="text-3xl uppercase">Location</h1>
-            <p class="mt-1 text-muted-foreground">Shows you on the tactical map and lets you capture zones by holding them.</p>
+            <h1 id="perm-loc-title" class="text-3xl uppercase" i18n>Location</h1>
+            <p class="mt-1 text-muted-foreground" i18n>Shows you on the tactical map and lets you capture zones by holding them.</p>
           </div>
           <ul class="panel flex flex-col divide-y divide-border text-sm">
-            <li class="flex gap-3 p-3"><ng-icon name="lucideRadio" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span><strong>Only during live events.</strong> Your position is sent only while a game you joined is running and you have it open.</span></li>
-            <li class="flex gap-3 p-3"><ng-icon name="lucideEye" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span><strong>Shared by the event's rules.</strong> The Game Master decides who sees you — your squad, your team, or an approximate area. The lobby tells you before the game.</span></li>
-            <li class="flex gap-3 p-3"><ng-icon name="lucideCircleStop" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span><strong>Stop anytime.</strong> Turn sharing off from the live screen or your browser settings. Zone captures need it on.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideRadio" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span i18n><strong>Only during live events.</strong> Your position is sent only while a game you joined is running and you have it open.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideEye" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span i18n><strong>Shared by the event's rules.</strong> The Game Master decides who sees you — your squad, your team, or an approximate area. The lobby tells you before the game.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideCircleStop" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span i18n><strong>Stop anytime.</strong> Turn sharing off from the live screen or your browser settings. Zone captures need it on.</span></li>
           </ul>
           <div class="flex items-center justify-between gap-3">
-            <span class="text-sm text-muted-foreground">Browser permission</span>
+            <span class="text-sm text-muted-foreground" i18n>Browser permission</span>
             <zeus-permission-chip [state]="locationState()" />
           </div>
           @if (locationState() === 'denied') {
             <zeus-permission-help kind="location" />
           }
           @if (locationState() === 'unsupported') {
-            <p class="text-sm text-muted-foreground">This browser cannot share location. Use Chrome or Safari on your phone to play.</p>
+            <p class="text-sm text-muted-foreground" i18n>This browser cannot share location. Use Chrome or Safari on your phone to play.</p>
           }
         </section>
       } @else {
         <section class="mt-4 flex flex-col gap-4" aria-labelledby="perm-notif-title">
           <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true"><ng-icon name="lucideBellRing" size="24" /></span>
           <div>
-            <h1 id="perm-notif-title" class="text-3xl uppercase">Notifications</h1>
-            <p class="mt-1 text-muted-foreground">Get told when it matters, even with the app closed.</p>
+            <h1 id="perm-notif-title" class="text-3xl uppercase" i18n>Notifications</h1>
+            <p class="mt-1 text-muted-foreground" i18n>Get told when it matters, even with the app closed.</p>
           </div>
           <ul class="panel flex flex-col divide-y divide-border text-sm">
-            <li class="flex gap-3 p-3"><ng-icon name="lucideCalendar" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span>Invitations, registration approvals and a reminder before your event starts.</span></li>
-            <li class="flex gap-3 p-3"><ng-icon name="lucideFlag" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span>During the game: start, pause, objectives under attack and messages from your Game Master.</span></li>
-            <li class="flex gap-3 p-3"><ng-icon name="lucideSiren" size="18" class="mt-0.5 shrink-0 text-destructive" aria-hidden="true" /><span><strong>Emergency alerts</strong> from the Game Master, such as a game stop for an injury. We recommend allowing notifications for these.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideCalendar" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span i18n>Invitations, registration approvals and a reminder before your event starts.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideFlag" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" /><span i18n>During the game: start, pause, objectives under attack and messages from your Game Master.</span></li>
+            <li class="flex gap-3 p-3"><ng-icon name="lucideSiren" size="18" class="mt-0.5 shrink-0 text-destructive" aria-hidden="true" /><span i18n><strong>Emergency alerts</strong> from the Game Master, such as a game stop for an injury. We recommend allowing notifications for these.</span></li>
           </ul>
           <div class="flex items-center justify-between gap-3">
-            <span class="text-sm text-muted-foreground">Browser permission</span>
+            <span class="text-sm text-muted-foreground" i18n>Browser permission</span>
             <zeus-permission-chip [state]="notifState()" />
           </div>
           @if (notifState() === 'denied') {
             <zeus-permission-help kind="notifications" />
           }
           @if (notifState() === 'unsupported') {
-            <p class="text-sm text-muted-foreground">
+            <p class="text-sm text-muted-foreground" i18n>
               This browser does not support push notifications. On iPhone, add AirsoftHub to your Home Screen first (Share → Add to Home Screen). You will still see alerts inside the app.
             </p>
           }
@@ -81,29 +81,38 @@ type Step = 'location' | 'notifications';
         style="padding-bottom: calc(0.75rem + var(--safe-bottom))">
         @if (step() === 'location') {
           @if (locationState() === 'granted' || locationState() === 'denied' || locationState() === 'unsupported') {
-            <button hlmBtn type="button" class="h-12 text-base" (click)="step.set('notifications')">Next</button>
+            <button hlmBtn type="button" class="h-12 text-base" (click)="step.set('notifications')" i18n>Next</button>
           } @else {
             <button hlmBtn type="button" class="h-12 text-base" [disabled]="busy()" (click)="allowLocation()">
-              {{ busy() ? 'Waiting for your answer…' : 'Allow location' }}
+              {{ busy() ? txt.waitingForYourAnswer : txt.allowLocation }}
             </button>
-            <button hlmBtn type="button" variant="ghost" class="h-11" [disabled]="busy()" (click)="step.set('notifications')">Not now</button>
+            <button hlmBtn type="button" variant="ghost" class="h-11" [disabled]="busy()" (click)="step.set('notifications')" i18n>Not now</button>
           }
         } @else {
           @if (notifState() === 'granted' || notifState() === 'denied' || notifState() === 'unsupported') {
-            <button hlmBtn type="button" class="h-12 text-base" [disabled]="finishing()" (click)="finish()">{{ finishing() ? 'Saving…' : 'Finish' }}</button>
+            <button hlmBtn type="button" class="h-12 text-base" [disabled]="finishing()" (click)="finish()">{{ finishing() ? txt.saving : txt.finish }}</button>
           } @else {
             <button hlmBtn type="button" class="h-12 text-base" [disabled]="busy() || finishing()" (click)="allowNotifications()">
-              {{ busy() ? 'Waiting for your answer…' : 'Allow notifications' }}
+              {{ busy() ? txt.waitingForYourAnswer : txt.allowNotifications }}
             </button>
-            <button hlmBtn type="button" variant="ghost" class="h-11" [disabled]="busy() || finishing()" (click)="finish()">Not now</button>
+            <button hlmBtn type="button" variant="ghost" class="h-11" [disabled]="busy() || finishing()" (click)="finish()" i18n>Not now</button>
           }
-          <button hlmBtn type="button" variant="link" class="h-11" (click)="step.set('location')">Back to location</button>
+          <button hlmBtn type="button" variant="link" class="h-11" (click)="step.set('location')" i18n>Back to location</button>
         }
       </div>
     </zeus-auth-layout>
   `,
 })
 export class PermissionsScreen implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    waitingForYourAnswer: $localize`Waiting for your answer…`,
+    allowLocation: $localize`Allow location`,
+    saving: $localize`Saving…`,
+    finish: $localize`Finish`,
+    allowNotifications: $localize`Allow notifications`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly tracker = inject(LocationTracker);
@@ -136,7 +145,7 @@ export class PermissionsScreen implements OnInit {
       this.locationState.set(state === 'prompt' ? (granted ? 'granted' : 'denied') : state);
       void this.api.recordConsent('location', granted).catch(() => undefined);
       if (granted) {
-        this.toast.success('Location allowed', 'It is used only during live events you join.');
+        this.toast.success($localize`Location allowed`, $localize`It is used only during live events you join.`);
         this.step.set('notifications');
       }
     } finally {
@@ -150,7 +159,7 @@ export class PermissionsScreen implements OnInit {
       await this.push.enable();
       const granted = this.push.permission() === 'granted';
       void this.api.recordConsent('notifications', granted).catch(() => undefined);
-      if (granted) this.toast.success('Notifications allowed');
+      if (granted) this.toast.success($localize`Notifications allowed`);
     } finally {
       this.busy.set(false);
     }

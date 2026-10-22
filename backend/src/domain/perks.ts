@@ -9,6 +9,7 @@ import { upsertIntel } from './locations.js';
 import { statusOf, type ObjRow } from './objectives.js';
 import { objectiveVisible } from './rules.js';
 import * as dto from './serialize.js';
+import { tr } from '../i18n/index.js';
 
 export type AvailabilityReason =
   | 'store_disabled'
@@ -66,17 +67,17 @@ export async function teamPerkStats(q: Queryable, eventId: string, teamId: strin
   return new Map(rows.map((r) => [r.perk_id, { purchases: r.n, lastAt: r.last_at ? new Date(r.last_at).getTime() : null }]));
 }
 
-const AVAILABILITY_MESSAGES: Record<Exclude<AvailabilityReason, null>, string> = {
-  store_disabled: 'The store is closed for this event.',
-  not_live: 'Perks can only be bought while the game is running.',
-  not_eligible: 'Your role cannot buy this perk.',
-  sold_out: 'This perk is sold out.',
-  team_limit: 'Your team reached the limit for this perk.',
-  cooldown: 'This perk is cooling down for your team.',
-  insufficient_funds: 'Your team does not have enough credits.',
-  disabled: 'This perk is not available.',
-  no_team: 'Join a team first.',
-};
+const AVAILABILITY_MESSAGES = (): Record<Exclude<AvailabilityReason, null>, string> => ({
+  store_disabled: tr`The store is closed for this event.`,
+  not_live: tr`Perks can only be bought while the game is running.`,
+  not_eligible: tr`Your role cannot buy this perk.`,
+  sold_out: tr`This perk is sold out.`,
+  team_limit: tr`Your team reached the limit for this perk.`,
+  cooldown: tr`This perk is cooling down for your team.`,
+  insufficient_funds: tr`Your team does not have enough credits.`,
+  disabled: tr`This perk is not available.`,
+  no_team: tr`Join a team first.`,
+});
 
 export interface PurchaseInput {
   ctx: EventContext;
@@ -92,37 +93,37 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
   const { ctx, now } = p;
   const eventId = ctx.event.id;
   const m = ctx.member;
-  if (!m || !playsIn(m) || !m.team_id) throw forbidden('Only players on a team can buy perks.', 'no_team');
+  if (!m || !playsIn(m) || !m.team_id) throw forbidden(tr`Only players on a team can buy perks.`, 'no_team');
   const teamId = m.team_id;
   const perk = await one('SELECT * FROM perks WHERE id = $1 AND event_id = $2 FOR UPDATE', [p.perkId, eventId], t);
-  if (!perk) throw notFound('Perk not found.');
+  if (!perk) throw notFound(tr`Perk not found.`);
   const team = await one<{ currency: number }>('SELECT currency FROM teams WHERE id = $1 FOR UPDATE', [teamId], t);
   const stats = (await teamPerkStats(t, eventId, teamId)).get(perk.id) ?? { purchases: 0, lastAt: null };
   const avail = perkAvailability(ctx, perk, stats, Number(team?.currency ?? 0), now);
-  if (!avail.canBuy) throw conflict(AVAILABILITY_MESSAGES[avail.reason!], avail.reason!);
+  if (!avail.canBuy) throw conflict(AVAILABILITY_MESSAGES()[avail.reason!], avail.reason!);
 
   // Targets
   let targetTeamId: string | null = p.targetTeamId ?? null;
   let targetObjectiveId: string | null = p.targetObjectiveId ?? null;
   if (['uav', 'recon'].includes(perk.type) && ctx.rules.enemies === 'never') {
-    throw conflict('Enemy positions are disabled in this event.', 'not_eligible');
+    throw conflict(tr`Enemy positions are disabled in this event.`, 'not_eligible');
   }
   if (targetTeamId) {
     const tt = await one<{ id: string }>('SELECT id FROM teams WHERE id = $1 AND event_id = $2', [targetTeamId, eventId], t);
-    if (!tt) throw badRequest('Choose a valid team.', 'invalid_target', { targetTeamId: 'Choose a valid team.' });
-    if (targetTeamId === teamId) throw badRequest('Choose an enemy team.', 'invalid_target', { targetTeamId: 'Choose an enemy team.' });
+    if (!tt) throw badRequest(tr`Choose a valid team.`, 'invalid_target', { targetTeamId: tr`Choose a valid team.` });
+    if (targetTeamId === teamId) throw badRequest(tr`Choose an enemy team.`, 'invalid_target', { targetTeamId: tr`Choose an enemy team.` });
   }
   if (perk.target === 'enemy_team' && !targetTeamId) {
     const enemies = await many<{ id: string }>('SELECT id FROM teams WHERE event_id = $1 AND id <> $2', [eventId, teamId], t);
     if (enemies.length === 1) targetTeamId = enemies[0].id;
-    else if (perk.type === 'theft') throw badRequest('Choose the team to steal from.', 'invalid_target', { targetTeamId: 'Required' });
+    else if (perk.type === 'theft') throw badRequest(tr`Choose the team to steal from.`, 'invalid_target', { targetTeamId: tr`Required` });
   }
   if (perk.target === 'objective') {
-    if (!targetObjectiveId) throw badRequest('Choose an objective.', 'invalid_target', { targetObjectiveId: 'Required' });
+    if (!targetObjectiveId) throw badRequest(tr`Choose an objective.`, 'invalid_target', { targetObjectiveId: tr`Required` });
     const o = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1 AND event_id = $2', [targetObjectiveId, eventId], t);
     const counts = new Map((await many<{ id: string; capture_count: number }>('SELECT id, capture_count FROM objectives WHERE event_id = $1', [eventId], t)).map((r) => [r.id, r.capture_count]));
     if (!o || !objectiveVisible(o, statusOf(o, counts, now), ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) {
-      throw badRequest('Choose a valid objective.', 'invalid_target', { targetObjectiveId: 'Choose a valid objective.' });
+      throw badRequest(tr`Choose a valid objective.`, 'invalid_target', { targetObjectiveId: tr`Choose a valid objective.` });
     }
   } else {
     targetObjectiveId = perk.target === 'none' ? null : targetObjectiveId;
@@ -130,7 +131,7 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
   if (perk.type === 'theft' && targetTeamId) {
     const target = await one<{ theft_protected_until: Date | null }>('SELECT theft_protected_until FROM teams WHERE id = $1', [targetTeamId], t);
     if (target?.theft_protected_until && new Date(target.theft_protected_until).getTime() > now) {
-      throw conflict('That team was robbed recently and is protected for now.', 'target_protected');
+      throw conflict(tr`That team was robbed recently and is protected for now.`, 'target_protected');
     }
   }
 
@@ -153,7 +154,7 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
     perkId: perk.id,
     purchaseId,
     clientTxId: p.clientTxId,
-    reason: `Bought ${perk.name}`,
+    reason: (tr) => tr`Bought ${perk.name}`,
     requireFunds: true,
   });
   if (perk.total_quantity > 0) await t.query('UPDATE perks SET remaining_quantity = remaining_quantity - 1 WHERE id = $1', [perk.id]);
@@ -163,7 +164,10 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
   await notify(t, (await eventPlayers(t, eventId, teamId)).filter((id) => id !== p.userId), {
     type: 'perk_purchased',
     title: `${perk.name} bought`,
-    body: `${buyer?.nickname ?? 'A teammate'} spent ${perk.price} credits${perk.requires_approval ? ' — waiting for GM approval' : ''}.`,
+    body: (tr) =>
+      perk.requires_approval
+        ? tr`${buyer?.nickname ?? tr`A teammate`} spent ${perk.price} credits — waiting for GM approval.`
+        : tr`${buyer?.nickname ?? tr`A teammate`} spent ${perk.price} credits.`,
     eventId,
     url: `/events/${eventId}/live/store`,
     push: false,
@@ -174,12 +178,12 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
       type: 'purchase_request',
       severity: 'warning',
       userId: p.userId,
-      message: `${buyer?.nickname ?? 'A player'} requests ${perk.name} (${perk.price} cr)`,
+      message: (tr) => tr`${buyer?.nickname ?? tr`A player`} requests ${perk.name} (${perk.price} cr)`,
       data: { purchaseId, perkId: perk.id, teamId },
     });
     await notify(t, await eventGms(t, eventId), {
       type: 'perk_purchased',
-      title: 'Perk approval needed',
+      title: (tr) => tr`Perk approval needed`,
       body: `${perk.name} for ${buyer?.nickname ?? 'a player'}`,
       priority: 'high',
       eventId,
@@ -194,7 +198,7 @@ export async function purchase(t: Tx, p: PurchaseInput): Promise<string> {
 
 export async function loadPurchase(t: Queryable, eventId: string, purchaseId: string) {
   const row = await one(`SELECT ${dto.PURCHASE_SELECT} WHERE pp.id = $1 AND pp.event_id = $2`, [purchaseId, eventId], t);
-  if (!row) throw notFound('Purchase not found.');
+  if (!row) throw notFound(tr`Purchase not found.`);
   return row;
 }
 
@@ -202,11 +206,11 @@ export async function loadPurchase(t: Queryable, eventId: string, purchaseId: st
 export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _actorId: string, now: number): Promise<void> {
   const eventId = ctx.event.id;
   const pp = await one('SELECT * FROM perk_purchases WHERE id = $1 AND event_id = $2 FOR UPDATE', [purchaseId, eventId], t);
-  if (!pp) throw notFound('Purchase not found.');
-  if (pp.status !== 'ready') throw conflict('This perk cannot be activated now.', 'invalid_state');
-  if (ctx.event.status !== 'live') throw conflict('Perks can only be activated while the game is running.', 'not_live');
+  if (!pp) throw notFound(tr`Purchase not found.`);
+  if (pp.status !== 'ready') throw conflict(tr`This perk cannot be activated now.`, 'invalid_state');
+  if (ctx.event.status !== 'live') throw conflict(tr`Perks can only be activated while the game is running.`, 'not_live');
   const perk = await one('SELECT * FROM perks WHERE id = $1', [pp.perk_id], t);
-  if (!perk) throw notFound('Perk not found.');
+  if (!perk) throw notFound(tr`Perk not found.`);
   const config = { ...DEFAULT_PERK_CONFIG, ...(perk.config ?? {}) };
   const durationSec = perk.type === 'recon' ? config.recon.revealSec : perk.duration_sec;
   const expiresAt = new Date(now + durationSec * 1000);
@@ -244,12 +248,12 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
       break;
     }
     case 'jammer':
-      if (!pp.target_objective_id) throw conflict('No objective selected.', 'invalid_target');
+      if (!pp.target_objective_id) throw conflict(tr`No objective selected.`, 'invalid_target');
       await createEffect();
       await recomputeObjectiveEffects(t, eventId);
       break;
     case 'shield':
-      if (!pp.target_objective_id) throw conflict('No objective selected.', 'invalid_target');
+      if (!pp.target_objective_id) throw conflict(tr`No objective selected.`, 'invalid_target');
       await createEffect();
       await recomputeObjectiveEffects(t, eventId);
       break;
@@ -257,7 +261,7 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
       await createEffect();
       break;
     case 'theft': {
-      if (!pp.target_team_id) throw conflict('No target team.', 'invalid_target');
+      if (!pp.target_team_id) throw conflict(tr`No target team.`, 'invalid_target');
       const target = await one<{ currency: number; name: string }>('SELECT currency, name FROM teams WHERE id = $1 FOR UPDATE', [pp.target_team_id], t);
       const balance = Number(target?.currency ?? 0);
       const wanted = config.theft.mode === 'percent' ? Math.floor((balance * config.theft.amount) / 100) : Math.floor(config.theft.amount);
@@ -271,16 +275,16 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
         scoring: ctx.scoring,
         perkId: perk.id,
         purchaseId,
-        reason: `Stolen with ${perk.name}`,
+        reason: (tr) => tr`Stolen with ${perk.name}`,
       });
-      await applyLedger(t, { eventId, teamId, kind: 'currency', type: 'theft_in', amount: -out.applied, scoring: ctx.scoring, perkId: perk.id, purchaseId, reason: `Stolen from ${target?.name}` });
+      await applyLedger(t, { eventId, teamId, kind: 'currency', type: 'theft_in', amount: -out.applied, scoring: ctx.scoring, perkId: perk.id, purchaseId, reason: (tr) => tr`Stolen from ${target?.name}` });
       if (config.theft.protectionSec > 0) {
         await t.query('UPDATE teams SET theft_protected_until = to_timestamp($2/1000.0) WHERE id = $1', [pp.target_team_id, now + config.theft.protectionSec * 1000]);
       }
       await notify(t, await eventPlayers(t, eventId, pp.target_team_id), {
         type: 'perk_activated',
-        title: 'Credits stolen',
-        body: `An enemy team took ${-out.applied} credits from your team.`,
+        title: (tr) => tr`Credits stolen`,
+        body: (tr) => tr`An enemy team took ${-out.applied} credits from your team.`,
         priority: 'high',
         eventId,
         url: `/events/${eventId}/live/team`,
@@ -295,7 +299,7 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
       await alert(t, eventId, {
         type: 'perk_fulfil',
         severity: 'warning',
-        message: `${perk.name} for ${buyerTeam?.name ?? 'a team'} — act in the field`,
+        message: (tr) => tr`${perk.name} for ${buyerTeam?.name ?? tr`a team`} — act in the field`,
         data: { purchaseId, perkId: perk.id, teamId },
       });
     }
@@ -312,7 +316,7 @@ export async function activate(t: Tx, ctx: EventContext, purchaseId: string, _ac
   await notify(t, await eventPlayers(t, eventId, teamId), {
     type: 'perk_activated',
     title: `${perk.name} active`,
-    body: durationSec > 0 ? `For ${Math.round(durationSec / 60) || 1} min` : 'Done',
+    body: (tr) => (durationSec > 0 ? tr`For ${Math.round(durationSec / 60) || 1} min` : tr`Done`),
     eventId,
     url: `/events/${eventId}/live`,
     push: false,
@@ -351,8 +355,8 @@ export async function recomputeObjectiveEffects(t: Tx, eventId: string): Promise
 export async function review(t: Tx, ctx: EventContext, purchaseId: string, approve: boolean, reason: string | null, actorId: string, now: number): Promise<void> {
   const eventId = ctx.event.id;
   const pp = await one('SELECT * FROM perk_purchases WHERE id = $1 AND event_id = $2 FOR UPDATE', [purchaseId, eventId], t);
-  if (!pp) throw notFound('Purchase not found.');
-  if (pp.status !== 'pending_approval') throw conflict('This request was already handled.', 'invalid_state');
+  if (!pp) throw notFound(tr`Purchase not found.`);
+  if (pp.status !== 'pending_approval') throw conflict(tr`This request was already handled.`, 'invalid_state');
   const perk = await one('SELECT * FROM perks WHERE id = $1', [pp.perk_id], t);
   await t.query('UPDATE perk_purchases SET status = $2, resolved_by = $3, reason = $4, updated_at = now() WHERE id = $1', [
     purchaseId,
@@ -371,16 +375,16 @@ export async function review(t: Tx, ctx: EventContext, purchaseId: string, appro
       await notify(t, await eventPlayers(t, eventId, pp.team_id), {
         type: 'perk_activated',
         title: `${perk?.name} approved`,
-        body: 'Activate it from the store when you are ready.',
+        body: (tr) => tr`Activate it from the store when you are ready.`,
         eventId,
         url: `/events/${eventId}/live/store`,
       });
   } else {
-    await refund(t, ctx, pp, perk, reason ?? 'Rejected by the Game Master', actorId);
+    await refund(t, ctx, pp, perk, reason ?? tr`Rejected by the Game Master`, actorId);
     await notify(t, await eventPlayers(t, eventId, pp.team_id), {
       type: 'perk_rejected',
       title: `${perk?.name} rejected`,
-      body: `${pp.price} credits refunded${reason ? ` — ${reason}` : ''}.`,
+      body: (tr) => (reason ? tr`${pp.price} credits refunded — ${reason}.` : tr`${pp.price} credits refunded.`),
       eventId,
       url: `/events/${eventId}/live/store`,
     });
@@ -408,20 +412,20 @@ async function refund(t: Tx, ctx: EventContext, pp: Row, perk: Row | null, reaso
 export async function cancel(t: Tx, ctx: EventContext, purchaseId: string, doRefund: boolean, reason: string, actorId: string): Promise<void> {
   const eventId = ctx.event.id;
   const pp = await one('SELECT * FROM perk_purchases WHERE id = $1 AND event_id = $2 FOR UPDATE', [purchaseId, eventId], t);
-  if (!pp) throw notFound('Purchase not found.');
-  if (['rejected', 'cancelled'].includes(pp.status)) throw conflict('This purchase is already closed.', 'invalid_state');
-  if (pp.refunded && doRefund) throw conflict('Already refunded.', 'invalid_state');
+  if (!pp) throw notFound(tr`Purchase not found.`);
+  if (['rejected', 'cancelled'].includes(pp.status)) throw conflict(tr`This purchase is already closed.`, 'invalid_state');
+  if (pp.refunded && doRefund) throw conflict(tr`Already refunded.`, 'invalid_state');
   const perk = await one('SELECT * FROM perks WHERE id = $1', [pp.perk_id], t);
   await t.query(`UPDATE effects SET status = 'cancelled' WHERE purchase_id = $1 AND status = 'active'`, [purchaseId]);
   await t.query(`DELETE FROM intel_positions WHERE effect_id IN (SELECT id FROM effects WHERE purchase_id = $1)`, [purchaseId]);
   await t.query(`UPDATE perk_purchases SET status = 'cancelled', resolved_by = $2, reason = $3, updated_at = now() WHERE id = $1`, [purchaseId, actorId, reason]);
   await recomputeObjectiveEffects(t, eventId);
-  if (doRefund) await refund(t, ctx, pp, perk, `Refund: ${reason}`, actorId);
-  await activity(t, eventId, { type: 'perk_cancelled', message: `GM cancelled ${perk?.name ?? 'a perk'}${doRefund ? ' (refunded)' : ''}: ${reason}`, scope: 'team', teamId: pp.team_id });
+  if (doRefund) await refund(t, ctx, pp, perk, tr`Refund: ${reason}`, actorId);
+  await activity(t, eventId, { type: 'perk_cancelled', message: (tr) => (doRefund ? tr`GM cancelled ${perk?.name ?? tr`a perk`} (refunded): ${reason}` : tr`GM cancelled ${perk?.name ?? tr`a perk`}: ${reason}`), scope: 'team', teamId: pp.team_id });
   await notify(t, await eventPlayers(t, eventId, pp.team_id), {
     type: 'perk_expired',
-    title: `${perk?.name ?? 'Perk'} cancelled by the GM`,
-    body: doRefund ? `${pp.price} credits refunded.` : reason,
+    title: (tr) => tr`${perk?.name ?? tr`Perk`} cancelled by the GM`,
+    body: (tr) => (doRefund ? tr`${pp.price} credits refunded.` : reason),
     eventId,
     url: `/events/${eventId}/live/store`,
   });

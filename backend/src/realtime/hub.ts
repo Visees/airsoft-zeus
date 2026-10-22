@@ -9,6 +9,7 @@ import { tracking as trackingOf, visibility as visibilityOf } from '../domain/de
 import { projectPositions, type IntelRow, type PosLocation, type PosMember, type ProjectionInput, type Sample, type Viewer, type VisiblePosition } from '../domain/rules.js';
 import { TEAM_SELECT, team as teamDto } from '../domain/serialize.js';
 import { logger } from '../logger.js';
+import { tr } from '../i18n/index.js';
 
 /**
  * Rooms:
@@ -204,7 +205,7 @@ export const hub = {
       const sub = local ? (local.data as SocketData).subs.get(eventId) : undefined;
       if (!local || !sub) continue;
       const ok = await joinEventRooms(local, eventId, sub.asPlayer);
-      if (!ok && notifyKick) local.emit('kicked', { eventId, reason: 'You are no longer a member of this event.' });
+      if (!ok && notifyKick) local.emit('kicked', { eventId, reason: tr`You are no longer a member of this event.` });
     }
     io.to(`u:${userId}`).emit('invalidate', { eventId, scopes: ['event', 'me', 'objectives', 'pois', 'zones', 'perks', 'purchases', 'effects'] });
     dirtyPositions.add(eventId);

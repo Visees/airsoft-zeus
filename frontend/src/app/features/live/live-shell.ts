@@ -108,15 +108,15 @@ interface SharingIndicator {
       @if (store.loading()) {
         <div class="flex flex-1 items-center justify-center p-6">
           <div class="w-full max-w-md">
-            <p class="label-caps mb-3">Joining the game…</p>
+            <p class="label-caps mb-3" i18n>Joining the game…</p>
             <zeus-loading-skeleton [rows]="4" />
           </div>
         </div>
       } @else {
         <div class="flex flex-1 items-center justify-center p-6">
           <div class="w-full max-w-md">
-            <zeus-error-state [error]="store.error()" title="Could not load the game" (retry)="store.reload()">
-              <a hlmBtn variant="ghost" class="tap" [routerLink]="['/events', eventId()]">Back to event</a>
+            <zeus-error-state [error]="store.error()" title="Could not load the game" (retry)="store.reload()" i18n-title>
+              <a hlmBtn variant="ghost" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to event</a>
             </zeus-error-state>
           </div>
         </div>
@@ -130,7 +130,7 @@ interface SharingIndicator {
         [style.padding-left]="'max(0.75rem, env(safe-area-inset-left))'"
         [style.padding-right]="'max(0.75rem, env(safe-area-inset-right))'"
       >
-        <h1 class="sr-only">{{ ev.name }} — live game</h1>
+        <h1 class="sr-only" i18n>{{ ev.name }} — live game</h1>
         <div class="flex items-center justify-between gap-3">
           <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
           @if (store.myTeam(); as team) {
@@ -146,9 +146,9 @@ interface SharingIndicator {
               }
             </div>
           } @else if (store.isGm()) {
-            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary">GAME MASTER</span>
+            <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary" i18n>GAME MASTER</span>
           } @else {
-            <span class="text-sm font-bold text-warning">○ No team</span>
+            <span class="text-sm font-bold text-warning" i18n>○ No team</span>
           }
         </div>
         <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -161,7 +161,7 @@ interface SharingIndicator {
               [class]="s.tone"
               [disabled]="!s.action"
               (click)="onSharingTap(s.action)"
-              [attr.aria-label]="'Location sharing: ' + s.label + (s.action ? '. Open options' : '')"
+              aria-label="Location sharing: {{ s.label }}{{ s.action ? txt.openOptions : '' }}" i18n-aria-label
             >
               <span aria-hidden="true">{{ s.glyph }}</span>{{ s.label }}
             </button>
@@ -182,11 +182,11 @@ interface SharingIndicator {
           @if (store.fromCache()) {
             <div class="pointer-events-auto flex items-center gap-3 rounded-md border border-warning bg-warning-surface px-3 py-2 shadow-lg" role="status">
               <ng-icon name="lucideWifiOff" size="18" class="shrink-0 text-warning" aria-hidden="true" />
-              <p class="min-w-0 flex-1 text-sm font-semibold">
+              <p class="min-w-0 flex-1 text-sm font-semibold" i18n>
                 Showing data saved at <span class="num">{{ cachedAtLabel() }}</span> — reconnecting
               </p>
               <button hlmBtn variant="outline" size="sm" class="tap shrink-0" type="button" (click)="store.reload()" [disabled]="store.loading()">
-                {{ store.loading() ? 'Retrying…' : 'Retry' }}
+                {{ store.loading() ? txt.retrying : txt.retry }}
               </button>
             </div>
           }
@@ -195,17 +195,17 @@ interface SharingIndicator {
           }
           @if (showGmPrompt()) {
             <section class="panel pointer-events-auto p-4 shadow-lg" aria-labelledby="gm-prompt-title">
-              <p class="label-caps">Game Master</p>
-              <h2 id="gm-prompt-title" class="text-lg uppercase">You are not on a team</h2>
-              <p class="mt-1 text-sm text-muted-foreground">
+              <p class="label-caps" i18n>Game Master</p>
+              <h2 id="gm-prompt-title" class="text-lg uppercase" i18n>You are not on a team</h2>
+              <p class="mt-1 text-sm text-muted-foreground" i18n>
                 To run the game, open the control center. To play, join a team from the event lobby: this view then shows only
                 what your team sees.
               </p>
               <div class="mt-3 flex flex-col gap-2 sm:flex-row">
                 <a hlmBtn class="h-12 flex-1" [routerLink]="['/gm/events', eventId(), 'control']">
-                  <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> Open control center
+                  <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Open control center</ng-container>
                 </a>
-                <button hlmBtn variant="outline" class="h-12 flex-1" type="button" (click)="gmPromptDismissed.set(true)">Stay in player view</button>
+                <button hlmBtn variant="outline" class="h-12 flex-1" type="button" (click)="gmPromptDismissed.set(true)" i18n>Stay in player view</button>
               </div>
             </section>
           }
@@ -215,25 +215,25 @@ interface SharingIndicator {
         @if (ended() && !endDismissed()) {
           <div class="absolute inset-x-0 bottom-0 z-30 p-2" aria-live="polite">
             <section class="panel mx-auto w-full max-w-md p-5 shadow-2xl" aria-labelledby="end-title">
-              <p class="label-caps">{{ status() === 'cancelled' ? 'Cancelled' : 'Game over' }}</p>
-              <h2 id="end-title" class="text-2xl uppercase">{{ status() === 'cancelled' ? 'The game was cancelled' : 'The game has ended' }}</h2>
+              <p class="label-caps">{{ status() === 'cancelled' ? txt.cancelled : txt.gameOver }}</p>
+              <h2 id="end-title" class="text-2xl uppercase">{{ status() === 'cancelled' ? txt.theGameWasCancelled : txt.theGameHasEnded }}</h2>
               @if (winner(); as w) {
                 <p class="mt-2 flex flex-wrap items-center gap-2">
-                  <span class="label-caps">Winner</span>
+                  <span class="label-caps" i18n>Winner</span>
                   <zeus-team-badge [team]="w" size="lg" />
                 </p>
               }
               @if (store.myTeam(); as team) {
-                <p class="mt-2 text-sm">
+                <p class="mt-2 text-sm" i18n>
                   Your team finished with <span class="num font-bold">{{ team.points }}</span> points.
                 </p>
               }
-              <p class="mt-2 text-sm text-muted-foreground">Location sharing has stopped.</p>
+              <p class="mt-2 text-sm text-muted-foreground" i18n>Location sharing has stopped.</p>
               <div class="mt-4 flex flex-col gap-2">
                 <a hlmBtn class="h-12" [routerLink]="['/events', eventId(), 'results']">
-                  <ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> View results
+                  <ng-icon name="lucideTrophy" size="18" aria-hidden="true" /> <ng-container i18n>View results</ng-container>
                 </a>
-                <button hlmBtn variant="outline" class="h-12" type="button" (click)="endDismissed.set(true)">Keep viewing the map</button>
+                <button hlmBtn variant="outline" class="h-12" type="button" (click)="endDismissed.set(true)" i18n>Keep viewing the map</button>
               </div>
             </section>
           </div>
@@ -241,7 +241,7 @@ interface SharingIndicator {
       </div>
 
       <!-- Bottom navigation -->
-      <nav class="z-20 shrink-0 border-t border-border bg-card" aria-label="Game sections" [style.padding-bottom]="'var(--safe-bottom)'">
+      <nav class="z-20 shrink-0 border-t border-border bg-card" aria-label="Game sections" [style.padding-bottom]="'var(--safe-bottom)'" i18n-aria-label>
         <ul class="mx-auto flex h-16 max-w-3xl">
           @for (item of navItems(); track item.label) {
             <li class="min-w-0 flex-1">
@@ -275,18 +275,18 @@ interface SharingIndicator {
       <!-- Consent / permission sheet -->
       <zeus-live-sheet
         [open]="session.sheetOpen()"
-        [heading]="sheetMode() === 'consent' ? 'Share your location?' : sheetMode() === 'denied' ? 'Location is blocked' : 'GPS not available'"
+        [heading]="sheetMode() === 'consent' ? txt.shareYourLocation : sheetMode() === 'denied' ? txt.locationIsBlocked : txt.gpsNotAvailable"
         eyebrow="Location sharing"
-        (closed)="closeSheet()"
+        (closed)="closeSheet()" i18n-eyebrow
       >
         @switch (sheetMode()) {
           @case ('consent') {
             <div class="flex flex-col gap-3 text-sm">
-              <p>While this game runs, the app sends your GPS position to the server so the game can work.</p>
+              <p i18n>While this game runs, the app sends your GPS position to the server so the game can work.</p>
               <ul class="flex flex-col gap-2 rounded-sm border border-border bg-muted p-3">
                 <li class="flex gap-2">
                   <span class="text-nav" aria-hidden="true">▸</span>
-                  <span>
+                  <span i18n>
                     <strong>What:</strong> your position and its accuracy, about every
                     <span class="num">{{ ev.tracking.intervalSec }}</span> s, only while the game is live.
                   </span>
@@ -297,49 +297,49 @@ interface SharingIndicator {
                 <li class="flex gap-2">
                   <span class="text-nav" aria-hidden="true">▸</span>
                   <span>
-                    <strong>Stops</strong> when you leave the live screens, when the game ends, or when you tap “Stop sharing” in More.
+                    <ng-container i18n><strong>Stops</strong> when you leave the live screens, when the game ends, or when you tap “Stop sharing” in More.</ng-container>
                     @if (ev.tracking.keepHistory) {
-                      Your track is kept for <span class="num">{{ ev.tracking.retentionDays }}</span> days.
+                      <ng-container i18n>Your track is kept for <span class="num">{{ ev.tracking.retentionDays }}</span> days.</ng-container>
                     } @else {
-                      No track history is kept.
+                      <ng-container i18n>No track history is kept.</ng-container>
                     }
                   </span>
                 </li>
               </ul>
-              <p class="text-muted-foreground">
+              <p class="text-muted-foreground" i18n>
                 Without it you can still play, but objectives you capture by holding a zone will not count your presence. The app keeps the
                 screen awake while sharing.
               </p>
               <div class="flex flex-col gap-2">
                 <button hlmBtn type="button" class="h-12" (click)="shareLocation()" [disabled]="consentSaving()">
                   <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" />
-                  {{ consentSaving() ? 'Saving…' : 'Share my location' }}
+                  {{ consentSaving() ? txt.saving : txt.shareMyLocation }}
                 </button>
-                <button hlmBtn variant="outline" type="button" class="h-12" (click)="declineSharing()" [disabled]="consentSaving()">Not now</button>
+                <button hlmBtn variant="outline" type="button" class="h-12" (click)="declineSharing()" [disabled]="consentSaving()" i18n>Not now</button>
               </div>
             </div>
           }
           @case ('denied') {
             <div class="flex flex-col gap-3 text-sm">
-              <p>Your browser is blocking location for this site, so your team and the Game Master cannot see you and zone captures will not count you.</p>
+              <p i18n>Your browser is blocking location for this site, so your team and the Game Master cannot see you and zone captures will not count you.</p>
               <ol class="flex list-decimal flex-col gap-1.5 rounded-sm border border-border bg-muted p-3 pl-7">
-                <li>Tap the lock or settings icon next to the address bar (or open the app's site settings).</li>
-                <li>Set <strong>Location</strong> to <strong>Allow</strong>.</li>
-                <li>On Android also check that Location is on in quick settings; on iPhone check Settings → Privacy → Location Services → your browser.</li>
-                <li>Come back here and tap “Try again”.</li>
+                <li i18n>Tap the lock or settings icon next to the address bar (or open the app's site settings).</li>
+                <li i18n>Set <strong>Location</strong> to <strong>Allow</strong>.</li>
+                <li i18n>On Android also check that Location is on in quick settings; on iPhone check Settings → Privacy → Location Services → your browser.</li>
+                <li i18n>Come back here and tap “Try again”.</li>
               </ol>
               <div class="flex flex-col gap-2">
                 <button hlmBtn type="button" class="h-12" (click)="retryGps()">
-                  <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> Try again
+                  <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> <ng-container i18n>Try again</ng-container>
                 </button>
-                <button hlmBtn variant="outline" type="button" class="h-12" (click)="closeSheet()">Close</button>
+                <button hlmBtn variant="outline" type="button" class="h-12" (click)="closeSheet()" i18n>Close</button>
               </div>
             </div>
           }
           @default {
             <div class="flex flex-col gap-3 text-sm">
-              <p>This device or browser does not provide GPS. You can keep playing with codes and QR captures; zone captures need a phone with location.</p>
-              <button hlmBtn variant="outline" type="button" class="h-12" (click)="closeSheet()">Close</button>
+              <p i18n>This device or browser does not provide GPS. You can keep playing with codes and QR captures; zone captures need a phone with location.</p>
+              <button hlmBtn variant="outline" type="button" class="h-12" (click)="closeSheet()" i18n>Close</button>
             </div>
           }
         }
@@ -348,6 +348,22 @@ interface SharingIndicator {
   `,
 })
 export class LiveShell {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    retrying: $localize`Retrying…`,
+    retry: $localize`Retry`,
+    cancelled: $localize`Cancelled`,
+    gameOver: $localize`Game over`,
+    theGameWasCancelled: $localize`The game was cancelled`,
+    theGameHasEnded: $localize`The game has ended`,
+    saving: $localize`Saving…`,
+    shareMyLocation: $localize`Share my location`,
+    openOptions: $localize`. Open options`,
+    shareYourLocation: $localize`Share your location?`,
+    locationIsBlocked: $localize`Location is blocked`,
+    gpsNotAvailable: $localize`GPS not available`,
+  };
+
   readonly eventId = input.required<string>();
 
   protected readonly store = inject(LiveStore);
@@ -416,15 +432,15 @@ export class LiveShell {
     if (!this.isPlayer() || this.ended()) return null;
     const mine = this.tracker.eventId() === this.eventId();
     const state = this.tracker.state();
-    if (!this.consented()) return { label: 'Not sharing', glyph: '○', tone: 'border border-warning/60 text-warning', action: 'sheet' };
-    if (this.stoppedByUser()) return { label: 'Sharing off', glyph: '○', tone: 'border border-warning/60 text-warning', action: 'more' };
-    if (state === 'denied') return { label: 'Location blocked', glyph: '✕', tone: 'border border-destructive/60 text-destructive', action: 'sheet' };
-    if (state === 'unavailable') return { label: 'No GPS', glyph: '✕', tone: 'border border-destructive/60 text-destructive', action: 'sheet' };
-    if (!this.running()) return { label: 'Sharing at start', glyph: '◌', tone: 'text-muted-foreground', action: 'more' };
-    if (mine && state === 'tracking') return { label: 'Sharing location', glyph: '●', tone: 'bg-nav/15 text-nav', action: 'more' };
-    if (mine && state === 'paused') return { label: 'Sharing paused', glyph: '❚❚', tone: 'text-warning', action: 'more' };
-    if (mine && state === 'error') return { label: 'GPS problem', glyph: '◐', tone: 'text-warning', action: 'more' };
-    return { label: 'Starting GPS', glyph: '◐', tone: 'text-warning', action: 'more' };
+    if (!this.consented()) return { label: $localize`Not sharing`, glyph: '○', tone: 'border border-warning/60 text-warning', action: 'sheet' };
+    if (this.stoppedByUser()) return { label: $localize`Sharing off`, glyph: '○', tone: 'border border-warning/60 text-warning', action: 'more' };
+    if (state === 'denied') return { label: $localize`Location blocked`, glyph: '✕', tone: 'border border-destructive/60 text-destructive', action: 'sheet' };
+    if (state === 'unavailable') return { label: $localize`No GPS`, glyph: '✕', tone: 'border border-destructive/60 text-destructive', action: 'sheet' };
+    if (!this.running()) return { label: $localize`Sharing at start`, glyph: '◌', tone: 'text-muted-foreground', action: 'more' };
+    if (mine && state === 'tracking') return { label: $localize`Sharing location`, glyph: '●', tone: 'bg-nav/15 text-nav', action: 'more' };
+    if (mine && state === 'paused') return { label: $localize`Sharing paused`, glyph: '❚❚', tone: 'text-warning', action: 'more' };
+    if (mine && state === 'error') return { label: $localize`GPS problem`, glyph: '◐', tone: 'text-warning', action: 'more' };
+    return { label: $localize`Starting GPS`, glyph: '◐', tone: 'text-warning', action: 'more' };
   });
 
   protected readonly navItems = computed<NavItem[]>(() => {
@@ -433,11 +449,11 @@ export class LiveShell {
     const teamId = this.me()?.teamId;
     const ready = this.store.purchases().filter((p) => p.status === 'ready' && p.teamId === teamId).length;
     return [
-      { label: 'Map', icon: 'lucideMap', link: liveLink(id), exact: true, badge: 0, badgeLabel: '' },
-      { label: 'Objectives', icon: 'lucideCrosshair', link: liveLink(id, 'objectives'), exact: false, badge: available, badgeLabel: 'available' },
-      { label: 'Team', icon: 'lucideUsers', link: liveLink(id, 'team'), exact: false, badge: 0, badgeLabel: '' },
-      { label: 'Store', icon: 'lucideStore', link: liveLink(id, 'store'), exact: false, badge: ready, badgeLabel: 'ready to activate' },
-      { label: 'More', icon: 'lucideEllipsis', link: liveLink(id, 'more'), exact: false, badge: 0, badgeLabel: '' },
+      { label: $localize`Map`, icon: 'lucideMap', link: liveLink(id), exact: true, badge: 0, badgeLabel: '' },
+      { label: $localize`Objectives`, icon: 'lucideCrosshair', link: liveLink(id, 'objectives'), exact: false, badge: available, badgeLabel: $localize`available` },
+      { label: $localize`Team`, icon: 'lucideUsers', link: liveLink(id, 'team'), exact: false, badge: 0, badgeLabel: '' },
+      { label: $localize`Store`, icon: 'lucideStore', link: liveLink(id, 'store'), exact: false, badge: ready, badgeLabel: $localize`ready to activate` },
+      { label: $localize`More`, icon: 'lucideEllipsis', link: liveLink(id, 'more'), exact: false, badge: 0, badgeLabel: '' },
     ];
   });
 
@@ -475,7 +491,7 @@ export class LiveShell {
       if (!ev.isGm && ev.me?.status !== 'approved') {
         this.redirected = true;
         untracked(() => {
-          this.toast.warning('You are not a confirmed player of this event');
+          this.toast.warning($localize`You are not a confirmed player of this event`);
           void this.router.navigate(['/events', this.eventId()]);
         });
       }
@@ -529,7 +545,7 @@ export class LiveShell {
       .subscribe((p) => {
         if (p.eventId !== this.eventId()) return;
         if (this.tracker.eventId() === p.eventId) this.tracker.stop(false);
-        this.toast.error('You were removed from this event', p.reason || undefined);
+        this.toast.error($localize`You were removed from this event`, p.reason || undefined);
         void this.router.navigate(['/events', p.eventId]);
       });
 
@@ -558,7 +574,7 @@ export class LiveShell {
   protected declineSharing(): void {
     this.session.setDeclined(this.eventId(), true);
     this.session.sheetOpen.set(false);
-    this.toast.info('Location not shared', 'Tap “Not sharing” at the top to change your mind.');
+    this.toast.info($localize`Location not shared`, $localize`Tap “Not sharing” at the top to change your mind.`);
   }
 
   protected async shareLocation(): Promise<void> {
@@ -575,7 +591,7 @@ export class LiveShell {
       this.session.setStopped(id, false);
       this.session.sheetOpen.set(false);
       this.store.refresh('me', 'members');
-      this.toast.success('Sharing your location while the game runs');
+      this.toast.success($localize`Sharing your location while the game runs`);
     } catch (e) {
       this.toast.error(e);
     } finally {

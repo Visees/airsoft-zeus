@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-22 — Game Masters can play on a team.
+Last update: 2026-10-22 — Italian translation.
 
 ## Stack (decided)
 
@@ -180,8 +180,43 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * No Google Maps key configured locally: the walkthrough used the schematic renderer.
   Test the Google renderer (markers, drawing, drag) once a key is set.
 * Background GPS with the screen locked needs a native wrapper (Capacitor) — see README.
-* UI is English only; the profile stores a preferred language for a future i18n pass.
 * Single API instance (in-process rate limits and socket rooms); scaling out needs a
   Redis adapter for Socket.IO and a shared rate-limit store.
 * Not yet walked through in the browser: every GM editor form field by field, the QR
   scanner with a real camera, Web Push delivery on a phone.
+
+
+## Italian translation (2026-10-22)
+
+The whole app is in English and Italian: screens, server errors, emails, notifications, the
+activity feed and the PDF report. Rules for new code: docs/FRONTEND_GUIDE.md ("Translations")
+and the notes below.
+
+* Frontend: `@angular/localize` with runtime translations, one build. `main.ts` picks the language
+  (`zeus.lang` in localStorage → browser → English), loads `src/locale/messages.it.json`, then
+  imports the app. Switching stores the choice and reloads (Settings → Appearance → Language, Edit
+  profile, the "English / Italiano" link on signed-out screens). Signed in, the profile language
+  wins: on app start or after login a different profile language is stored and the page reloads
+  once. Sign-up stores the current UI language in the profile. Dates and numbers follow the UI
+  language.
+* SSR (only `/r/:token`) renders in Italian (`src/server-i18n.ts`); a browser in English renders
+  that page again instead of hydrating it (`data-ssr-lang`, app.config.ts).
+* `npm run i18n:check` (frontend) extracts the 3,260 messages and fails on any without Italian
+  text or with different placeholders.
+* Backend: `src/i18n/`. The `tr` tag translates in the request language (`Accept-Language`, sent by
+  the app on every call). Texts for other people are a `Msg` (`(tr) => tr…`): `notify()` inserts one
+  row per recipient language; activity, GM alerts and ledger reasons store every language
+  (`data.messages`, `ledger_entries.reason_i18n`, migration 0005) and the API answers in the
+  reader's; socket broadcasts carry all languages and the client picks its own. Emails use the
+  recipient's profile language (support emails: each admin's). Zod: built-in messages via its
+  Italian locale, schema messages translated by exact match. `test/i18n.test.ts` fails when a
+  message has no Italian text; `npm run i18n:missing` lists them.
+* Profile language choices are now English and Italiano (older de/fr/es values are still accepted
+  and get English).
+* **Legal texts** (terms of service and privacy policy, `legal-text.ts`) were translated by us and
+  **must be checked by a lawyer** before the Italian version is relied on.
+* Not translated on purpose: CSV export headers (data), demo seed data, server log lines, the
+  `DELETE` / `END` words the API itself checks (the UI asks for ELIMINA / FINE in Italian).
+* Checked: frontend type check and build, i18n checks, backend unit tests, E2E suite on a fresh
+  isolated stack, browser walkthrough at 390 px (home, settings language switch both ways, control
+  center, sign-in, shared results page with an English browser).

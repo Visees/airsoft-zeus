@@ -7,6 +7,7 @@ import { requireAdmin, requireVerified } from './auth/middleware.js';
 import { pool } from './db.js';
 import { runWithView } from './domain/context.js';
 import { errorHandler, notFound } from './errors.js';
+import { fromAcceptLanguage, runWithLang } from './i18n/index.js';
 import { logger } from './logger.js';
 import { adminRouter } from './routes/admin.js';
 import { attachmentsRouter } from './routes/attachments.js';
@@ -18,6 +19,7 @@ import { liveRouter } from './routes/live.js';
 import { meRouter } from './routes/me.js';
 import { newsRouter } from './routes/news.js';
 import { supportRouter } from './routes/support.js';
+import { tr } from './i18n/index.js';
 
 export function createApp() {
   const app = express();
@@ -37,7 +39,8 @@ export function createApp() {
   app.use(cookieParser());
   app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
-    runWithView(req.get('x-zeus-view') === 'player', next);
+    // Messages in the app's language (sent by the frontend on every call).
+    runWithLang(fromAcceptLanguage(req.get('accept-language')), () => runWithView(req.get('x-zeus-view') === 'player', next));
   });
 
   app.get('/api/health', async (_req, res) => {
@@ -58,7 +61,7 @@ export function createApp() {
   app.use('/api', templateInstantiateRouter);
   app.use('/api/events', requireVerified, eventsRouter, contentRouter, liveRouter, attachmentsRouter);
 
-  app.use('/api', (_req, _res, next) => next(notFound('Unknown API route.', 'unknown_route')));
+  app.use('/api', (_req, _res, next) => next(notFound(tr`Unknown API route.`, 'unknown_route')));
   app.use(errorHandler);
   return app;
 }

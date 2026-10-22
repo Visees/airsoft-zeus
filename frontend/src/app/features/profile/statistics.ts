@@ -10,9 +10,9 @@ import { TeamSwatch } from '../../shared/team-swatch';
 import { BadgeGrid, StatTiles } from './profile-ui';
 
 const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cls: string }> = {
-  win: { label: 'Win', glyph: '▲', cls: 'border-primary/40 bg-primary/10 text-primary' },
-  loss: { label: 'Loss', glyph: '▼', cls: 'border-destructive/40 bg-destructive/10 text-destructive' },
-  draw: { label: 'Draw', glyph: '=', cls: 'border-border bg-muted text-foreground' },
+  win: { label: $localize`Win`, glyph: '▲', cls: 'border-primary/40 bg-primary/10 text-primary' },
+  loss: { label: $localize`Loss`, glyph: '▼', cls: 'border-destructive/40 bg-destructive/10 text-destructive' },
+  draw: { label: $localize`Draw`, glyph: '=', cls: 'border-border bg-muted text-foreground' },
 };
 
 @Component({
@@ -21,7 +21,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Statistics" back="/profile" backLabel="Profile" />
+      <zeus-page-header title="Statistics" back="/profile" backLabel="Profile" i18n-title i18n-backLabel />
 
       @if (loading()) {
         <zeus-loading-skeleton [rows]="5" />
@@ -29,14 +29,14 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (data(); as d) {
         <section aria-labelledby="st-overview">
-          <h2 id="st-overview" class="sr-only">Overview</h2>
+          <h2 id="st-overview" class="sr-only" i18n>Overview</h2>
           <zeus-stat-tiles [stats]="d.stats" [wide]="true" />
         </section>
 
         <!-- Win / loss / draw -->
         <section class="panel mt-4 p-4" aria-labelledby="st-results">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="st-results" class="label-caps">Results · <span class="num">{{ decided() }}</span> decided games</h2>
+            <h2 id="st-results" class="label-caps" i18n>Results · <span class="num">{{ decided() }}</span> decided games</h2>
           </div>
           @if (decided()) {
             <div class="mt-3 flex h-4 w-full overflow-hidden rounded-sm bg-muted" role="img" [attr.aria-label]="barLabel()">
@@ -58,14 +58,14 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
               }
             </ul>
           } @else {
-            <p class="mt-2 text-sm text-muted-foreground">No finished games with a result yet.</p>
+            <p class="mt-2 text-sm text-muted-foreground" i18n>No finished games with a result yet.</p>
           }
         </section>
 
         <div class="mt-6 grid gap-6 lg:grid-cols-5">
           <!-- History -->
           <section class="lg:col-span-3" aria-labelledby="st-history">
-            <h2 id="st-history" class="label-caps mb-2">Game history · <span class="num">{{ d.history.length }}</span></h2>
+            <h2 id="st-history" class="label-caps mb-2" i18n>Game history · <span class="num">{{ d.history.length }}</span></h2>
             @if (d.history.length) {
               <ul class="panel divide-y divide-border overflow-hidden">
                 @for (g of d.history; track g.eventId) {
@@ -76,7 +76,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
                           <span aria-hidden="true">{{ resultOf(g).glyph }}</span>{{ resultOf(g).label }}
                         </span>
                       } @else {
-                        <span class="inline-flex w-16 shrink-0 items-center justify-center rounded-sm border border-border px-1.5 py-0.5 text-xs text-muted-foreground">No result</span>
+                        <span class="inline-flex w-16 shrink-0 items-center justify-center rounded-sm border border-border px-1.5 py-0.5 text-xs text-muted-foreground" i18n>No result</span>
                       }
                       <span class="min-w-0 flex-1">
                         <span class="block truncate font-semibold">{{ g.eventName }}</span>
@@ -94,8 +94,8 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
                         </span>
                       </span>
                       <span class="flex shrink-0 flex-col items-end text-xs">
-                        <span class="num font-semibold"><span class="sr-only">Points: </span>{{ num(g.points) }} pts</span>
-                        <span class="num text-muted-foreground"><span class="sr-only">Captures: </span>{{ g.captures }} cap.</span>
+                        <span class="num font-semibold" i18n><span class="sr-only">Points: </span>{{ num(g.points) }} pts</span>
+                        <span class="num text-muted-foreground" i18n><span class="sr-only">Captures: </span>{{ g.captures }} cap.</span>
                       </span>
                       <ng-icon name="lucideChevronRight" size="16" class="shrink-0 text-muted-foreground" aria-hidden="true" />
                     </a>
@@ -103,15 +103,15 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
                 }
               </ul>
             } @else {
-              <zeus-empty-state icon="lucideHistory" title="No games played yet" message="Finished games appear here with your team, result, points and captures.">
-                <a hlmBtn routerLink="/events/discover" class="h-11">Discover events</a>
+              <zeus-empty-state icon="lucideHistory" title="No games played yet" message="Finished games appear here with your team, result, points and captures." i18n-title i18n-message>
+                <a hlmBtn routerLink="/events/discover" class="h-11" i18n>Discover events</a>
               </zeus-empty-state>
             }
           </section>
 
           <!-- Badges -->
           <section class="lg:col-span-2" aria-labelledby="st-badges">
-            <h2 id="st-badges" class="label-caps mb-2">Badges · <span class="num">{{ d.badges.length }}</span></h2>
+            <h2 id="st-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ d.badges.length }}</span></h2>
             <div class="[&_ul]:lg:grid-cols-1">
               <zeus-badge-grid [badges]="d.badges" [compact]="true" />
             </div>
@@ -139,9 +139,9 @@ export class StatisticsScreen implements OnInit {
     const total = this.decided() || 1;
     const pct = (v: number) => Math.round((v / total) * 100);
     return [
-      { key: 'win', label: 'Wins', glyph: '▲', value: s?.wins ?? 0, pct: pct(s?.wins ?? 0), bar: 'bg-primary', text: 'text-primary' },
-      { key: 'draw', label: 'Draws', glyph: '=', value: s?.draws ?? 0, pct: pct(s?.draws ?? 0), bar: 'bg-muted-foreground/50', text: 'text-muted-foreground' },
-      { key: 'loss', label: 'Losses', glyph: '▼', value: s?.losses ?? 0, pct: pct(s?.losses ?? 0), bar: 'bg-destructive', text: 'text-destructive' },
+      { key: 'win', label: $localize`Wins`, glyph: '▲', value: s?.wins ?? 0, pct: pct(s?.wins ?? 0), bar: 'bg-primary', text: 'text-primary' },
+      { key: 'draw', label: $localize`Draws`, glyph: '=', value: s?.draws ?? 0, pct: pct(s?.draws ?? 0), bar: 'bg-muted-foreground/50', text: 'text-muted-foreground' },
+      { key: 'loss', label: $localize`Losses`, glyph: '▼', value: s?.losses ?? 0, pct: pct(s?.losses ?? 0), bar: 'bg-destructive', text: 'text-destructive' },
     ];
   });
   protected readonly barLabel = computed(() =>

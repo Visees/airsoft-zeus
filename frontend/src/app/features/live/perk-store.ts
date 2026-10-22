@@ -36,25 +36,25 @@ interface BuyIntent {
     <div class="mx-auto flex max-w-5xl flex-col gap-5 px-4 pt-4 pb-8">
       <header class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-2xl uppercase">Store</h2>
-          <p class="text-sm text-muted-foreground">Perks are paid with your team's credits.</p>
+          <h2 class="text-2xl uppercase" i18n>Store</h2>
+          <p class="text-sm text-muted-foreground" i18n>Perks are paid with your team's credits.</p>
         </div>
         @if (store.myTeam(); as team) {
           <div class="panel flex items-center gap-3 px-4 py-2">
             <zeus-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
-            <zeus-currency-display [amount]="team.currency" label="Balance" size="lg" />
+            <zeus-currency-display [amount]="team.currency" label="Balance" size="lg" i18n-label />
           </div>
         }
       </header>
 
       @if (!storeEnabled()) {
-        <zeus-empty-state icon="lucideStore" title="The store is closed" message="The Game Master has not opened the perk store for this event." />
+        <zeus-empty-state icon="lucideStore" title="The store is closed" message="The Game Master has not opened the perk store for this event." i18n-title i18n-message />
       } @else {
         @if (!store.myTeam()) {
-          <p class="panel border-warning/60 p-3 text-sm font-semibold" role="status">○ Join a team to buy perks.</p>
+          <p class="panel border-warning/60 p-3 text-sm font-semibold" role="status" i18n>○ Join a team to buy perks.</p>
         } @else if (!isLive()) {
           <p class="panel border-warning/60 p-3 text-sm font-semibold" role="status">
-            {{ status() === 'paused' ? '❚❚ The game is paused — purchases resume when it restarts.' : '◌ Perks can be bought while the game is running.' }}
+            {{ status() === 'paused' ? txt.theGameIsPaused : txt.perksCanBeBought }}
           </p>
         }
 
@@ -62,27 +62,27 @@ interface BuyIntent {
         @if (failed(); as err) {
           @if (intent(); as it) {
             <div class="rounded-md border-2 border-destructive bg-destructive/10 p-4" role="alert">
-              <p class="font-bold text-destructive">Purchase of {{ it.perk.name }} not confirmed</p>
-              <p class="mt-1 text-sm">{{ err.message }} Trying again will not charge twice.</p>
+              <p class="font-bold text-destructive" i18n>Purchase of {{ it.perk.name }} not confirmed</p>
+              <p class="mt-1 text-sm" i18n>{{ err.message }} Trying again will not charge twice.</p>
               <div class="mt-3 flex gap-2">
                 <button hlmBtn type="button" class="h-12 flex-1" (click)="submit()" [disabled]="buying()">
-                  <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> {{ buying() ? 'Checking…' : 'Try again' }}
+                  <ng-icon name="lucideRefreshCw" size="18" aria-hidden="true" /> {{ buying() ? txt.checking : txt.tryAgain }}
                 </button>
-                <button hlmBtn variant="outline" type="button" class="h-12" (click)="cancelIntent()" [disabled]="buying()">Cancel</button>
+                <button hlmBtn variant="outline" type="button" class="h-12" (click)="cancelIntent()" [disabled]="buying()" i18n>Cancel</button>
               </div>
             </div>
           }
         }
         @if (buying() && !failed()) {
           <p class="panel flex items-center gap-2 border-warning/60 p-3 text-sm font-semibold" role="status">
-            <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> Buying {{ intent()?.perk?.name }} — waiting for the server…
+            <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Buying {{ intent()?.perk?.name }} — waiting for the server…</ng-container>
           </p>
         }
 
         <section class="flex flex-col gap-2" aria-labelledby="perks-title">
-          <h3 id="perks-title" class="label-caps">Perks · <span class="num">{{ perks().length }}</span></h3>
+          <h3 id="perks-title" class="label-caps" i18n>Perks · <span class="num">{{ perks().length }}</span></h3>
           @if (!perks().length) {
-            <zeus-empty-state icon="lucideStore" title="No perks for sale" message="The Game Master has not added any perks to the store." />
+            <zeus-empty-state icon="lucideStore" title="No perks for sale" message="The Game Master has not added any perks to the store." i18n-title i18n-message />
           } @else {
             <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               @for (p of perks(); track p.id) {
@@ -95,9 +95,9 @@ interface BuyIntent {
 
       <!-- History -->
       <section class="flex flex-col gap-2" aria-labelledby="history-title">
-        <h3 id="history-title" class="label-caps">Purchases · <span class="num">{{ purchases().length }}</span></h3>
+        <h3 id="history-title" class="label-caps" i18n>Purchases · <span class="num">{{ purchases().length }}</span></h3>
         @if (!purchases().length) {
-          <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Your team has not bought anything yet.</p>
+          <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>Your team has not bought anything yet.</p>
         } @else {
           <ul class="panel flex flex-col divide-y divide-border">
             @for (pu of purchases(); track pu.id) {
@@ -112,14 +112,14 @@ interface BuyIntent {
                       <zeus-status-chip [spec]="chip(pu)" />
                     </div>
                     <p class="text-xs text-muted-foreground">
-                      <span class="num">{{ time(pu.createdAt) }}</span>
-                      · {{ pu.buyerNickname || 'Game Master' }} · <span class="num">{{ fmt(pu.price) }}</span> cr
+                      <ng-container i18n><span class="num">{{ time(pu.createdAt) }}</span>
+                      · {{ pu.buyerNickname || txt.gameMaster }} · <span class="num">{{ fmt(pu.price) }}</span> cr</ng-container>
                       @if (pu.refunded) {
-                        · refunded
+                        <ng-container i18n>· refunded</ng-container>
                       }
                     </p>
                     @if (targetLabel(pu); as tl) {
-                      <p class="text-xs">Target: <span class="font-semibold">{{ tl }}</span></p>
+                      <p class="text-xs" i18n>Target: <span class="font-semibold">{{ tl }}</span></p>
                     }
                     @if (pu.reason && (pu.status === 'rejected' || pu.status === 'cancelled')) {
                       <p class="text-xs text-destructive">{{ pu.reason }}</p>
@@ -128,17 +128,17 @@ interface BuyIntent {
                   @if (pu.status === 'active' && expiresIn(pu); as left) {
                     <span class="flex shrink-0 flex-col items-end">
                       <span class="num text-lg font-bold text-warning">{{ left }}</span>
-                      <span class="label-caps">left</span>
+                      <span class="label-caps" i18n>left</span>
                     </span>
                   }
                 </div>
                 @if (pu.status === 'ready' && canActivate(pu)) {
                   <button hlmBtn type="button" class="h-12" (click)="activate(pu)" [disabled]="activating() === pu.id || !isLive()">
                     <ng-icon name="lucidePlay" size="18" aria-hidden="true" />
-                    {{ activating() === pu.id ? 'Activating…' : 'Activate now' }}
+                    {{ activating() === pu.id ? txt.activating : txt.activateNow }}
                   </button>
                 } @else if (pu.status === 'ready') {
-                  <p class="text-xs text-muted-foreground">The buyer or a squad leader can activate it.</p>
+                  <p class="text-xs text-muted-foreground" i18n>The buyer or a squad leader can activate it.</p>
                 }
               </li>
             }
@@ -148,16 +148,16 @@ interface BuyIntent {
     </div>
 
     <!-- Target picker -->
-    <zeus-live-sheet [open]="pickerOpen()" [heading]="pickerTitle()" eyebrow="Choose target" (closed)="cancelIntent()">
+    <zeus-live-sheet [open]="pickerOpen()" [heading]="pickerTitle()" eyebrow="Choose target" (closed)="cancelIntent()" i18n-eyebrow>
       @if (intent(); as it) {
         <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); confirmTarget()">
           @if (it.perk.target === 'enemy_team' || it.perk.type === 'jammer') {
             <fieldset class="flex flex-col gap-2">
-              <legend class="label-caps mb-1">{{ it.perk.target === 'enemy_team' ? 'Enemy team' : 'Jam it for (optional)' }}</legend>
+              <legend class="label-caps mb-1">{{ it.perk.target === 'enemy_team' ? txt.enemyTeam : txt.jamItForOptional }}</legend>
               @if (it.perk.target === 'objective') {
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="radio" name="team" class="size-5 accent-primary" [checked]="!pickTeam()" (change)="pickTeam.set(null)" />
-                  <span class="font-semibold">All enemy teams</span>
+                  <span class="font-semibold" i18n>All enemy teams</span>
                 </label>
               }
               @for (t of enemyTeams(); track t.id) {
@@ -165,32 +165,32 @@ interface BuyIntent {
                   <input type="radio" name="team" class="size-5 accent-primary" [checked]="pickTeam() === t.id" (change)="pickTeam.set(t.id)" />
                   <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="16" />
                   <span class="font-semibold">{{ t.name }}</span>
-                  <span class="num ml-auto text-sm text-muted-foreground">{{ t.points }} pts</span>
+                  <span class="num ml-auto text-sm text-muted-foreground" i18n>{{ t.points }} pts</span>
                 </label>
               } @empty {
-                <p class="text-sm text-muted-foreground">There are no enemy teams.</p>
+                <p class="text-sm text-muted-foreground" i18n>There are no enemy teams.</p>
               }
             </fieldset>
           }
           @if (it.perk.target === 'objective') {
             <fieldset class="flex flex-col gap-2">
-              <legend class="label-caps mb-1">Objective</legend>
+              <legend class="label-caps mb-1" i18n>Objective</legend>
               @for (o of targetObjectives(); track o.id) {
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="radio" name="objective" class="size-5 accent-primary" [checked]="pickObjective() === o.id" (change)="pickObjective.set(o.id)" />
                   <span class="min-w-0 flex-1 truncate font-semibold uppercase">{{ o.name }}</span>
                   @if (o.ownerTeamId) {
-                    <span class="text-xs text-muted-foreground">held by {{ teamName(o.ownerTeamId) }}</span>
+                    <span class="text-xs text-muted-foreground" i18n>held by {{ teamName(o.ownerTeamId) }}</span>
                   }
                 </label>
               } @empty {
-                <p class="text-sm text-muted-foreground">No objectives can be targeted right now.</p>
+                <p class="text-sm text-muted-foreground" i18n>No objectives can be targeted right now.</p>
               }
             </fieldset>
           }
           <div class="flex flex-col gap-2">
-            <button hlmBtn type="submit" class="h-12" [disabled]="!targetValid()">Continue</button>
-            <button hlmBtn variant="outline" type="button" class="h-12" (click)="cancelIntent()">Cancel</button>
+            <button hlmBtn type="submit" class="h-12" [disabled]="!targetValid()" i18n>Continue</button>
+            <button hlmBtn variant="outline" type="button" class="h-12" (click)="cancelIntent()" i18n>Cancel</button>
           </div>
         </form>
       }
@@ -198,6 +198,19 @@ interface BuyIntent {
   `,
 })
 export class PerkStoreScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    theGameIsPaused: $localize`❚❚ The game is paused — purchases resume when it restarts.`,
+    perksCanBeBought: $localize`◌ Perks can be bought while the game is running.`,
+    checking: $localize`Checking…`,
+    tryAgain: $localize`Try again`,
+    gameMaster: $localize`Game Master`,
+    activating: $localize`Activating…`,
+    activateNow: $localize`Activate now`,
+    enemyTeam: $localize`Enemy team`,
+    jamItForOptional: $localize`Jam it for (optional)`,
+  };
+
   protected readonly store = inject(LiveStore);
   private readonly api = inject(ApiService);
   private readonly confirm = inject(ConfirmService);
@@ -239,7 +252,7 @@ export class PerkStoreScreen {
       .sort((a, b) => a.name.localeCompare(b.name)),
   );
 
-  protected readonly pickerTitle = computed(() => this.intent()?.perk.name ?? 'Choose target');
+  protected readonly pickerTitle = computed(() => this.intent()?.perk.name ?? $localize`Choose target`);
 
   protected readonly targetValid = computed(() => {
     const it = this.intent();
@@ -283,27 +296,27 @@ export class PerkStoreScreen {
     const team = this.store.myTeam();
     const p = it.perk;
     const consequences: string[] = [];
-    const teamName = team?.name ?? 'your team';
+    const teamName = team?.name ?? $localize`your team`;
     if (team?.currency !== null && team?.currency !== undefined) {
       consequences.push(
-        `Spends ${formatNumber(p.price)} credits from ${teamName} (balance ${formatNumber(team.currency)} → ${formatNumber(team.currency - p.price)})`,
+        $localize`Spends ${formatNumber(p.price)}:price: credits from ${teamName}:teamName: (balance ${formatNumber(team.currency)}:currency: → ${formatNumber(team.currency - p.price)}:currency2:)`,
       );
     } else {
-      consequences.push(`Spends ${formatNumber(p.price)} credits from ${teamName}`);
+      consequences.push($localize`Spends ${formatNumber(p.price)}:price: credits from ${teamName}:teamName:`);
     }
-    if (it.targetTeamId) consequences.push(`Targets ${this.teamName(it.targetTeamId)}`);
-    else if (p.target === 'objective' && p.type === 'jammer') consequences.push('Affects all enemy teams');
-    if (it.targetObjectiveId) consequences.push(`On objective ${this.store.objectiveById().get(it.targetObjectiveId)?.name ?? ''}`);
-    consequences.push(p.durationSec ? `Lasts ${formatDuration(p.durationSec * 1000)} once active` : 'Takes effect once, no duration');
-    if (p.activation === 'manual') consequences.push('Starts only when someone taps “Activate now”');
-    if (p.requiresApproval) consequences.push('Needs Game Master approval before it can be used');
-    if (p.cooldownSec) consequences.push(`Cannot be bought again for ${formatDuration(p.cooldownSec * 1000)}`);
+    if (it.targetTeamId) consequences.push($localize`Targets ${this.teamName(it.targetTeamId)}:teamName:`);
+    else if (p.target === 'objective' && p.type === 'jammer') consequences.push($localize`Affects all enemy teams`);
+    if (it.targetObjectiveId) consequences.push($localize`On objective ${this.store.objectiveById().get(it.targetObjectiveId)?.name ?? ''}:name:`);
+    consequences.push(p.durationSec ? $localize`Lasts ${formatDuration(p.durationSec * 1000)}:duration: once active` : $localize`Takes effect once, no duration`);
+    if (p.activation === 'manual') consequences.push($localize`Starts only when someone taps “Activate now”`);
+    if (p.requiresApproval) consequences.push($localize`Needs Game Master approval before it can be used`);
+    if (p.cooldownSec) consequences.push($localize`Cannot be bought again for ${formatDuration(p.cooldownSec * 1000)}:duration:`);
 
     const ok = await this.confirm.ask({
-      title: `Buy ${p.name}?`,
+      title: $localize`Buy ${p.name}:name:?`,
       message: p.description || undefined,
       consequences,
-      confirmLabel: `Buy for ${formatNumber(p.price)} credits`,
+      confirmLabel: $localize`Buy for ${formatNumber(p.price)}:price: credits`,
     });
     if (!ok) {
       this.intent.set(null);
@@ -345,16 +358,16 @@ export class PerkStoreScreen {
   private announce(p: PerkPurchase): void {
     switch (p.status) {
       case 'pending_approval':
-        this.toast.info(`${p.perkName} requested`, 'Waiting for the Game Master to approve it.');
+        this.toast.info($localize`${p.perkName}:perkName: requested`, $localize`Waiting for the Game Master to approve it.`);
         break;
       case 'ready':
-        this.toast.success(`${p.perkName} bought`, 'Activate it from Purchases when you need it.');
+        this.toast.success($localize`${p.perkName}:perkName: bought`, $localize`Activate it from Purchases when you need it.`);
         break;
       case 'active':
-        this.toast.success(`${p.perkName} is active`, p.expiresAt ? `Until ${formatTime(p.expiresAt)}` : undefined);
+        this.toast.success($localize`${p.perkName}:perkName: is active`, p.expiresAt ? $localize`Until ${formatTime(p.expiresAt)}:expiresAt:` : undefined);
         break;
       case 'completed':
-        this.toast.success(`${p.perkName} used`);
+        this.toast.success($localize`${p.perkName}:perkName: used`);
         break;
       default:
         this.toast.info(`${p.perkName}: ${purchaseStatusChip(p.status).label}`);
@@ -371,13 +384,13 @@ export class PerkStoreScreen {
     if (!eventId || this.activating()) return;
     const perk = this.store.perks().find((x) => x.id === p.perkId);
     const ok = await this.confirm.ask({
-      title: `Activate ${p.perkName} now?`,
+      title: $localize`Activate ${p.perkName}:perkName: now?`,
       consequences: [
-        perk?.durationSec ? `Runs for ${formatDuration(perk.durationSec * 1000)} from now` : 'Takes effect immediately',
-        ...(this.targetLabel(p) ? [`Target: ${this.targetLabel(p)}`] : []),
-        'Cannot be paused or undone',
+        perk?.durationSec ? $localize`Runs for ${formatDuration(perk.durationSec * 1000)}:duration: from now` : $localize`Takes effect immediately`,
+        ...(this.targetLabel(p) ? [$localize`Target: ${this.targetLabel(p)}:targetLabel:`] : []),
+        $localize`Cannot be paused or undone`,
       ],
-      confirmLabel: 'Activate now',
+      confirmLabel: $localize`Activate now`,
     });
     if (!ok) return;
     this.activating.set(p.id);
@@ -406,12 +419,12 @@ export class PerkStoreScreen {
     return remaining(p.expiresAt, this.serverNow());
   }
   protected teamName(id: string): string {
-    return this.store.teamById().get(id)?.name ?? 'Unknown team';
+    return this.store.teamById().get(id)?.name ?? $localize`Unknown team`;
   }
   protected targetLabel(p: PerkPurchase): string | null {
     const parts: string[] = [];
     if (p.targetTeamId) parts.push(this.teamName(p.targetTeamId));
-    if (p.targetObjectiveId) parts.push(this.store.objectiveById().get(p.targetObjectiveId)?.name ?? 'objective');
+    if (p.targetObjectiveId) parts.push(this.store.objectiveById().get(p.targetObjectiveId)?.name ?? $localize`objective`);
     return parts.length ? parts.join(' · ') : null;
   }
 }

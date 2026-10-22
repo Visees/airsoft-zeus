@@ -16,6 +16,7 @@ import { extend, transition } from '../domain/lifecycle.js';
 import * as dto from '../domain/serialize.js';
 import { eventDetail, membersFor } from '../domain/views.js';
 import { removeAttachmentFiles } from './attachments.js';
+import { eventDate, tr } from '../i18n/index.js';
 
 export const eventsRouter = Router();
 
@@ -84,9 +85,9 @@ const COLS: Record<string, string> = {
 
 function validateTimes(start?: string, end?: string, min?: number, max?: number) {
   const fields: Record<string, string> = {};
-  if (start && end && Date.parse(end) <= Date.parse(start)) fields.endAt = 'The end must be after the start';
-  if (min !== undefined && max !== undefined && min > max) fields.minPlayers = 'Minimum players cannot exceed the maximum';
-  if (Object.keys(fields).length) throw badRequest('Some fields are not valid.', 'invalid_argument', fields);
+  if (start && end && Date.parse(end) <= Date.parse(start)) fields.endAt = tr`The end must be after the start`;
+  if (min !== undefined && max !== undefined && min > max) fields.minPlayers = tr`Minimum players cannot exceed the maximum`;
+  if (Object.keys(fields).length) throw badRequest(tr`Some fields are not valid.`, 'invalid_argument', fields);
 }
 
 async function detail(eventId: string, userId: string) {
@@ -142,7 +143,7 @@ eventsRouter.post('/', async (req, res) => {
   const me = currentUser(req);
   const b = body(req, eventInput);
   validateTimes(b.startAt, b.endAt, b.minPlayers, b.maxPlayers);
-  await consume('event-create', me.id, 20, 86400, 'You created many events today. Try again tomorrow.');
+  await consume('event-create', me.id, 20, 86400, tr`You created many events today. Try again tomorrow.`);
   const id = await tx(async (t) => {
     const ev = await one<{ id: string }>(
       `INSERT INTO events (owner_id, name, cover_url, description, game_mode, custom_mode_name, custom_mode_rules, start_at, end_at, meeting_address,
@@ -169,10 +170,10 @@ eventsRouter.post('/', async (req, res) => {
 eventsRouter.post('/find-by-code', async (req, res) => {
   const me = currentUser(req);
   const b = body(req, z.object({ code: z.string().max(20) }));
-  await consume('find-code', me.id, 10, 60, 'Too many code attempts. Wait a minute.');
+  await consume('find-code', me.id, 10, 60, tr`Too many code attempts. Wait a minute.`);
   const code = normalizeCode(b.code);
   const ev = code.length >= 4 ? await one<{ id: string }>(`SELECT id FROM events WHERE join_code = $1 AND status NOT IN ('draft','cancelled')`, [code]) : null;
-  if (!ev) throw notFound('No event with this code. Check it with the Game Master.', 'invalid_code');
+  if (!ev) throw notFound(tr`No event with this code. Check it with the Game Master.`, 'invalid_code');
   res.json({ eventId: ev.id });
 });
 
@@ -183,9 +184,9 @@ eventsRouter.get('/:eventId', async (req, res) => {
   const ctx = await eventContext(eventId, me.id);
   if (!canViewEvent(ctx)) {
     // A private event opens for someone holding its join code (the invite link), before joining.
-    await consume('event-code', me.id, 20, 60, 'Too many code attempts. Wait a minute.');
+    await consume('event-code', me.id, 20, 60, tr`Too many code attempts. Wait a minute.`);
     const ok = !!code && !!ctx.event.join_code && !['draft', 'cancelled'].includes(ctx.event.status) && safeEqual(normalizeCode(code), ctx.event.join_code);
-    if (!ok) throw notFound('Event not found.');
+    if (!ok) throw notFound(tr`Event not found.`);
   }
   res.json(await eventDetail(ctx));
 });
@@ -196,7 +197,7 @@ eventsRouter.patch('/:eventId', async (req, res) => {
   const b = body(req, eventInput.partial());
   const changed = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('Finished events cannot be edited.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`Finished events cannot be edited.`, 'event_finished');
     const e = ctx.event;
     validateTimes(b.startAt ?? e.start_at.toISOString(), b.endAt ?? e.end_at.toISOString(), b.minPlayers ?? e.min_players, b.maxPlayers ?? e.max_players);
     const sets: string[] = [];
@@ -263,8 +264,8 @@ eventsRouter.delete('/:eventId', async (req, res) => {
   const files = await tx(async (t) => {
     const ctx = admin ? await requireViewable(eventId, me.id, t) : await requireGm(eventId, me.id, t, true);
     if (!admin) {
-      if (ctx.event.owner_id !== me.id) throw forbidden('Only the event owner can delete it.');
-      if (!['draft', 'cancelled'].includes(ctx.event.status)) throw conflict('Only drafts and cancelled events can be deleted. Cancel it first.', 'invalid_state');
+      if (ctx.event.owner_id !== me.id) throw forbidden(tr`Only the event owner can delete it.`);
+      if (!['draft', 'cancelled'].includes(ctx.event.status)) throw conflict(tr`Only drafts and cancelled events can be deleted. Cancel it first.`, 'invalid_state');
     }
     const members = admin
       ? (await many<{ user_id: string }>(`SELECT user_id FROM event_members WHERE event_id = $1 AND user_id <> $2 AND status IN ('invited','pending','approved')`, [eventId, me.id], t)).map((r) => r.user_id)
@@ -272,7 +273,7 @@ eventsRouter.delete('/:eventId', async (req, res) => {
     const files = await many<{ stored_name: string }>('SELECT stored_name FROM event_attachments WHERE event_id = $1', [eventId], t);
     await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
     await t.query('DELETE FROM events WHERE id = $1', [eventId]);
-    await notify(t, members, { type: 'event_removed', title: `${ctx.event.name} was removed`, body: 'A platform admin removed this event.', url: '/notifications' });
+    await notify(t, members, { type: 'event_removed', title: (tr) => tr`${ctx.event.name} was removed`, body: (tr) => tr`A platform admin removed this event.`, url: '/notifications' });
     return files.map((f) => f.stored_name);
   });
   await removeAttachmentFiles(files);
@@ -323,7 +324,7 @@ eventsRouter.post('/:eventId/duplicate', async (req, res) => {
   const id = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
     const snap = await snapshotEvent(eventId, t);
-    return materialize(t, me.id, snap, { name: `${ctx.event.name} (copy)`.slice(0, 120) });
+    return materialize(t, me.id, snap, { name: tr`${ctx.event.name} (copy)`.slice(0, 120) });
   });
   res.status(201).json(await detail(id, me.id));
 });
@@ -350,7 +351,7 @@ templateInstantiateRouter.post('/templates/events/:id/instantiate', requireVerif
   const b = body(req, z.object({ name: shortText(120).min(3), startAt: isoDate, endAt: isoDate }));
   validateTimes(b.startAt, b.endAt);
   const tpl = await one('SELECT data FROM event_templates WHERE id = $1 AND owner_id = $2', [idParam(req, 'id'), me.id]);
-  if (!tpl) throw notFound('Template not found.');
+  if (!tpl) throw notFound(tr`Template not found.`);
   const id = await tx((t) => materialize(t, me.id, tpl.data, b));
   res.status(201).json(await detail(id, me.id));
 });
@@ -359,7 +360,7 @@ templateInstantiateRouter.post('/templates/events/:id/instantiate', requireVerif
 
 async function memberDto(t: Tx | null, eventId: string, userId: string, viewerIsGm: boolean) {
   const m = await one('SELECT m.*, u.nickname, u.avatar_url FROM event_members m JOIN users u ON u.id = m.user_id WHERE m.event_id = $1 AND m.user_id = $2', [eventId, userId], t ?? undefined);
-  if (!m) throw notFound('Member not found.');
+  if (!m) throw notFound(tr`Member not found.`);
   return dto.member(m, { viewerIsGm, showRole: true, online: hub.isOnline(userId) });
 }
 
@@ -390,20 +391,20 @@ eventsRouter.post('/:eventId/join', async (req, res) => {
   const result = await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
     const e = ctx.event;
-    if (ctx.isGm) throw conflict('You are a Game Master of this event.', 'is_gm');
+    if (ctx.isGm) throw conflict(tr`You are a Game Master of this event.`, 'is_gm');
     const existing = ctx.member;
     if (existing && ['approved', 'pending'].includes(existing.status)) return existing.status;
-    if (existing && ['rejected', 'removed'].includes(existing.status)) throw forbidden('The Game Master did not accept you in this event.', 'not_allowed');
+    if (existing && ['rejected', 'removed'].includes(existing.status)) throw forbidden(tr`The Game Master did not accept you in this event.`, 'not_allowed');
     const invited = existing?.status === 'invited';
     if (!invited) {
       if (e.visibility === 'private' && (!b.joinCode || !e.join_code || !safeEqual(normalizeCode(b.joinCode), e.join_code))) {
-        throw forbidden('Enter the join code you received from the Game Master.', 'invalid_code');
+        throw forbidden(tr`Enter the join code you received from the Game Master.`, 'invalid_code');
       }
-      if (!['registration_open', 'lobby'].includes(e.status)) throw conflict('Registration is not open for this event.', 'registration_closed');
-      if (e.registration_locked) throw conflict('Registration is closed.', 'registration_closed');
+      if (!['registration_open', 'lobby'].includes(e.status)) throw conflict(tr`Registration is not open for this event.`, 'registration_closed');
+      if (e.registration_locked) throw conflict(tr`Registration is closed.`, 'registration_closed');
     }
     const count = await one<{ n: number }>(`SELECT count(*)::int AS n FROM event_members WHERE event_id = $1 AND role = 'player' AND status IN ('approved','pending')`, [eventId], t);
-    if ((count?.n ?? 0) >= e.max_players) throw conflict('This event is full.', 'event_full');
+    if ((count?.n ?? 0) >= e.max_players) throw conflict(tr`This event is full.`, 'event_full');
 
     const status = invited || !e.requires_approval ? 'approved' : 'pending';
     const user = await one('SELECT player_role, nickname FROM users WHERE id = $1', [me.id], t);
@@ -419,8 +420,8 @@ eventsRouter.post('/:eventId/join', async (req, res) => {
     if (status === 'pending') {
       await notify(t, await eventGms(t, eventId), {
         type: 'registration_approved',
-        title: 'New registration request',
-        body: `${user?.nickname} wants to join ${e.name}.`,
+        title: (tr) => tr`New registration request`,
+        body: (tr) => tr`${user?.nickname} wants to join ${e.name}.`,
         eventId,
         url: `/gm/events/${eventId}/players`,
       });
@@ -437,7 +438,7 @@ eventsRouter.post('/:eventId/leave', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t);
-    if (ctx.event.owner_id === me.id) throw conflict('The owner cannot leave the event. Cancel it instead.', 'is_owner');
+    if (ctx.event.owner_id === me.id) throw conflict(tr`The owner cannot leave the event. Cancel it instead.`, 'is_owner');
     if (!ctx.member || !['approved', 'pending', 'invited'].includes(ctx.member.status)) return;
     await t.query(
       `UPDATE event_members SET status = 'left', tracking_active = false, ready = false, emergency_contact = NULL, is_squad_leader = false, updated_at = now()
@@ -445,7 +446,7 @@ eventsRouter.post('/:eventId/leave', async (req, res) => {
       [eventId, me.id],
     );
     await t.query('UPDATE squads SET leader_id = NULL WHERE event_id = $1 AND leader_id = $2', [eventId, me.id]);
-    await activity(t, eventId, { type: 'member_left', message: `${me.nickname} left the event`, scope: 'gm', userId: me.id });
+    await activity(t, eventId, { type: 'member_left', message: (tr) => tr`${me.nickname} left the event`, scope: 'gm', userId: me.id });
   });
   hub.invalidate(eventId, ['members']);
   void hub.refreshUser(eventId, me.id, false);
@@ -458,7 +459,7 @@ eventsRouter.post('/:eventId/invitation', async (req, res) => {
   const b = body(req, z.object({ accept: z.boolean() }));
   const status = await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
-    if (ctx.member?.status !== 'invited') throw conflict('There is no open invitation for you.', 'no_invitation');
+    if (ctx.member?.status !== 'invited') throw conflict(tr`There is no open invitation for you.`, 'no_invitation');
     if (!b.accept) {
       await t.query(`UPDATE event_members SET status = 'left', updated_at = now() WHERE event_id = $1 AND user_id = $2`, [eventId, me.id]);
       return 'left';
@@ -469,7 +470,7 @@ eventsRouter.post('/:eventId/invitation', async (req, res) => {
         WHERE event_id = $1 AND user_id = $2`,
       [eventId, me.id, teamId, JSON.stringify(await emergencyFor(t, me.id))],
     );
-    await activity(t, eventId, { type: 'member_joined', message: `${me.nickname} accepted the invitation`, scope: 'gm', userId: me.id });
+    await activity(t, eventId, { type: 'member_joined', message: (tr) => tr`${me.nickname} accepted the invitation`, scope: 'gm', userId: me.id });
     return 'approved';
   });
   hub.invalidate(eventId, ['members']);
@@ -487,7 +488,7 @@ eventsRouter.patch('/:eventId/me', async (req, res) => {
   );
   await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t);
-    if (!ctx.member || !['approved', 'pending'].includes(ctx.member.status)) throw forbidden('Join the event first.', 'not_member');
+    if (!ctx.member || !['approved', 'pending'].includes(ctx.member.status)) throw forbidden(tr`Join the event first.`, 'not_member');
     const sets: string[] = [];
     const params: unknown[] = [eventId, me.id];
     const add = (sql: string, v: unknown) => {
@@ -513,7 +514,7 @@ eventsRouter.patch('/:eventId/me', async (req, res) => {
     }
     if (b.ready === true && !ctx.member.rules_accepted_at && b.rulesAccepted !== true) {
       const row = await one('SELECT rules_accepted_at FROM event_members WHERE event_id = $1 AND user_id = $2', [eventId, me.id], t);
-      if (!row?.rules_accepted_at) throw conflict('Accept the rules before marking yourself ready.', 'rules_not_accepted');
+      if (!row?.rules_accepted_at) throw conflict(tr`Accept the rules before marking yourself ready.`, 'rules_not_accepted');
     }
     if (sets.length) await t.query(`UPDATE event_members SET ${sets.join(', ')}, updated_at = now() WHERE event_id = $1 AND user_id = $2`, params);
   });
@@ -525,7 +526,7 @@ eventsRouter.patch('/:eventId/me', async (req, res) => {
 eventsRouter.get('/:eventId/members', async (req, res) => {
   const me = currentUser(req);
   const ctx = await requireViewable(idParam(req, 'eventId'), me.id);
-  if (!ctx.isGm && ctx.member?.status !== 'approved') throw forbidden('Join the event to see the players.', 'not_member');
+  if (!ctx.isGm && ctx.member?.status !== 'approved') throw forbidden(tr`Join the event to see the players.`, 'not_member');
   res.json(await membersFor(ctx));
 });
 
@@ -536,11 +537,11 @@ eventsRouter.post('/:eventId/members/invite', async (req, res) => {
   await consume('invite', me.id, 60, 3600);
   const userId = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     const u = await one<{ id: string }>('SELECT id FROM users WHERE lower(nickname) = lower($1) AND deleted_at IS NULL', [b.nickname], t);
-    if (!u) throw notFound('No player with this nickname.', 'unknown_nickname');
+    if (!u) throw notFound(tr`No player with this nickname.`, 'unknown_nickname');
     const existing = await one('SELECT status, role FROM event_members WHERE event_id = $1 AND user_id = $2', [eventId, u.id], t);
-    if (existing && (existing.role === 'gm' || ['approved', 'invited'].includes(existing.status))) throw conflict('This player is already in the event or invited.', 'already_member');
+    if (existing && (existing.role === 'gm' || ['approved', 'invited'].includes(existing.status))) throw conflict(tr`This player is already in the event or invited.`, 'already_member');
     await t.query(
       `INSERT INTO event_members (event_id, user_id, role, status, invited_by) VALUES ($1,$2,'player','invited',$3)
        ON CONFLICT (event_id, user_id) DO UPDATE SET status = 'invited', invited_by = $3, updated_at = now()`,
@@ -548,8 +549,8 @@ eventsRouter.post('/:eventId/members/invite', async (req, res) => {
     );
     await notify(t, [u.id], {
       type: 'event_invitation',
-      title: `Invitation: ${ctx.event.name}`,
-      body: `${me.nickname} invited you. ${new Date(ctx.event.start_at).toUTCString().slice(0, 22)}`,
+      title: (tr) => tr`Invitation: ${ctx.event.name}`,
+      body: (tr) => tr`${me.nickname} invited you. ${eventDate(ctx.event.start_at, tr.lang)}`,
       priority: 'high',
       eventId,
       url: `/events/${eventId}`,
@@ -569,7 +570,7 @@ eventsRouter.post('/:eventId/members/:userId/review', async (req, res) => {
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     const m = await one('SELECT status FROM event_members WHERE event_id = $1 AND user_id = $2 FOR UPDATE', [eventId, userId], t);
-    if (!m || m.status !== 'pending') throw conflict('This request was already handled.', 'invalid_state');
+    if (!m || m.status !== 'pending') throw conflict(tr`This request was already handled.`, 'invalid_state');
     const teamId = b.approve && ctx.event.team_selection === 'auto' ? await autoTeam(t, eventId) : null;
     await t.query('UPDATE event_members SET status = $3, team_id = COALESCE(team_id, $4), updated_at = now() WHERE event_id = $1 AND user_id = $2', [
       eventId,
@@ -579,8 +580,8 @@ eventsRouter.post('/:eventId/members/:userId/review', async (req, res) => {
     ]);
     await notify(t, [userId], {
       type: b.approve ? 'registration_approved' : 'registration_rejected',
-      title: b.approve ? `You're in: ${ctx.event.name}` : `Registration declined: ${ctx.event.name}`,
-      body: b.approve ? 'Open the event to check the rules and your team.' : 'The Game Master did not accept your registration.',
+      title: (tr) => (b.approve ? tr`You're in: ${ctx.event.name}` : tr`Registration declined: ${ctx.event.name}`),
+      body: (tr) => (b.approve ? tr`Open the event to check the rules and your team.` : tr`The Game Master did not accept your registration.`),
       eventId,
       url: `/events/${eventId}`,
     });
@@ -598,16 +599,16 @@ eventsRouter.post('/:eventId/members/:userId/remove', async (req, res) => {
   const b = body(req, z.object({ reason: z.string().trim().min(3, 'Give a short reason').max(500) }));
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (userId === ctx.event.owner_id) throw conflict('The owner cannot be removed.', 'is_owner');
+    if (userId === ctx.event.owner_id) throw conflict(tr`The owner cannot be removed.`, 'is_owner');
     const m = await one('SELECT * FROM event_members WHERE event_id = $1 AND user_id = $2 FOR UPDATE', [eventId, userId], t);
-    if (!m) throw notFound('Member not found.');
+    if (!m) throw notFound(tr`Member not found.`);
     await t.query(
       `UPDATE event_members SET status = 'removed', removal_reason = $3, tracking_active = false, is_squad_leader = false, emergency_contact = NULL, updated_at = now()
         WHERE event_id = $1 AND user_id = $2`,
       [eventId, userId, b.reason],
     );
     await t.query('UPDATE squads SET leader_id = NULL WHERE event_id = $1 AND leader_id = $2', [eventId, userId]);
-    await notify(t, [userId], { type: 'removed_from_event', title: `Removed from ${ctx.event.name}`, body: b.reason, priority: 'high', eventId, url: `/events/${eventId}` });
+    await notify(t, [userId], { type: 'removed_from_event', title: (tr) => tr`Removed from ${ctx.event.name}`, body: b.reason, priority: 'high', eventId, url: `/events/${eventId}` });
     await audit(t, eventId, me.id, 'member.remove', { type: 'user', id: userId, before: { status: m.status, teamId: m.team_id }, reason: b.reason });
   });
   hub.invalidate(eventId, ['members']);
@@ -620,20 +621,20 @@ async function assign(t: Tx, ctx: EventContext, userId: string, teamId: string |
   const m = await one('SELECT * FROM event_members WHERE event_id = $1 AND user_id = $2 FOR UPDATE', [eventId, userId], t);
   // Game Masters can be put on a team too, to play the game.
   const assignable = m?.role === 'gm' ? m.status === 'approved' : ['approved', 'pending', 'invited'].includes(m?.status);
-  if (!m || !assignable) throw notFound('Player not found in this event.');
+  if (!m || !assignable) throw notFound(tr`Player not found in this event.`);
   if (teamId) {
     const team = await one('SELECT id, capacity, name, (SELECT count(*)::int FROM event_members x WHERE x.team_id = teams.id AND x.status = \'approved\' AND x.user_id <> $3) AS n FROM teams WHERE id = $1 AND event_id = $2', [teamId, eventId, userId], t);
-    if (!team) throw badRequest('Unknown team.', 'invalid_argument', { teamId: 'Unknown team' });
-    if (team.capacity > 0 && team.n >= team.capacity) throw conflict(`${team.name} is full.`, 'team_full');
+    if (!team) throw badRequest(tr`Unknown team.`, 'invalid_argument', { teamId: tr`Unknown team` });
+    if (team.capacity > 0 && team.n >= team.capacity) throw conflict(tr`${team.name} is full.`, 'team_full');
   }
   let squad = squadId === undefined ? (teamId === m.team_id ? m.squad_id : null) : squadId;
   if (squad) {
     const s = await one('SELECT team_id FROM squads WHERE id = $1 AND event_id = $2', [squad, eventId], t);
-    if (!s || s.team_id !== teamId) throw badRequest('That squad belongs to another team.', 'invalid_argument', { squadId: 'Squad not in this team' });
+    if (!s || s.team_id !== teamId) throw badRequest(tr`That squad belongs to another team.`, 'invalid_argument', { squadId: tr`Squad not in this team` });
   }
   if (!teamId) squad = null;
   const isLeader = leader ?? (squad === m.squad_id ? m.is_squad_leader : false);
-  if (isLeader && !squad) throw badRequest('Pick a squad before making the player its leader.', 'invalid_argument', { isSquadLeader: 'Needs a squad' });
+  if (isLeader && !squad) throw badRequest(tr`Pick a squad before making the player its leader.`, 'invalid_argument', { isSquadLeader: tr`Needs a squad` });
   if (isLeader && squad) {
     await t.query('UPDATE event_members SET is_squad_leader = false WHERE event_id = $1 AND squad_id = $2 AND user_id <> $3', [eventId, squad, userId]);
     await t.query('UPDATE squads SET leader_id = $2 WHERE id = $1', [squad, userId]);
@@ -657,8 +658,8 @@ async function assign(t: Tx, ctx: EventContext, userId: string, teamId: string |
     const team = await one('SELECT name FROM teams WHERE id = $1', [teamId], t);
     await notify(t, [userId], {
       type: 'team_assigned',
-      title: `You are on ${team?.name}`,
-      body: ctx.event.status === 'live' ? 'Your map now shows your new team.' : 'Check your team in the lobby.',
+      title: (tr) => tr`You are on ${team?.name}`,
+      body: (tr) => (ctx.event.status === 'live' ? tr`Your map now shows your new team.` : tr`Check your team in the lobby.`),
       priority: ctx.event.status === 'live' ? 'high' : 'normal',
       eventId,
       url: `/events/${eventId}`,
@@ -674,7 +675,7 @@ eventsRouter.post('/:eventId/members/:userId/assign', async (req, res) => {
   const b = body(req, z.object({ teamId: uuid.nullable(), squadId: uuid.nullable().optional(), isSquadLeader: z.boolean().optional() }));
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     await assign(t, ctx, userId, b.teamId, b.squadId, b.isSquadLeader, me.id);
   });
   hub.invalidate(eventId, ['members', 'event']);
@@ -689,9 +690,9 @@ eventsRouter.post('/:eventId/choose-team', async (req, res) => {
   const b = body(req, z.object({ teamId: uuid }));
   await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
-    if (ctx.member?.status !== 'approved' || ctx.member.role !== 'player') throw forbidden('Join the event first.', 'not_member');
-    if (ctx.event.team_selection !== 'player') throw conflict('The Game Master assigns the teams in this event.', 'teams_assigned_by_gm');
-    if (ctx.event.teams_locked || ['live', 'paused', 'completed', 'cancelled'].includes(ctx.event.status)) throw conflict('Teams are locked.', 'teams_locked');
+    if (ctx.member?.status !== 'approved' || ctx.member.role !== 'player') throw forbidden(tr`Join the event first.`, 'not_member');
+    if (ctx.event.team_selection !== 'player') throw conflict(tr`The Game Master assigns the teams in this event.`, 'teams_assigned_by_gm');
+    if (ctx.event.teams_locked || ['live', 'paused', 'completed', 'cancelled'].includes(ctx.event.status)) throw conflict(tr`Teams are locked.`, 'teams_locked');
     await assign(t, ctx, me.id, b.teamId, null, false, me.id);
   });
   hub.invalidate(eventId, ['members', 'event']);
@@ -705,7 +706,7 @@ eventsRouter.post('/:eventId/auto-balance', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   const assigned = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     const players = await many<{ user_id: string }>(
       `SELECT user_id FROM event_members WHERE event_id = $1 AND role = 'player' AND status = 'approved' AND team_id IS NULL ORDER BY random()`,
       [eventId],
@@ -734,15 +735,15 @@ eventsRouter.post('/:eventId/game-masters', async (req, res) => {
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     const u = await one<{ id: string }>('SELECT id FROM users WHERE lower(nickname) = lower($1) AND deleted_at IS NULL AND email_verified_at IS NOT NULL', [b.nickname], t);
-    if (!u) throw notFound('No verified player with this nickname.', 'unknown_nickname');
+    if (!u) throw notFound(tr`No verified player with this nickname.`, 'unknown_nickname');
     const m = await one('SELECT role, status FROM event_members WHERE event_id = $1 AND user_id = $2', [eventId, u.id], t);
-    if (m?.role === 'player' && m.status === 'approved') throw conflict('This person plays in the event. Remove them as a player first.', 'is_player');
+    if (m?.role === 'player' && m.status === 'approved') throw conflict(tr`This person plays in the event. Remove them as a player first.`, 'is_player');
     await t.query(
       `INSERT INTO event_members (event_id, user_id, role, status) VALUES ($1,$2,'gm','approved')
        ON CONFLICT (event_id, user_id) DO UPDATE SET role = 'gm', status = 'approved', team_id = NULL, squad_id = NULL, is_squad_leader = false`,
       [eventId, u.id],
     );
-    await notify(t, [u.id], { type: 'gm_message', title: `You are a Game Master of ${ctx.event.name}`, eventId, url: `/gm/events/${eventId}` });
+    await notify(t, [u.id], { type: 'gm_message', title: (tr) => tr`You are a Game Master of ${ctx.event.name}`, eventId, url: `/gm/events/${eventId}` });
     await audit(t, eventId, me.id, 'gm.add', { type: 'user', id: u.id });
   });
   hub.invalidate(eventId, ['event', 'members']);
@@ -755,7 +756,7 @@ eventsRouter.delete('/:eventId/game-masters/:userId', async (req, res) => {
   const userId = idParam(req, 'userId');
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (userId === ctx.event.owner_id) throw conflict('The owner is always a Game Master.', 'is_owner');
+    if (userId === ctx.event.owner_id) throw conflict(tr`The owner is always a Game Master.`, 'is_owner');
     await t.query(
       `UPDATE event_members SET status = 'left', tracking_active = false, is_squad_leader = false, updated_at = now() WHERE event_id = $1 AND user_id = $2 AND role = 'gm'`,
       [eventId, userId],
@@ -804,9 +805,9 @@ eventsRouter.post('/:eventId/teams', async (req, res) => {
   const b = body(req, teamInput.partial().required({ name: true }));
   const id = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     const n = await one<{ n: number }>('SELECT count(*)::int AS n FROM teams WHERE event_id = $1', [eventId], t);
-    if ((n?.n ?? 0) >= 16) throw conflict('An event can have at most 16 teams.', 'too_many_teams');
+    if ((n?.n ?? 0) >= 16) throw conflict(tr`An event can have at most 16 teams.`, 'too_many_teams');
     const row = await one<{ id: string }>(
       `INSERT INTO teams (event_id, name, color, icon, pattern, capacity, sort_order, alliance_id, base_lat, base_lng)
        VALUES ($1,$2,COALESCE($3,'#7C8A4A'),COALESCE($4,'shield'),COALESCE($5,'solid'),COALESCE($6,0),COALESCE($7::int,$11::int),$8,$9,$10) RETURNING id`,
@@ -845,7 +846,7 @@ eventsRouter.patch('/:eventId/teams/:teamId', async (req, res) => {
     }
     if (!sets.length) return;
     const r = await t.query(`UPDATE teams SET ${sets.join(', ')} WHERE id = $1 AND event_id = $2`, params);
-    if (!r.rowCount) throw notFound('Team not found.');
+    if (!r.rowCount) throw notFound(tr`Team not found.`);
     await audit(t, eventId, me.id, 'team.update', { type: 'team', id: teamId, after: b });
   });
   hub.invalidate(eventId, ['event']);
@@ -863,10 +864,10 @@ eventsRouter.delete('/:eventId/teams/:teamId', async (req, res) => {
   const teamId = idParam(req, 'teamId');
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (ctx.event.started_at) throw conflict('Teams cannot be deleted once the game has started.', 'game_started');
+    if (ctx.event.started_at) throw conflict(tr`Teams cannot be deleted once the game has started.`, 'game_started');
     await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
     const r = await t.query('DELETE FROM teams WHERE id = $1 AND event_id = $2', [teamId, eventId]);
-    if (!r.rowCount) throw notFound('Team not found.');
+    if (!r.rowCount) throw notFound(tr`Team not found.`);
     await audit(t, eventId, me.id, 'team.delete', { type: 'team', id: teamId });
   });
   hub.invalidate(eventId, ['event', 'members']);
@@ -883,7 +884,7 @@ eventsRouter.post('/:eventId/squads', async (req, res) => {
   const row = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const team = await one('SELECT id FROM teams WHERE id = $1 AND event_id = $2', [b.teamId, eventId], t);
-    if (!team) throw badRequest('Unknown team.', 'invalid_argument', { teamId: 'Unknown team' });
+    if (!team) throw badRequest(tr`Unknown team.`, 'invalid_argument', { teamId: tr`Unknown team` });
     return one('INSERT INTO squads (event_id, team_id, name, callsign, icon) VALUES ($1,$2,$3,$4,$5) RETURNING *', [eventId, b.teamId, b.name, b.callsign ?? null, b.icon ?? null], t);
   });
   hub.invalidate(eventId, ['event', 'squads']);
@@ -898,8 +899,8 @@ eventsRouter.patch('/:eventId/squads/:squadId', async (req, res) => {
   const row = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     const s = await one('SELECT * FROM squads WHERE id = $1 AND event_id = $2 FOR UPDATE', [squadId, eventId], t);
-    if (!s) throw notFound('Squad not found.');
-    if (b.teamId && b.teamId !== s.team_id) throw badRequest('A squad cannot move to another team.', 'invalid_argument', { teamId: 'Cannot change' });
+    if (!s) throw notFound(tr`Squad not found.`);
+    if (b.teamId && b.teamId !== s.team_id) throw badRequest(tr`A squad cannot move to another team.`, 'invalid_argument', { teamId: tr`Cannot change` });
     // undefined = keep, null or '' = clear (name is required)
     await t.query(
       `UPDATE squads SET name = COALESCE($2, name),
@@ -910,7 +911,7 @@ eventsRouter.patch('/:eventId/squads/:squadId', async (req, res) => {
     if (b.leaderId !== undefined) {
       if (b.leaderId) {
         const m = await one('SELECT team_id FROM event_members WHERE event_id = $1 AND user_id = $2 AND status = $3', [eventId, b.leaderId, 'approved'], t);
-        if (!m || m.team_id !== s.team_id) throw badRequest('The leader must be on this team.', 'invalid_argument', { leaderId: 'Not on this team' });
+        if (!m || m.team_id !== s.team_id) throw badRequest(tr`The leader must be on this team.`, 'invalid_argument', { leaderId: tr`Not on this team` });
         await assign(t, ctx, b.leaderId, s.team_id, squadId, true, me.id);
       } else {
         await t.query('UPDATE event_members SET is_squad_leader = false WHERE event_id = $1 AND squad_id = $2', [eventId, squadId]);
@@ -933,7 +934,7 @@ eventsRouter.delete('/:eventId/squads/:squadId', async (req, res) => {
     await requireGm(eventId, me.id, t);
     await t.query('UPDATE event_members SET is_squad_leader = false WHERE event_id = $1 AND squad_id = $2', [eventId, squadId]);
     const r = await t.query('DELETE FROM squads WHERE id = $1 AND event_id = $2', [squadId, eventId]);
-    if (!r.rowCount) throw notFound('Squad not found.');
+    if (!r.rowCount) throw notFound(tr`Squad not found.`);
   });
   hub.invalidate(eventId, ['event', 'squads', 'members']);
   hub.positionsDirty(eventId);

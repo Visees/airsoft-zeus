@@ -27,20 +27,20 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
     @let e = event();
     <!-- Game control -->
     <section class="panel flex flex-col gap-3 p-4" aria-labelledby="gm-control-title">
-      <h2 id="gm-control-title" class="label-caps">Game control</h2>
+      <h2 id="gm-control-title" class="label-caps" i18n>Game control</h2>
 
       @if (preLobby()) {
         <button hlmBtn type="button" class="h-12" [disabled]="busy() !== null" (click)="openLobby()">
-          <ng-icon name="lucideUsers" size="18" aria-hidden="true" /> Open lobby
+          <ng-icon name="lucideUsers" size="18" aria-hidden="true" /> <ng-container i18n>Open lobby</ng-container>
         </button>
-        <p class="-mt-1 text-xs text-muted-foreground">Moves the event to Lobby: players see the start countdown and get ready. The game can only start from the lobby.</p>
+        <p class="-mt-1 text-xs text-muted-foreground" i18n>Moves the event to Lobby: players see the start countdown and get ready. The game can only start from the lobby.</p>
       }
 
       <button hlmBtn type="button" class="h-12" [variant]="preLobby() ? 'outline' : 'default'" [disabled]="busy() !== null || !!startBlock()" [attr.aria-describedby]="startBlock() ? 'start-block' : null" (click)="start()">
         @if (busy() === 'start') {
-          <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> Starting…
+          <ng-icon name="lucideLoader2" size="18" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Starting…</ng-container>
         } @else {
-          <ng-icon name="lucidePlay" size="18" aria-hidden="true" /> Start game
+          <ng-icon name="lucidePlay" size="18" aria-hidden="true" /> <ng-container i18n>Start game</ng-container>
         }
       </button>
       @if (startBlock(); as why) {
@@ -49,39 +49,39 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
 
       <div class="grid grid-cols-2 gap-2">
         <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy() !== null" [attr.aria-expanded]="delayOpen()" aria-controls="delay-form" (click)="toggleDelay()">
-          <ng-icon name="lucideClock" size="16" aria-hidden="true" /> Delay start
+          <ng-icon name="lucideClock" size="16" aria-hidden="true" /> <ng-container i18n>Delay start</ng-container>
         </button>
         <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="busy() !== null" (click)="toggleRegistration()">
           <ng-icon [name]="e.registrationLocked ? 'lucideLockOpen' : 'lucideLock'" size="16" aria-hidden="true" />
-          {{ e.registrationLocked ? 'Unlock registration' : 'Lock registration' }}
+          {{ e.registrationLocked ? txt.unlockRegistration : txt.lockRegistration }}
         </button>
       </div>
-      <p class="text-xs text-muted-foreground">
-        Registration: <span class="font-semibold" [class.text-warning]="e.registrationLocked">{{ e.registrationLocked ? '■ Locked' : '● Open' }}</span>
+      <p class="text-xs text-muted-foreground" i18n>
+        Registration: <span class="font-semibold" [class.text-warning]="e.registrationLocked">{{ e.registrationLocked ? txt.locked : txt.open }}</span>
       </p>
 
       @if (delayOpen()) {
         <form id="delay-form" class="flex flex-col gap-2 rounded-sm border border-border bg-muted/40 p-3" [formGroup]="delayForm" (ngSubmit)="delay()" novalidate>
-          <label hlmLabel for="delay-start">New start time</label>
+          <label hlmLabel for="delay-start" i18n>New start time</label>
           <input hlmInput id="delay-start" type="datetime-local" class="h-11" formControlName="start" [attr.aria-invalid]="delayError() ? 'true' : null" aria-describedby="delay-help delay-error" />
-          <p id="delay-help" class="text-xs text-muted-foreground">Now {{ startLabel() }}. The end time moves by the same amount and players get an announcement.</p>
+          <p id="delay-help" class="text-xs text-muted-foreground" i18n>Now {{ startLabel() }}. The end time moves by the same amount and players get an announcement.</p>
           @if (delayError()) {
             <p id="delay-error" class="field-error" role="alert">{{ delayError() }}</p>
           }
           <div class="flex gap-2">
-            <button hlmBtn type="submit" class="h-11 flex-1" [disabled]="busy() === 'delay'">{{ busy() === 'delay' ? 'Saving…' : 'Move start' }}</button>
-            <button hlmBtn variant="ghost" type="button" class="h-11" (click)="delayOpen.set(false)">Cancel</button>
+            <button hlmBtn type="submit" class="h-11 flex-1" [disabled]="busy() === 'delay'">{{ busy() === 'delay' ? txt.saving : txt.moveStart }}</button>
+            <button hlmBtn variant="ghost" type="button" class="h-11" (click)="delayOpen.set(false)" i18n>Cancel</button>
           </div>
         </form>
       }
 
       <div class="flex flex-col gap-1 border-t border-border pt-3">
-        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'control']"><ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> Control center</a>
-        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'players']"><ng-icon name="lucideUserCheck" size="16" aria-hidden="true" /> Player management</a>
-        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'teams']"><ng-icon name="lucideFlag" size="16" aria-hidden="true" /> Teams and squads</a>
-        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id]"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> Edit event</a>
+        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'control']"><ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container></a>
+        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'players']"><ng-icon name="lucideUserCheck" size="16" aria-hidden="true" /> <ng-container i18n>Player management</ng-container></a>
+        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id, 'teams']"><ng-icon name="lucideFlag" size="16" aria-hidden="true" /> <ng-container i18n>Teams and squads</ng-container></a>
+        <a hlmBtn variant="ghost" class="tap justify-start" [routerLink]="['/gm/events', e.id]"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit event</ng-container></a>
         <button hlmBtn variant="ghost" type="button" class="tap justify-start text-destructive" [disabled]="busy() !== null" (click)="cancelEvent()">
-          <ng-icon name="lucideBan" size="16" aria-hidden="true" /> Cancel event
+          <ng-icon name="lucideBan" size="16" aria-hidden="true" /> <ng-container i18n>Cancel event</ng-container>
         </button>
       </div>
     </section>
@@ -89,15 +89,15 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
     <!-- Pending requests -->
     @if (pending().length) {
       <section class="panel p-4" aria-labelledby="pending-title">
-        <h2 id="pending-title" class="label-caps mb-1">Pending requests · <span class="num">{{ pending().length }}</span></h2>
+        <h2 id="pending-title" class="label-caps mb-1" i18n>Pending requests · <span class="num">{{ pending().length }}</span></h2>
         <ul class="divide-y divide-border">
           @for (m of pending(); track m.userId) {
             <li>
               <zeus-player-list-item [member]="m" [showPresence]="false">
-                <button hlmBtn size="icon-lg" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, true)" [attr.aria-label]="'Approve ' + m.nickname">
+                <button hlmBtn size="icon-lg" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, true)" aria-label="Approve {{ m.nickname }}" i18n-aria-label>
                   <ng-icon name="lucideCheck" size="18" aria-hidden="true" />
                 </button>
-                <button hlmBtn size="icon-lg" variant="outline" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, false)" [attr.aria-label]="'Reject ' + m.nickname">
+                <button hlmBtn size="icon-lg" variant="outline" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, false)" aria-label="Reject {{ m.nickname }}" i18n-aria-label>
                   <ng-icon name="lucideX" size="18" aria-hidden="true" />
                 </button>
               </zeus-player-list-item>
@@ -109,17 +109,17 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
 
     <!-- Announcement -->
     <section class="panel p-4" aria-labelledby="announce-title">
-      <h2 id="announce-title" class="label-caps mb-3">Send announcement</h2>
+      <h2 id="announce-title" class="label-caps mb-3" i18n>Send announcement</h2>
       <form class="flex flex-col gap-3" [formGroup]="announceForm" (ngSubmit)="announce()" novalidate>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="ann-title">Title</label>
+          <label hlmLabel for="ann-title" i18n>Title</label>
           <input hlmInput id="ann-title" class="h-11" formControlName="title" maxlength="120" autocomplete="off" [attr.aria-invalid]="announceErrors()['title'] ? 'true' : null" aria-describedby="ann-title-error" />
           @if (announceErrors()['title']) {
             <p id="ann-title-error" class="field-error">{{ announceErrors()['title'] }}</p>
           }
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel for="ann-body">Message</label>
+          <label hlmLabel for="ann-body" i18n>Message</label>
           <textarea hlmTextarea id="ann-body" rows="3" formControlName="body" maxlength="1000" aria-describedby="ann-body-error"></textarea>
           @if (announceErrors()['body']) {
             <p id="ann-body-error" class="field-error">{{ announceErrors()['body'] }}</p>
@@ -127,26 +127,26 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="ann-priority">Priority</label>
+            <label hlmLabel for="ann-priority" i18n>Priority</label>
             <select id="ann-priority" formControlName="priority" class="h-11 rounded-md border border-input bg-transparent px-2 dark:bg-input/30">
-              <option value="normal">Normal</option>
-              <option value="high">High</option>
-              <option value="emergency">Emergency</option>
+              <option value="normal" i18n>Normal</option>
+              <option value="high" i18n>High</option>
+              <option value="emergency" i18n>Emergency</option>
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="ann-scope">Send to</label>
+            <label hlmLabel for="ann-scope" i18n>Send to</label>
             <select id="ann-scope" formControlName="scope" class="h-11 rounded-md border border-input bg-transparent px-2 dark:bg-input/30">
-              <option value="all">Everyone</option>
-              <option value="team" [disabled]="!e.teams.length">One team</option>
+              <option value="all" i18n>Everyone</option>
+              <option value="team" [disabled]="!e.teams.length" i18n>One team</option>
             </select>
           </div>
         </div>
         @if (announceValue().scope === 'team') {
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="ann-team">Team</label>
+            <label hlmLabel for="ann-team" i18n>Team</label>
             <select id="ann-team" formControlName="teamId" class="h-11 rounded-md border border-input bg-transparent px-2 dark:bg-input/30" aria-describedby="ann-team-error">
-              <option value="">Choose a team</option>
+              <option value="" i18n>Choose a team</option>
               @for (t of e.teams; track t.id) {
                 <option [value]="t.id">{{ t.name }}</option>
               }
@@ -157,16 +157,27 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
           </div>
         }
         @if (announceValue().priority === 'emergency') {
-          <p class="text-xs text-destructive">▲ Emergency messages sound an alert on every phone. Use them only for safety.</p>
+          <p class="text-xs text-destructive" i18n>▲ Emergency messages sound an alert on every phone. Use them only for safety.</p>
         }
         <button hlmBtn type="submit" class="h-11" [disabled]="busy() === 'announce'">
-          <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> {{ busy() === 'announce' ? 'Sending…' : sendLabel() }}
+          <ng-icon name="lucideMegaphone" size="16" aria-hidden="true" /> {{ busy() === 'announce' ? txt.sending : sendLabel() }}
         </button>
       </form>
     </section>
   `,
 })
 export class LobbyGmControls {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    unlockRegistration: $localize`Unlock registration`,
+    lockRegistration: $localize`Lock registration`,
+    locked: $localize`■ Locked`,
+    open: $localize`● Open`,
+    saving: $localize`Saving…`,
+    moveStart: $localize`Move start`,
+    sending: $localize`Sending…`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
@@ -201,8 +212,8 @@ export class LobbyGmControls {
   /** The API only allows lobby → live, with at least two teams. */
   protected readonly startBlock = computed<string | null>(() => {
     const e = this.event();
-    if (e.status !== 'lobby') return 'Open the lobby first, then start the game from here.';
-    if (e.teams.length < 2) return 'Create at least two teams before starting.';
+    if (e.status !== 'lobby') return $localize`Open the lobby first, then start the game from here.`;
+    if (e.teams.length < 2) return $localize`Create at least two teams before starting.`;
     return null;
   });
   protected readonly startLabel = computed(() => formatDateTime(this.event().startAt));
@@ -212,21 +223,21 @@ export class LobbyGmControls {
   protected readonly sendLabel = computed(() => {
     const v = this.announceValue();
     const team = this.event().teams.find((t) => t.id === v.teamId);
-    return v.scope === 'team' ? `Send to ${team?.name ?? 'team'}` : 'Send to everyone';
+    return v.scope === 'team' ? $localize`Send to ${team?.name ?? $localize`the team`}:team:` : $localize`Send to everyone`;
   });
 
   protected async openLobby(): Promise<void> {
     const ok = await this.confirm.ask({
-      title: 'Open the lobby?',
+      title: $localize`Open the lobby?`,
       consequences: [
-        'Players see the start countdown and the pre-game checklist.',
-        `${this.players().length} registered players are notified.`,
-        this.event().registrationLocked ? 'Registration stays locked.' : 'Registration stays open until you lock it.',
+        $localize`Players see the start countdown and the pre-game checklist.`,
+        $localize`${this.players().length}:length: registered players are notified.`,
+        this.event().registrationLocked ? $localize`Registration stays locked.` : $localize`Registration stays open until you lock it.`,
       ],
-      confirmLabel: 'Open lobby',
+      confirmLabel: $localize`Open lobby`,
     });
     if (!ok) return;
-    await this.setStatus('lobby', 'lobby', 'Lobby open');
+    await this.setStatus('lobby', 'lobby', $localize`Lobby open`);
   }
 
   protected async start(): Promise<void> {
@@ -238,25 +249,25 @@ export class LobbyGmControls {
     const s = e.scoring;
     const plannedMs = new Date(e.endAt).getTime() - new Date(e.startAt).getTime();
     const consequences = [
-      `The game clock starts now and runs for ${formatDuration(plannedMs)} (until about ${formatTime(new Date(Date.now() + plannedMs).toISOString())}).`,
-      `Location tracking starts for ${consented} of ${players.length} players who consented.`,
+      $localize`The game clock starts now and runs for ${formatDuration(plannedMs)}:plannedMs: (until about ${formatTime(new Date(Date.now() + plannedMs).toISOString())}:toISOString:).`,
+      $localize`Location tracking starts for ${consented}:consented: of ${players.length}:length: players who consented.`,
       e.storeEnabled
-        ? `Every team gets its starting balance: ${formatNumber(s.startingPoints)} points and ${formatNumber(s.startingCurrency)} credits.`
-        : `Every team starts with ${formatNumber(s.startingPoints)} points.`,
+        ? $localize`Every team gets its starting balance: ${formatNumber(s.startingPoints)}:startingPoints: points and ${formatNumber(s.startingCurrency)}:startingCurrency: credits.`
+        : $localize`Every team starts with ${formatNumber(s.startingPoints)}:startingPoints: points.`,
     ];
-    if (notReady) consequences.push(`${notReady} ${notReady === 1 ? 'player is' : 'players are'} not ready.`);
+    if (notReady) consequences.push(notReady === 1 ? $localize`1 player is not ready.` : $localize`${notReady}:count: players are not ready.`);
     if (noTeam) {
       consequences.push(
         e.teamSelection === 'auto'
-          ? `${noTeam} players without a team are balanced automatically.`
-          : `${noTeam} ${noTeam === 1 ? 'player has' : 'players have'} no team and cannot capture objectives.`,
+          ? $localize`${noTeam}:noTeam: players without a team are balanced automatically.`
+          : (noTeam === 1 ? $localize`1 player has no team and cannot capture objectives.` : $localize`${noTeam}:count: players have no team and cannot capture objectives.`),
       );
     }
-    if (players.length < e.minPlayers) consequences.push(`Only ${players.length} players — below the minimum of ${e.minPlayers}.`);
-    if (this.pending().length) consequences.push(`${this.pending().length} pending requests stay unanswered.`);
-    const ok = await this.confirm.ask({ title: `Start ${e.name}?`, consequences, confirmLabel: 'Start game' });
+    if (players.length < e.minPlayers) consequences.push($localize`Only ${players.length}:length: players — below the minimum of ${e.minPlayers}:minPlayers:.`);
+    if (this.pending().length) consequences.push($localize`${this.pending().length}:length: pending requests stay unanswered.`);
+    const ok = await this.confirm.ask({ title: $localize`Start ${e.name}:name:?`, consequences, confirmLabel: $localize`Start game` });
     if (!ok) return;
-    const updated = await this.setStatus('live', 'start', 'Game started');
+    const updated = await this.setStatus('live', 'start', $localize`Game started`);
     if (updated) void this.router.navigate(['/gm/events', e.id, 'control']);
   }
 
@@ -275,30 +286,30 @@ export class LobbyGmControls {
     const e = this.event();
     const iso = fromLocalInput(this.delayForm.controls.start.value);
     if (!iso) {
-      this.delayError.set('Choose the new start time.');
+      this.delayError.set($localize`Choose the new start time.`);
       return;
     }
     const newStart = new Date(iso).getTime();
     const oldStart = new Date(e.startAt).getTime();
     if (newStart <= Date.now()) {
-      this.delayError.set('The new start must be in the future.');
+      this.delayError.set($localize`The new start must be in the future.`);
       return;
     }
     if (newStart <= oldStart) {
-      this.delayError.set(`Pick a time after the current start (${formatTime(e.startAt)}).`);
+      this.delayError.set($localize`Pick a time after the current start (${formatTime(e.startAt)}:startAt:).`);
       return;
     }
     this.delayError.set(null);
     const delta = newStart - oldStart;
     const newEnd = new Date(new Date(e.endAt).getTime() + delta).toISOString();
     const ok = await this.confirm.ask({
-      title: 'Delay the start?',
+      title: $localize`Delay the start?`,
       consequences: [
-        `Start moves from ${formatDateTime(e.startAt)} to ${formatDateTime(iso)} (${formatDuration(delta)} later).`,
-        `End moves to ${formatDateTime(newEnd)}.`,
-        'Everyone in the event gets an announcement.',
+        $localize`Start moves from ${formatDateTime(e.startAt)}:startAt: to ${formatDateTime(iso)}:iso: (${formatDuration(delta)}:delta: later).`,
+        $localize`End moves to ${formatDateTime(newEnd)}:newEnd:.`,
+        $localize`Everyone in the event gets an announcement.`,
       ],
-      confirmLabel: 'Delay start',
+      confirmLabel: $localize`Delay start`,
     });
     if (!ok) return;
     this.busy.set('delay');
@@ -309,14 +320,14 @@ export class LobbyGmControls {
       try {
         const a = await this.api.sendAnnouncement(e.id, {
           scope: 'all',
-          title: 'Start delayed',
-          body: `The game now starts at ${formatTime(iso)} (${formatDuration(delta)} later). Planned end: ${formatTime(newEnd)}.`,
+          title: $localize`Start delayed`,
+          body: $localize`The game now starts at ${formatTime(iso)}:iso: (${formatDuration(delta)}:delta: later). Planned end: ${formatTime(newEnd)}:newEnd:.`,
           priority: 'high',
         });
         this.announcementSent.emit(a);
-        this.toast.success('Start delayed', 'Players were notified.');
+        this.toast.success($localize`Start delayed`, $localize`Players were notified.`);
       } catch {
-        this.toast.warning('Start delayed, but the announcement failed', 'Send one yourself so players know.');
+        this.toast.warning($localize`Start delayed, but the announcement failed`, $localize`Send one yourself so players know.`);
       }
     } catch (err) {
       const ae = ApiError.from(err);
@@ -331,16 +342,16 @@ export class LobbyGmControls {
     const lock = !e.registrationLocked;
     if (lock) {
       const ok = await this.confirm.ask({
-        title: 'Lock registration?',
-        consequences: ['New players cannot join or request to join.', 'Pending requests can still be approved.', 'You can unlock it again at any time.'],
-        confirmLabel: 'Lock registration',
+        title: $localize`Lock registration?`,
+        consequences: [$localize`New players cannot join or request to join.`, $localize`Pending requests can still be approved.`, $localize`You can unlock it again at any time.`],
+        confirmLabel: $localize`Lock registration`,
       });
       if (!ok) return;
     }
     this.busy.set('lock');
     try {
       this.eventChange.emit(await this.api.updateEvent(e.id, { registrationLocked: lock }));
-      this.toast.success(lock ? 'Registration locked' : 'Registration open');
+      this.toast.success(lock ? $localize`Registration locked` : $localize`Registration open`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -351,22 +362,22 @@ export class LobbyGmControls {
   protected async cancelEvent(): Promise<void> {
     const e = this.event();
     const reason = await this.confirm.askReason({
-      title: `Cancel ${e.name}?`,
+      title: $localize`Cancel ${e.name}:name:?`,
       consequences: [
-        `${this.players().length} registered players and ${this.pending().length} pending requests are notified with your reason.`,
-        'The event cannot be started any more.',
-        'No location is tracked.',
+        $localize`${this.players().length}:length: registered players and ${this.pending().length}:length2: pending requests are notified with your reason.`,
+        $localize`The event cannot be started any more.`,
+        $localize`No location is tracked.`,
       ],
-      reason: { label: 'Reason shown to players', required: true, placeholder: 'e.g. Storm warning for the field' },
-      confirmLabel: 'Cancel event',
-      cancelLabel: 'Keep event',
+      reason: { label: $localize`Reason shown to players`, required: true, placeholder: $localize`e.g. Storm warning for the field` },
+      confirmLabel: $localize`Cancel event`,
+      cancelLabel: $localize`Keep event`,
       destructive: true,
     });
     if (reason === null) return;
     this.busy.set('cancel');
     try {
       this.eventChange.emit(await this.api.setEventStatus(e.id, 'cancelled', reason));
-      this.toast.info('Event cancelled');
+      this.toast.info($localize`Event cancelled`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -377,9 +388,9 @@ export class LobbyGmControls {
   protected async review(m: Member, approve: boolean): Promise<void> {
     if (!approve) {
       const ok = await this.confirm.ask({
-        title: `Reject ${m.nickname}?`,
-        consequences: [`${m.nickname} is notified that the request was declined.`, 'They cannot join unless you invite them later.'],
-        confirmLabel: 'Reject request',
+        title: $localize`Reject ${m.nickname}:nickname:?`,
+        consequences: [$localize`${m.nickname}:nickname: is notified that the request was declined.`, $localize`They cannot join unless you invite them later.`],
+        confirmLabel: $localize`Reject request`,
         destructive: true,
       });
       if (!ok) return;
@@ -387,7 +398,7 @@ export class LobbyGmControls {
     this.reviewing.set(m.userId);
     try {
       await this.api.reviewMember(this.event().id, m.userId, approve);
-      this.toast.success(approve ? `${m.nickname} approved` : `${m.nickname} rejected`);
+      this.toast.success(approve ? $localize`${m.nickname}:nickname: approved` : $localize`${m.nickname}:nickname: rejected`);
       this.membersChanged.emit();
     } catch (err) {
       this.toast.error(err);
@@ -399,20 +410,20 @@ export class LobbyGmControls {
   protected async announce(): Promise<void> {
     const v = this.announceForm.getRawValue();
     const errors: Record<string, string> = {};
-    if (!v.title.trim()) errors['title'] = 'Enter a title.';
-    if (v.scope === 'team' && !v.teamId) errors['teamId'] = 'Choose the team.';
+    if (!v.title.trim()) errors['title'] = $localize`Enter a title.`;
+    if (v.scope === 'team' && !v.teamId) errors['teamId'] = $localize`Choose the team.`;
     this.announceErrors.set(errors);
     if (Object.keys(errors).length) return;
 
     const team = this.event().teams.find((t) => t.id === v.teamId);
     if (v.priority === 'emergency') {
       const ok = await this.confirm.ask({
-        title: 'Send an emergency message?',
+        title: $localize`Send an emergency message?`,
         consequences: [
-          v.scope === 'team' ? `Every phone in ${team?.name} sounds an alert.` : 'Every phone in the event sounds an alert.',
-          'Use emergency only for safety: injuries, stop of play, evacuation.',
+          v.scope === 'team' ? $localize`Every phone in ${team?.name}:name: sounds an alert.` : $localize`Every phone in the event sounds an alert.`,
+          $localize`Use emergency only for safety: injuries, stop of play, evacuation.`,
         ],
-        confirmLabel: 'Send emergency',
+        confirmLabel: $localize`Send emergency`,
         destructive: true,
       });
       if (!ok) return;
@@ -429,7 +440,7 @@ export class LobbyGmControls {
       const a = await this.api.sendAnnouncement(this.event().id, body);
       this.announcementSent.emit(a);
       this.announceForm.reset({ title: '', body: '', priority: 'normal', scope: 'all', teamId: '' });
-      this.toast.success(v.scope === 'team' ? `Sent to ${team?.name}` : 'Announcement sent');
+      this.toast.success(v.scope === 'team' ? $localize`Sent to ${team?.name}:name:` : $localize`Announcement sent`);
     } catch (err) {
       const ae = ApiError.from(err);
       if (Object.keys(ae.fields).length) this.announceErrors.set(ae.fields);

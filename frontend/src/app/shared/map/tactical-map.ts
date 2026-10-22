@@ -107,35 +107,35 @@ const M_PER_DEG_LNG_EQ = 111_320;
         <div class="pointer-events-none absolute bottom-2 left-2 flex items-center gap-2 rounded-sm bg-hud px-2 py-1 text-xs text-muted-foreground">
           <span class="inline-block h-1 border-x border-b border-current" [style.width.px]="gridPx()"></span>
           <span class="num">{{ gridMeters() }} m</span>
-          <span class="hidden sm:inline">· Schematic view{{ mapsState() === 'unavailable' ? ' (map tiles unavailable)' : '' }}</span>
+          <span class="hidden sm:inline" i18n>· Schematic view{{ mapsState() === 'unavailable' ? txt.mapTilesUnavailable : '' }}</span>
         </div>
       </div>
     }
 
     @if (renderer() === 'loading') {
-      <div class="absolute inset-0 grid place-items-center text-sm text-muted-foreground" role="status">Loading map…</div>
+      <div class="absolute inset-0 grid place-items-center text-sm text-muted-foreground" role="status" i18n>Loading map…</div>
     }
 
     <div class="absolute right-2 top-2 z-[1] flex flex-col gap-1.5" [class.!top-auto]="controlsBottom()" [class.!bottom-24]="controlsBottom()">
       @if (renderer() === 'schematic') {
-        <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1.4)" aria-label="Zoom in">
+        <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1.4)" aria-label="Zoom in" i18n-aria-label>
           <ng-icon name="lucidePlus" size="18" aria-hidden="true" />
         </button>
-        <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1 / 1.4)" aria-label="Zoom out">
+        <button type="button" class="hud grid size-11 place-items-center" (click)="zoomBy(1 / 1.4)" aria-label="Zoom out" i18n-aria-label>
           <ng-icon name="lucideMinus" size="18" aria-hidden="true" />
         </button>
       }
-      <button type="button" class="hud grid size-11 place-items-center" (click)="fitAll()" aria-label="Show the whole area">
+      <button type="button" class="hud grid size-11 place-items-center" (click)="fitAll()" aria-label="Show the whole area" i18n-aria-label>
         <ng-icon name="lucideMaximize2" size="18" aria-hidden="true" />
       </button>
       @if (self()) {
-        <button type="button" class="hud grid size-11 place-items-center text-nav" (click)="centerOnSelf()" aria-label="Center on my position">
+        <button type="button" class="hud grid size-11 place-items-center text-nav" (click)="centerOnSelf()" aria-label="Center on my position" i18n-aria-label>
           <ng-icon name="lucideLocateFixed" size="18" aria-hidden="true" />
         </button>
       }
       @if (allowRendererToggle() && mapsState() === 'ready') {
         <button type="button" class="hud grid size-11 place-items-center" (click)="toggleRenderer()"
-          [attr.aria-label]="renderer() === 'google' ? 'Switch to schematic view' : 'Switch to satellite map'">
+          [attr.aria-label]="renderer() === 'google' ? txt.switchToSchematicView : txt.switchToSatelliteMap">
           <ng-icon [name]="renderer() === 'google' ? 'lucideLayers' : 'lucideMap'" size="18" aria-hidden="true" />
         </button>
       }
@@ -144,6 +144,13 @@ const M_PER_DEG_LNG_EQ = 111_320;
   `,
 })
 export class TacticalMap {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    mapTilesUnavailable: $localize` (map tiles unavailable)`,
+    switchToSchematicView: $localize`Switch to schematic view`,
+    switchToSatelliteMap: $localize`Switch to satellite map`,
+  };
+
   private readonly loader = inject(MapsLoaderService);
   private readonly theme = inject(ThemeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -219,8 +226,8 @@ export class TacticalMap {
 
   protected readonly ariaLabel = computed(
     () =>
-      `Tactical map: ${this.objectives().length} objectives, ${this.positions().length} players visible` +
-      (this.renderer() === 'schematic' ? ', schematic view' : ''),
+      $localize`Tactical map: ${this.objectives().length}:length: objectives, ${this.positions().length}:length2: players visible` +
+      (this.renderer() === 'schematic' ? $localize`, schematic view` : ''),
   );
 
   constructor() {

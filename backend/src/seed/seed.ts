@@ -10,7 +10,7 @@
 import { hashPassword } from '../auth/password.js';
 import { one, pool, tx } from '../db.js';
 import { eventContext } from '../domain/context.js';
-import { DEFAULT_PERKS, DEFAULT_SCORING, DEFAULT_TRACKING, DEFAULT_VISIBILITY } from '../domain/defaults.js';
+import { defaultPerks, DEFAULT_SCORING, DEFAULT_TRACKING, DEFAULT_VISIBILITY } from '../domain/defaults.js';
 import { transition } from '../domain/lifecycle.js';
 import { performCapture } from '../domain/objectives.js';
 import { offset } from '../lib/geo.js';
@@ -241,7 +241,7 @@ async function createEvent(gmId: string, o: { name: string; status: string; star
     objectives.push(o!.id);
   }
   await pool.query('UPDATE objectives SET prerequisite_ids = $2 WHERE id = $1', [objectives[4], [objectives[0], objectives[3]]]);
-  for (const [i, p] of DEFAULT_PERKS.entries()) {
+  for (const [i, p] of defaultPerks().entries()) {
     await pool.query(
       `INSERT INTO perks (event_id, name, description, icon, type, price, duration_sec, cooldown_sec, target, requires_approval, eligible, config, sort_order)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,

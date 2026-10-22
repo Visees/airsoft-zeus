@@ -1,5 +1,6 @@
 import { many, type Tx } from '../db.js';
 import { sendPush } from '../push.js';
+import { type Lang, type Msg, render, renderAll, toLang } from '../i18n/index.js';
 import { hub } from '../realtime/hub.js';
 import * as dto from './serialize.js';
 
@@ -10,7 +11,7 @@ import * as dto from './serialize.js';
 
 export interface ActivityInput {
   type: string;
-  message: string;
+  message: Msg;
   scope?: 'all' | 'team' | 'gm';
   teamId?: string | null;
   userId?: string | null;
@@ -23,7 +24,7 @@ export async function activity(t: Tx, eventId: string, a: ActivityInput): Promis
   const { rows } = await t.query(
     `INSERT INTO activity (event_id, type, message, scope, team_id, user_id, objective_id, data)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [eventId, a.type, a.message, scope, a.teamId ?? null, a.userId ?? null, a.objectiveId ?? null, JSON.stringify(a.data ?? {})],
+    [eventId, a.type, render(a.message, 'en'), scope, a.teamId ?? null, a.userId ?? null, a.objectiveId ?? null, JSON.stringify(withMessages(a.data, a.message))],
   );
   const item = dto.activity(rows[0]);
   t.afterCommit(() => {
@@ -37,7 +38,7 @@ export interface AlertInput {
   type: 'gps_suspicious' | 'disconnected' | 'capture' | 'purchase_request' | 'perk_fulfil' | 'emergency' | 'capture_failed';
   severity?: 'info' | 'warning' | 'critical';
   userId?: string | null;
-  message: string;
+  message: Msg;
   data?: Record<string, unknown>;
   /** At most one unacknowledged alert per key. */
   dedupeKey?: string;
@@ -49,7 +50,7 @@ export async function alert(t: Tx, eventId: string, a: AlertInput): Promise<void
      VALUES ($1,$2,$3,$4,$5,$6,$7)
      ON CONFLICT (event_id, dedupe_key) WHERE dedupe_key IS NOT NULL AND acknowledged_at IS NULL DO NOTHING
      RETURNING *, (SELECT nickname FROM users WHERE id = $4) AS nickname`,
-    [eventId, a.type, a.severity ?? 'info', a.userId ?? null, a.message, JSON.stringify(a.data ?? {}), a.dedupeKey ?? null],
+    [eventId, a.type, a.severity ?? 'info', a.userId ?? null, render(a.message, 'en'), JSON.stringify(withMessages(a.data, a.message)), a.dedupeKey ?? null],
   );
   if (!rows[0]) return;
   const item = dto.alert(rows[0]);
@@ -82,8 +83,9 @@ export async function audit(
 
 export interface NotifyInput {
   type: string;
-  title: string;
-  body?: string;
+  /** Rendered in each recipient's language. */
+  title: Msg;
+  body?: Msg;
   priority?: 'normal' | 'high' | 'emergency';
   eventId?: string | null;
   data?: Record<string, unknown>;
@@ -95,21 +97,40 @@ export interface NotifyInput {
 export async function notify(t: Tx, userIds: string[], n: NotifyInput): Promise<void> {
   const ids = [...new Set(userIds.filter(Boolean))];
   if (!ids.length) return;
-  const { rows } = await t.query(
-    `INSERT INTO notifications (user_id, type, title, body, priority, event_id, data)
-     SELECT u, $2, $3, $4, $5, $6, $7 FROM unnest($1::uuid[]) AS u
-     RETURNING *`,
-    [ids, n.type, n.title, n.body ?? '', n.priority ?? 'normal', n.eventId ?? null, JSON.stringify(n.data ?? {})],
-  );
-  t.afterCommit(async () => {
-    for (const r of rows) hub.toUser(r.user_id, 'notification', dto.notification(r));
-    if (n.push !== false) {
-      const url = n.url ?? (n.eventId ? `/events/${n.eventId}` : '/notifications');
-      // Push only to users without an open app connection; connected users get the socket toast.
-      const offline = ids.filter((id) => !hub.isOnline(id) || n.priority === 'emergency');
-      void sendPush(offline, { title: n.title, body: n.body ?? '', url, priority: n.priority ?? 'normal', tag: n.type });
+  // One insert per language, so every recipient reads it in their own.
+  const byLang = new Map<Lang, string[]>();
+  if (typeof n.title === 'string' && typeof (n.body ?? '') === 'string') byLang.set('en', ids);
+  else {
+    const users = await many<{ id: string; language: string }>('SELECT id, language FROM users WHERE id = ANY($1::uuid[])', [ids], t);
+    for (const u of users) {
+      const lang = toLang(u.language);
+      byLang.set(lang, [...(byLang.get(lang) ?? []), u.id]);
     }
-  });
+  }
+  for (const [lang, group] of byLang) {
+    const title = render(n.title, lang);
+    const body = render(n.body ?? '', lang);
+    const { rows } = await t.query(
+      `INSERT INTO notifications (user_id, type, title, body, priority, event_id, data)
+       SELECT u, $2, $3, $4, $5, $6, $7 FROM unnest($1::uuid[]) AS u
+       RETURNING *`,
+      [group, n.type, title, body, n.priority ?? 'normal', n.eventId ?? null, JSON.stringify(n.data ?? {})],
+    );
+    t.afterCommit(async () => {
+      for (const r of rows) hub.toUser(r.user_id, 'notification', dto.notification(r));
+      if (n.push !== false) {
+        const url = n.url ?? (n.eventId ? `/events/${n.eventId}` : '/notifications');
+        // Push only to users without an open app connection; connected users get the socket toast.
+        const offline = group.filter((id) => !hub.isOnline(id) || n.priority === 'emergency');
+        void sendPush(offline, { title, body, url, priority: n.priority ?? 'normal', tag: n.type });
+      }
+    });
+  }
+}
+
+/** Stores every language of a system message next to the English text (`data.messages`). */
+function withMessages(data: Record<string, unknown> | undefined, message: Msg): Record<string, unknown> {
+  return typeof message === 'string' ? (data ?? {}) : { ...data, messages: renderAll(message) };
 }
 
 /** Ids of who plays in an event (players and GMs on a team), optionally limited to a team. */

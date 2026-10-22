@@ -92,8 +92,8 @@ export class CaptureAttempt {
 
 /** User-facing text for a capture failure. */
 export function captureErrorMessage(err: ApiError): string {
-  if (err.isNetwork) return 'No connection — the capture was NOT confirmed. Try again when you have signal; it will not be counted twice.';
-  if (err.status >= 500) return 'The server did not confirm the capture. Try again; it will not be counted twice.';
-  if (err.status === 429) return err.message || 'Too many attempts. Wait a moment before trying again.';
+  if (err.isNetwork) return $localize`No connection — the capture was NOT confirmed. Try again when you have signal; it will not be counted twice.`;
+  if (err.status >= 500) return $localize`The server did not confirm the capture. Try again; it will not be counted twice.`;
+  if (err.status === 429) return err.message || $localize`Too many attempts. Wait a moment before trying again.`;
   return err.message;
 }

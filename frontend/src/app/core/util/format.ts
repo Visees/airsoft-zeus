@@ -12,37 +12,38 @@ import {
   PurchaseStatus,
   ZoneKind,
 } from '../api/models';
+import { activeLocale } from '../i18n/language';
 
 export const GAME_MODE_LABELS: Record<GameMode, string> = {
-  sunday: 'Sunday game',
-  milsim: 'Milsim',
-  scenario: 'Scenario event',
-  championship: 'Championship',
-  plr: 'PLR',
-  pcr: 'PCR',
-  custom: 'Custom',
+  sunday: $localize`Sunday game`,
+  milsim: $localize`Milsim`,
+  scenario: $localize`Scenario event`,
+  championship: $localize`Championship`,
+  plr: $localize`PLR`,
+  pcr: $localize`PCR`,
+  custom: $localize`:game mode|:Custom`,
 };
 
 export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
-  draft: 'Draft',
-  published: 'Published',
-  registration_open: 'Registration open',
-  lobby: 'Lobby',
-  live: 'Live',
-  paused: 'Paused',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+  draft: $localize`Draft`,
+  published: $localize`:event status|:Published`,
+  registration_open: $localize`Registration open`,
+  lobby: $localize`Lobby`,
+  live: $localize`:event status|:Live`,
+  paused: $localize`:event status|:Paused`,
+  completed: $localize`:event status|:Completed`,
+  cancelled: $localize`:event status|:Cancelled`,
 };
 
 export const PLAYER_ROLE_LABELS: Record<PlayerRole, string> = {
-  rifleman: 'Rifleman',
-  medic: 'Medic',
-  support_gunner: 'Support gunner',
-  sniper: 'Sniper',
-  scout: 'Scout',
-  squad_leader: 'Squad leader',
-  radio_operator: 'Radio operator',
-  custom: 'Custom role',
+  rifleman: $localize`Rifleman`,
+  medic: $localize`Medic`,
+  support_gunner: $localize`Support gunner`,
+  sniper: $localize`Sniper`,
+  scout: $localize`Scout`,
+  squad_leader: $localize`Squad leader`,
+  radio_operator: $localize`Radio operator`,
+  custom: $localize`Custom role`,
 };
 
 /** Short tags used on map markers and dense lists. */
@@ -58,13 +59,13 @@ export const PLAYER_ROLE_TAGS: Record<PlayerRole, string> = {
 };
 
 export const OBJECTIVE_STATUS_LABELS: Record<ObjectiveStatus, string> = {
-  inactive: 'Not yet available',
-  active: 'Available',
-  locked: 'Locked',
-  contested: 'Contested',
-  captured: 'Captured',
-  disabled: 'Disabled',
-  completed: 'Completed',
+  inactive: $localize`Not yet available`,
+  active: $localize`Available`,
+  locked: $localize`:objective status|:Locked`,
+  contested: $localize`:objective status|:Contested`,
+  captured: $localize`:objective status|:Captured`,
+  disabled: $localize`:objective status|:Disabled`,
+  completed: $localize`:objective status|:Completed`,
 };
 
 /** Shape glyphs so status never depends on colour alone. */
@@ -79,104 +80,104 @@ export const OBJECTIVE_STATUS_GLYPHS: Record<ObjectiveStatus, string> = {
 };
 
 export const OBJECTIVE_TYPE_LABELS: Record<ObjectiveType, string> = {
-  domination: 'Domination',
-  ctf: 'Capture the flag',
-  vip: 'VIP',
-  search_destroy: 'Search and destroy',
-  bomb_defusal: 'Bomb defusal',
-  attack_defense: 'Attack and defend',
-  recon: 'Recon',
-  intel: 'Intel gathering',
-  custom: 'Custom',
+  domination: $localize`Domination`,
+  ctf: $localize`Capture the flag`,
+  vip: $localize`VIP`,
+  search_destroy: $localize`Search and destroy`,
+  bomb_defusal: $localize`Bomb defusal`,
+  attack_defense: $localize`Attack and defend`,
+  recon: $localize`:objective type|:Recon`,
+  intel: $localize`Intel gathering`,
+  custom: $localize`:objective type|:Custom`,
 };
 
 export const BLOCK_REASON_LABELS: Record<CaptureBlockReason, string> = {
-  not_live: 'The game is not running',
-  no_team: 'You are not assigned to a team',
-  disabled: 'Disabled by the Game Master',
-  completed: 'No captures left',
-  locked: 'Capture the prerequisite objectives first',
-  inactive: 'Outside its availability window',
-  contested: 'Contested — clear the zone first',
-  already_owned: 'Your team already holds it',
-  team_not_allowed: 'Your team cannot capture this objective',
-  cooldown: 'Cooling down after the last capture',
-  jammed: 'Jammed for your team',
-  shielded: 'Shielded by another team',
-  geofence_required: 'Hold the zone first, then enter the code',
+  not_live: $localize`The game is not running`,
+  no_team: $localize`You are not assigned to a team`,
+  disabled: $localize`Disabled by the Game Master`,
+  completed: $localize`No captures left`,
+  locked: $localize`Capture the prerequisite objectives first`,
+  inactive: $localize`Outside its availability window`,
+  contested: $localize`Contested — clear the zone first`,
+  already_owned: $localize`Your team already holds it`,
+  team_not_allowed: $localize`Your team cannot capture this objective`,
+  cooldown: $localize`Cooling down after the last capture`,
+  jammed: $localize`Jammed for your team`,
+  shielded: $localize`Shielded by another team`,
+  geofence_required: $localize`Hold the zone first, then enter the code`,
 };
 
 export const POI_TYPE_LABELS: Record<PoiType, string> = {
-  ammo: 'Ammunition point',
-  medic: 'Medic station',
-  respawn: 'Respawn point',
-  safe_zone: 'Safe zone',
-  team_base: 'Team base',
-  vehicle: 'Vehicle',
-  supply: 'Supply cache',
-  extraction: 'Extraction point',
-  restricted: 'Restricted area',
-  custom: 'Custom point',
+  ammo: $localize`Ammunition point`,
+  medic: $localize`Medic station`,
+  respawn: $localize`Respawn point`,
+  safe_zone: $localize`Safe zone`,
+  team_base: $localize`Team base`,
+  vehicle: $localize`Vehicle`,
+  supply: $localize`Supply cache`,
+  extraction: $localize`Extraction point`,
+  restricted: $localize`Restricted area`,
+  custom: $localize`Custom point`,
 };
 
 export const ZONE_KIND_LABELS: Record<ZoneKind, string> = {
-  playable: 'Playable area',
-  restricted: 'Restricted area',
-  safe: 'Safe zone',
-  spawn: 'Spawn point',
-  respawn: 'Respawn area',
-  base: 'Team base',
-  extraction: 'Extraction zone',
-  route: 'Route',
-  line: 'Defensive line',
-  sector: 'Sector',
-  label: 'Label',
+  playable: $localize`Playable area`,
+  restricted: $localize`Restricted area`,
+  safe: $localize`Safe zone`,
+  spawn: $localize`Spawn point`,
+  respawn: $localize`Respawn area`,
+  base: $localize`Team base`,
+  extraction: $localize`Extraction zone`,
+  route: $localize`Route`,
+  line: $localize`Defensive line`,
+  sector: $localize`Sector`,
+  label: $localize`Label`,
 };
 
 export const PERK_TYPE_LABELS: Record<PerkType, string> = {
-  uav: 'UAV',
-  jammer: 'Objective jammer',
-  theft: 'Currency theft',
-  shield: 'Objective shield',
-  double_points: 'Double points',
-  recon: 'Recon scan',
-  instant_respawn: 'Instant respawn',
-  supply_drop: 'Supply drop',
-  comms_jammer: 'Comms jammer',
-  custom: 'Custom perk',
+  uav: $localize`UAV`,
+  jammer: $localize`Objective jammer`,
+  theft: $localize`Currency theft`,
+  shield: $localize`Objective shield`,
+  double_points: $localize`Double points`,
+  recon: $localize`Recon scan`,
+  instant_respawn: $localize`Instant respawn`,
+  supply_drop: $localize`Supply drop`,
+  comms_jammer: $localize`Comms jammer`,
+  custom: $localize`Custom perk`,
 };
 
 export const PURCHASE_STATUS_LABELS: Record<PurchaseStatus, string> = {
-  pending_approval: 'Waiting for GM approval',
-  ready: 'Ready to activate',
-  active: 'Active',
-  completed: 'Done',
-  expired: 'Expired',
-  rejected: 'Rejected',
-  cancelled: 'Cancelled',
+  pending_approval: $localize`Waiting for GM approval`,
+  ready: $localize`Ready to activate`,
+  active: $localize`:perk purchase status|:Active`,
+  completed: $localize`:perk purchase status|:Done`,
+  expired: $localize`:perk purchase status|:Expired`,
+  rejected: $localize`:perk purchase status|:Rejected`,
+  cancelled: $localize`:perk purchase status|:Cancelled`,
 };
 
 export const PRECISION_LABELS: Record<Precision, string> = {
-  exact: 'Exact',
-  approximate: 'Approximate',
-  delayed: 'Delayed',
-  area: 'Area only',
+  exact: $localize`:location precision|:Exact`,
+  approximate: $localize`:location precision|:Approximate`,
+  delayed: $localize`:location precision|:Delayed`,
+  area: $localize`Area only`,
 };
 
 export const LEDGER_TYPE_LABELS: Record<LedgerType, string> = {
-  starting_balance: 'Starting balance',
-  capture: 'Capture',
-  capture_bonus: 'First capture bonus',
-  recurring: 'Holding objective',
-  defense_bonus: 'Defense bonus',
-  completion_bonus: 'Completion bonus',
-  gm_adjustment: 'GM adjustment',
-  penalty: 'Penalty',
-  perk_purchase: 'Perk purchase',
-  perk_refund: 'Perk refund',
-  theft_in: 'Stolen from enemy',
-  theft_out: 'Stolen by enemy',
-  capture_revoked: 'Capture revoked',
+  starting_balance: $localize`Starting balance`,
+  capture: $localize`:ledger entry|:Capture`,
+  capture_bonus: $localize`First capture bonus`,
+  recurring: $localize`Holding objective`,
+  defense_bonus: $localize`Defense bonus`,
+  completion_bonus: $localize`Completion bonus`,
+  gm_adjustment: $localize`GM adjustment`,
+  penalty: $localize`Penalty`,
+  perk_purchase: $localize`Perk purchase`,
+  perk_refund: $localize`Perk refund`,
+  theft_in: $localize`Stolen from enemy`,
+  theft_out: $localize`Stolen by enemy`,
+  capture_revoked: $localize`Capture revoked`,
 };
 
 /** 1h 05m · 4m 09s · 12s */
@@ -204,18 +205,34 @@ export function formatClock(ms: number): string {
 export function formatDistance(m: number | null | undefined): string {
   if (m === null || m === undefined || !isFinite(m)) return '—';
   if (m < 1000) return `${Math.round(m)} m`;
-  return `${(m / 1000).toFixed(m < 10_000 ? 2 : 1)} km`;
+  return `${formatDecimal(m / 1000, m < 10_000 ? 2 : 1)} km`;
 }
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+  return `${formatDecimal(bytes / (1024 * 1024), bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+}
+
+/** "1 player", "5 players", "5 of 8 players". */
+export function formatPlayerCount(count: number, capacity?: number | null): string {
+  if (capacity) return $localize`${count}:count: of ${capacity}:capacity: players`;
+  return count === 1 ? $localize`1 player` : $localize`${count}:count: players`;
+}
+
+/** "A, B and C" in the UI language. */
+export function formatList(items: string[]): string {
+  return new Intl.ListFormat(activeLocale(), { type: 'conjunction' }).format(items);
+}
+
+/** Fixed decimals with the UI language's separator (1.25 / 1,25). */
+export function formatDecimal(n: number, digits: number): string {
+  return new Intl.NumberFormat(activeLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false }).format(n);
 }
 
 export function formatNumber(n: number | null | undefined): string {
   if (n === null || n === undefined) return '—';
-  return new Intl.NumberFormat(undefined).format(n);
+  return new Intl.NumberFormat(activeLocale()).format(n);
 }
 
 export function formatSigned(n: number): string {
@@ -224,17 +241,17 @@ export function formatSigned(n: number): string {
 
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+  return new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
 }
 
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
+  return new Intl.DateTimeFormat(activeLocale(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 }
 
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+  return new Intl.DateTimeFormat(activeLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 }
 
 /** "3 min ago", "in 2 h" */
@@ -242,8 +259,8 @@ export function formatRelative(iso: string | null | undefined, now = Date.now())
   if (!iso) return '—';
   const diff = new Date(iso).getTime() - now;
   const abs = Math.abs(diff);
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'short' });
-  if (abs < 45_000) return diff < 0 ? 'just now' : 'in a moment';
+  const rtf = new Intl.RelativeTimeFormat(activeLocale(), { numeric: 'auto', style: 'short' });
+  if (abs < 45_000) return diff < 0 ? $localize`just now` : $localize`in a moment`;
   if (abs < 3_600_000) return rtf.format(Math.round(diff / 60_000), 'minute');
   if (abs < 86_400_000) return rtf.format(Math.round(diff / 3_600_000), 'hour');
   return rtf.format(Math.round(diff / 86_400_000), 'day');

@@ -23,7 +23,7 @@ import { ApiError } from '../core/api/api-error';
         </div>
       }
     </div>
-    <span class="sr-only">Loading…</span>
+    <span class="sr-only" i18n>Loading…</span>
   `,
 })
 export class LoadingSkeleton {
@@ -67,13 +67,13 @@ export class EmptyState {
     <div class="flex flex-col items-center gap-3 rounded-md border border-destructive/40 bg-destructive/5 px-6 py-8 text-center">
       <ng-icon [name]="isNetwork() ? 'lucideWifiOff' : 'lucideTriangleAlert'" size="28" class="text-destructive" aria-hidden="true" />
       <div>
-        <p class="font-semibold">{{ title() || (isNetwork() ? 'You are offline' : 'Could not load this') }}</p>
+        <p class="font-semibold">{{ title() || (isNetwork() ? txt.youAreOffline : txt.couldNotLoadThis) }}</p>
         <p class="mt-1 max-w-prose text-sm text-muted-foreground">{{ message() }}</p>
       </div>
       <div class="flex flex-wrap justify-center gap-2">
         @if (showRetry()) {
           <button hlmBtn variant="outline" class="tap" type="button" (click)="retry.emit()">
-            <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> Try again
+            <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> <ng-container i18n>Try again</ng-container>
           </button>
         }
         <ng-content />
@@ -82,6 +82,12 @@ export class EmptyState {
   `,
 })
 export class ErrorState {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    youAreOffline: $localize`You are offline`,
+    couldNotLoadThis: $localize`Could not load this`,
+  };
+
   readonly error = input<unknown>(null);
   readonly title = input<string | null>(null);
   readonly showRetry = input(true);
@@ -120,5 +126,5 @@ export class PageHeader {
   readonly eyebrow = input<string | null>(null);
   /** Router URL for the back link. */
   readonly back = input<string | null>(null);
-  readonly backLabel = input('Back');
+  readonly backLabel = input($localize`Back`);
 }

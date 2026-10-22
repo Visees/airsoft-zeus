@@ -5,7 +5,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { Team, TeamInput, TeamPattern } from '../../../core/api/models';
 import { formatLatLng, parseLatLng } from '../../../core/util/geo';
-import { TEAM_COLORS, TEAM_ICONS, TEAM_PATTERNS, TeamBadge } from '../../../shared/team-badge';
+import { TEAM_COLORS, TEAM_ICONS, TEAM_PATTERNS, TEAM_PATTERN_LABELS, TeamBadge } from '../../../shared/team-badge';
 import { TeamSwatch } from '../../../shared/team-swatch';
 import { nextId } from './controls';
 import { controlError, formTick, integerValidator } from './form-utils';
@@ -24,7 +24,7 @@ export function nextTeamPreset(existing: Pick<Team, 'name' | 'color' | 'pattern'
   const n = existing.length;
   const usedColors = existing.map((t) => t.color.toUpperCase());
   return {
-    name: pick(TEAM_NAMES, existing.map((t) => t.name), n) ?? `Team ${n + 1}`,
+    name: pick(TEAM_NAMES, existing.map((t) => t.name), n) ?? $localize`Team ${n + 1}:n:`,
     color: TEAM_COLORS.find((c) => !usedColors.includes(c.toUpperCase())) ?? TEAM_COLORS[n % TEAM_COLORS.length],
     pattern: pick<TeamPattern>(
       TEAM_PATTERNS.filter((p) => p !== 'solid'),
@@ -71,18 +71,18 @@ export const MIN_TEAM_CONTRAST = 1.7;
 /** Team colours must stay visible as markers on light and dark surfaces. */
 export function teamColorValidator(c: AbstractControl): ValidationErrors | null {
   const v = String(c.value ?? '');
-  if (!HEX.test(v)) return { message: 'Use a hex colour like #3B82C4.' };
+  if (!HEX.test(v)) return { message: $localize`Use a hex colour like #3B82C4.` };
   const light = contrastRatio(v, SURFACES.light);
   const dark = contrastRatio(v, SURFACES.dark);
-  if (light < MIN_TEAM_CONTRAST) return { message: 'Too light: it disappears on the light theme. Pick a darker colour.' };
-  if (dark < MIN_TEAM_CONTRAST) return { message: 'Too dark: it disappears on the dark theme. Pick a lighter colour.' };
+  if (light < MIN_TEAM_CONTRAST) return { message: $localize`Too light: it disappears on the light theme. Pick a darker colour.` };
+  if (dark < MIN_TEAM_CONTRAST) return { message: $localize`Too dark: it disappears on the dark theme. Pick a lighter colour.` };
   return null;
 }
 
 function coordsValidator(c: AbstractControl): ValidationErrors | null {
   const v = String(c.value ?? '').trim();
   if (!v) return null;
-  return parseLatLng(v) ? null : { message: 'Use "latitude, longitude".' };
+  return parseLatLng(v) ? null : { message: $localize`Use "latitude, longitude".` };
 }
 
 // --- form ---------------------------------------------------------------------------
@@ -155,36 +155,36 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
     @let f = form();
     <div [formGroup]="f" class="flex flex-col gap-4" [attr.data-rev]="tick()">
       <div class="flex items-center gap-2 rounded-sm border border-border bg-muted px-3 py-2" aria-live="polite">
-        <span class="label-caps">Preview</span>
+        <span class="label-caps" i18n>Preview</span>
         <zeus-team-badge [team]="preview()" size="lg" />
       </div>
 
       <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel [for]="id + '-name'">Team name</label>
+          <label hlmLabel [for]="id + '-name'" i18n>Team name</label>
           <input hlmInput [id]="id + '-name'" class="h-11" formControlName="name" autocomplete="off" [attr.aria-invalid]="!!err('name')" />
           @if (err('name'); as e) {
             <p class="field-error">{{ e }}</p>
           }
         </div>
         <div class="flex flex-col gap-1.5">
-          <label hlmLabel [for]="id + '-cap'">Capacity</label>
+          <label hlmLabel [for]="id + '-cap'" i18n>Capacity</label>
           <input hlmInput [id]="id + '-cap'" type="number" min="0" inputmode="numeric" class="num h-11" formControlName="capacity" [attr.aria-describedby]="id + '-cap-h'" [attr.aria-invalid]="!!err('capacity')" />
           @if (err('capacity'); as e) {
             <p class="field-error">{{ e }}</p>
           } @else {
-            <p [id]="id + '-cap-h'" class="text-xs text-muted-foreground">0 = unlimited</p>
+            <p [id]="id + '-cap-h'" class="text-xs text-muted-foreground" i18n>0 = unlimited</p>
           }
         </div>
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <span hlmLabel [id]="id + '-col-l'">Colour</span>
+        <span hlmLabel [id]="id + '-col-l'" i18n>Colour</span>
         <div role="radiogroup" [attr.aria-labelledby]="id + '-col-l'" class="flex flex-wrap gap-1.5">
           @for (c of colors; track c) {
             <label class="relative grid size-11 cursor-pointer place-items-center rounded-sm border-2 has-focus-visible:ring-2 has-focus-visible:ring-ring"
               [class]="isColor(c) ? 'border-foreground' : 'border-transparent'">
-              <input type="radio" class="sr-only" [name]="id + '-color'" [checked]="isColor(c)" (change)="setColor(c)" [attr.aria-label]="'Colour ' + c" />
+              <input type="radio" class="sr-only" [name]="id + '-color'" [checked]="isColor(c)" (change)="setColor(c)" aria-label="Colour {{ c }}" i18n-aria-label />
               <span class="size-8 rounded-sm" [style.background]="c" aria-hidden="true"></span>
               @if (isColor(c)) {
                 <span class="absolute inset-0 grid place-items-center text-sm font-bold text-white [text-shadow:0_0_3px_#000]" aria-hidden="true">✓</span>
@@ -193,33 +193,33 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
           }
         </div>
         <div class="flex items-center gap-2">
-          <input type="color" class="h-11 w-14 shrink-0 cursor-pointer rounded-md border border-input bg-background p-1" [value]="f.controls.color.value" (input)="setColor($any($event.target).value)" [attr.aria-label]="'Pick a custom colour'" />
-          <label class="sr-only" [for]="id + '-hex'">Custom colour (hex)</label>
+          <input type="color" class="h-11 w-14 shrink-0 cursor-pointer rounded-md border border-input bg-background p-1" [value]="f.controls.color.value" (input)="setColor($any($event.target).value)" [attr.aria-label]="txt.pickACustomColour" />
+          <label class="sr-only" [for]="id + '-hex'" i18n>Custom colour (hex)</label>
           <input hlmInput [id]="id + '-hex'" class="num h-11 max-w-36 uppercase" formControlName="color" maxlength="7" placeholder="#3B82C4" [attr.aria-invalid]="!!colorError()" [attr.aria-describedby]="id + '-hex-e'" />
         </div>
         @if (colorError(); as e) {
           <p [id]="id + '-hex-e'" class="field-error">{{ e }}</p>
         } @else if (clash()) {
-          <p [id]="id + '-hex-e'" class="text-xs text-warning">◐ Same colour and pattern as {{ clash() }}. Change one so players can tell the teams apart.</p>
+          <p [id]="id + '-hex-e'" class="text-xs text-warning" i18n>◐ Same colour and pattern as {{ clash() }}. Change one so players can tell the teams apart.</p>
         }
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1.5">
-          <span hlmLabel [id]="id + '-pat-l'">Pattern</span>
+          <span hlmLabel [id]="id + '-pat-l'" i18n>Pattern</span>
           <div role="radiogroup" [attr.aria-labelledby]="id + '-pat-l'" class="flex flex-wrap gap-1.5">
             @for (p of patterns; track p) {
               <label class="flex h-11 cursor-pointer items-center gap-1.5 rounded-sm border px-2 text-xs capitalize has-focus-visible:ring-2 has-focus-visible:ring-ring"
                 [class]="f.controls.pattern.value === p ? 'border-primary bg-primary/10 font-semibold' : 'border-border'">
                 <input type="radio" class="sr-only" [name]="id + '-pattern'" [checked]="f.controls.pattern.value === p" (change)="setPattern(p)" />
                 <zeus-team-swatch [color]="f.controls.color.value" [pattern]="p" [size]="18" />
-                {{ p }}
+                {{ patternLabels[p] }}
               </label>
             }
           </div>
         </div>
         <div class="flex flex-col gap-1.5">
-          <span hlmLabel [id]="id + '-icon-l'">Icon</span>
+          <span hlmLabel [id]="id + '-icon-l'" i18n>Icon</span>
           <div role="radiogroup" [attr.aria-labelledby]="id + '-icon-l'" class="flex flex-wrap gap-1.5">
             @for (i of icons; track i.value) {
               <label class="grid size-11 cursor-pointer place-items-center rounded-sm border has-focus-visible:ring-2 has-focus-visible:ring-ring"
@@ -235,12 +235,12 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
       @if (advanced()) {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel [for]="id + '-ally'">Alliance (optional)</label>
-            <input hlmInput [id]="id + '-ally'" class="h-11" formControlName="allianceId" placeholder="north" autocomplete="off" [attr.aria-describedby]="id + '-ally-h'" />
-            <p [id]="id + '-ally-h'" class="text-xs text-muted-foreground">Teams with the same alliance name are allies (see "Team + allies" in map visibility).</p>
+            <label hlmLabel [for]="id + '-ally'" i18n>Alliance (optional)</label>
+            <input hlmInput [id]="id + '-ally'" class="h-11" formControlName="allianceId" placeholder="north" autocomplete="off" [attr.aria-describedby]="id + '-ally-h'" i18n-placeholder />
+            <p [id]="id + '-ally-h'" class="text-xs text-muted-foreground" i18n>Teams with the same alliance name are allies (see "Team + allies" in map visibility).</p>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel [for]="id + '-base'">Base location (optional)</label>
+            <label hlmLabel [for]="id + '-base'" i18n>Base location (optional)</label>
             <input hlmInput [id]="id + '-base'" class="num h-11" formControlName="baseCoords" inputmode="decimal" placeholder="45.4642, 9.1900" [attr.aria-invalid]="!!err('baseCoords')" />
             @if (err('baseCoords'); as e) {
               <p class="field-error">{{ e }}</p>
@@ -252,6 +252,11 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
   `,
 })
 export class TeamFieldsComponent {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    pickACustomColour: $localize`Pick a custom colour`,
+  };
+
   readonly form = input.required<TeamForm>();
   readonly advanced = input(false, { transform: booleanAttribute });
   /** Other teams, to warn about identical colour + pattern. */
@@ -261,6 +266,7 @@ export class TeamFieldsComponent {
   protected readonly id = nextId('team');
   protected readonly colors = TEAM_COLORS;
   protected readonly patterns = TEAM_PATTERNS;
+  protected readonly patternLabels = TEAM_PATTERN_LABELS;
   protected readonly icons = TEAM_ICONS;
 
   private readonly value = computed(() => {
@@ -269,7 +275,7 @@ export class TeamFieldsComponent {
   });
   protected readonly preview = computed(() => {
     const v = this.value();
-    return { name: v.name || 'Team name', color: HEX.test(v.color) ? v.color : '#888888', pattern: v.pattern, icon: v.icon };
+    return { name: v.name || $localize`Team name`, color: HEX.test(v.color) ? v.color : '#888888', pattern: v.pattern, icon: v.icon };
   });
   protected readonly colorError = computed(() => {
     this.tick();

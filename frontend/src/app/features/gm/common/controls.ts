@@ -37,16 +37,16 @@ export type SaveState = 'idle' | 'unsaved' | 'saving' | 'saved' | 'failed';
   template: `
     @switch (state()) {
       @case ('unsaved') {
-        <span class="inline-flex items-center gap-1 text-xs font-semibold text-warning"><span aria-hidden="true">◐</span> Unsaved changes</span>
+        <span class="inline-flex items-center gap-1 text-xs font-semibold text-warning"><span aria-hidden="true">◐</span> <ng-container i18n>Unsaved changes</ng-container></span>
       }
       @case ('saving') {
-        <span class="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground"><span aria-hidden="true">…</span> Saving…</span>
+        <span class="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground"><span aria-hidden="true">…</span> <ng-container i18n>Saving…</ng-container></span>
       }
       @case ('saved') {
-        <span class="inline-flex items-center gap-1 text-xs font-semibold text-primary"><span aria-hidden="true">✓</span> Saved</span>
+        <span class="inline-flex items-center gap-1 text-xs font-semibold text-primary"><span aria-hidden="true">✓</span> <ng-container i18n>Saved</ng-container></span>
       }
       @case ('failed') {
-        <span class="inline-flex items-center gap-1 text-xs font-semibold text-destructive" [attr.title]="error()"><span aria-hidden="true">✕</span> Not saved</span>
+        <span class="inline-flex items-center gap-1 text-xs font-semibold text-destructive" [attr.title]="error()"><span aria-hidden="true">✕</span> <ng-container i18n>Not saved</ng-container></span>
       }
     }
   `,
@@ -293,7 +293,7 @@ export class SwitchRow implements ControlValueAccessor {
           }
           <h2 [id]="id + '-t'" class="truncate text-lg uppercase">{{ title() }}</h2>
         </div>
-        <button hlmBtn variant="ghost" size="icon" class="tap shrink-0" type="button" (click)="requestClose()" aria-label="Close panel">
+        <button hlmBtn variant="ghost" size="icon" class="tap shrink-0" type="button" (click)="requestClose()" aria-label="Close panel" i18n-aria-label>
           <ng-icon name="lucideX" size="18" aria-hidden="true" />
         </button>
       </header>

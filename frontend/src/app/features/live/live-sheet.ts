@@ -50,7 +50,7 @@ let nextId = 0;
             <h2 [id]="titleId" class="text-xl uppercase">{{ heading() }}</h2>
           </div>
           @if (dismissible()) {
-            <button type="button" class="tap -m-2 grid shrink-0 place-items-center rounded-sm" (click)="requestClose()" aria-label="Close">
+            <button type="button" class="tap -m-2 grid shrink-0 place-items-center rounded-sm" (click)="requestClose()" aria-label="Close" i18n-aria-label>
               <ng-icon name="lucideX" size="20" aria-hidden="true" />
             </button>
           }

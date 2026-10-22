@@ -19,16 +19,16 @@ import { SupportTicketCard } from './support-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile">
-        <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> New message</a>
+      <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile" i18n-title i18n-subtitle>
+        <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New message</ng-container></a>
       </zeus-page-header>
 
       @if (isAdmin()) {
         <a routerLink="/admin/tickets" class="panel mb-4 flex min-h-14 items-center gap-3 px-4 hover:bg-muted/60">
           <ng-icon name="lucideInbox" size="18" class="text-muted-foreground" aria-hidden="true" />
           <span class="flex-1">
-            <span class="block font-semibold">Admin inbox</span>
-            <span class="block text-xs text-muted-foreground">Answer the messages from every player</span>
+            <span class="block font-semibold" i18n>Admin inbox</span>
+            <span class="block text-xs text-muted-foreground" i18n>Answer the messages from every player</span>
           </span>
           <ng-icon name="lucideChevronRight" size="16" class="text-muted-foreground" aria-hidden="true" />
         </a>
@@ -40,9 +40,9 @@ import { SupportTicketCard } from './support-ui';
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
         <zeus-empty-state icon="lucideLifeBuoy" title="No messages yet"
-          message="Found a bug, something wrong in an event, or have an idea? Write to us: we answer here and you get a notification." />
+          message="Found a bug, something wrong in an event, or have an idea? Write to us: we answer here and you get a notification." i18n-title i18n-message />
       } @else {
-        <ul class="flex flex-col gap-2" aria-label="Conversations">
+        <ul class="flex flex-col gap-2" aria-label="Conversations" i18n-aria-label>
           @for (t of items(); track t.id) {
             <li><zeus-support-ticket-card [ticket]="t" /></li>
           }
@@ -50,7 +50,7 @@ import { SupportTicketCard } from './support-ui';
         @if (nextCursor()) {
           <div class="mt-4 flex justify-center">
             <button hlmBtn variant="outline" type="button" class="h-11 min-w-40" [disabled]="loadingMore()" (click)="loadMore()">
-              {{ loadingMore() ? 'Loading…' : 'Load more' }}
+              {{ loadingMore() ? txt.loading : txt.loadMore }}
             </button>
           </div>
         }
@@ -59,6 +59,12 @@ import { SupportTicketCard } from './support-ui';
   `,
 })
 export class SupportListScreen implements OnInit {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    loading: $localize`Loading…`,
+    loadMore: $localize`Load more`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);

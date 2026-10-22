@@ -63,21 +63,21 @@ interface NavCard {
   template: `
     <div class="page" #root>
       @if (loading() && !event()) {
-        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" />
+        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
         <zeus-loading-skeleton [rows]="6" />
       } @else if (loadError(); as err) {
-        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" />
+        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
         <zeus-error-state [error]="err" (retry)="load()" />
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" eyebrow="Event editor" back="/events/mine" backLabel="My events" [subtitle]="subtitle()">
+        <zeus-page-header [title]="e.name" eyebrow="Event editor" back="/events/mine" backLabel="My events" [subtitle]="subtitle()" i18n-eyebrow i18n-backLabel>
           <zeus-status-chip [spec]="chip()" />
         </zeus-page-header>
 
         <!-- Lifecycle -->
-        <section class="mb-4 flex flex-wrap items-center gap-2" aria-label="Event status actions">
+        <section class="mb-4 flex flex-wrap items-center gap-2" aria-label="Event status actions" i18n-aria-label>
           @if (running() || e.status === 'lobby') {
             <a hlmBtn class="h-11" [routerLink]="['/gm/events', e.id, 'control']">
-              <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> Control center
+              <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
             </a>
           }
           @for (a of actions(); track a.to) {
@@ -94,7 +94,7 @@ interface NavCard {
           }
           @if (e.status === 'draft') {
             <a hlmBtn variant="ghost" class="h-11" routerLink="/gm/new" [queryParams]="{ eventId: e.id, step: 6 }">
-              <ng-icon name="lucideListChecks" size="16" aria-hidden="true" /> Setup checklist
+              <ng-icon name="lucideListChecks" size="16" aria-hidden="true" /> <ng-container i18n>Setup checklist</ng-container>
             </a>
           }
         </section>
@@ -102,12 +102,12 @@ interface NavCard {
         @if (running()) {
           <div class="mb-4 flex gap-2 rounded-sm border border-warning/50 bg-warning-surface p-3 text-sm text-warning" role="alert">
             <ng-icon name="lucideTriangleAlert" size="18" class="shrink-0" aria-hidden="true" />
-            <p><strong>The game is {{ e.status === 'paused' ? 'paused' : 'live' }}.</strong> Changes you save here apply immediately to the running game.</p>
+            <p i18n><strong>{e.status, select, paused {The game is paused.} other {The game is live.}}</strong> Changes you save here apply immediately to the running game.</p>
           </div>
         } @else if (e.status === 'completed' || e.status === 'cancelled') {
           <div class="mb-4 flex gap-2 rounded-sm border border-border bg-muted p-3 text-sm text-muted-foreground" role="status">
             <ng-icon name="lucideInfo" size="18" class="shrink-0" aria-hidden="true" />
-            <p>This event is {{ e.status }}. Settings are kept for the record{{ e.status === 'completed' ? ' and the results.' : '.' }}</p>
+            <p i18n>{e.status, select, completed {This event has ended. Settings are kept for the record and the results.} other {This event was cancelled. Settings are kept for the record.}}</p>
           </div>
         }
 
@@ -115,12 +115,12 @@ interface NavCard {
           <!-- Settings tabs -->
           <div hlmTabs [tab]="tab()" (tabActivated)="tab.set($any($event))" class="min-w-0">
             <div class="-mx-1 overflow-x-auto px-1 pb-1">
-              <div hlmTabsList class="h-11 w-full min-w-max" aria-label="Event settings">
-                <button hlmTabsTrigger="basics" class="h-full px-3">Basics @if (dirtyMark('basics')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
-                <button hlmTabsTrigger="registration" class="h-full px-3">Registration @if (dirtyMark('registration')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
-                <button hlmTabsTrigger="rules" class="h-full px-3">Rules of play @if (dirtyMark('rules')) { <span aria-label="unsaved" class="text-warning">◐</span> }</button>
-                <button hlmTabsTrigger="attachments" class="h-full px-3">Attachments @if (e.attachmentCount) { <span class="num text-muted-foreground">{{ e.attachmentCount }}</span> }</button>
-                <button hlmTabsTrigger="gms" class="h-full px-3">Game Masters</button>
+              <div hlmTabsList class="h-11 w-full min-w-max" aria-label="Event settings" i18n-aria-label>
+                <button hlmTabsTrigger="basics" class="h-full px-3"><ng-container i18n>Basics</ng-container> @if (dirtyMark('basics')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
+                <button hlmTabsTrigger="registration" class="h-full px-3"><ng-container i18n>Registration</ng-container> @if (dirtyMark('registration')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
+                <button hlmTabsTrigger="rules" class="h-full px-3"><ng-container i18n>Rules of play</ng-container> @if (dirtyMark('rules')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
+                <button hlmTabsTrigger="attachments" class="h-full px-3"><ng-container i18n>Attachments</ng-container> @if (e.attachmentCount) { <span class="num text-muted-foreground">{{ e.attachmentCount }}</span> }</button>
+                <button hlmTabsTrigger="gms" class="h-full px-3" i18n>Game Masters</button>
               </div>
             </div>
 
@@ -132,32 +132,32 @@ interface NavCard {
             <div hlmTabsContent="registration" class="pt-3">
               <form [formGroup]="regForm" class="flex flex-col gap-4" (ngSubmit)="save('registration')" [attr.data-rev]="regTick()">
                 <fieldset class="panel flex flex-col gap-3 p-4">
-                  <legend class="label-caps float-left mb-1 w-full">Who can join</legend>
-                  <span hlmLabel id="reg-vis-l">Visibility</span>
+                  <legend class="label-caps float-left mb-1 w-full" i18n>Who can join</legend>
+                  <span hlmLabel id="reg-vis-l" i18n>Visibility</span>
                   <zeus-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="reg-vis-l" stacked />
                   <div class="divide-y divide-border">
-                    <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits for your approval in Players." />
-                    <zeus-switch-row formControlName="registrationLocked" label="Lock registration" description="No new registrations, even while registration is open. Invitations still work." />
-                    <zeus-switch-row formControlName="autoEnd" label="End the game automatically" description="The game ends by itself at the expected end time. Off: you end it from the control center." />
+                    <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits for your approval in Players." i18n-label i18n-description />
+                    <zeus-switch-row formControlName="registrationLocked" label="Lock registration" description="No new registrations, even while registration is open. Invitations still work." i18n-label i18n-description />
+                    <zeus-switch-row formControlName="autoEnd" label="End the game automatically" description="The game ends by itself at the expected end time. Off: you end it from the control center." i18n-label i18n-description />
                   </div>
                 </fieldset>
                 <section class="panel flex flex-col gap-2 p-4" aria-labelledby="jc-h">
-                  <h3 id="jc-h" class="label-caps">Join code</h3>
+                  <h3 id="jc-h" class="label-caps" i18n>Join code</h3>
                   @if (e.joinCode) {
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="num text-3xl font-bold tracking-[0.2em]" aria-label="Join code">{{ e.joinCode }}</span>
+                      <span class="num text-3xl font-bold tracking-[0.2em]" aria-label="Join code" i18n-aria-label>{{ e.joinCode }}</span>
                       <button hlmBtn variant="outline" class="h-11" type="button" (click)="copyCode(e.joinCode)">
-                        <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> Copy
+                        <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Copy</ng-container>
                       </button>
                       <button hlmBtn variant="ghost" class="h-11" type="button" (click)="regenerateCode()" [disabled]="codeBusy()">
-                        <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> {{ codeBusy() ? 'Regenerating…' : 'Regenerate' }}
+                        <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> {{ codeBusy() ? txt.regenerating : txt.regenerate }}
                       </button>
                     </div>
-                    <p class="text-xs text-muted-foreground">
-                      Players enter it under Join event{{ e.visibility === 'public' ? '. The event is public, so the code is optional.' : '. Private events can only be joined with it or by invitation.' }}
+                    <p class="text-xs text-muted-foreground" i18n>
+                      Players enter it under Join event{{ e.visibility === 'public' ? txt.theEventIsPublic : txt.privateEventsCanOnly }}
                     </p>
                   } @else {
-                    <p class="text-sm text-muted-foreground">A join code is generated when the event is private. Switch to Private and save.</p>
+                    <p class="text-sm text-muted-foreground" i18n>A join code is generated when the event is private. Switch to Private and save.</p>
                   }
                 </section>
                 <ng-container *ngTemplateOutlet="saveBar; context: { section: 'registration' }" />
@@ -175,8 +175,8 @@ interface NavCard {
 
             <div hlmTabsContent="gms" class="pt-3">
               <section class="panel flex flex-col gap-3 p-4" aria-labelledby="gm-h">
-                <h3 id="gm-h" class="label-caps">Game Masters · {{ e.gameMasters.length }}</h3>
-                <p class="text-sm text-muted-foreground">Co-GMs can edit everything here and run the control center. Game Masters cannot play in the event.</p>
+                <h3 id="gm-h" class="label-caps" i18n>Game Masters · {{ e.gameMasters.length }}</h3>
+                <p class="text-sm text-muted-foreground" i18n>Co-GMs can edit everything here and run the control center. Game Masters cannot play in the event.</p>
                 <ul class="divide-y divide-border">
                   @for (g of e.gameMasters; track g.id) {
                     <li class="flex items-center gap-3 py-2">
@@ -188,23 +188,23 @@ interface NavCard {
                       <span class="min-w-0 flex-1 truncate font-semibold">
                         {{ g.nickname }}
                         @if (g.id === meId()) {
-                          <span class="text-xs font-normal text-muted-foreground">(you)</span>
+                          <span class="text-xs font-normal text-muted-foreground" i18n>(you)</span>
                         }
                       </span>
                       @if (e.gameMasters.length > 1) {
-                        <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" (click)="removeGm(g)" [attr.aria-label]="'Remove ' + g.nickname + ' as Game Master'">
-                          <ng-icon name="lucideUserMinus" size="16" aria-hidden="true" /> Remove
+                        <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" (click)="removeGm(g)" aria-label="Remove {{ g.nickname }} as Game Master" i18n-aria-label>
+                          <ng-icon name="lucideUserMinus" size="16" aria-hidden="true" /> <ng-container i18n>Remove</ng-container>
                         </button>
                       }
                     </li>
                   }
                 </ul>
                 <form [formGroup]="gmForm" (ngSubmit)="addGm()" class="flex flex-col gap-1.5 border-t border-border pt-3" [attr.data-rev]="gmTick()">
-                  <label hlmLabel for="gm-nick">Add a co-Game Master by nickname</label>
+                  <label hlmLabel for="gm-nick" i18n>Add a co-Game Master by nickname</label>
                   <div class="flex gap-2">
-                    <input hlmInput id="gm-nick" class="h-11 flex-1" formControlName="nickname" autocomplete="off" placeholder="nickname" [attr.aria-invalid]="!!gmError()" aria-describedby="gm-nick-e" />
+                    <input hlmInput id="gm-nick" class="h-11 flex-1" formControlName="nickname" autocomplete="off" placeholder="nickname" [attr.aria-invalid]="!!gmError()" aria-describedby="gm-nick-e" i18n-placeholder />
                     <button hlmBtn class="h-11" type="submit" [disabled]="gmBusy()">
-                      <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" /> {{ gmBusy() ? 'Adding…' : 'Add' }}
+                      <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" /> {{ gmBusy() ? txt.adding : txt.add }}
                     </button>
                   </div>
                   @if (gmError(); as m) {
@@ -216,8 +216,8 @@ interface NavCard {
           </div>
 
           <!-- Navigation -->
-          <aside class="flex flex-col gap-4" aria-label="Event sections">
-            <nav class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1" aria-label="Manage">
+          <aside class="flex flex-col gap-4" aria-label="Event sections" i18n-aria-label>
+            <nav class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1" aria-label="Manage" i18n-aria-label>
               @for (c of navCards(); track c.title) {
                 <a [routerLink]="c.link" [queryParams]="c.query ?? null" class="panel flex min-h-14 items-center gap-3 p-3 hover:border-primary/60">
                   <ng-icon [name]="c.icon" size="20" class="shrink-0" [class.text-warning]="c.tone === 'warning'" [class.text-primary]="c.tone !== 'warning'" aria-hidden="true" />
@@ -232,9 +232,9 @@ interface NavCard {
 
             <section class="panel flex flex-col gap-2 p-3" aria-labelledby="obj-h">
               <div class="flex items-center justify-between gap-2">
-                <h2 id="obj-h" class="label-caps">Objectives · {{ objectives()?.length ?? '…' }}</h2>
+                <h2 id="obj-h" class="label-caps" i18n>Objectives · {{ objectives()?.length ?? '…' }}</h2>
                 <a hlmBtn variant="ghost" size="sm" class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', 'new']">
-                  <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> New
+                  <ng-icon name="lucidePlus" size="14" aria-hidden="true" /> <ng-container i18n>New</ng-container>
                 </a>
               </div>
               @if (sideError(); as err) {
@@ -252,23 +252,23 @@ interface NavCard {
                       </a>
                     </li>
                   } @empty {
-                    <li><p class="text-sm text-muted-foreground">No objectives yet.</p></li>
+                    <li><p class="text-sm text-muted-foreground" i18n>No objectives yet.</p></li>
                   }
                 </ul>
               }
             </section>
 
             <section class="panel flex flex-col gap-2 p-3" aria-labelledby="more-h">
-              <h2 id="more-h" class="label-caps">More actions</h2>
+              <h2 id="more-h" class="label-caps" i18n>More actions</h2>
               <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="duplicate()" [disabled]="moreBusy()">
-                <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> Duplicate event
+                <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Duplicate event</ng-container>
               </button>
               <button hlmBtn variant="outline" class="h-11 justify-start" type="button" (click)="saveTemplate()" [disabled]="moreBusy()">
-                <ng-icon name="lucideSave" size="16" aria-hidden="true" /> Save as template
+                <ng-icon name="lucideSave" size="16" aria-hidden="true" /> <ng-container i18n>Save as template</ng-container>
               </button>
               @if (e.status === 'draft' || e.status === 'cancelled') {
                 <button hlmBtn variant="destructive" class="h-11 justify-start" type="button" (click)="deleteDraft()" [disabled]="moreBusy()">
-                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> {{ e.status === 'draft' ? 'Delete draft' : 'Delete event' }}
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> {{ e.status === 'draft' ? txt.deleteDraft : txt.deleteEvent }}
                 </button>
               }
             </section>
@@ -281,13 +281,27 @@ interface NavCard {
       <div class="sticky bottom-[calc(4rem+var(--safe-bottom))] z-10 mt-4 flex items-center justify-end gap-3 border-t border-border bg-background/95 py-3 backdrop-blur lg:bottom-0">
         <zeus-save-state [state]="sectionState(section)" [error]="errorOf(section)" />
         <button hlmBtn class="h-11 min-w-28" type="button" (click)="save(section)" [disabled]="sectionState(section) === 'saving'">
-          {{ sectionState(section) === 'saving' ? 'Saving…' : 'Save' }}
+          {{ sectionState(section) === 'saving' ? txt.saving : txt.save }}
         </button>
       </div>
     </ng-template>
   `,
 })
 export class EventEditorScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    regenerating: $localize`Regenerating…`,
+    regenerate: $localize`Regenerate`,
+    theEventIsPublic: $localize`. The event is public, so the code is optional.`,
+    privateEventsCanOnly: $localize`. Private events can only be joined with it or by invitation.`,
+    adding: $localize`Adding…`,
+    add: $localize`Add`,
+    deleteDraft: $localize`Delete draft`,
+    deleteEvent: $localize`Delete event`,
+    saving: $localize`Saving…`,
+    save: $localize`Save`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -333,8 +347,8 @@ export class EventEditorScreen {
   protected readonly gmTick = staticFormTick(this.gmForm);
 
   protected readonly visibilityOptions: SegmentOption<'public' | 'private'>[] = [
-    { value: 'public', label: 'Public', hint: 'Listed in Discover; anyone can register.' },
-    { value: 'private', label: 'Private', hint: 'Hidden from Discover; players need the join code or an invitation.' },
+    { value: 'public', label: $localize`Public`, hint: $localize`Listed in Discover; anyone can register.` },
+    { value: 'private', label: $localize`Private`, hint: $localize`Hidden from Discover; players need the join code or an invitation.` },
   ];
 
   protected readonly meId = computed(() => this.auth.user()?.id ?? null);
@@ -356,30 +370,30 @@ export class EventEditorScreen {
     const base = ['/gm/events', e.id];
     const cards: NavCard[] = [
       {
-        title: 'Teams & squads',
-        detail: e.teams.length < 2 ? `${e.teams.length} teams · at least 2 needed` : `${e.teams.length} teams · ${e.squads.length} squads`,
+        title: $localize`Teams & squads`,
+        detail: e.teams.length < 2 ? $localize`${e.teams.length}:length: teams · at least 2 needed` : $localize`${e.teams.length}:length: teams · ${e.squads.length}:length2: squads`,
         icon: 'lucideUsers',
         link: [...base, 'teams'],
         tone: e.teams.length < 2 ? 'warning' : 'primary',
       },
-      { title: 'Tactical map', detail: 'Zones, points of interest, objectives', icon: 'lucideMap', link: [...base, 'map'] },
+      { title: $localize`Tactical map`, detail: $localize`Zones, points of interest, objectives`, icon: 'lucideMap', link: [...base, 'map'] },
       {
-        title: 'Players',
-        detail: `${e.approvedCount} approved${e.pendingCount ? ` · ${e.pendingCount} waiting for approval` : ''}`,
+        title: $localize`Players`,
+        detail: e.pendingCount ? $localize`${e.approvedCount}:approved: approved · ${e.pendingCount}:pending: waiting for approval` : $localize`${e.approvedCount}:approved: approved`,
         icon: 'lucideUserCheck',
         link: [...base, 'players'],
         tone: e.pendingCount ? 'warning' : 'primary',
       },
       {
-        title: 'Perk store',
-        detail: `${e.storeEnabled ? 'Open' : 'Closed'}${this.perkCount() !== null ? ` · ${this.perkCount()} perks` : ''}`,
+        title: $localize`Perk store`,
+        detail: (e.storeEnabled ? $localize`:perk store|:Open` : $localize`:perk store|:Closed`) + (this.perkCount() !== null ? $localize` · ${this.perkCount()}:count: perks` : ''),
         icon: 'lucideStore',
         link: [...base, 'perks'],
       },
-      { title: 'Scores', detail: 'Points, credits, adjustments', icon: 'lucideTrophy', link: [...base, 'scores'] },
-      { title: 'Activity log', detail: 'Everything that happened, with who did it', icon: 'lucideHistory', link: [...base, 'activity'] },
+      { title: $localize`Scores`, detail: $localize`Points, credits, adjustments`, icon: 'lucideTrophy', link: [...base, 'scores'] },
+      { title: $localize`Activity log`, detail: $localize`Everything that happened, with who did it`, icon: 'lucideHistory', link: [...base, 'activity'] },
     ];
-    if (e.status === 'completed') cards.push({ title: 'Results', detail: 'Leaderboard, statistics, export', icon: 'lucideChartColumn', link: ['/events', e.id, 'results'] });
+    if (e.status === 'completed') cards.push({ title: $localize`Results`, detail: $localize`Leaderboard, statistics, export`, icon: 'lucideChartColumn', link: ['/events', e.id, 'results'] });
     return cards;
   });
 
@@ -490,7 +504,7 @@ export class EventEditorScreen {
     const form = this.formFor(section);
     if (form.invalid) {
       form.markAllAsTouched();
-      this.setState(section, 'failed', 'Fix the highlighted fields.');
+      this.setState(section, 'failed', $localize`Fix the highlighted fields.`);
       focusFirstInvalid(this.root()?.nativeElement);
       return;
     }
@@ -506,7 +520,7 @@ export class EventEditorScreen {
       if (section === 'rules') patchRulesForm(this.rulesForm, updated);
       this.setState(section, 'saved');
       if (section === 'registration' && updated.visibility === 'private' && !e.joinCode && updated.joinCode) {
-        this.toast.success('Private event', `Join code ${updated.joinCode}`);
+        this.toast.success($localize`Private event`, $localize`Join code ${updated.joinCode}:joinCode:`);
       }
     } catch (err) {
       const apiErr = ApiError.from(err);
@@ -535,24 +549,24 @@ export class EventEditorScreen {
   // --- registration -------------------------------------------------------------------
 
   protected async copyCode(code: string): Promise<void> {
-    if (await copyText(code)) this.toast.success('Join code copied');
-    else this.toast.error('Copy failed. Select the code and copy it manually.');
+    if (await copyText(code)) this.toast.success($localize`Join code copied`);
+    else this.toast.error($localize`Copy failed. Select the code and copy it manually.`);
   }
 
   protected async regenerateCode(): Promise<void> {
     const e = this.event();
     if (!e) return;
     const ok = await this.confirm.ask({
-      title: 'Regenerate the join code?',
-      consequences: [`The old code ${e.joinCode} stops working immediately.`, 'Players who already joined keep their place.', 'Share the new code with anyone still to join.'],
-      confirmLabel: 'Regenerate code',
+      title: $localize`Regenerate the join code?`,
+      consequences: [$localize`The old code ${e.joinCode}:joinCode: stops working immediately.`, $localize`Players who already joined keep their place.`, $localize`Share the new code with anyone still to join.`],
+      confirmLabel: $localize`Regenerate code`,
     });
     if (!ok) return;
     this.codeBusy.set(true);
     try {
       const { joinCode } = await this.api.regenerateJoinCode(e.id);
       this.event.update((cur) => (cur ? { ...cur, joinCode } : cur));
-      this.toast.success('New join code', joinCode);
+      this.toast.success($localize`New join code`, joinCode);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -572,7 +586,7 @@ export class EventEditorScreen {
     if (!e) return;
     if (c.invalid) {
       c.markAsTouched();
-      this.gmError.set('Enter a nickname.');
+      this.gmError.set($localize`Enter a nickname.`);
       return;
     }
     const nickname = c.value.trim();
@@ -580,7 +594,7 @@ export class EventEditorScreen {
     try {
       await this.api.addGameMaster(e.id, nickname);
       this.gmForm.reset();
-      this.toast.success(`${nickname} is now a Game Master`);
+      this.toast.success($localize`${nickname}:nickname: is now a Game Master`);
       await this.refresh();
     } catch (err) {
       const apiErr = ApiError.from(err);
@@ -595,17 +609,17 @@ export class EventEditorScreen {
     if (!e) return;
     const self = g.id === this.meId();
     const ok = await this.confirm.ask({
-      title: self ? 'Step down as Game Master?' : `Remove ${g.nickname} as Game Master?`,
+      title: self ? $localize`Step down as Game Master?` : $localize`Remove ${g.nickname}:nickname: as Game Master?`,
       consequences: self
-        ? ['You lose access to this editor and the control center.', 'The other Game Masters keep running the event.']
-        : [`${g.nickname} can no longer edit the event or use the control center.`, 'Their past actions stay in the activity log.'],
+        ? [$localize`You lose access to this editor and the control center.`, $localize`The other Game Masters keep running the event.`]
+        : [$localize`${g.nickname}:nickname: can no longer edit the event or use the control center.`, $localize`Their past actions stay in the activity log.`],
       destructive: true,
-      confirmLabel: self ? 'Step down' : 'Remove',
+      confirmLabel: self ? $localize`Step down` : $localize`Remove`,
     });
     if (!ok) return;
     try {
       await this.api.removeGameMaster(e.id, g.id);
-      this.toast.success(self ? 'You are no longer a Game Master of this event' : `${g.nickname} removed`);
+      this.toast.success(self ? $localize`You are no longer a Game Master of this event` : $localize`${g.nickname}:nickname: removed`);
       if (self) void this.router.navigate(['/events/mine'], { queryParams: { tab: 'gm' } });
       else await this.refresh();
     } catch (err) {
@@ -621,7 +635,7 @@ export class EventEditorScreen {
     this.moreBusy.set(true);
     try {
       const copy = await this.api.duplicateEvent(e.id);
-      this.toast.success('Event duplicated', `${copy.name} is a new draft.`);
+      this.toast.success($localize`Event duplicated`, $localize`${copy.name}:name: is a new draft.`);
       void this.router.navigate(['/gm/events', copy.id]);
     } catch (err) {
       this.toast.error(err);
@@ -634,17 +648,17 @@ export class EventEditorScreen {
     const e = this.event();
     if (!e) return;
     const name = await this.confirm.askReason({
-      title: 'Save as template',
-      message: 'Reuse the teams, rules of play and map of this event when creating a new one.',
-      consequences: ['Players, scores and dates are not included.'],
-      confirmLabel: 'Save template',
-      reason: { label: 'Template name', required: true, placeholder: `${e.name} setup` },
+      title: $localize`Save as template`,
+      message: $localize`Reuse the teams, rules of play and map of this event when creating a new one.`,
+      consequences: [$localize`Players, scores and dates are not included.`],
+      confirmLabel: $localize`Save template`,
+      reason: { label: $localize`Template name`, required: true, placeholder: $localize`${e.name}:name: setup` },
     });
     if (!name) return;
     this.moreBusy.set(true);
     try {
       const t = await this.api.saveEventTemplate(e.id, name);
-      this.toast.success('Template saved', `"${t.name}" is available when you create an event.`);
+      this.toast.success($localize`Template saved`, $localize`"${t.name}:name:" is available when you create an event.`);
     } catch (err) {
       this.toast.error(err);
     } finally {
@@ -656,22 +670,22 @@ export class EventEditorScreen {
     const e = this.event();
     if (!e) return;
     const ok = await this.confirm.ask({
-      title: `Delete ${e.name}?`,
+      title: $localize`Delete ${e.name}:name:?`,
       consequences: [
-        'The event, its teams, map, objectives and perks are deleted.',
-        'Only the event owner can do this.',
-        e.approvedCount + e.pendingCount ? `${e.approvedCount + e.pendingCount} registered players lose their place.` : 'No players have registered.',
-        'This cannot be undone.',
+        $localize`The event, its teams, map, objectives and perks are deleted.`,
+        $localize`Only the event owner can do this.`,
+        e.approvedCount + e.pendingCount ? $localize`${e.approvedCount + e.pendingCount}:approvedCount: registered players lose their place.` : $localize`No players have registered.`,
+        $localize`This cannot be undone.`,
       ],
       destructive: true,
-      requireText: 'DELETE',
-      confirmLabel: 'Delete event',
+      requireText: $localize`:typed confirmation word|:DELETE`,
+      confirmLabel: $localize`Delete event`,
     });
     if (!ok) return;
     this.moreBusy.set(true);
     try {
       await this.api.deleteEvent(e.id);
-      this.toast.success('Event deleted');
+      this.toast.success($localize`Event deleted`);
       void this.router.navigate(['/events/mine'], { queryParams: { tab: 'gm' } });
     } catch (err) {
       this.toast.error(err);

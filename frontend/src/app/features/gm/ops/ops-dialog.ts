@@ -49,7 +49,7 @@ let uid = 0;
             <p class="mt-1 text-sm text-muted-foreground">{{ subtitle() }}</p>
           }
         </div>
-        <button type="button" class="tap -mr-2 -mt-2 grid place-items-center rounded-md hover:bg-muted" (click)="close()" aria-label="Close">
+        <button type="button" class="tap -mr-2 -mt-2 grid place-items-center rounded-md hover:bg-muted" (click)="close()" aria-label="Close" i18n-aria-label>
           <ng-icon name="lucideX" size="18" aria-hidden="true" />
         </button>
       </div>

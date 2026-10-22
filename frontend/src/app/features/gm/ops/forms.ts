@@ -20,18 +20,18 @@ export function applyServerErrors(form: AbstractControl, err: ApiError, aliases:
 }
 
 /** First user-facing message for a control: server error, then the common validators. */
-export function controlError(ctrl: AbstractControl | null, label = 'This field'): string | null {
+export function controlError(ctrl: AbstractControl | null, label = $localize`This field`): string | null {
   if (!ctrl || !ctrl.errors || !(ctrl.touched || ctrl.dirty)) return null;
   const e = ctrl.errors;
   if (e['server']) return String(e['server']);
-  if (e['required']) return `${label} is required.`;
-  if (e['min']) return `${label} must be at least ${e['min'].min}.`;
-  if (e['max']) return `${label} must be at most ${e['max'].max}.`;
-  if (e['maxlength']) return `${label} must be at most ${e['maxlength'].requiredLength} characters.`;
-  if (e['minlength']) return `${label} must be at least ${e['minlength'].requiredLength} characters.`;
-  if (e['pattern']) return `${label} has an invalid format.`;
+  if (e['required']) return $localize`${label}:label: is required.`;
+  if (e['min']) return $localize`${label}:label: must be at least ${e['min'].min}:min:.`;
+  if (e['max']) return $localize`${label}:label: must be at most ${e['max'].max}:max:.`;
+  if (e['maxlength']) return $localize`${label}:label: must be at most ${e['maxlength'].requiredLength}:requiredLength: characters.`;
+  if (e['minlength']) return $localize`${label}:label: must be at least ${e['minlength'].requiredLength}:requiredLength: characters.`;
+  if (e['pattern']) return $localize`${label}:label: has an invalid format.`;
   if (e['message']) return String(e['message']);
-  return `${label} is invalid.`;
+  return $localize`${label}:label: is invalid.`;
 }
 
 /** Toggle a value in a string-array control (checkbox lists used as multi-selects). */

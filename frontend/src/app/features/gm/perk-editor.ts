@@ -23,32 +23,32 @@ import { applyServerErrors, controlError, focusFirstInvalid, integerValidator, s
 
 /** Lucide icons (all registered in core/ui/icons.ts) a perk can use. */
 const PERK_ICONS: { name: string; label: string }[] = [
-  { name: 'lucideRadar', label: 'Radar' },
-  { name: 'lucideSatellite', label: 'Satellite' },
-  { name: 'lucideScan', label: 'Scan' },
-  { name: 'lucideEye', label: 'Eye' },
-  { name: 'lucideAntenna', label: 'Antenna' },
-  { name: 'lucideRadio', label: 'Radio' },
-  { name: 'lucideCoins', label: 'Coins' },
-  { name: 'lucideShieldCheck', label: 'Shield' },
-  { name: 'lucideSparkles', label: 'Sparkles' },
-  { name: 'lucideHeartPulse', label: 'Heart pulse' },
-  { name: 'lucideAmbulance', label: 'Ambulance' },
-  { name: 'lucidePackage', label: 'Package' },
-  { name: 'lucideTruck', label: 'Truck' },
-  { name: 'lucideZap', label: 'Bolt' },
-  { name: 'lucideTarget', label: 'Target' },
-  { name: 'lucideCrosshair', label: 'Crosshair' },
-  { name: 'lucideLocateFixed', label: 'Locate' },
-  { name: 'lucideCompass', label: 'Compass' },
-  { name: 'lucideFlag', label: 'Flag' },
-  { name: 'lucideBan', label: 'Ban' },
-  { name: 'lucideLock', label: 'Lock' },
-  { name: 'lucideTimer', label: 'Timer' },
-  { name: 'lucideHourglass', label: 'Hourglass' },
-  { name: 'lucideMegaphone', label: 'Megaphone' },
-  { name: 'lucideSiren', label: 'Siren' },
-  { name: 'lucideStar', label: 'Star' },
+  { name: 'lucideRadar', label: $localize`Radar` },
+  { name: 'lucideSatellite', label: $localize`Satellite` },
+  { name: 'lucideScan', label: $localize`Scan` },
+  { name: 'lucideEye', label: $localize`Eye` },
+  { name: 'lucideAntenna', label: $localize`Antenna` },
+  { name: 'lucideRadio', label: $localize`Radio` },
+  { name: 'lucideCoins', label: $localize`Coins` },
+  { name: 'lucideShieldCheck', label: $localize`Shield` },
+  { name: 'lucideSparkles', label: $localize`Sparkles` },
+  { name: 'lucideHeartPulse', label: $localize`Heart pulse` },
+  { name: 'lucideAmbulance', label: $localize`Ambulance` },
+  { name: 'lucidePackage', label: $localize`Package` },
+  { name: 'lucideTruck', label: $localize`Truck` },
+  { name: 'lucideZap', label: $localize`Bolt` },
+  { name: 'lucideTarget', label: $localize`Target` },
+  { name: 'lucideCrosshair', label: $localize`Crosshair` },
+  { name: 'lucideLocateFixed', label: $localize`Locate` },
+  { name: 'lucideCompass', label: $localize`Compass` },
+  { name: 'lucideFlag', label: $localize`Flag` },
+  { name: 'lucideBan', label: $localize`Ban` },
+  { name: 'lucideLock', label: $localize`Lock` },
+  { name: 'lucideTimer', label: $localize`Timer` },
+  { name: 'lucideHourglass', label: $localize`Hourglass` },
+  { name: 'lucideMegaphone', label: $localize`Megaphone` },
+  { name: 'lucideSiren', label: $localize`Siren` },
+  { name: 'lucideStar', label: $localize`Star` },
 ];
 
 const TYPE_TARGET: Partial<Record<PerkType, Perk['target']>> = {
@@ -153,12 +153,12 @@ function configKeyFor(type: PerkType): ConfigKey | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Perk store" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor">
+      <zeus-page-header title="Perk store" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
         <button hlmBtn variant="outline" class="h-11" type="button" (click)="addDefaults()" [disabled]="busy()">
-          <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> Add default perks
+          <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> <ng-container i18n>Add default perks</ng-container>
         </button>
         <button hlmBtn class="h-11" type="button" (click)="openNew()">
-          <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> New custom perk
+          <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New custom perk</ng-container>
         </button>
       </zeus-page-header>
 
@@ -166,13 +166,13 @@ function configKeyFor(type: PerkType): ConfigKey | null {
         <div class="flex min-w-0 flex-col gap-4">
           @if (event(); as e) {
             @for (k of [storeRev()]; track k) {
-            <section class="panel px-4 py-2" aria-label="Store status">
+            <section class="panel px-4 py-2" aria-label="Store status" i18n-aria-label>
               <zeus-switch-row
                 label="Store open during the game"
-                [description]="e.storeEnabled ? 'Teams can buy enabled perks with their credits while the game is live.' : 'The store is closed: players see it but cannot buy anything.'"
+                [description]="e.storeEnabled ? txt.teamsCanBuyEnabled : txt.theStoreIsClosed"
                 [checked]="e.storeEnabled"
                 [disabled]="storeBusy()"
-                (checkedChange)="setStore($event)"
+                (checkedChange)="setStore($event)" i18n-label
               />
             </section>
             }
@@ -183,12 +183,12 @@ function configKeyFor(type: PerkType): ConfigKey | null {
           } @else if (loadError(); as err) {
             <zeus-error-state [error]="err" (retry)="load()" />
           } @else if (!sortedPerks().length) {
-            <zeus-empty-state icon="lucideStore" title="No perks yet" message="Add the default set (UAV, jammer, theft, recon, respawn, shield, double points, supply drop, comms jammer) or create your own.">
-              <button hlmBtn class="h-11" type="button" (click)="addDefaults()" [disabled]="busy()">Add default perks</button>
-              <button hlmBtn variant="outline" class="h-11" type="button" (click)="openNew()">New custom perk</button>
+            <zeus-empty-state icon="lucideStore" title="No perks yet" message="Add the default set (UAV, jammer, theft, recon, respawn, shield, double points, supply drop, comms jammer) or create your own." i18n-title i18n-message>
+              <button hlmBtn class="h-11" type="button" (click)="addDefaults()" [disabled]="busy()" i18n>Add default perks</button>
+              <button hlmBtn variant="outline" class="h-11" type="button" (click)="openNew()" i18n>New custom perk</button>
             </zeus-empty-state>
           } @else {
-            <h2 class="label-caps">Perks · {{ sortedPerks().length }} · {{ enabledCount() }} enabled</h2>
+            <h2 class="label-caps" i18n>Perks · {{ sortedPerks().length }} · {{ enabledCount() }} enabled</h2>
             <ul class="flex flex-col gap-2">
               @for (p of sortedPerks(); track p.id) {
                 <li class="panel flex flex-wrap items-center gap-3 p-3" [class.opacity-70]="!p.enabled" [class.border-primary]="editingId() === p.id">
@@ -196,23 +196,23 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                     <ng-icon [name]="iconOf(p)" size="20" />
                   </span>
                   <div class="min-w-0 flex-1">
-                    <p class="label-caps">{{ typeLabel(p.type) }}{{ p.requiresApproval ? ' · needs approval' : '' }}</p>
+                    <p class="label-caps">{{ typeLabel(p.type) }}{{ p.requiresApproval ? txt.needsApproval : '' }}</p>
                     <p class="truncate font-bold uppercase">{{ p.name }}</p>
                     <p class="num text-xs text-muted-foreground">
-                      {{ p.durationSec ? dur(p.durationSec) : 'Instant' }} · cooldown {{ p.cooldownSec ? dur(p.cooldownSec) : 'none' }} · left
-                      {{ p.totalQuantity === 0 ? '∞' : (p.remainingQuantity ?? p.totalQuantity) + '/' + p.totalQuantity }}
+                      <ng-container i18n>{{ p.durationSec ? dur(p.durationSec) : txt.instant }} · cooldown {{ p.cooldownSec ? dur(p.cooldownSec) : txt.noCooldown }} · left
+                      {{ p.totalQuantity === 0 ? '∞' : (p.remainingQuantity ?? p.totalQuantity) + '/' + p.totalQuantity }}</ng-container>
                       @if (p.perTeamLimit) {
-                        · {{ p.perTeamLimit }}/team
+                        <ng-container i18n>· {{ p.perTeamLimit }}/team</ng-container>
                       }
                     </p>
                   </div>
                   <zeus-currency-display [amount]="p.price" size="md" />
                   <span class="flex min-h-11 items-center gap-2">
-                    <hlm-switch [checked]="p.enabled" [aria-label]="(p.enabled ? 'Disable ' : 'Enable ') + p.name" (checkedChange)="toggleEnabled(p, $event)" />
-                    <span class="w-14 text-xs text-muted-foreground" aria-hidden="true">{{ p.enabled ? 'On' : 'Off' }}</span>
+                    <hlm-switch [checked]="p.enabled" [aria-label]="(p.enabled ? txt.disable : txt.enable) + p.name" (checkedChange)="toggleEnabled(p, $event)" />
+                    <span class="w-14 text-xs text-muted-foreground" aria-hidden="true">{{ p.enabled ? txt.on : txt.off }}</span>
                   </span>
-                  <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="openEdit(p)" [attr.aria-label]="'Edit ' + p.name">
-                    <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> Edit
+                  <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="openEdit(p)" aria-label="Edit {{ p.name }}" i18n-aria-label>
+                    <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
                   </button>
                 </li>
               }
@@ -220,10 +220,10 @@ function configKeyFor(type: PerkType): ConfigKey | null {
           }
         </div>
 
-        <zeus-gm-panel [open]="editing()" [title]="editingId() ? 'Edit perk' : 'New perk'" [eyebrow]="typeLabel(form.controls.type.value)" (closed)="closeEditor()">
+        <zeus-gm-panel [open]="editing()" [title]="editingId() ? txt.editPerk : txt.newPerk" [eyebrow]="typeLabel(form.controls.type.value)" (closed)="closeEditor()">
           <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-5" #editorForm [attr.data-rev]="tick()">
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="pk-type">Type</label>
+              <label hlmLabel for="pk-type" i18n>Type</label>
               <select id="pk-type" formControlName="type" class="h-11 rounded-md border border-input bg-background px-2.5 text-base dark:bg-input/30" (change)="onTypeChange()">
                 @for (t of types; track t.value) {
                   <option [value]="t.value">{{ t.label }}</option>
@@ -232,19 +232,19 @@ function configKeyFor(type: PerkType): ConfigKey | null {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="pk-name">Name</label>
+              <label hlmLabel for="pk-name" i18n>Name</label>
               <input hlmInput id="pk-name" class="h-11" formControlName="name" autocomplete="off" [attr.aria-invalid]="!!err('name')" />
               @if (err('name'); as e) {
                 <p class="field-error">{{ e }}</p>
               }
             </div>
             <div class="flex flex-col gap-1.5">
-              <label hlmLabel for="pk-desc">Description</label>
-              <textarea hlmTextarea id="pk-desc" rows="3" formControlName="description" placeholder="What the team gets, in one or two sentences."></textarea>
+              <label hlmLabel for="pk-desc" i18n>Description</label>
+              <textarea hlmTextarea id="pk-desc" rows="3" formControlName="description" placeholder="What the team gets, in one or two sentences." i18n-placeholder></textarea>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <span hlmLabel id="pk-icon-l">Icon</span>
+              <span hlmLabel id="pk-icon-l" i18n>Icon</span>
               <div role="radiogroup" aria-labelledby="pk-icon-l" class="flex flex-wrap gap-1">
                 @for (i of icons; track i.name) {
                   <label class="grid size-11 cursor-pointer place-items-center rounded-sm border has-focus-visible:ring-2 has-focus-visible:ring-ring"
@@ -257,7 +257,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
             </div>
 
             <fieldset class="grid grid-cols-2 gap-3">
-              <legend class="label-caps col-span-2 mb-1">Price and limits</legend>
+              <legend class="label-caps col-span-2 mb-1" i18n>Price and limits</legend>
               @for (f of numberFields; track f.key) {
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel [for]="'pk-' + f.key">{{ f.label }}</label>
@@ -272,10 +272,10 @@ function configKeyFor(type: PerkType): ConfigKey | null {
             </fieldset>
 
             <fieldset class="flex flex-col gap-2">
-              <legend class="label-caps mb-1">Who can buy</legend>
+              <legend class="label-caps mb-1" i18n>Who can buy</legend>
               <zeus-segmented formControlName="eligible" [options]="eligibleOptions" stacked />
               @if (form.controls.eligible.value === 'roles') {
-                <div class="grid grid-cols-2 gap-1 rounded-sm border border-border p-2" role="group" aria-label="Roles that can buy">
+                <div class="grid grid-cols-2 gap-1 rounded-sm border border-border p-2" role="group" aria-label="Roles that can buy" i18n-aria-label>
                   @for (r of roles; track r.value) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-sm px-2 text-sm hover:bg-muted">
                       <input type="checkbox" class="size-5 accent-primary" [checked]="hasRole(r.value)" (change)="toggleRole(r.value)" />
@@ -284,54 +284,54 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                   }
                 </div>
                 @if (form.errors?.['rolesRequired']) {
-                  <p class="field-error">Pick at least one role.</p>
+                  <p class="field-error" i18n>Pick at least one role.</p>
                 }
               }
             </fieldset>
 
             <div class="divide-y divide-border">
-              <zeus-switch-row formControlName="requiresApproval" label="Requires GM approval" description="Purchases wait in your control center; credits are refunded if you reject them." />
-              <zeus-switch-row formControlName="enabled" label="Enabled" description="Disabled perks are hidden from the store." />
+              <zeus-switch-row formControlName="requiresApproval" label="Requires GM approval" description="Purchases wait in your control center; credits are refunded if you reject them." i18n-label i18n-description />
+              <zeus-switch-row formControlName="enabled" label="Enabled" description="Disabled perks are hidden from the store." i18n-label i18n-description />
             </div>
 
             <fieldset class="flex flex-col gap-2">
-              <legend class="label-caps mb-1">Activation</legend>
+              <legend class="label-caps mb-1" i18n>Activation</legend>
               <zeus-segmented formControlName="activation" [options]="activationOptions" stacked />
             </fieldset>
 
             <fieldset class="flex flex-col gap-2">
-              <legend class="label-caps mb-1">Target</legend>
+              <legend class="label-caps mb-1" i18n>Target</legend>
               <zeus-segmented formControlName="target" [options]="targetOptions" />
-              <p class="text-xs text-muted-foreground">Preset from the type: UAV, recon and theft target an enemy team; jammer and shield target an objective.</p>
+              <p class="text-xs text-muted-foreground" i18n>Preset from the type: UAV, recon and theft target an enemy team; jammer and shield target an objective.</p>
             </fieldset>
 
             @switch (configKey()) {
               @case ('uav') {
                 <fieldset formGroupName="uav" class="flex flex-col gap-3 rounded-sm border border-border p-3">
-                  <legend class="label-caps px-1">UAV settings</legend>
+                  <legend class="label-caps px-1" i18n>UAV settings</legend>
                   <p class="flex gap-2 text-xs text-muted-foreground">
                     <ng-icon name="lucideShieldCheck" size="14" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                    Enemy positions are never sent to the buying team before activation or after expiry.
+                    <ng-container i18n>Enemy positions are never sent to the buying team before activation or after expiry.</ng-container>
                   </p>
-                  <span hlmLabel id="uav-prec-l">Precision</span>
+                  <span hlmLabel id="uav-prec-l" i18n>Precision</span>
                   <zeus-segmented formControlName="precision" [options]="precisionOptions" labelledby="uav-prec-l" />
                   <div class="grid grid-cols-3 gap-2">
                     <div class="flex flex-col gap-1.5">
-                      <label hlmLabel for="uav-ref">Refresh (s)</label>
+                      <label hlmLabel for="uav-ref" i18n>Refresh (s)</label>
                       <input hlmInput id="uav-ref" type="number" min="2" class="num h-11" formControlName="refreshSec" [attr.aria-invalid]="!!cErr('uav', 'refreshSec')" />
                       @if (cErr('uav', 'refreshSec'); as e) {
                         <p class="field-error">{{ e }}</p>
                       }
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label hlmLabel for="uav-del">Delay (s)</label>
+                      <label hlmLabel for="uav-del" i18n>Delay (s)</label>
                       <input hlmInput id="uav-del" type="number" min="0" class="num h-11" formControlName="delaySec" [attr.aria-invalid]="!!cErr('uav', 'delaySec')" />
                       @if (cErr('uav', 'delaySec'); as e) {
                         <p class="field-error">{{ e }}</p>
                       }
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label hlmLabel for="uav-rad">Area radius (m)</label>
+                      <label hlmLabel for="uav-rad" i18n>Area radius (m)</label>
                       <input hlmInput id="uav-rad" type="number" min="5" class="num h-11" formControlName="areaRadiusM" [attr.aria-invalid]="!!cErr('uav', 'areaRadiusM')" />
                       @if (cErr('uav', 'areaRadiusM'); as e) {
                         <p class="field-error">{{ e }}</p>
@@ -342,12 +342,12 @@ function configKeyFor(type: PerkType): ConfigKey | null {
               }
               @case ('recon') {
                 <fieldset formGroupName="recon" class="flex flex-col gap-3 rounded-sm border border-border p-3">
-                  <legend class="label-caps px-1">Recon scan settings</legend>
-                  <p class="text-xs text-muted-foreground">A one-off snapshot of enemy positions, shown for a short time.</p>
-                  <span hlmLabel id="rec-prec-l">Precision</span>
+                  <legend class="label-caps px-1" i18n>Recon scan settings</legend>
+                  <p class="text-xs text-muted-foreground" i18n>A one-off snapshot of enemy positions, shown for a short time.</p>
+                  <span hlmLabel id="rec-prec-l" i18n>Precision</span>
                   <zeus-segmented formControlName="precision" [options]="precisionOptions" labelledby="rec-prec-l" />
                   <div class="flex flex-col gap-1.5">
-                    <label hlmLabel for="rec-rev">Reveal for (s)</label>
+                    <label hlmLabel for="rec-rev" i18n>Reveal for (s)</label>
                     <input hlmInput id="rec-rev" type="number" min="5" class="num h-11 max-w-32" formControlName="revealSec" [attr.aria-invalid]="!!cErr('recon', 'revealSec')" />
                     @if (cErr('recon', 'revealSec'); as e) {
                       <p class="field-error">{{ e }}</p>
@@ -357,41 +357,41 @@ function configKeyFor(type: PerkType): ConfigKey | null {
               }
               @case ('theft') {
                 <fieldset formGroupName="theft" class="flex flex-col gap-3 rounded-sm border border-border p-3">
-                  <legend class="label-caps px-1">Currency theft settings</legend>
+                  <legend class="label-caps px-1" i18n>Currency theft settings</legend>
                   <zeus-segmented formControlName="mode" [options]="theftModeOptions" />
                   <div class="grid grid-cols-2 gap-2">
                     <div class="flex flex-col gap-1.5">
-                      <label hlmLabel for="th-amt">{{ form.controls.theft.controls.mode.value === 'percent' ? 'Percent stolen' : 'Credits stolen' }}</label>
+                      <label hlmLabel for="th-amt">{{ form.controls.theft.controls.mode.value === 'percent' ? txt.percentStolen : txt.creditsStolen }}</label>
                       <input hlmInput id="th-amt" type="number" min="0" class="num h-11" formControlName="amount" [attr.aria-invalid]="!!cErr('theft', 'amount') || !!form.controls.theft.errors?.['percentTooHigh']" />
                       @if (cErr('theft', 'amount'); as e) {
                         <p class="field-error">{{ e }}</p>
                       } @else if (form.controls.theft.errors?.['percentTooHigh']) {
-                        <p class="field-error">At most 100%.</p>
+                        <p class="field-error" i18n>At most 100%.</p>
                       }
                     </div>
                     <div class="flex flex-col gap-1.5">
-                      <label hlmLabel for="th-prot">Protection (s)</label>
+                      <label hlmLabel for="th-prot" i18n>Protection (s)</label>
                       <input hlmInput id="th-prot" type="number" min="0" class="num h-11" formControlName="protectionSec" [attr.aria-invalid]="!!cErr('theft', 'protectionSec')" />
                       @if (cErr('theft', 'protectionSec'); as e) {
                         <p class="field-error">{{ e }}</p>
                       }
                     </div>
                   </div>
-                  <p class="text-xs text-muted-foreground">
+                  <p class="text-xs text-muted-foreground" i18n>
                     Protection: after being robbed, a team cannot be robbed again for this long. Balances never go negative: a team only loses what it has.
                   </p>
                 </fieldset>
               }
               @case ('doublePoints') {
                 <fieldset formGroupName="doublePoints" class="flex flex-col gap-3 rounded-sm border border-border p-3">
-                  <legend class="label-caps px-1">Double points settings</legend>
+                  <legend class="label-caps px-1" i18n>Double points settings</legend>
                   <div class="flex flex-col gap-1.5">
-                    <label hlmLabel for="dp-mul">Multiplier</label>
+                    <label hlmLabel for="dp-mul" i18n>Multiplier</label>
                     <input hlmInput id="dp-mul" type="number" min="1" max="10" step="0.5" class="num h-11 max-w-32" formControlName="multiplier" [attr.aria-invalid]="!!cErr('doublePoints', 'multiplier')" />
                     @if (cErr('doublePoints', 'multiplier'); as e) {
                       <p class="field-error">{{ e }}</p>
                     } @else {
-                      <p class="text-xs text-muted-foreground">Capture points are multiplied while the perk is active (1–10).</p>
+                      <p class="text-xs text-muted-foreground" i18n>Capture points are multiplied while the perk is active (1–10).</p>
                     }
                   </div>
                 </fieldset>
@@ -401,12 +401,12 @@ function configKeyFor(type: PerkType): ConfigKey | null {
             <div class="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-2 border-t border-border bg-card px-4 py-3">
               @if (editingId()) {
                 <button hlmBtn variant="destructive" class="h-11" type="button" (click)="remove()" [disabled]="saveState() === 'saving'">
-                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Delete</ng-container>
                 </button>
               }
               <span class="ml-auto"><zeus-save-state [state]="effectiveState()" [error]="saveError()" /></span>
               <button hlmBtn class="h-11 min-w-28" type="submit" [disabled]="saveState() === 'saving'">
-                {{ saveState() === 'saving' ? 'Saving…' : editingId() ? 'Save perk' : 'Create perk' }}
+                {{ saveState() === 'saving' ? txt.saving : editingId() ? txt.savePerk : txt.createPerk }}
               </button>
             </div>
           </form>
@@ -416,6 +416,26 @@ function configKeyFor(type: PerkType): ConfigKey | null {
   `,
 })
 export class PerkEditorScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    needsApproval: $localize` · needs approval`,
+    instant: $localize`Instant`,
+    noCooldown: $localize`:cooldown|:none`,
+    on: $localize`On`,
+    off: $localize`Off`,
+    percentStolen: $localize`Percent stolen`,
+    creditsStolen: $localize`Credits stolen`,
+    saving: $localize`Saving…`,
+    savePerk: $localize`Save perk`,
+    createPerk: $localize`Create perk`,
+    teamsCanBuyEnabled: $localize`Teams can buy enabled perks with their credits while the game is live.`,
+    theStoreIsClosed: $localize`The store is closed: players see it but cannot buy anything.`,
+    disable: $localize`Disable `,
+    enable: $localize`Enable `,
+    editPerk: $localize`Edit perk`,
+    newPerk: $localize`New perk`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
@@ -446,30 +466,30 @@ export class PerkEditorScreen {
   protected readonly types = (Object.keys(PERK_TYPE_LABELS) as PerkType[]).map((t) => ({ value: t, label: PERK_TYPE_LABELS[t] }));
   protected readonly roles = (Object.keys(PLAYER_ROLE_LABELS) as PlayerRole[]).map((r) => ({ value: r, label: PLAYER_ROLE_LABELS[r] }));
   protected readonly numberFields: { key: 'price' | 'durationSec' | 'cooldownSec' | 'totalQuantity' | 'perTeamLimit'; label: string; hint: string }[] = [
-    { key: 'price', label: 'Price (credits)', hint: '0 = free' },
-    { key: 'durationSec', label: 'Duration (s)', hint: '0 = instant effect' },
-    { key: 'cooldownSec', label: 'Cooldown (s)', hint: 'Per team, between purchases' },
-    { key: 'totalQuantity', label: 'Total quantity', hint: '0 = unlimited' },
-    { key: 'perTeamLimit', label: 'Per-team limit', hint: '0 = unlimited' },
+    { key: 'price', label: $localize`Price (credits)`, hint: $localize`0 = free` },
+    { key: 'durationSec', label: $localize`Duration (s)`, hint: $localize`0 = instant effect` },
+    { key: 'cooldownSec', label: $localize`Cooldown (s)`, hint: $localize`Per team, between purchases` },
+    { key: 'totalQuantity', label: $localize`Total quantity`, hint: $localize`0 = unlimited` },
+    { key: 'perTeamLimit', label: $localize`Per-team limit`, hint: $localize`0 = unlimited` },
   ];
   protected readonly eligibleOptions: SegmentOption<Perk['eligible']>[] = [
-    { value: 'any', label: 'Any player', hint: 'Every team member can buy it.' },
-    { value: 'squad_leaders', label: 'Squad leaders', hint: 'Only players marked as squad leader.' },
-    { value: 'roles', label: 'Specific roles', hint: 'Only players with the roles you pick.' },
+    { value: 'any', label: $localize`Any player`, hint: $localize`Every team member can buy it.` },
+    { value: 'squad_leaders', label: $localize`Squad leaders`, hint: $localize`Only players marked as squad leader.` },
+    { value: 'roles', label: $localize`Specific roles`, hint: $localize`Only players with the roles you pick.` },
   ];
   protected readonly activationOptions: SegmentOption<Perk['activation']>[] = [
-    { value: 'immediate', label: 'Immediately', hint: 'Takes effect as soon as it is bought (or approved).' },
-    { value: 'manual', label: 'When the team activates it', hint: 'Bought now, triggered later from the store.' },
+    { value: 'immediate', label: $localize`Immediately`, hint: $localize`Takes effect as soon as it is bought (or approved).` },
+    { value: 'manual', label: $localize`When the team activates it`, hint: $localize`Bought now, triggered later from the store.` },
   ];
   protected readonly targetOptions: SegmentOption<Perk['target']>[] = [
-    { value: 'none', label: 'None' },
-    { value: 'enemy_team', label: 'Enemy team' },
-    { value: 'objective', label: 'Objective' },
+    { value: 'none', label: $localize`None` },
+    { value: 'enemy_team', label: $localize`Enemy team` },
+    { value: 'objective', label: $localize`Objective` },
   ];
   protected readonly precisionOptions: SegmentOption<Precision>[] = (['exact', 'approximate', 'delayed', 'area'] as Precision[]).map((p) => ({ value: p, label: PRECISION_LABELS[p] }));
   protected readonly theftModeOptions: SegmentOption<'fixed' | 'percent'>[] = [
-    { value: 'percent', label: 'Percent of balance' },
-    { value: 'fixed', label: 'Fixed amount' },
+    { value: 'percent', label: $localize`Percent of balance` },
+    { value: 'fixed', label: $localize`Fixed amount` },
   ];
 
   protected readonly sortedPerks = computed(() => [...(this.perks() ?? [])].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)));
@@ -541,7 +561,7 @@ export class PerkEditorScreen {
     this.storeBusy.set(true);
     try {
       this.event.set(await this.api.updateEvent(e.id, { storeEnabled: enabled }));
-      this.toast.success(enabled ? 'Store open' : 'Store closed');
+      this.toast.success(enabled ? $localize`Store open` : $localize`Store closed`);
     } catch (err) {
       this.toast.error(err);
       this.storeRev.update((n) => n + 1);
@@ -554,7 +574,7 @@ export class PerkEditorScreen {
     this.busy.set(true);
     try {
       const added = await this.api.addDefaultPerks(this.eventId());
-      this.toast.success(added.length ? `${added.length} default perks added` : 'All default perks are already in the store', added.length ? 'Review prices and limits before the game.' : undefined);
+      this.toast.success(added.length ? $localize`${added.length}:length: default perks added` : $localize`All default perks are already in the store`, added.length ? $localize`Review prices and limits before the game.` : undefined);
       await this.load(true);
     } catch (err) {
       this.toast.error(err);
@@ -578,7 +598,7 @@ export class PerkEditorScreen {
 
   private async confirmDiscard(): Promise<boolean> {
     if (!this.editing() || !this.form.dirty) return true;
-    return this.confirm.ask({ title: 'Discard changes?', consequences: ['Your unsaved changes to this perk are lost.'], confirmLabel: 'Discard', destructive: true });
+    return this.confirm.ask({ title: $localize`Discard changes?`, consequences: [$localize`Your unsaved changes to this perk are lost.`], confirmLabel: $localize`Discard`, destructive: true });
   }
 
   protected async openNew(): Promise<void> {
@@ -718,7 +738,7 @@ export class PerkEditorScreen {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.saveState.set('failed');
-      this.saveError.set('Fix the highlighted fields.');
+      this.saveError.set($localize`Fix the highlighted fields.`);
       focusFirstInvalid(this.editorForm()?.nativeElement);
       return;
     }
@@ -732,7 +752,7 @@ export class PerkEditorScreen {
       this.editingId.set(saved.id);
       this.form.markAsPristine();
       this.saveState.set('saved');
-      this.toast.success(id ? `${saved.name} saved` : `${saved.name} created`);
+      this.toast.success(id ? $localize`${saved.name}:name: saved` : $localize`${saved.name}:name: created`);
     } catch (err) {
       const apiErr = ApiError.from(err);
       this.saveState.set('failed');
@@ -748,18 +768,18 @@ export class PerkEditorScreen {
     const p = this.perks()?.find((x) => x.id === id);
     if (!p) return;
     const ok = await this.confirm.ask({
-      title: `Delete ${p.name}?`,
+      title: $localize`Delete ${p.name}:name:?`,
       consequences: [
-        'It disappears from the store.',
-        'If a team already bought it, it is disabled instead of deleted so the purchase history stays.',
+        $localize`It disappears from the store.`,
+        $localize`If a team already bought it, it is disabled instead of deleted so the purchase history stays.`,
       ],
       destructive: true,
-      confirmLabel: 'Delete perk',
+      confirmLabel: $localize`Delete perk`,
     });
     if (!ok) return;
     try {
       await this.api.deletePerk(this.eventId(), p.id);
-      this.toast.success(`${p.name} deleted`);
+      this.toast.success($localize`${p.name}:name: deleted`);
       this.form.markAsPristine();
       this.editing.set(false);
       this.editingId.set(null);

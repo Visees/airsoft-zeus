@@ -30,27 +30,27 @@ type StatusFilter = 'pending' | 'approved' | 'invited' | 'rejected' | 'removed';
 type SortKey = 'nickname' | 'status' | 'team' | 'lastSeen' | 'points';
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'invited', label: 'Invited' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'removed', label: 'Removed / left' },
+  { value: 'pending', label: $localize`Pending` },
+  { value: 'approved', label: $localize`Approved` },
+  { value: 'invited', label: $localize`Invited` },
+  { value: 'rejected', label: $localize`Rejected` },
+  { value: 'removed', label: $localize`Removed / left` },
 ];
 
 const STATUS_CHIPS: Record<MemberStatus, ChipSpec> = {
-  pending: { label: 'Waiting for approval', glyph: '◐', tone: 'warning' },
-  approved: { label: 'Approved', glyph: '✓', tone: 'primary' },
-  invited: { label: 'Invited', glyph: '✉', tone: 'nav' },
-  rejected: { label: 'Rejected', glyph: '✕', tone: 'danger' },
-  removed: { label: 'Removed', glyph: '✕', tone: 'danger' },
-  left: { label: 'Left', glyph: '○', tone: 'neutral' },
+  pending: { label: $localize`Waiting for approval`, glyph: '◐', tone: 'warning' },
+  approved: { label: $localize`Approved`, glyph: '✓', tone: 'primary' },
+  invited: { label: $localize`Invited`, glyph: '✉', tone: 'nav' },
+  rejected: { label: $localize`Rejected`, glyph: '✕', tone: 'danger' },
+  removed: { label: $localize`Removed`, glyph: '✕', tone: 'danger' },
+  left: { label: $localize`Left`, glyph: '○', tone: 'neutral' },
 };
 
 const PERMISSION_LABELS: Record<PermissionState, string> = {
-  granted: '● Allowed',
-  denied: '✕ Blocked',
-  prompt: '◐ Not answered',
-  unknown: '○ Unknown',
+  granted: $localize`● Allowed`,
+  denied: $localize`✕ Blocked`,
+  prompt: $localize`◐ Not answered`,
+  unknown: $localize`○ Unknown`,
 };
 
 function filterOf(s: MemberStatus): StatusFilter {
@@ -82,20 +82,20 @@ function filterOf(s: MemberStatus): StatusFilter {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Players" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" [subtitle]="subtitle()">
+      <zeus-page-header title="Players" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" [subtitle]="subtitle()" i18n-title i18n-backLabel>
         <zeus-connection-status [compact]="true" />
         <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'teams']">
-          <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> Teams and squads
+          <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Teams and squads</ng-container>
         </a>
       </zeus-page-header>
 
       <!-- Invite -->
       <form [formGroup]="inviteForm" (ngSubmit)="invite()" class="panel mb-4 flex flex-col gap-1.5 p-3" [attr.data-rev]="inviteTick()">
-        <label hlmLabel for="inv-nick">Invite a player by nickname</label>
+        <label hlmLabel for="inv-nick" i18n>Invite a player by nickname</label>
         <div class="flex gap-2">
-          <input hlmInput id="inv-nick" class="h-11 flex-1" formControlName="nickname" autocomplete="off" placeholder="nickname" [attr.aria-invalid]="!!inviteError()" aria-describedby="inv-e" />
+          <input hlmInput id="inv-nick" class="h-11 flex-1" formControlName="nickname" autocomplete="off" placeholder="nickname" [attr.aria-invalid]="!!inviteError()" aria-describedby="inv-e" i18n-placeholder />
           <button hlmBtn class="h-11" type="submit" [disabled]="inviting()">
-            <ng-icon name="lucideMail" size="16" aria-hidden="true" /> {{ inviting() ? 'Inviting…' : 'Invite' }}
+            <ng-icon name="lucideMail" size="16" aria-hidden="true" /> {{ inviting() ? txt.inviting : txt.invite }}
           </button>
         </div>
         @if (inviteError(); as m) {
@@ -105,7 +105,7 @@ function filterOf(s: MemberStatus): StatusFilter {
 
       <!-- Filters -->
       <div class="mb-3 flex flex-col gap-3">
-        <div role="radiogroup" aria-label="Filter by status" class="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        <div role="radiogroup" aria-label="Filter by status" class="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" i18n-aria-label>
           @for (f of statusFilters; track f.value) {
             <label class="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-sm border px-3 text-sm has-focus-visible:ring-2 has-focus-visible:ring-ring"
               [class]="status() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:text-foreground'">
@@ -117,15 +117,15 @@ function filterOf(s: MemberStatus): StatusFilter {
         </div>
         <div class="grid gap-2 sm:grid-cols-[1fr_14rem]">
           <div class="relative">
-            <label for="pl-search" class="sr-only">Search by nickname</label>
+            <label for="pl-search" class="sr-only" i18n>Search by nickname</label>
             <ng-icon name="lucideSearch" size="16" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input hlmInput id="pl-search" type="search" class="h-11 pl-9" placeholder="Search by nickname" [value]="search()" (input)="search.set($any($event.target).value)" />
+            <input hlmInput id="pl-search" type="search" class="h-11 pl-9" placeholder="Search by nickname" [value]="search()" (input)="search.set($any($event.target).value)" i18n-placeholder />
           </div>
           <div>
-            <label for="pl-team" class="sr-only">Filter by team</label>
+            <label for="pl-team" class="sr-only" i18n>Filter by team</label>
             <select id="pl-team" class="h-11 w-full rounded-md border border-input bg-background px-2.5 text-sm dark:bg-input/30" (change)="teamFilter.set($any($event.target).value)">
-              <option value="" [selected]="teamFilter() === ''">All teams</option>
-              <option value="none" [selected]="teamFilter() === 'none'">No team</option>
+              <option value="" [selected]="teamFilter() === ''" i18n>All teams</option>
+              <option value="none" [selected]="teamFilter() === 'none'" i18n>No team</option>
               @for (t of teams(); track t.id) {
                 <option [value]="t.id" [selected]="teamFilter() === t.id">{{ t.name }}</option>
               }
@@ -136,10 +136,15 @@ function filterOf(s: MemberStatus): StatusFilter {
           <div class="flex flex-wrap items-center gap-2 rounded-sm border border-border bg-muted px-3 py-1">
             <label class="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
               <input type="checkbox" class="size-5 accent-primary" [checked]="allSelected()" [indeterminate]="someSelected()" (change)="toggleAll()" />
-              Select all ({{ visible().length }})
+              <ng-container i18n>Select all ({{ visible().length }})</ng-container>
             </label>
             <button hlmBtn class="ml-auto h-11" type="button" [disabled]="!selected().size || bulkBusy()" (click)="bulkApprove()">
-              <ng-icon name="lucideUserCheck" size="16" aria-hidden="true" /> {{ bulkBusy() ? 'Approving…' : 'Approve selected (' + selected().size + ')' }}
+              <ng-icon name="lucideUserCheck" size="16" aria-hidden="true" />
+              @if (bulkBusy()) {
+                {{ txt.approving }}
+              } @else {
+                <ng-container i18n>Approve selected ({{ selected().size }})</ng-container>
+              }
             </button>
           </div>
         }
@@ -152,16 +157,16 @@ function filterOf(s: MemberStatus): StatusFilter {
           } @else if (loadError(); as err) {
             <zeus-error-state [error]="err" (retry)="load()" />
           } @else if (!visible().length) {
-            <zeus-empty-state icon="lucideUsers" [title]="emptyTitle()" [message]="search() || teamFilter() ? 'No player matches the filters.' : null" />
+            <zeus-empty-state icon="lucideUsers" [title]="emptyTitle()" [message]="search() || teamFilter() ? txt.noPlayerMatchesThe : null" />
           } @else if (desktop()) {
             <!-- Desktop table -->
             <div class="panel overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <caption class="sr-only">{{ statusLabel() }} players, {{ visible().length }} shown</caption>
+                <caption class="sr-only" i18n>{{ statusLabel() }} players, {{ visible().length }} shown</caption>
                 <thead class="border-b border-border">
                   <tr>
                     @if (status() === 'pending') {
-                      <th scope="col" class="w-10 px-3"><span class="sr-only">Select</span></th>
+                      <th scope="col" class="w-10 px-3"><span class="sr-only" i18n>Select</span></th>
                     }
                     @for (c of columns; track c.key) {
                       <th scope="col" class="px-3 py-2" [attr.aria-sort]="sortKey() === c.key ? (sortDir() === 1 ? 'ascending' : 'descending') : null">
@@ -171,9 +176,9 @@ function filterOf(s: MemberStatus): StatusFilter {
                         </button>
                       </th>
                     }
-                    <th scope="col" class="label-caps px-3 py-2">Ready</th>
-                    <th scope="col" class="label-caps px-3 py-2">Location</th>
-                    <th scope="col" class="px-3 py-2"><span class="sr-only">Actions</span></th>
+                    <th scope="col" class="label-caps px-3 py-2" i18n>Ready</th>
+                    <th scope="col" class="label-caps px-3 py-2" i18n>Location</th>
+                    <th scope="col" class="px-3 py-2"><span class="sr-only" i18n>Actions</span></th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
@@ -181,7 +186,7 @@ function filterOf(s: MemberStatus): StatusFilter {
                     <tr [class]="detailId() === m.userId ? 'bg-primary/5' : ''">
                       @if (status() === 'pending') {
                         <td class="px-3">
-                          <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" [attr.aria-label]="'Select ' + m.nickname" />
+                          <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" aria-label="Select {{ m.nickname }}" i18n-aria-label />
                         </td>
                       }
                       <td class="px-3 py-2">
@@ -212,14 +217,14 @@ function filterOf(s: MemberStatus): StatusFilter {
                           </span>
                         }
                       </td>
-                      <td class="num px-3 py-2 text-xs text-muted-foreground">{{ m.online ? '● Online' : m.lastSeenAt ? relative(m.lastSeenAt) : '—' }}</td>
+                      <td class="num px-3 py-2 text-xs text-muted-foreground">{{ m.online ? txt.online : m.lastSeenAt ? relative(m.lastSeenAt) : '—' }}</td>
                       <td class="num px-3 py-2 text-right">{{ fmt(m.points) }}</td>
                       <td class="px-3 py-2 text-xs">
-                        <span [class.text-primary]="m.ready">{{ m.ready ? '✓ Ready' : '○ Not ready' }}</span>
-                        <span class="block text-muted-foreground">{{ m.rulesAccepted ? 'Rules accepted' : 'Rules not accepted' }}</span>
+                        <span [class.text-primary]="m.ready">{{ m.ready ? txt.ready : txt.notReady }}</span>
+                        <span class="block text-muted-foreground">{{ m.rulesAccepted ? txt.rulesAccepted : txt.rulesNotAccepted }}</span>
                       </td>
                       <td class="px-3 py-2 text-xs">
-                        <span [class.text-primary]="m.trackingActive">{{ m.trackingActive ? '● Tracking' : m.trackingConsented ? '◐ Consented' : '○ No consent' }}</span>
+                        <span [class.text-primary]="m.trackingActive">{{ m.trackingActive ? txt.tracking : m.trackingConsented ? txt.consented : txt.noConsent }}</span>
                         @if (m.gpsAccuracy !== null) {
                           <span class="num block text-muted-foreground">±{{ m.gpsAccuracy.toFixed(0) }} m</span>
                         }
@@ -237,13 +242,13 @@ function filterOf(s: MemberStatus): StatusFilter {
           } @else {
             <!-- Phone list -->
             <div class="mb-2 flex items-center gap-2">
-              <label for="pl-sort" class="label-caps">Sort</label>
+              <label for="pl-sort" class="label-caps" i18n>Sort</label>
               <select id="pl-sort" class="h-11 rounded-md border border-input bg-background px-2 text-sm dark:bg-input/30" (change)="sortBy($any($event.target).value, true)">
                 @for (c of columns; track c.key) {
                   <option [value]="c.key" [selected]="sortKey() === c.key">{{ c.label }}</option>
                 }
               </select>
-              <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="sortDir.set(sortDir() === 1 ? -1 : 1)" [attr.aria-label]="sortDir() === 1 ? 'Ascending, switch to descending' : 'Descending, switch to ascending'">
+              <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="sortDir.set(sortDir() === 1 ? -1 : 1)" [attr.aria-label]="sortDir() === 1 ? txt.ascendingSwitchToDescending : txt.descendingSwitchToAscending">
                 {{ sortDir() === 1 ? '▲' : '▼' }}
               </button>
             </div>
@@ -253,11 +258,11 @@ function filterOf(s: MemberStatus): StatusFilter {
                   <div class="flex items-center gap-2">
                     @if (status() === 'pending') {
                       <label class="grid size-11 shrink-0 cursor-pointer place-items-center">
-                        <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" [attr.aria-label]="'Select ' + m.nickname" />
+                        <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" aria-label="Select {{ m.nickname }}" i18n-aria-label />
                       </label>
                     }
                     <zeus-player-list-item class="min-w-0 flex-1" [member]="m" [team]="teamOf(m)" [squad]="squadOf(m)" [showPresence]="m.status === 'approved'" [showGps]="running()">
-                      <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" [attr.aria-label]="'Details of ' + m.nickname">
+                      <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" aria-label="Details of {{ m.nickname }}" i18n-aria-label>
                         <ng-icon name="lucideInfo" size="18" aria-hidden="true" />
                       </button>
                     </zeus-player-list-item>
@@ -274,7 +279,7 @@ function filterOf(s: MemberStatus): StatusFilter {
           }
         </div>
 
-        <zeus-gm-panel [open]="!!detail()" [title]="detail()?.nickname ?? 'Player'" eyebrow="Player details" (closed)="detailId.set(null)">
+        <zeus-gm-panel [open]="!!detail()" [title]="detail()?.nickname ?? txt.player" eyebrow="Player details" (closed)="detailId.set(null)" i18n-eyebrow>
           @if (detail(); as m) {
             <div class="flex flex-col gap-4 text-sm">
               <div class="flex items-center gap-3">
@@ -285,46 +290,46 @@ function filterOf(s: MemberStatus): StatusFilter {
                 }
                 <div class="min-w-0">
                   <zeus-status-chip [spec]="chipOf(m)" />
-                  <p class="mt-1 text-muted-foreground">{{ m.playerRole ? roleLabel(m) : 'Role not set' }} · joined {{ dateTime(m.joinedAt) }}</p>
-                  <a [routerLink]="['/players', m.userId]" class="text-xs text-primary underline-offset-4 hover:underline">Public profile</a>
+                  <p class="mt-1 text-muted-foreground" i18n>{{ m.playerRole ? roleLabel(m) : txt.roleNotSet }} · joined {{ dateTime(m.joinedAt) }}</p>
+                  <a [routerLink]="['/players', m.userId]" class="text-xs text-primary underline-offset-4 hover:underline" i18n>Public profile</a>
                 </div>
               </div>
 
               <section aria-labelledby="d-team">
-                <h3 id="d-team" class="label-caps mb-1">Team</h3>
+                <h3 id="d-team" class="label-caps mb-1" i18n>Team</h3>
                 @if (m.status === 'approved') {
                   <zeus-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
                 } @else {
-                  <zeus-team-badge [team]="teamOf(m)" emptyLabel="No team" />
+                  <zeus-team-badge [team]="teamOf(m)" emptyLabel="No team" i18n-emptyLabel />
                 }
               </section>
 
               <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
-                <div><dt class="label-caps">Ready</dt><dd [class.text-primary]="m.ready">{{ m.ready ? '✓ Ready' : '○ Not ready' }}</dd></div>
-                <div><dt class="label-caps">Rules</dt><dd [class.text-primary]="m.rulesAccepted">{{ m.rulesAccepted ? '✓ Accepted' : '○ Not accepted' }}</dd></div>
-                <div><dt class="label-caps">Location permission</dt><dd>{{ permission(m.locationPermission) }}</dd></div>
-                <div><dt class="label-caps">Notifications</dt><dd>{{ permission(m.notificationPermission) }}</dd></div>
-                <div><dt class="label-caps">Tracking consent</dt><dd>{{ m.trackingConsented ? '✓ Given' : '○ Not given' }}</dd></div>
-                <div><dt class="label-caps">Tracking</dt><dd [class.text-primary]="m.trackingActive">{{ m.trackingActive ? '● Active' : '○ Off' }}</dd></div>
-                <div><dt class="label-caps">Last seen</dt><dd class="num">{{ m.online ? '● Online now' : m.lastSeenAt ? relative(m.lastSeenAt) : 'Never' }}</dd></div>
-                <div><dt class="label-caps">Last position</dt><dd class="num">{{ m.lastLocationAt ? relative(m.lastLocationAt) : '—' }}</dd></div>
-                <div><dt class="label-caps">GPS accuracy</dt><dd class="num">{{ m.gpsAccuracy !== null ? '±' + m.gpsAccuracy.toFixed(0) + ' m' : '—' }}</dd></div>
-                <div><dt class="label-caps">Points · captures</dt><dd class="num">{{ fmt(m.points) }} · {{ m.captures }}</dd></div>
+                <div><dt class="label-caps" i18n>Ready</dt><dd [class.text-primary]="m.ready">{{ m.ready ? txt.ready : txt.notReady }}</dd></div>
+                <div><dt class="label-caps" i18n>Rules</dt><dd [class.text-primary]="m.rulesAccepted">{{ m.rulesAccepted ? txt.accepted : txt.notAccepted }}</dd></div>
+                <div><dt class="label-caps" i18n>Location permission</dt><dd>{{ permission(m.locationPermission) }}</dd></div>
+                <div><dt class="label-caps" i18n>Notifications</dt><dd>{{ permission(m.notificationPermission) }}</dd></div>
+                <div><dt class="label-caps" i18n>Tracking consent</dt><dd>{{ m.trackingConsented ? txt.given : txt.notGiven }}</dd></div>
+                <div><dt class="label-caps" i18n>Tracking</dt><dd [class.text-primary]="m.trackingActive">{{ m.trackingActive ? txt.active : txt.off }}</dd></div>
+                <div><dt class="label-caps" i18n>Last seen</dt><dd class="num">{{ m.online ? txt.onlineNow : m.lastSeenAt ? relative(m.lastSeenAt) : txt.never }}</dd></div>
+                <div><dt class="label-caps" i18n>Last position</dt><dd class="num">{{ m.lastLocationAt ? relative(m.lastLocationAt) : '—' }}</dd></div>
+                <div><dt class="label-caps" i18n>GPS accuracy</dt><dd class="num">{{ m.gpsAccuracy !== null ? '±' + m.gpsAccuracy.toFixed(0) + ' m' : '—' }}</dd></div>
+                <div><dt class="label-caps" i18n>Points · captures</dt><dd class="num">{{ fmt(m.points) }} · {{ m.captures }}</dd></div>
               </dl>
 
               @if (m.emergencyContact; as ec) {
                 <section class="rounded-sm border border-destructive/40 bg-destructive/5 p-3" aria-labelledby="d-ec">
                   <h3 id="d-ec" class="label-caps flex items-center gap-1.5 text-destructive!">
-                    <ng-icon name="lucideLock" size="14" aria-hidden="true" /> Emergency contact · confidential
+                    <ng-icon name="lucideLock" size="14" aria-hidden="true" /> <ng-container i18n>Emergency contact · confidential</ng-container>
                   </h3>
-                  <p class="mt-1 text-xs text-muted-foreground">Shared by the player for emergencies only. Do not copy or pass it on.</p>
+                  <p class="mt-1 text-xs text-muted-foreground" i18n>Shared by the player for emergencies only. Do not copy or pass it on.</p>
                   <p class="mt-2 font-semibold">{{ ec.name }} <span class="font-normal text-muted-foreground">({{ ec.relation }})</span></p>
                   <a [href]="'tel:' + ec.phone" class="num mt-1 inline-flex min-h-11 items-center gap-1.5 text-base font-semibold underline-offset-4 hover:underline">
                     <ng-icon name="lucidePhone" size="16" aria-hidden="true" /> {{ ec.phone }}
                   </a>
                 </section>
               } @else if (m.status === 'approved') {
-                <p class="text-xs text-muted-foreground">No emergency contact shared.</p>
+                <p class="text-xs text-muted-foreground" i18n>No emergency contact shared.</p>
               }
 
               <div class="flex flex-wrap gap-2 border-t border-border pt-3">
@@ -339,26 +344,26 @@ function filterOf(s: MemberStatus): StatusFilter {
     <ng-template #rowActions let-m let-full="full">
       @switch (m.status) {
         @case ('pending') {
-          <button hlmBtn size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, true)" [attr.aria-label]="'Approve ' + m.nickname">
-            <ng-icon name="lucideUserCheck" size="14" aria-hidden="true" /> Approve
+          <button hlmBtn size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, true)" aria-label="Approve {{ m.nickname }}" i18n-aria-label>
+            <ng-icon name="lucideUserCheck" size="14" aria-hidden="true" /> <ng-container i18n>Approve</ng-container>
           </button>
-          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, false)" [attr.aria-label]="'Reject ' + m.nickname">
-            <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> Reject
+          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, false)" aria-label="Reject {{ m.nickname }}" i18n-aria-label>
+            <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> <ng-container i18n>Reject</ng-container>
           </button>
         }
         @case ('approved') {
-          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" [attr.aria-label]="'Remove ' + m.nickname">
-            <ng-icon name="lucideUserMinus" size="14" aria-hidden="true" /> {{ full ? 'Remove from event' : 'Remove' }}
+          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" aria-label="Remove {{ m.nickname }}" i18n-aria-label>
+            <ng-icon name="lucideUserMinus" size="14" aria-hidden="true" /> {{ full ? txt.removeFromEvent : txt.remove }}
           </button>
         }
         @case ('invited') {
-          <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" [attr.aria-label]="'Cancel invitation of ' + m.nickname">
-            <ng-icon name="lucideX" size="14" aria-hidden="true" /> Cancel invitation
+          <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" aria-label="Cancel invitation of {{ m.nickname }}" i18n-aria-label>
+            <ng-icon name="lucideX" size="14" aria-hidden="true" /> <ng-container i18n>Cancel invitation</ng-container>
           </button>
         }
       }
       @if (desktop() && !full) {
-        <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" [attr.aria-label]="'Details of ' + m.nickname">
+        <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" aria-label="Details of {{ m.nickname }}" i18n-aria-label>
           <ng-icon name="lucideInfo" size="16" aria-hidden="true" />
         </button>
       }
@@ -366,6 +371,36 @@ function filterOf(s: MemberStatus): StatusFilter {
   `,
 })
 export class PlayerManagementScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    inviting: $localize`Inviting…`,
+    invite: $localize`Invite`,
+    approving: $localize`Approving…`,
+    online: $localize`● Online`,
+    ready: $localize`✓ Ready`,
+    notReady: $localize`○ Not ready`,
+    rulesAccepted: $localize`Rules accepted`,
+    rulesNotAccepted: $localize`Rules not accepted`,
+    tracking: $localize`● Tracking`,
+    consented: $localize`◐ Consented`,
+    noConsent: $localize`○ No consent`,
+    roleNotSet: $localize`Role not set`,
+    accepted: $localize`✓ Accepted`,
+    notAccepted: $localize`○ Not accepted`,
+    given: $localize`✓ Given`,
+    notGiven: $localize`○ Not given`,
+    active: $localize`● Active`,
+    off: $localize`○ Off`,
+    onlineNow: $localize`● Online now`,
+    never: $localize`Never`,
+    removeFromEvent: $localize`Remove from event`,
+    remove: $localize`Remove`,
+    noPlayerMatchesThe: $localize`No player matches the filters.`,
+    ascendingSwitchToDescending: $localize`Ascending, switch to descending`,
+    descendingSwitchToAscending: $localize`Descending, switch to ascending`,
+    player: $localize`Player`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
@@ -398,11 +433,11 @@ export class PlayerManagementScreen {
 
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly columns: { key: SortKey; label: string }[] = [
-    { key: 'nickname', label: 'Player' },
-    { key: 'status', label: 'Status' },
-    { key: 'team', label: 'Team / squad' },
-    { key: 'lastSeen', label: 'Last seen' },
-    { key: 'points', label: 'Points' },
+    { key: 'nickname', label: $localize`Player` },
+    { key: 'status', label: $localize`Status` },
+    { key: 'team', label: $localize`Team / squad` },
+    { key: 'lastSeen', label: $localize`Last seen` },
+    { key: 'points', label: $localize`Points` },
   ];
 
   protected readonly teams = computed<Team[]>(() => [...(this.event()?.teams ?? [])].sort((a, b) => a.sortOrder - b.sortOrder));
@@ -450,22 +485,22 @@ export class PlayerManagementScreen {
   protected readonly emptyTitle = computed(() => {
     switch (this.status()) {
       case 'pending':
-        return 'No registrations waiting';
+        return $localize`No registrations waiting`;
       case 'approved':
-        return 'No approved players yet';
+        return $localize`No approved players yet`;
       case 'invited':
-        return 'No open invitations';
+        return $localize`No open invitations`;
       case 'rejected':
-        return 'No rejected registrations';
+        return $localize`No rejected registrations`;
       default:
-        return 'Nobody was removed or left';
+        return $localize`Nobody was removed or left`;
     }
   });
   protected readonly subtitle = computed(() => {
     const e = this.event();
     if (!e) return null;
     const c = this.counts();
-    return `${c.approved} approved of ${e.maxPlayers} places${c.pending ? ` · ${c.pending} waiting for approval` : ''}`;
+    return c.pending ? $localize`${c.approved}:approved: approved of ${e.maxPlayers}:max: places · ${c.pending}:pending: waiting for approval` : $localize`${c.approved}:approved: approved of ${e.maxPlayers}:max: places`;
   });
 
   protected readonly initialsOf = initials;
@@ -600,18 +635,18 @@ export class PlayerManagementScreen {
     const e = this.event();
     if (!approve) {
       const ok = await this.confirm.ask({
-        title: `Reject ${m.nickname}?`,
-        consequences: [`${m.nickname} is notified that the registration was declined.`, 'They cannot register again for this event.'],
+        title: $localize`Reject ${m.nickname}:nickname:?`,
+        consequences: [$localize`${m.nickname}:nickname: is notified that the registration was declined.`, $localize`They cannot register again for this event.`],
         destructive: true,
-        confirmLabel: 'Reject',
+        confirmLabel: $localize`Reject`,
       });
       if (!ok) return;
     } else if (e && this.counts().approved >= e.maxPlayers) {
       const ok = await this.confirm.ask({
-        title: 'The event is full',
-        message: `${this.counts().approved} of ${e.maxPlayers} places are taken.`,
-        consequences: [`Approving ${m.nickname} goes over the maximum you set.`],
-        confirmLabel: 'Approve anyway',
+        title: $localize`The event is full`,
+        message: $localize`${this.counts().approved}:approved: of ${e.maxPlayers}:maxPlayers: places are taken.`,
+        consequences: [$localize`Approving ${m.nickname}:nickname: goes over the maximum you set.`],
+        confirmLabel: $localize`Approve anyway`,
       });
       if (!ok) return;
     }
@@ -619,7 +654,7 @@ export class PlayerManagementScreen {
     try {
       const updated = await this.api.reviewMember(this.eventId(), m.userId, approve);
       this.replaceMember(updated);
-      this.toast.success(approve ? `${m.nickname} approved` : `${m.nickname} rejected`);
+      this.toast.success(approve ? $localize`${m.nickname}:nickname: approved` : $localize`${m.nickname}:nickname: rejected`);
       void this.loadEvent();
     } catch (err) {
       this.toast.error(err);
@@ -636,13 +671,13 @@ export class PlayerManagementScreen {
     if (!list.length) return;
     const over = e ? this.counts().approved + list.length - e.maxPlayers : 0;
     const ok = await this.confirm.ask({
-      title: `Approve ${list.length} players?`,
+      title: $localize`Approve ${list.length}:length: players?`,
       consequences: [
-        `${list.length} players are notified that they are in.`,
-        ...(e?.teamSelection === 'auto' ? ['They are placed in teams automatically.'] : []),
-        ...(over > 0 ? [`This goes ${over} over the maximum of ${e!.maxPlayers} players.`] : []),
+        $localize`${list.length}:length: players are notified that they are in.`,
+        ...(e?.teamSelection === 'auto' ? [$localize`They are placed in teams automatically.`] : []),
+        ...(over > 0 ? [$localize`This goes ${over}:over: over the maximum of ${e!.maxPlayers}:maxPlayers: players.`] : []),
       ],
-      confirmLabel: `Approve ${list.length}`,
+      confirmLabel: $localize`Approve ${list.length}:length:`,
     });
     if (!ok) return;
     this.bulkBusy.set(true);
@@ -658,31 +693,31 @@ export class PlayerManagementScreen {
     }
     this.bulkBusy.set(false);
     this.selected.set(new Set());
-    if (failed.length) this.toast.warning(`${done} approved, ${failed.length} failed`, `Not approved: ${failed.join(', ')}`);
-    else this.toast.success(`${done} players approved`);
+    if (failed.length) this.toast.warning($localize`${done}:done: approved, ${failed.length}:length: failed`, $localize`Not approved: ${failed.join(', ')}:failed:`);
+    else this.toast.success($localize`${done}:done: players approved`);
     void this.load();
   }
 
   protected async remove(m: Member): Promise<void> {
     const invited = m.status === 'invited';
     const reason = await this.confirm.askReason({
-      title: invited ? `Cancel the invitation of ${m.nickname}?` : `Remove ${m.nickname} from the event?`,
+      title: invited ? $localize`Cancel the invitation of ${m.nickname}:nickname:?` : $localize`Remove ${m.nickname}:nickname: from the event?`,
       consequences: invited
-        ? [`${m.nickname} can no longer accept the invitation.`, 'They see your reason.']
+        ? [$localize`${m.nickname}:nickname: can no longer accept the invitation.`, $localize`They see your reason.`]
         : [
-            `${m.nickname} loses access to the event${this.running() ? ' and is disconnected from the live game immediately' : ''}.`,
-            'Location tracking stops and their emergency contact is no longer shared.',
-            'They see your reason and cannot register again.',
+            this.running() ? $localize`${m.nickname}:nickname: loses access to the event and is disconnected from the live game immediately.` : $localize`${m.nickname}:nickname: loses access to the event.`,
+            $localize`Location tracking stops and their emergency contact is no longer shared.`,
+            $localize`They see your reason and cannot register again.`,
           ],
       destructive: true,
-      confirmLabel: invited ? 'Cancel invitation' : 'Remove player',
-      reason: { label: 'Reason (shown to the player)', required: true, placeholder: invited ? 'Event full' : 'Did not respect the safety rules' },
+      confirmLabel: invited ? $localize`Cancel invitation` : $localize`Remove player`,
+      reason: { label: $localize`Reason (shown to the player)`, required: true, placeholder: invited ? $localize`Event full` : $localize`Did not respect the safety rules` },
     });
     if (reason === null) return;
     this.busyId.set(m.userId);
     try {
       await this.api.removeMember(this.eventId(), m.userId, reason);
-      this.toast.success(invited ? 'Invitation cancelled' : `${m.nickname} removed`);
+      this.toast.success(invited ? $localize`Invitation cancelled` : $localize`${m.nickname}:nickname: removed`);
       if (this.detailId() === m.userId) this.detailId.set(null);
       await this.loadMembers();
       void this.loadEvent();
@@ -698,7 +733,7 @@ export class PlayerManagementScreen {
     this.inviteError.set(null);
     if (c.invalid) {
       c.markAsTouched();
-      this.inviteError.set('Enter a nickname.');
+      this.inviteError.set($localize`Enter a nickname.`);
       return;
     }
     const nickname = c.value.trim();
@@ -707,7 +742,7 @@ export class PlayerManagementScreen {
       const m = await this.api.invitePlayer(this.eventId(), nickname);
       this.inviteForm.reset();
       this.members.update((list) => [...(list ?? []).filter((x) => x.userId !== m.userId), m]);
-      this.toast.success(`${m.nickname} invited`, 'They get a notification and can accept from the event page.');
+      this.toast.success($localize`${m.nickname}:nickname: invited`, $localize`They get a notification and can accept from the event page.`);
     } catch (err) {
       const e = ApiError.from(err);
       this.inviteError.set(e.fields['nickname'] ?? e.message);

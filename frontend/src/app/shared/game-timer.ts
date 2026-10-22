@@ -87,13 +87,13 @@ export class GameTimer {
     if (!this.showCaption()) return '';
     switch (this.mode()) {
       case 'countdown':
-        return 'Starts in';
+        return $localize`Starts in`;
       case 'paused':
-        return 'Paused';
+        return $localize`Paused`;
       case 'ended':
-        return 'Played';
+        return $localize`Played`;
       case 'live':
-        return this.remainingMs() === null ? 'Elapsed' : 'Remaining';
+        return this.remainingMs() === null ? $localize`Elapsed` : $localize`Remaining`;
       default:
         return '';
     }

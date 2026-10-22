@@ -1,5 +1,5 @@
 import { Objective, Poi, PoiType, Team, VisiblePosition } from '../api/models';
-import { OBJECTIVE_STATUS_GLYPHS, PLAYER_ROLE_TAGS, initials } from '../util/format';
+import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_STATUS_LABELS, PLAYER_ROLE_TAGS, initials } from '../util/format';
 
 /**
  * DOM builders for map markers, shared by the Google renderer (AdvancedMarkerElement content)
@@ -93,7 +93,7 @@ export function objectiveMarker(o: Objective, owner: Team | null, selected: bool
   box.appendChild(glyph);
   const parts = [box];
   if (showLabel) parts.push(el('div', { ...LABEL_STYLE, top: 'calc(100% + 8px)' }, o.name));
-  return wrap(parts, `Objective ${o.name}, ${o.status}${owner ? ', held by ' + owner.name : ''}`);
+  return wrap(parts, owner ? $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:, held by ${owner.name}:owner:` : $localize`Objective ${o.name}:name:, ${OBJECTIVE_STATUS_LABELS[o.status]}:status:`);
 }
 
 export function poiMarker(p: Poi, selected: boolean, showLabel = true): HTMLElement {
@@ -148,7 +148,7 @@ export function playerMarker(pos: VisiblePosition, team: Team | null, opts: { se
   if (opts.showLabel !== false && pos.nickname) {
     parts.push(el('div', { ...LABEL_STYLE, color: hostile ? 'var(--destructive)' : 'var(--foreground)' }, (stale ? '◐ ' : '') + pos.nickname));
   }
-  const who = pos.nickname ?? (hostile ? 'Enemy' : 'Teammate');
+  const who = pos.nickname ?? (hostile ? $localize`Enemy` : $localize`Teammate`);
   return wrap(parts, `${hostile ? 'Enemy ' : ''}${who}${team ? ', ' + team.name : ''}${stale ? ', last known position' : ''}`);
 }
 
@@ -178,7 +178,7 @@ export function selfMarker(heading: number | null): HTMLElement {
     boxShadow: '0 0 0 2px var(--nav), 0 2px 6px rgba(0,0,0,.5)',
   });
   w.appendChild(dot);
-  w.title = 'Your position';
+  w.title = $localize`Your position`;
   w.setAttribute('aria-label', 'Your position');
   return w;
 }

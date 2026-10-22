@@ -55,24 +55,24 @@ export function rulesToInput(form: RulesForm): Partial<EventInput> {
     <zeus-scoring-form [form]="form().controls.scoring" />
 
     <fieldset class="panel flex flex-col gap-3 p-4" [formGroup]="form()">
-      <legend class="label-caps float-left mb-1 w-full">Perk store</legend>
+      <legend class="label-caps float-left mb-1 w-full" i18n>Perk store</legend>
       <zeus-switch-row
         formControlName="storeEnabled"
         label="Perk store open during the game"
-        description="Teams spend credits on perks such as UAV scans, objective jammers and double points."
+        description="Teams spend credits on perks such as UAV scans, objective jammers and double points." i18n-label i18n-description
       />
       <div class="flex flex-wrap items-center gap-2">
         <button hlmBtn variant="outline" class="h-11" type="button" (click)="addDefaults()" [disabled]="adding()">
-          <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> {{ adding() ? 'Adding…' : 'Add default perks' }}
+          <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> {{ adding() ? txt.adding : txt.addDefaultPerks }}
         </button>
         <a hlmBtn variant="ghost" class="h-11" [routerLink]="['/gm/events', eventId(), 'perks']">
-          <ng-icon name="lucideStore" size="16" aria-hidden="true" /> Open perk editor
+          <ng-icon name="lucideStore" size="16" aria-hidden="true" /> <ng-container i18n>Open perk editor</ng-container>
           @if (perkCount() !== null) {
             <span class="num text-muted-foreground">· {{ perkCount() }}</span>
           }
         </a>
       </div>
-      <p class="text-xs text-muted-foreground">
+      <p class="text-xs text-muted-foreground" i18n>
         Defaults: UAV, objective jammer, currency theft, recon scan, instant respawn, objective shield, double points, supply drop, comms jammer. Edit prices afterwards.
       </p>
     </fieldset>
@@ -82,6 +82,12 @@ export function rulesToInput(form: RulesForm): Partial<EventInput> {
   `,
 })
 export class RulesOfPlayComponent {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    adding: $localize`Adding…`,
+    addDefaultPerks: $localize`Add default perks`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
 
@@ -96,7 +102,7 @@ export class RulesOfPlayComponent {
     this.adding.set(true);
     try {
       const perks = await this.api.addDefaultPerks(this.eventId());
-      this.toast.success('Default perks added to the store', 'Review prices and limits in the perk editor.');
+      this.toast.success($localize`Default perks added to the store`, $localize`Review prices and limits in the perk editor.`);
       this.perksAdded.emit(perks.length);
     } catch (err) {
       this.toast.error(err);

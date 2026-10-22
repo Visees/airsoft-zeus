@@ -1,5 +1,6 @@
 import { distanceM } from '../lib/geo.js';
 import type { Tracking } from './defaults.js';
+import { tr } from '../i18n/index.js';
 
 export type SampleFlag = 'future_timestamp' | 'too_old' | 'low_accuracy' | 'speed' | 'mock' | 'stale';
 
@@ -69,13 +70,13 @@ export function validateSamples(prev: { lat: number; lng: number; accuracy: numb
   for (const s of sorted) {
     if (s.isMocked) {
       flags.add('mock');
-      suspicious.push({ flag: 'mock', detail: 'Device reported a mock location' });
+      suspicious.push({ flag: 'mock', detail: tr`Device reported a mock location` });
       rejected++;
       continue;
     }
     if (s.timestamp > now + FUTURE_TOLERANCE_MS) {
       flags.add('future_timestamp');
-      suspicious.push({ flag: 'future_timestamp', detail: `Sample ${Math.round((s.timestamp - now) / 1000)} s in the future` });
+      suspicious.push({ flag: 'future_timestamp', detail: tr`Sample ${Math.round((s.timestamp - now) / 1000)} s in the future` });
       rejected++;
       continue;
     }
@@ -96,7 +97,7 @@ export function validateSamples(prev: { lat: number; lng: number; accuracy: numb
       const speed = Math.max(0, raw - slack) / Math.max(dt, 1);
       if (speed > tracking.maxSpeedMps) {
         flags.add('speed');
-        suspicious.push({ flag: 'speed', detail: `${Math.round(raw)} m in ${dt.toFixed(0)} s (${speed.toFixed(1)} m/s)` });
+        suspicious.push({ flag: 'speed', detail: tr`${Math.round(raw)} m in ${dt.toFixed(0)} s (${speed.toFixed(1)} m/s)` });
         rejected++;
         continue;
       }

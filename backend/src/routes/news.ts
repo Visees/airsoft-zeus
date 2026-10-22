@@ -6,6 +6,7 @@ import { notFound } from '../errors.js';
 import { decodeCursor, encodeCursor } from '../lib/pagination.js';
 import { body, idParam, isoDate, longText, queryOf, shortText } from '../lib/validate.js';
 import * as dto from '../domain/serialize.js';
+import { tr } from '../i18n/index.js';
 
 export const newsRouter = Router();
 
@@ -52,7 +53,7 @@ const COLUMNS: Record<keyof z.infer<typeof newsInput>, string> = {
 
 async function newsById(id: string) {
   const row = await one(`SELECT ${NEWS_SELECT} ${FROM} WHERE n.id = $1`, [id]);
-  if (!row) throw notFound('News not found.');
+  if (!row) throw notFound(tr`News not found.`);
   return dto.news(row);
 }
 
@@ -80,7 +81,7 @@ newsRouter.get('/:newsId', requireVerified, async (req, res) => {
   const me = currentUser(req);
   const n = await newsById(idParam(req, 'newsId'));
   const live = n.publishedAt !== null && Date.parse(n.publishedAt) <= Date.now();
-  if (!live && !(await userIsAdmin(me.id))) throw notFound('News not found.');
+  if (!live && !(await userIsAdmin(me.id))) throw notFound(tr`News not found.`);
   res.json(n);
 });
 
@@ -107,13 +108,13 @@ newsRouter.patch('/:newsId', requireAdmin, async (req, res) => {
   }
   if (sets.length) {
     const r = await many(`UPDATE news SET ${sets.join(', ')}, updated_at = now() WHERE id = $1 RETURNING id`, params);
-    if (!r.length) throw notFound('News not found.');
+    if (!r.length) throw notFound(tr`News not found.`);
   }
   res.json(await newsById(id));
 });
 
 newsRouter.delete('/:newsId', requireAdmin, async (req, res) => {
   const r = await many('DELETE FROM news WHERE id = $1 RETURNING id', [idParam(req, 'newsId')]);
-  if (!r.length) throw notFound('News not found.');
+  if (!r.length) throw notFound(tr`News not found.`);
   res.json({ ok: true });
 });

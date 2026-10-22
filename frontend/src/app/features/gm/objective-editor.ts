@@ -15,6 +15,7 @@ import { ApiError } from '../../core/api/api-error';
 import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Objective, ObjectiveInput, ObjectiveQr, ObjectiveType, ObjectiveVisibility } from '../../core/api/models';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
+import { activeLanguage } from '../../core/i18n/language';
 import { OBJECTIVE_TYPE_LABELS, fromLocalInput, toLocalInput } from '../../core/util/format';
 import { formatLatLng } from '../../core/util/geo';
 import { TacticalMap } from '../../shared/map/tactical-map';
@@ -28,14 +29,14 @@ import { DEFAULT_GEOFENCE, DEFAULT_REWARDS, MAP_ICONS, escapeHtml, generateCaptu
 type SaveState = 'clean' | 'dirty' | 'saving' | 'saved' | 'failed';
 
 const SECTIONS = [
-  { id: 'obj-basics', label: 'Basics' },
-  { id: 'obj-position', label: 'Position' },
-  { id: 'obj-methods', label: 'Capture methods' },
-  { id: 'obj-geofence', label: 'Geofence' },
-  { id: 'obj-rewards', label: 'Rewards' },
-  { id: 'obj-availability', label: 'Availability' },
-  { id: 'obj-visibility', label: 'Visibility' },
-  { id: 'obj-chain', label: 'Chain' },
+  { id: 'obj-basics', label: $localize`Basics` },
+  { id: 'obj-position', label: $localize`Position` },
+  { id: 'obj-methods', label: $localize`Capture methods` },
+  { id: 'obj-geofence', label: $localize`Geofence` },
+  { id: 'obj-rewards', label: $localize`Rewards` },
+  { id: 'obj-availability', label: $localize`Availability` },
+  { id: 'obj-visibility', label: $localize`Visibility` },
+  { id: 'obj-chain', label: $localize`Chain` },
 ];
 
 const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30';
@@ -73,10 +74,10 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   template: `
     <div class="page max-w-5xl!">
       <zeus-page-header
-        [title]="isNew() ? 'New objective' : (objective()?.name ?? 'Objective')"
-        [eyebrow]="event()?.name ?? 'Objective editor'"
+        [title]="isNew() ? txt.newObjective : (objective()?.name ?? txt.objective)"
+        [eyebrow]="event()?.name ?? txt.objectiveEditor"
         [back]="backUrl()"
-        backLabel="Back"
+        backLabel="Back" i18n-backLabel
       >
         @if (objective(); as o) {
           <zeus-status-chip [spec]="chip(o)" />
@@ -89,13 +90,13 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
         <zeus-error-state [error]="loadError()" (retry)="load()" />
       } @else {
         <div class="lg:grid lg:grid-cols-[11rem_1fr] lg:gap-8">
-          <nav class="sticky top-4 hidden self-start lg:block" aria-label="Sections">
+          <nav class="sticky top-4 hidden self-start lg:block" aria-label="Sections" i18n-aria-label>
             <ul class="flex flex-col gap-0.5 text-sm">
               @for (s of sections; track s.id) {
                 <li><a [href]="'#' + s.id" (click)="jump($event, s.id)" class="flex h-10 items-center rounded-sm px-2 text-muted-foreground hover:bg-muted hover:text-foreground">{{ s.label }}</a></li>
               }
               @if (showQrSection()) {
-                <li><a href="#obj-qr" (click)="jump($event, 'obj-qr')" class="flex h-10 items-center rounded-sm px-2 text-muted-foreground hover:bg-muted hover:text-foreground">QR code</a></li>
+                <li><a href="#obj-qr" (click)="jump($event, 'obj-qr')" class="flex h-10 items-center rounded-sm px-2 text-muted-foreground hover:bg-muted hover:text-foreground" i18n>QR code</a></li>
               }
             </ul>
           </nav>
@@ -103,16 +104,16 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
           <form [formGroup]="form" (ngSubmit)="save(true)" class="flex min-w-0 flex-col gap-6" novalidate>
             <!-- ============ Basics ============ -->
             <section id="obj-basics" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-basics">
-              <h2 id="h-basics" class="label-caps">Basics</h2>
+              <h2 id="h-basics" class="label-caps" i18n>Basics</h2>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="o-name">Name <span aria-hidden="true">*</span></label>
+                <label hlmLabel for="o-name"><ng-container i18n>Name</ng-container> <span aria-hidden="true">*</span></label>
                 <input hlmInput id="o-name" formControlName="name" class="h-11" maxlength="80" autocomplete="off" />
                 @if (e('name', 'Name'); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="o-type">Type</label>
+                <label hlmLabel for="o-type" i18n>Type</label>
                 <select id="o-type" formControlName="type" [class]="selectClass">
                   @for (t of types; track t) {
                     <option [value]="t">{{ typeLabels[t] }}</option>
@@ -120,22 +121,22 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 </select>
               </div>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="o-desc">Description <span class="font-normal text-muted-foreground">(players see it)</span></label>
+                <label hlmLabel for="o-desc" i18n>Description <span class="font-normal text-muted-foreground">(players see it)</span></label>
                 <textarea hlmTextarea id="o-desc" formControlName="description" rows="3" maxlength="2000"></textarea>
                 @if (e('description', 'Description'); as m) {
                   <p class="field-error">{{ m }}</p>
                 }
               </div>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="o-instr">Capture instructions</label>
-                <textarea hlmTextarea id="o-instr" formControlName="instructions" rows="3" maxlength="2000" placeholder="e.g. The code is on the back of the radio crate."></textarea>
+                <label hlmLabel for="o-instr" i18n>Capture instructions</label>
+                <textarea hlmTextarea id="o-instr" formControlName="instructions" rows="3" maxlength="2000" placeholder="e.g. The code is on the back of the radio crate." i18n-placeholder></textarea>
               </div>
               <div class="flex flex-col gap-1.5">
-                <span hlmLabel>Marker colour</span>
-                <zeus-color-field formControlName="color" label="Marker colour" />
+                <span hlmLabel i18n>Marker colour</span>
+                <zeus-color-field formControlName="color" label="Marker colour" i18n-label />
               </div>
               <fieldset class="flex flex-col gap-1.5">
-                <legend class="mb-1.5 text-sm font-medium">Icon</legend>
+                <legend class="mb-1.5 text-sm font-medium" i18n>Icon</legend>
                 <div class="flex flex-wrap gap-1.5">
                   @for (i of icons; track i.value) {
                     <label class="grid size-11 cursor-pointer place-items-center rounded-md border border-border has-checked:border-primary has-checked:bg-primary/15" [title]="i.label">
@@ -147,29 +148,29 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               </fieldset>
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                  <span hlmLabel id="lbl-img">Image</span>
+                  <span hlmLabel id="lbl-img" i18n>Image</span>
                   @if (value().imageUrl) {
-                    <img [src]="value().imageUrl" alt="Objective image" class="aspect-video w-full rounded-md border border-border object-cover" />
-                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearUpload('imageUrl')">Remove image</button>
+                    <img [src]="value().imageUrl" alt="Objective image" class="aspect-video w-full rounded-md border border-border object-cover" i18n-alt />
+                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearUpload('imageUrl')" i18n>Remove image</button>
                   } @else {
                     <label class="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-input text-sm hover:bg-muted">
                       <ng-icon name="lucideImage" size="16" aria-hidden="true" />
-                      {{ uploading() === 'imageUrl' ? 'Uploading…' : 'Upload image' }}
+                      {{ uploading() === 'imageUrl' ? txt.uploading : txt.uploadImage }}
                       <input type="file" accept="image/*" class="sr-only" aria-labelledby="lbl-img" (change)="upload($event, 'imageUrl')" [disabled]="!!uploading()" />
                     </label>
                   }
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <span hlmLabel id="lbl-doc">Document <span class="font-normal text-muted-foreground">(briefing, intel)</span></span>
+                  <span hlmLabel id="lbl-doc" i18n>Document <span class="font-normal text-muted-foreground">(briefing, intel)</span></span>
                   @if (value().documentUrl) {
                     <a [href]="value().documentUrl" target="_blank" rel="noopener" class="flex h-11 items-center gap-2 truncate rounded-md border border-border px-3 text-sm underline-offset-4 hover:underline">
-                      <ng-icon name="lucideFileText" size="16" aria-hidden="true" /> Open document
+                      <ng-icon name="lucideFileText" size="16" aria-hidden="true" /> <ng-container i18n>Open document</ng-container>
                     </a>
-                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearUpload('documentUrl')">Remove document</button>
+                    <button hlmBtn type="button" variant="outline" class="h-10" (click)="clearUpload('documentUrl')" i18n>Remove document</button>
                   } @else {
                     <label class="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-input text-sm hover:bg-muted">
                       <ng-icon name="lucideUpload" size="16" aria-hidden="true" />
-                      {{ uploading() === 'documentUrl' ? 'Uploading…' : 'Upload document' }}
+                      {{ uploading() === 'documentUrl' ? txt.uploading : txt.uploadDocument }}
                       <input type="file" accept=".pdf,image/*,.txt,.md" class="sr-only" aria-labelledby="lbl-doc" (change)="upload($event, 'documentUrl')" [disabled]="!!uploading()" />
                     </label>
                   }
@@ -179,17 +180,17 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <!-- ============ Position ============ -->
             <section id="obj-position" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-pos">
-              <h2 id="h-pos" class="label-caps">Position</h2>
+              <h2 id="h-pos" class="label-caps" i18n>Position</h2>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="o-lat">Latitude</label>
+                  <label hlmLabel for="o-lat" i18n>Latitude</label>
                   <input hlmInput id="o-lat" type="number" step="0.00001" formControlName="lat" class="num h-11" />
                   @if (e('lat', 'Latitude'); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="o-lng">Longitude</label>
+                  <label hlmLabel for="o-lng" i18n>Longitude</label>
                   <input hlmInput id="o-lng" type="number" step="0.00001" formControlName="lng" class="num h-11" />
                   @if (e('lng', 'Longitude'); as m) {
                     <p class="field-error">{{ m }}</p>
@@ -197,9 +198,9 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 </div>
               </div>
               <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span>Tap the map to place the objective. Other objectives are shown in grey.</span>
+                <span i18n>Tap the map to place the objective. Other objectives are shown in grey.</span>
                 <button hlmBtn type="button" variant="outline" class="h-10" (click)="useMyPosition()">
-                  <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> Use my position
+                  <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> <ng-container i18n>Use my position</ng-container>
                 </button>
               </div>
               <zeus-tactical-map
@@ -218,19 +219,19 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <!-- ============ Capture methods ============ -->
             <section id="obj-methods" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-methods" formGroupName="methods">
-              <h2 id="h-methods" class="label-caps">Capture methods</h2>
+              <h2 id="h-methods" class="label-caps" i18n>Capture methods</h2>
               <div class="grid gap-2 sm:grid-cols-3">
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="checkbox" formControlName="code" class="size-5 accent-primary" />
-                  <span><span class="font-semibold">Manual code</span><br /><span class="text-xs text-muted-foreground">Players type a code found on site</span></span>
+                  <span><span class="font-semibold" i18n>Manual code</span><br /><span class="text-xs text-muted-foreground" i18n>Players type a code found on site</span></span>
                 </label>
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="checkbox" formControlName="qr" class="size-5 accent-primary" />
-                  <span><span class="font-semibold">QR code</span><br /><span class="text-xs text-muted-foreground">Players scan a printed code</span></span>
+                  <span><span class="font-semibold" i18n>QR code</span><br /><span class="text-xs text-muted-foreground" i18n>Players scan a printed code</span></span>
                 </label>
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="checkbox" formControlName="geofence" class="size-5 accent-primary" />
-                  <span><span class="font-semibold">Geofence</span><br /><span class="text-xs text-muted-foreground">Hold the zone for a time</span></span>
+                  <span><span class="font-semibold" i18n>Geofence</span><br /><span class="text-xs text-muted-foreground" i18n>Hold the zone for a time</span></span>
                 </label>
               </div>
               @if (methodsError()) {
@@ -238,11 +239,11 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               }
             </section>
 
-            <section class="panel -mt-4 flex flex-col gap-4 border-t-0 p-4 pt-0" aria-label="Capture rules">
+            <section class="panel -mt-4 flex flex-col gap-4 border-t-0 p-4 pt-0" aria-label="Capture rules" i18n-aria-label>
               @if (value().methods?.code || value().methods?.qr) {
                 <label class="flex min-h-11 cursor-pointer items-start gap-3">
                   <input type="checkbox" formControlName="requireGeofence" class="mt-1 size-5 accent-primary" />
-                  <span>
+                  <span i18n>
                     Require holding the zone before the code or QR works
                     <span class="block text-sm text-muted-foreground">The player must be inside the geofence radius (with good GPS) for the required time; only then does the server accept the code or QR. Stops players from sharing codes over the radio.</span>
                   </span>
@@ -250,7 +251,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               }
               @if (value().methods?.code) {
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="o-code">Manual capture code</label>
+                  <label hlmLabel for="o-code" i18n>Manual capture code</label>
                   <div class="flex gap-2">
                     <input
                       hlmInput
@@ -264,13 +265,13 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                       (input)="upperCode()"
                     />
                     <button hlmBtn type="button" variant="outline" class="h-11" (click)="generateCode()">
-                      <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> Generate
+                      <ng-icon name="lucideRefreshCw" size="16" aria-hidden="true" /> <ng-container i18n>Generate</ng-container>
                     </button>
                   </div>
                   @if (e('captureCode', 'Code'); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
-                  <p class="text-sm text-muted-foreground">4–32 letters and digits, unique within this event. Never shown to players; checked on the server. Generated codes avoid look-alike characters (0/O, 1/I/L). Left empty on a new objective, the server generates one.</p>
+                  <p class="text-sm text-muted-foreground" i18n>4–32 letters and digits, unique within this event. Never shown to players; checked on the server. Generated codes avoid look-alike characters (0/O, 1/I/L). Left empty on a new objective, the server generates one.</p>
                 </div>
               }
             </section>
@@ -278,27 +279,33 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             <!-- ============ QR ============ -->
             @if (showQrSection()) {
               <section id="obj-qr" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-qr">
-                <h2 id="h-qr" class="label-caps">QR code{{ qr() ? ' · version ' + qr()!.qrVersion : '' }}</h2>
+                <h2 id="h-qr" class="label-caps">
+                  @if (qr(); as q) {
+                    <ng-container i18n>QR code · version {{ q.qrVersion }}</ng-container>
+                  } @else {
+                    <ng-container i18n>QR code</ng-container>
+                  }
+                </h2>
                 @if (!objective()?.methods?.includes('qr')) {
-                  <p class="text-sm text-muted-foreground">Save the objective with QR enabled to generate its QR code.</p>
+                  <p class="text-sm text-muted-foreground" i18n>Save the objective with QR enabled to generate its QR code.</p>
                 } @else if (qrError()) {
                   <zeus-error-state [error]="qrError()" (retry)="loadQr()" />
                 } @else if (!qr()) {
-                  <p class="text-sm text-muted-foreground" role="status">Loading QR code…</p>
+                  <p class="text-sm text-muted-foreground" role="status" i18n>Loading QR code…</p>
                 } @else {
                   <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                    <div class="w-64 max-w-full rounded-md bg-white p-3 [&_svg]:h-auto [&_svg]:w-full" [innerHTML]="qrSvg()" role="img" [attr.aria-label]="'QR code for ' + (objective()?.name ?? 'objective')"></div>
+                    <div class="w-64 max-w-full rounded-md bg-white p-3 [&_svg]:h-auto [&_svg]:w-full" [innerHTML]="qrSvg()" role="img" aria-label="QR code for {{ objective()?.name }}" i18n-aria-label></div>
                     <div class="flex w-full flex-col gap-2 sm:w-auto">
                       <button hlmBtn type="button" variant="outline" class="h-11 justify-start" (click)="downloadPng()">
-                        <ng-icon name="lucideDownload" size="16" aria-hidden="true" /> Download PNG
+                        <ng-icon name="lucideDownload" size="16" aria-hidden="true" /> <ng-container i18n>Download PNG</ng-container>
                       </button>
                       <button hlmBtn type="button" variant="outline" class="h-11 justify-start" (click)="printQr()">
-                        <ng-icon name="lucidePrinter" size="16" aria-hidden="true" /> Print
+                        <ng-icon name="lucidePrinter" size="16" aria-hidden="true" /> <ng-container i18n>Print</ng-container>
                       </button>
                       <button hlmBtn type="button" variant="destructive" class="h-11 justify-start" (click)="regenerateQr()" [disabled]="qrBusy()">
-                        <ng-icon name="lucideRotateCcw" size="16" aria-hidden="true" /> {{ qrBusy() ? 'Regenerating…' : 'Regenerate' }}
+                        <ng-icon name="lucideRotateCcw" size="16" aria-hidden="true" /> {{ qrBusy() ? txt.regenerating : txt.regenerate }}
                       </button>
-                      <p class="max-w-xs text-sm text-muted-foreground">Print it, laminate it and fix it at the objective. Regenerate if a printed copy leaks.</p>
+                      <p class="max-w-xs text-sm text-muted-foreground" i18n>Print it, laminate it and fix it at the objective. Regenerate if a printed copy leaks.</p>
                     </div>
                   </div>
                 }
@@ -307,14 +314,14 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <!-- ============ Geofence ============ -->
             <section id="obj-geofence" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-geo" formGroupName="geofence">
-              <h2 id="h-geo" class="label-caps">Geofence{{ geofenceUsed() ? '' : ' · not used' }}</h2>
+              <h2 id="h-geo" class="label-caps" i18n>Geofence{{ geofenceUsed() ? '' : txt.notUsed }}</h2>
               @if (!geofenceUsed()) {
-                <p class="text-sm text-muted-foreground">Enable the geofence method or "Require holding the zone" to use these settings.</p>
+                <p class="text-sm text-muted-foreground" i18n>Enable the geofence method or "Require holding the zone" to use these settings.</p>
               }
               <div class="grid gap-4 sm:grid-cols-3" [class.opacity-60]="!geofenceUsed()">
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.radiusM, id: 'g-radius', label: 'Radius (m)', min: 3, path: 'geofence.radiusM' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.durationSec, id: 'g-dur', label: 'Required time (s)', min: 0, path: 'geofence.durationSec' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxAccuracyM, id: 'g-acc', label: 'Max GPS accuracy (m)', min: 1, path: 'geofence.maxAccuracyM' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.radiusM, id: 'g-radius', label: txt.radiusM, min: 3, path: 'geofence.radiusM' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.durationSec, id: 'g-dur', label: txt.requiredTimeS, min: 0, path: 'geofence.durationSec' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxAccuracyM, id: 'g-acc', label: txt.maxGpsAccuracyM, min: 1, path: 'geofence.maxAccuracyM' }" />
               </div>
               @if (geofenceUsed()) {
                 @for (w of geofenceWarnings(); track w) {
@@ -324,65 +331,65 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               <div class="flex flex-col" [class.opacity-60]="!geofenceUsed()">
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="resetOnExit" class="mt-1 size-5 accent-primary" />
-                  <span>Reset progress when the player leaves the zone <span class="block text-sm text-muted-foreground">Otherwise progress pauses and resumes on return.</span></span>
+                  <span i18n>Reset progress when the player leaves the zone <span class="block text-sm text-muted-foreground">Otherwise progress pauses and resumes on return.</span></span>
                 </label>
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="contestable" class="mt-1 size-5 accent-primary" />
-                  <span>Enemies in the zone contest it <span class="block text-sm text-muted-foreground">Another team inside the zone affects the capture, as chosen below.</span></span>
+                  <span i18n>Enemies in the zone contest it <span class="block text-sm text-muted-foreground">Another team inside the zone affects the capture, as chosen below.</span></span>
                 </label>
                 @if (g.contestable.value) {
                   <fieldset class="ml-8 flex flex-col">
-                    <legend class="sr-only">When several teams are inside</legend>
+                    <legend class="sr-only" i18n>When several teams are inside</legend>
                     <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                       <input type="radio" formControlName="contestRule" value="pause" class="mt-1 size-5 accent-primary" />
-                      <span>Nobody progresses <span class="block text-sm text-muted-foreground">The zone is contested while two or more teams are inside.</span></span>
+                      <span i18n>Nobody progresses <span class="block text-sm text-muted-foreground">The zone is contested while two or more teams are inside.</span></span>
                     </label>
                     <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                       <input type="radio" formControlName="contestRule" value="majority" class="mt-1 size-5 accent-primary" />
-                      <span>Majority captures (domination) <span class="block text-sm text-muted-foreground">The team with the most players inside keeps capturing; a tie contests the zone.</span></span>
+                      <span i18n>Majority captures (domination) <span class="block text-sm text-muted-foreground">The team with the most players inside keeps capturing; a tie contests the zone.</span></span>
                     </label>
                   </fieldset>
                 }
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="requireScreenOpen" class="mt-1 size-5 accent-primary" />
-                  <span>Player must keep the objective screen open <span class="block text-sm text-muted-foreground">Progress only counts while the objective is open in the app.</span></span>
+                  <span i18n>Player must keep the objective screen open <span class="block text-sm text-muted-foreground">Progress only counts while the objective is open in the app.</span></span>
                 </label>
                 <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1">
                   <input type="checkbox" formControlName="multiPlayerBoost" class="mt-1 size-5 accent-primary" />
-                  <span>More players capture faster</span>
+                  <span i18n>More players capture faster</span>
                 </label>
               </div>
               @if (value().geofence?.multiPlayerBoost) {
                 <div class="grid gap-4 sm:grid-cols-2">
-                  <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.boostPerExtraPlayer, id: 'g-boost', label: 'Speed-up per extra player (×)', min: 0, step: 0.05, path: 'geofence.boostPerExtraPlayer', hint: '0.25 = each extra player adds 25%' }" />
-                  <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxMultiplier, id: 'g-maxm', label: 'Maximum multiplier (×)', min: 1, step: 0.25, path: 'geofence.maxMultiplier' }" />
+                  <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.boostPerExtraPlayer, id: 'g-boost', label: txt.speedUpPerExtra, min: 0, step: 0.05, path: 'geofence.boostPerExtraPlayer', hint: txt.n025EachExtra }" />
+                  <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxMultiplier, id: 'g-maxm', label: txt.maximumMultiplier, min: 1, step: 0.25, path: 'geofence.maxMultiplier' }" />
                 </div>
               }
             </section>
 
             <!-- ============ Rewards ============ -->
             <section id="obj-rewards" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-rew" formGroupName="rewards">
-              <h2 id="h-rew" class="label-caps">Rewards</h2>
+              <h2 id="h-rew" class="label-caps" i18n>Rewards</h2>
               <div class="grid gap-4 sm:grid-cols-2">
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.points, id: 'r-pts', label: 'Victory points per capture', min: 0, path: 'rewards.points' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.currency, id: 'r-cur', label: 'Credits per capture', min: 0, path: 'rewards.currency' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.recurringPointsPerMinute, id: 'r-rpts', label: 'Points per minute while held', min: 0, path: 'rewards.recurringPointsPerMinute' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.recurringCurrencyPerMinute, id: 'r-rcur', label: 'Credits per minute while held', min: 0, path: 'rewards.recurringCurrencyPerMinute' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.captureBonus, id: 'r-first', label: 'First-capture bonus (points)', min: 0, path: 'rewards.captureBonus' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.defenseBonus, id: 'r-def', label: 'Defense bonus (points)', min: 0, path: 'rewards.defenseBonus', hint: 'For holding it until the end of the game' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.completionBonus, id: 'r-comp', label: 'Completion bonus (points)', min: 0, path: 'rewards.completionBonus', hint: 'When the last allowed capture is made' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.points, id: 'r-pts', label: txt.victoryPointsPerCapture, min: 0, path: 'rewards.points' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.currency, id: 'r-cur', label: txt.creditsPerCapture, min: 0, path: 'rewards.currency' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.recurringPointsPerMinute, id: 'r-rpts', label: txt.pointsPerMinuteWhile, min: 0, path: 'rewards.recurringPointsPerMinute' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.recurringCurrencyPerMinute, id: 'r-rcur', label: txt.creditsPerMinuteWhile, min: 0, path: 'rewards.recurringCurrencyPerMinute' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.captureBonus, id: 'r-first', label: txt.firstCaptureBonusPoints, min: 0, path: 'rewards.captureBonus' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.defenseBonus, id: 'r-def', label: txt.defenseBonusPoints, min: 0, path: 'rewards.defenseBonus', hint: txt.forHoldingItUntil }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.completionBonus, id: 'r-comp', label: txt.completionBonusPoints, min: 0, path: 'rewards.completionBonus', hint: txt.whenTheLastAllowed }" />
               </div>
               @if (event()?.teams?.length) {
                 <div>
-                  <h3 class="mb-2 text-sm font-semibold">Per-team overrides</h3>
+                  <h3 class="mb-2 text-sm font-semibold" i18n>Per-team overrides</h3>
                   <div class="overflow-x-auto">
                     <table class="w-full min-w-88 text-sm">
                       <thead>
                         <tr class="text-left text-muted-foreground">
-                          <th class="py-1.5 pr-2 font-medium">Team</th>
-                          <th class="py-1.5 pr-2 font-medium">Override</th>
-                          <th class="py-1.5 pr-2 font-medium">Points</th>
-                          <th class="py-1.5 font-medium">Credits</th>
+                          <th class="py-1.5 pr-2 font-medium" i18n>Team</th>
+                          <th class="py-1.5 pr-2 font-medium" i18n>Override</th>
+                          <th class="py-1.5 pr-2 font-medium" i18n>Points</th>
+                          <th class="py-1.5 font-medium" i18n>Credits</th>
                         </tr>
                       </thead>
                       <tbody formGroupName="perTeam">
@@ -392,49 +399,49 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                               <span class="inline-flex items-center gap-1.5"><zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}</span>
                             </td>
                             <td class="py-1.5 pr-2">
-                              <input type="checkbox" formControlName="override" class="size-5 accent-primary" [attr.aria-label]="'Override rewards for ' + t.name" />
+                              <input type="checkbox" formControlName="override" class="size-5 accent-primary" aria-label="Override rewards for {{ t.name }}" i18n-aria-label />
                             </td>
                             <td class="py-1.5 pr-2">
-                              <input hlmInput type="number" min="0" formControlName="points" class="num h-10 w-24" [attr.aria-label]="'Points for ' + t.name" />
+                              <input hlmInput type="number" min="0" formControlName="points" class="num h-10 w-24" aria-label="Points for {{ t.name }}" i18n-aria-label />
                             </td>
                             <td class="py-1.5">
-                              <input hlmInput type="number" min="0" formControlName="currency" class="num h-10 w-24" [attr.aria-label]="'Credits for ' + t.name" />
+                              <input hlmInput type="number" min="0" formControlName="currency" class="num h-10 w-24" aria-label="Credits for {{ t.name }}" i18n-aria-label />
                             </td>
                           </tr>
                         }
                       </tbody>
                     </table>
                   </div>
-                  <p class="mt-1 text-sm text-muted-foreground">Teams without an override get the default rewards above.</p>
+                  <p class="mt-1 text-sm text-muted-foreground" i18n>Teams without an override get the default rewards above.</p>
                 </div>
               }
             </section>
 
             <!-- ============ Availability ============ -->
             <section id="obj-availability" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-av">
-              <h2 id="h-av" class="label-caps">Availability and limits</h2>
+              <h2 id="h-av" class="label-caps" i18n>Availability and limits</h2>
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="o-start">Available from</label>
+                  <label hlmLabel for="o-start" i18n>Available from</label>
                   <input hlmInput id="o-start" type="datetime-local" formControlName="availabilityStart" class="h-11" />
                   @if (e('availabilityStart', 'Start'); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <label hlmLabel for="o-end">Available until</label>
+                  <label hlmLabel for="o-end" i18n>Available until</label>
                   <input hlmInput id="o-end" type="datetime-local" formControlName="availabilityEnd" class="h-11" />
                   @if (e('availabilityEnd', 'End'); as m) {
                     <p class="field-error">{{ m }}</p>
                   }
                 </div>
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: form.controls.cooldownSec, id: 'o-cd', label: 'Cooldown after a capture (s)', min: 0, path: 'cooldownSec' }" />
-                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: form.controls.maxCaptures, id: 'o-max', label: 'Maximum captures', min: 0, path: 'maxCaptures', hint: '0 = unlimited' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: form.controls.cooldownSec, id: 'o-cd', label: txt.cooldownAfterACapture, min: 0, path: 'cooldownSec' }" />
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: form.controls.maxCaptures, id: 'o-max', label: txt.maximumCaptures, min: 0, path: 'maxCaptures', hint: txt.n0Unlimited }" />
               </div>
-              <p class="-mt-2 text-sm text-muted-foreground">Leave the dates empty to make it available for the whole game.</p>
+              <p class="-mt-2 text-sm text-muted-foreground" i18n>Leave the dates empty to make it available for the whole game.</p>
               <fieldset>
-                <legend class="mb-1 text-sm font-medium">Teams allowed to capture</legend>
-                <p class="mb-1 text-sm text-muted-foreground">None selected = every team.</p>
+                <legend class="mb-1 text-sm font-medium" i18n>Teams allowed to capture</legend>
+                <p class="mb-1 text-sm text-muted-foreground" i18n>None selected = every team.</p>
                 <div class="flex flex-wrap gap-x-4">
                   @for (t of event()?.teams ?? []; track t.id) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
@@ -448,7 +455,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <!-- ============ Visibility ============ -->
             <section id="obj-visibility" class="panel flex scroll-mt-20 flex-col gap-3 p-4" aria-labelledby="h-vis" formGroupName="visibility">
-              <h2 id="h-vis" class="label-caps">Visibility</h2>
+              <h2 id="h-vis" class="label-caps" i18n>Visibility</h2>
               @for (m of visibilityModes; track m.value) {
                 <label class="flex min-h-11 cursor-pointer items-start gap-3">
                   <input type="radio" formControlName="mode" [value]="m.value" class="mt-1 size-4 accent-primary" />
@@ -466,16 +473,16 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 </div>
               }
               @if (value().visibility?.mode === 'after_prerequisites' && !value().prerequisiteIds?.length) {
-                <p class="text-sm text-warning">Choose prerequisite objectives in the Chain section, otherwise it is visible from the start.</p>
+                <p class="text-sm text-warning" i18n>Choose prerequisite objectives in the Chain section, otherwise it is visible from the start.</p>
               }
             </section>
 
             <!-- ============ Chain ============ -->
             <section id="obj-chain" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-chain">
-              <h2 id="h-chain" class="label-caps">Chain</h2>
+              <h2 id="h-chain" class="label-caps" i18n>Chain</h2>
               <fieldset>
-                <legend class="mb-1 text-sm font-medium">Prerequisites</legend>
-                <p class="mb-1 text-sm text-muted-foreground">It stays locked until a team has captured all of these.</p>
+                <legend class="mb-1 text-sm font-medium" i18n>Prerequisites</legend>
+                <p class="mb-1 text-sm text-muted-foreground" i18n>It stays locked until a team has captured all of these.</p>
                 @if (otherObjectives().length) {
                   <div class="flex flex-col">
                     @for (o of otherObjectives(); track o.id) {
@@ -486,13 +493,13 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                     }
                   </div>
                 } @else {
-                  <p class="text-sm text-muted-foreground">No other objectives in this event yet.</p>
+                  <p class="text-sm text-muted-foreground" i18n>No other objectives in this event yet.</p>
                 }
               </fieldset>
               <div class="flex flex-col gap-1.5">
-                <label hlmLabel for="o-next">Next objective <span class="font-normal text-muted-foreground">(revealed or activated after this one)</span></label>
+                <label hlmLabel for="o-next" i18n>Next objective <span class="font-normal text-muted-foreground">(revealed or activated after this one)</span></label>
                 <select id="o-next" formControlName="nextObjectiveId" [class]="selectClass">
-                  <option value="">None</option>
+                  <option value="" i18n>None</option>
                   @for (o of otherObjectives(); track o.id) {
                     <option [value]="o.id">{{ o.name }}</option>
                   }
@@ -505,8 +512,8 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
             <section class="panel flex items-center justify-between gap-3 p-4">
               <label for="o-enabled" class="flex flex-col">
-                <span class="font-semibold">Enabled</span>
-                <span class="text-sm text-muted-foreground">Disabled objectives are hidden from players and cannot be captured.</span>
+                <span class="font-semibold" i18n>Enabled</span>
+                <span class="text-sm text-muted-foreground" i18n>Disabled objectives are hidden from players and cannot be captured.</span>
               </label>
               <hlm-switch inputId="o-enabled" formControlName="enabled" />
             </section>
@@ -514,23 +521,23 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             @if (!isNew()) {
               <section class="flex flex-wrap gap-2">
                 <button hlmBtn type="button" variant="outline" class="h-11" (click)="duplicate()" [disabled]="saveState() === 'saving'">
-                  <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> Duplicate
+                  <ng-icon name="lucideCopy" size="16" aria-hidden="true" /> <ng-container i18n>Duplicate</ng-container>
                 </button>
                 <button hlmBtn type="button" variant="destructive" class="h-11" (click)="remove()" [disabled]="saveState() === 'saving'">
-                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> Delete objective
+                  <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Delete objective</ng-container>
                 </button>
               </section>
             }
 
             <!-- sticky save bar -->
-            <div class="hud sticky bottom-[calc(4.5rem+var(--safe-bottom))] z-10 flex flex-wrap items-center gap-2 p-2 lg:bottom-3" role="region" aria-label="Save">
+            <div class="hud sticky bottom-[calc(4.5rem+var(--safe-bottom))] z-10 flex flex-wrap items-center gap-2 p-2 lg:bottom-3" role="region" aria-label="Save" i18n-aria-label>
               <p class="flex min-w-0 flex-1 items-center gap-2 px-1 text-sm" role="status" aria-live="polite">
                 <span aria-hidden="true" [class]="saveStateTone()">{{ saveStateGlyph() }}</span>
                 <span>{{ saveStateLabel() }}</span>
               </p>
-              <button hlmBtn type="button" variant="outline" class="h-11" (click)="save(false)" [disabled]="saveState() === 'saving'">Save</button>
+              <button hlmBtn type="button" variant="outline" class="h-11" (click)="save(false)" [disabled]="saveState() === 'saving'" i18n>Save</button>
               <button hlmBtn type="submit" class="h-11" [disabled]="saveState() === 'saving'">
-                {{ saveState() === 'saving' ? 'Saving…' : isNew() ? 'Create objective' : 'Save and close' }}
+                {{ saveState() === 'saving' ? txt.saving : isNew() ? txt.createObjective : txt.saveAndClose }}
               </button>
             </div>
           </form>
@@ -553,6 +560,40 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   `,
 })
 export class ObjectiveEditorScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    uploading: $localize`Uploading…`,
+    uploadImage: $localize`Upload image`,
+    uploadDocument: $localize`Upload document`,
+    regenerating: $localize`Regenerating…`,
+    regenerate: $localize`Regenerate`,
+    notUsed: $localize` · not used`,
+    saving: $localize`Saving…`,
+    createObjective: $localize`Create objective`,
+    saveAndClose: $localize`Save and close`,
+    newObjective: $localize`New objective`,
+    objective: $localize`Objective`,
+    objectiveEditor: $localize`Objective editor`,
+    radiusM: $localize`Radius (m)`,
+    requiredTimeS: $localize`Required time (s)`,
+    maxGpsAccuracyM: $localize`Max GPS accuracy (m)`,
+    speedUpPerExtra: $localize`Speed-up per extra player (×)`,
+    n025EachExtra: $localize`0.25 = each extra player adds 25%`,
+    maximumMultiplier: $localize`Maximum multiplier (×)`,
+    victoryPointsPerCapture: $localize`Victory points per capture`,
+    creditsPerCapture: $localize`Credits per capture`,
+    pointsPerMinuteWhile: $localize`Points per minute while held`,
+    creditsPerMinuteWhile: $localize`Credits per minute while held`,
+    firstCaptureBonusPoints: $localize`First-capture bonus (points)`,
+    defenseBonusPoints: $localize`Defense bonus (points)`,
+    forHoldingItUntil: $localize`For holding it until the end of the game`,
+    completionBonusPoints: $localize`Completion bonus (points)`,
+    whenTheLastAllowed: $localize`When the last allowed capture is made`,
+    cooldownAfterACapture: $localize`Cooldown after a capture (s)`,
+    maximumCaptures: $localize`Maximum captures`,
+    n0Unlimited: $localize`0 = unlimited`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -571,10 +612,10 @@ export class ObjectiveEditorScreen {
   protected readonly typeLabels = OBJECTIVE_TYPE_LABELS;
   protected readonly icons = MAP_ICONS;
   protected readonly visibilityModes: { value: ObjectiveVisibility['mode']; label: string; hint: string }[] = [
-    { value: 'all', label: 'Everyone', hint: 'All players see it on the map from the start.' },
-    { value: 'teams', label: 'Selected teams', hint: 'Only the chosen teams see it.' },
-    { value: 'after_prerequisites', label: 'Hidden until prerequisites are captured', hint: 'Appears when its prerequisite objectives are captured.' },
-    { value: 'gm_only', label: 'Game Masters only', hint: 'Hidden from every player.' },
+    { value: 'all', label: $localize`Everyone`, hint: $localize`All players see it on the map from the start.` },
+    { value: 'teams', label: $localize`Selected teams`, hint: $localize`Only the chosen teams see it.` },
+    { value: 'after_prerequisites', label: $localize`Hidden until prerequisites are captured`, hint: $localize`Appears when its prerequisite objectives are captured.` },
+    { value: 'gm_only', label: $localize`Game Masters only`, hint: $localize`Hidden from every player.` },
   ];
   protected readonly chip = (o: Objective) => objectiveStatusChip(o.status);
 
@@ -665,7 +706,7 @@ export class ObjectiveEditorScreen {
 
   protected readonly chainWarning = computed(() => {
     const v = this.value();
-    if (v.nextObjectiveId && v.prerequisiteIds?.includes(v.nextObjectiveId)) return 'The next objective is also a prerequisite: the chain can never progress.';
+    if (v.nextObjectiveId && v.prerequisiteIds?.includes(v.nextObjectiveId)) return $localize`The next objective is also a prerequisite: the chain can never progress.`;
     return null;
   });
 
@@ -679,14 +720,14 @@ export class ObjectiveEditorScreen {
     const acc = Number(g?.maxAccuracyM);
     const out: string[] = [];
     if (radius > 0 && radius < 10) {
-      out.push('Too small for GPS: phones are often 5 m off even in the open, so players inside will drop in and out. Use 20 m or more, or capture by code or QR.');
+      out.push($localize`Too small for GPS: phones are often 5 m off even in the open, so players inside will drop in and out. Use 20 m or more, or capture by code or QR.`);
     } else if (radius >= 10 && radius < 20) {
-      out.push('Reliable only in open ground. Under trees phones are often 10 m or more off and players inside may drop out; use 20–30 m there.');
+      out.push($localize`Reliable only in open ground. Under trees phones are often 10 m or more off and players inside may drop out; use 20–30 m there.`);
     }
     if (acc > 0 && radius > 0 && acc > radius) {
-      out.push(`Max GPS accuracy (±${acc} m) is larger than the zone: a fix that rough can't tell inside from outside. Keep it at or below the radius.`);
+      out.push($localize`Max GPS accuracy (±${acc}:acc: m) is larger than the zone: a fix that rough can't tell inside from outside. Keep it at or below the radius.`);
     } else if (acc > 0 && acc < 10) {
-      out.push('Under trees phones often report ±10 m or worse, so players there may never be counted.');
+      out.push($localize`Under trees phones often report ±10 m or worse, so players there may never be counted.`);
     }
     return out;
   });
@@ -700,7 +741,7 @@ export class ObjectiveEditorScreen {
     const current: Objective = {
       ...(me ?? blankObjective()),
       id: me?.id ?? 'draft',
-      name: v.name || 'New objective',
+      name: v.name || $localize`New objective`,
       lat: v.lat,
       lng: v.lng,
       color: v.color ?? '#E6B04F',
@@ -717,15 +758,15 @@ export class ObjectiveEditorScreen {
   protected readonly saveStateLabel = computed(() => {
     switch (this.saveState()) {
       case 'dirty':
-        return 'Unsaved changes';
+        return $localize`Unsaved changes`;
       case 'saving':
-        return 'Saving…';
+        return $localize`Saving…`;
       case 'saved':
-        return 'All changes saved';
+        return $localize`All changes saved`;
       case 'failed':
-        return 'Not saved: check the highlighted fields';
+        return $localize`Not saved: check the highlighted fields`;
       default:
-        return this.isNew() ? 'New objective, not saved yet' : 'No changes';
+        return this.isNew() ? $localize`New objective, not saved yet` : $localize`No changes`;
     }
   });
   protected readonly saveStateGlyph = computed(() => ({ clean: '○', dirty: '◐', saving: '◌', saved: '●', failed: '▲' })[this.saveState()]);
@@ -800,7 +841,7 @@ export class ObjectiveEditorScreen {
     const gf = { ...DEFAULT_GEOFENCE, ...src.geofence };
     const rw = { ...DEFAULT_REWARDS, ...src.rewards };
     this.form.reset({
-      name: o ? o.name : `Objective ${this.allObjectives().length + 1}`,
+      name: o ? o.name : $localize`Objective ${this.allObjectives().length + 1}:length:`,
       type: src.type,
       description: src.description,
       instructions: src.instructions,
@@ -863,7 +904,7 @@ export class ObjectiveEditorScreen {
 
   protected useMyPosition(): void {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      this.toast.warning('Location is not available on this device');
+      this.toast.warning($localize`Location is not available on this device`);
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -871,9 +912,9 @@ export class ObjectiveEditorScreen {
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         this.setPosition(p);
         this.mapCenter.set(p);
-        this.toast.info('Position set from your GPS', `${formatLatLng(p)} · ±${Math.round(pos.coords.accuracy)} m`);
+        this.toast.info($localize`Position set from your GPS`, `${formatLatLng(p)} · ±${Math.round(pos.coords.accuracy)} m`);
       },
-      (err) => this.toast.warning('Could not get your location', err.message),
+      (err) => this.toast.warning($localize`Could not get your location`, err.message),
       { enableHighAccuracy: true, timeout: 20_000, maximumAge: 0 },
     );
   }
@@ -898,7 +939,7 @@ export class ObjectiveEditorScreen {
       const res = await this.api.upload(file, field === 'imageUrl' ? 'objective_image' : 'objective_document');
       this.form.controls[field].setValue(res.url);
       this.form.controls[field].markAsDirty();
-      this.toast.success(field === 'imageUrl' ? 'Image uploaded' : 'Document uploaded', 'Save the objective to keep it.');
+      this.toast.success(field === 'imageUrl' ? $localize`Image uploaded` : $localize`Document uploaded`, $localize`Save the objective to keep it.`);
     } catch (e) {
       this.toast.error(e);
     } finally {
@@ -924,17 +965,17 @@ export class ObjectiveEditorScreen {
     const methods = methodsOf(v.methods);
     let ok = true;
     if (!methods.length) {
-      this.methodsError.set('Choose at least one capture method.');
+      this.methodsError.set($localize`Choose at least one capture method.`);
       ok = false;
     }
     if (methods.includes('code') && !v.captureCode.trim() && !this.isNew() && this.objective()?.captureCode) {
-      this.form.controls.captureCode.setErrors({ message: 'Enter a code or press Generate.' });
+      this.form.controls.captureCode.setErrors({ message: $localize`Enter a code or press Generate.` });
       ok = false;
     }
     const start = fromLocalInput(v.availabilityStart);
     const end = fromLocalInput(v.availabilityEnd);
     if (start && end && new Date(end) <= new Date(start)) {
-      this.form.controls.availabilityEnd.setErrors({ message: 'The end must be after the start.' });
+      this.form.controls.availabilityEnd.setErrors({ message: $localize`The end must be after the start.` });
       ok = false;
     }
     if (this.form.invalid || !ok) {
@@ -1018,7 +1059,7 @@ export class ObjectiveEditorScreen {
       this.allObjectives.update((l) => (l.some((o) => o.id === saved.id) ? l.map((o) => (o.id === saved.id ? saved : o)) : [...l, saved]));
       this.form.markAsPristine();
       this.saveState.set('saved');
-      this.toast.success(this.isNew() ? `${saved.name} created` : `${saved.name} saved`);
+      this.toast.success(this.isNew() ? $localize`${saved.name}:name: created` : $localize`${saved.name}:name: saved`);
       if (close) {
         await this.router.navigateByUrl(this.backUrl());
       } else if (this.isNew()) {
@@ -1035,7 +1076,7 @@ export class ObjectiveEditorScreen {
       this.saveState.set('failed');
       const rest = applyServerErrors(this.form, err, { code: 'captureCode', 'geofence.radius': 'geofence.radiusM' });
       if (err.code === 'code_taken' && !err.fields['captureCode']) {
-        this.form.controls.captureCode.setErrors({ server: 'Another objective in this event already uses this code. Generate a new one.' });
+        this.form.controls.captureCode.setErrors({ server: $localize`Another objective in this event already uses this code. Generate a new one.` });
         this.form.controls.captureCode.markAsTouched();
       }
       if (err.fields['methods']) this.methodsError.set(err.fields['methods']);
@@ -1049,15 +1090,15 @@ export class ObjectiveEditorScreen {
     if (!o) return;
     if (this.saveState() === 'dirty') {
       const ok = await this.confirm.ask({
-        title: 'Duplicate without your changes?',
-        consequences: ['The copy is made from the last saved version; unsaved changes here are not copied.'],
-        confirmLabel: 'Duplicate',
+        title: $localize`Duplicate without your changes?`,
+        consequences: [$localize`The copy is made from the last saved version; unsaved changes here are not copied.`],
+        confirmLabel: $localize`Duplicate`,
       });
       if (!ok) return;
     }
     try {
       const copy = await this.api.duplicateObjective(this.eventId(), o.id);
-      this.toast.success(`${copy.name} created`, 'The copy has its own capture code and QR.');
+      this.toast.success($localize`${copy.name}:name: created`, $localize`The copy has its own capture code and QR.`);
       await this.router.navigate(['/gm/events', this.eventId(), 'objectives', copy.id], { queryParams: { returnTo: this.returnTo() ?? null } });
     } catch (e) {
       this.toast.error(e);
@@ -1068,16 +1109,16 @@ export class ObjectiveEditorScreen {
     const o = this.objective();
     if (!o) return;
     const dependants = this.allObjectives().filter((x) => x.id !== o.id && (x.prerequisiteIds.includes(o.id) || x.nextObjectiveId === o.id));
-    const consequences = ['Players no longer see it; its capture code and QR stop working.'];
-    if (dependants.length) consequences.push(`It is removed from the chain of ${dependants.map((d) => d.name).join(', ')}.`);
-    if (o.captureCount) consequences.push(`Its ${o.captureCount} capture(s) stay in the ledger and results.`);
-    consequences.push('This cannot be undone.');
-    const ok = await this.confirm.ask({ title: `Delete ${o.name}?`, consequences, confirmLabel: 'Delete objective', destructive: true });
+    const consequences = [$localize`Players no longer see it; its capture code and QR stop working.`];
+    if (dependants.length) consequences.push($localize`It is removed from the chain of ${dependants.map((d) => d.name).join(', ')}:map:.`);
+    if (o.captureCount) consequences.push(o.captureCount === 1 ? $localize`Its capture stays in the ledger and results.` : $localize`Its ${o.captureCount}:count: captures stay in the ledger and results.`);
+    consequences.push($localize`This cannot be undone.`);
+    const ok = await this.confirm.ask({ title: $localize`Delete ${o.name}:name:?`, consequences, confirmLabel: $localize`Delete objective`, destructive: true });
     if (!ok) return;
     try {
       await this.api.deleteObjective(this.eventId(), o.id);
       this.saveState.set('clean');
-      this.toast.success(`${o.name} deleted`);
+      this.toast.success($localize`${o.name}:name: deleted`);
       await this.router.navigateByUrl(this.backUrl());
     } catch (e) {
       this.toast.error(e);
@@ -1115,13 +1156,20 @@ export class ObjectiveEditorScreen {
     if (!q || !o) return;
     const w = window.open('', '_blank', 'width=820,height=1000');
     if (!w) {
-      this.toast.warning('The print window was blocked', 'Allow pop-ups for this site, or download the PNG and print it.');
+      this.toast.warning($localize`The print window was blocked`, $localize`Allow pop-ups for this site, or download the PNG and print it.`);
       return;
     }
     const name = escapeHtml(o.name);
     const eventName = escapeHtml(this.event()?.name ?? '');
     const instructions = o.instructions ? `<p class="instr">${escapeHtml(o.instructions)}</p>` : '';
-    w.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${name} · QR code</title>
+    const text = {
+      title: $localize`${name}:name: · QR code`,
+      alt: $localize`QR code`,
+      how: $localize`Capture: open AirsoftHub → ${name}:name: → Scan QR code`,
+      scan: $localize`Scan this code with the AirsoftHub app to capture the objective for your team.`,
+      meta: $localize`QR version ${q.qrVersion}:version:. Regenerating the code in the app makes this sheet stop working.`,
+    };
+    w.document.write(`<!doctype html><html lang="${activeLanguage()}"><head><meta charset="utf-8"><title>${text.title}</title>
 <style>
   @page { margin: 12mm; }
   body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #000; background: #fff; text-align: center; margin: 0; padding: 16px; }
@@ -1134,11 +1182,11 @@ export class ObjectiveEditorScreen {
   .meta { font-size: 9pt; color: #555; margin-top: 14px; }
 </style></head><body>
 <h1>${name}</h1><p class="event">${eventName}</p>
-<img src="${q.pngDataUrl}" alt="QR code">
-<p class="how">Capture: open AirsoftHub → ${name} → Scan QR code</p>
-<p>Scan this code with the AirsoftHub app to capture the objective for your team.</p>
+<img src="${q.pngDataUrl}" alt="${text.alt}">
+<p class="how">${text.how}</p>
+<p>${text.scan}</p>
 ${instructions}
-<p class="meta">QR version ${q.qrVersion}. Regenerating the code in the app makes this sheet stop working.</p>
+<p class="meta">${text.meta}</p>
 </body></html>`);
     w.document.close();
     const img = w.document.images[0];
@@ -1154,16 +1202,16 @@ ${instructions}
     const o = this.objective();
     if (!o) return;
     const ok = await this.confirm.ask({
-      title: 'Regenerate the QR code?',
-      consequences: ['Printed copies of the old QR stop working immediately.', 'You need to print and place the new QR at the objective.', 'The manual code is not changed.'],
-      confirmLabel: 'Regenerate QR',
+      title: $localize`Regenerate the QR code?`,
+      consequences: [$localize`Printed copies of the old QR stop working immediately.`, $localize`You need to print and place the new QR at the objective.`, $localize`The manual code is not changed.`],
+      confirmLabel: $localize`Regenerate QR`,
       destructive: true,
     });
     if (!ok) return;
     this.qrBusy.set(true);
     try {
       this.qr.set(await this.api.regenerateObjectiveQr(this.eventId(), o.id));
-      this.toast.success('New QR code generated', 'Print it and replace the old one.');
+      this.toast.success($localize`New QR code generated`, $localize`Print it and replace the old one.`);
     } catch (e) {
       this.toast.error(e);
     } finally {

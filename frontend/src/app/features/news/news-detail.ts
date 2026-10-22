@@ -17,9 +17,9 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="News" back="/news" backLabel="All news">
+      <zeus-page-header title="News" back="/news" backLabel="All news" i18n-title i18n-backLabel>
         @if (isAdmin() && news(); as n) {
-          <a hlmBtn variant="outline" [routerLink]="['/news', n.id, 'edit']" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> Edit</a>
+          <a hlmBtn variant="outline" [routerLink]="['/news', n.id, 'edit']" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit</ng-container></a>
         }
       </zeus-page-header>
 
@@ -34,9 +34,9 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
           <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <zeus-status-chip [spec]="chip(n)" />
             @if (state(n) === 'draft') {
-              <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs">Draft: only admins can see it</span>
+              <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs" i18n>Draft: only admins can see it</span>
             } @else if (state(n) === 'scheduled') {
-              <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning">◷ Scheduled for {{ date(n.publishedAt) }}</span>
+              <span class="rounded-sm bg-warning-surface px-1.5 py-0.5 text-xs font-semibold text-warning" i18n>◷ Scheduled for {{ date(n.publishedAt) }}</span>
             } @else {
               <span class="num">{{ date(n.publishedAt) }}</span>
             }
@@ -56,11 +56,11 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
           @if (n.linkUrl) {
             @if (external(n.linkUrl)) {
               <a hlmBtn [href]="n.linkUrl" target="_blank" rel="noopener noreferrer" class="h-12 self-start">
-                {{ n.linkLabel || 'Open link' }} <ng-icon name="lucideExternalLink" size="16" aria-hidden="true" />
+                {{ n.linkLabel || txt.openLink }} <ng-icon name="lucideExternalLink" size="16" aria-hidden="true" />
               </a>
             } @else {
               <a hlmBtn [routerLink]="n.linkUrl" class="h-12 self-start">
-                {{ n.linkLabel || 'Open' }} <ng-icon name="lucideArrowRight" size="16" aria-hidden="true" />
+                {{ n.linkLabel || txt.open }} <ng-icon name="lucideArrowRight" size="16" aria-hidden="true" />
               </a>
             }
           }
@@ -70,6 +70,12 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
   `,
 })
 export class NewsDetailScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    openLink: $localize`Open link`,
+    open: $localize`Open`,
+  };
+
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
 

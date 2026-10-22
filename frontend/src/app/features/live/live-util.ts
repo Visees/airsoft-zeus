@@ -42,31 +42,31 @@ export function vibrate(pattern: number | number[]): void {
 export function positionStatusChip(status: VisiblePosition['status']): ChipSpec {
   switch (status) {
     case 'online':
-      return { label: 'Live', glyph: '●', tone: 'primary' };
+      return { label: $localize`Live`, glyph: '●', tone: 'primary' };
     case 'stale':
-      return { label: 'Stale', glyph: '◐', tone: 'warning' };
+      return { label: $localize`Stale`, glyph: '◐', tone: 'warning' };
     default:
-      return { label: 'Offline', glyph: '○', tone: 'neutral' };
+      return { label: $localize`Offline`, glyph: '○', tone: 'neutral' };
   }
 }
 
 export function positionKindLabel(kind: VisiblePosition['kind']): string {
   switch (kind) {
     case 'self':
-      return 'You';
+      return $localize`You`;
     case 'ally':
-      return 'Ally';
+      return $localize`Ally`;
     case 'enemy':
-      return 'Enemy';
+      return $localize`Enemy`;
     default:
-      return 'Intel contact';
+      return $localize`Intel contact`;
   }
 }
 
 function precisionText(p: Precision, rules: VisibilityRules): string {
-  if (p === 'exact') return 'exact position';
-  if (p === 'approximate' || p === 'area') return `${PRECISION_LABELS[p].toLowerCase()} position (about ${rules.approxRadiusM} m)`;
-  return `position delayed by ${rules.delaySec} s`;
+  if (p === 'exact') return $localize`exact position`;
+  if (p === 'approximate' || p === 'area') return $localize`${PRECISION_LABELS[p].toLowerCase()}:p: position (about ${rules.approxRadiusM}:approxRadiusM: m)`;
+  return $localize`position delayed by ${rules.delaySec}:delaySec: s`;
 }
 
 /** Plain-language list of who sees the player's position, from the event's visibility rules. */
@@ -76,16 +76,16 @@ export function sharingAudience(rules: VisibilityRules): string[] {
     rules.allies === 'none'
       ? null
       : rules.allies === 'squad'
-        ? 'Your squad'
+        ? $localize`Your squad`
         : rules.allies === 'team'
-          ? 'Your team'
-          : 'Your team and allied teams';
-  if (allies) lines.push(`${allies} see your ${precisionText(rules.allyPrecision, rules)}.`);
-  else if (rules.squadLeadersSeeSquad) lines.push('Your squad leader sees your position.');
-  else lines.push('Other players on your side do not see you.');
-  if (rules.enemies === 'never') lines.push('Enemy teams never see your position.');
-  else if (rules.enemies === 'perk_only') lines.push(`Enemy teams see your ${precisionText(rules.enemyPrecision, rules)} only while they run a UAV or recon perk.`);
-  else lines.push(`Enemy teams see your ${precisionText(rules.enemyPrecision, rules)}.`);
-  lines.push('Game Masters see your position to run the game and for safety.');
+          ? $localize`Your team`
+          : $localize`Your team and allied teams`;
+  if (allies) lines.push($localize`${allies}:allies: see your ${precisionText(rules.allyPrecision, rules)}:precisionText:.`);
+  else if (rules.squadLeadersSeeSquad) lines.push($localize`Your squad leader sees your position.`);
+  else lines.push($localize`Other players on your side do not see you.`);
+  if (rules.enemies === 'never') lines.push($localize`Enemy teams never see your position.`);
+  else if (rules.enemies === 'perk_only') lines.push($localize`Enemy teams see your ${precisionText(rules.enemyPrecision, rules)}:precisionText: only while they run a UAV or recon perk.`);
+  else lines.push($localize`Enemy teams see your ${precisionText(rules.enemyPrecision, rules)}:precisionText:.`);
+  lines.push($localize`Game Masters see your position to run the game and for safety.`);
   return lines;
 }

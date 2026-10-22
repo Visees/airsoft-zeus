@@ -24,6 +24,7 @@ import { AuthService } from '../auth/auth.service';
 import { ConnectivityService } from '../net/connectivity.service';
 import { InvalidateScope } from '../realtime/realtime-events';
 import { RealtimeService } from '../realtime/realtime.service';
+import { activeLanguage } from '../i18n/language';
 import { safeStorage } from '../util/storage';
 
 type Cached = Omit<LiveSnapshot, 'positions' | 'alerts'> & { cachedAt: number };
@@ -132,11 +133,11 @@ export class LiveStore {
     this.realtime
       .on('activity')
       .pipe(takeUntilDestroyed())
-      .subscribe((p) => p.eventId === this.eventId() && this.activity.update((l) => [p.item, ...l].slice(0, 200)));
+      .subscribe((p) => p.eventId === this.eventId() && this.activity.update((l) => [inMyLanguage(p.item), ...l].slice(0, 200)));
     this.realtime
       .on('alert')
       .pipe(takeUntilDestroyed())
-      .subscribe((p) => p.eventId === this.eventId() && this.alerts.update((l) => [p.alert, ...l.filter((a) => a.id !== p.alert.id)]));
+      .subscribe((p) => p.eventId === this.eventId() && this.alerts.update((l) => [inMyLanguage(p.alert), ...l.filter((a) => a.id !== p.alert.id)]));
   }
 
   /** Server time in epoch ms. */
@@ -260,4 +261,14 @@ export class LiveStore {
   private cacheKey(eventId: Uuid): string {
     return `zeus.live.${this.auth.user()?.id ?? 'anon'}.${eventId}`;
   }
+}
+
+/**
+ * Socket items are serialized once for everyone; system messages carry every language in
+ * data.messages (HTTP responses are already in the reader's language).
+ */
+function inMyLanguage<T extends { message: string; data: Record<string, unknown> }>(item: T): T {
+  const messages = item.data['messages'] as Record<string, string> | undefined;
+  const message = messages?.[activeLanguage()];
+  return message ? { ...item, message } : item;
 }

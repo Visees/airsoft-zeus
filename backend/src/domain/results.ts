@@ -3,25 +3,26 @@ import { many, one, type Row } from '../db.js';
 import { notFound } from '../errors.js';
 import { scoring as scoringOf } from './defaults.js';
 import * as dto from './serialize.js';
+import { eventDate, tr } from '../i18n/index.js';
 
 export interface ResultsOptions {
   /** Public page: no player ids, no GM names, no adjustments' actors. */
   publicView?: boolean;
 }
 
-const MODE_LABELS: Record<string, string> = {
-  sunday: 'Sunday game',
-  milsim: 'Milsim',
-  scenario: 'Scenario event',
-  championship: 'Championship',
+const MODE_LABELS = (): Record<string, string> => ({
+  sunday: tr`Sunday game`,
+  milsim: tr`Milsim`,
+  scenario: tr`Scenario event`,
+  championship: tr`Championship`,
   plr: 'PLR',
   pcr: 'PCR',
-  custom: 'Custom',
-};
+  custom: tr`Custom`,
+});
 
 export async function computeResults(eventId: string, opts: ResultsOptions = {}) {
   const ev = await one('SELECT * FROM events WHERE id = $1', [eventId]);
-  if (!ev) throw notFound('Event not found.');
+  if (!ev) throw notFound(tr`Event not found.`);
   const scoring = scoringOf(ev.scoring);
   const teams = await many(
     `SELECT t.*,
@@ -70,7 +71,7 @@ export async function computeResults(eventId: string, opts: ResultsOptions = {})
   const started = ev.started_at ? new Date(ev.started_at).getTime() : null;
   const ended = ev.ended_at ? new Date(ev.ended_at).getTime() : Date.now();
   const durationMs = started ? Math.max(0, ended - started - Number(ev.paused_total_ms ?? 0)) : 0;
-  const anon = (r: Row) => (r.deleted_at ? 'Deleted player' : r.nickname);
+  const anon = (r: Row) => (r.deleted_at ? tr`Deleted player` : r.nickname);
 
   return {
     eventId: ev.id,
@@ -151,14 +152,14 @@ export async function exportCsv(eventId: string, kind: 'leaderboard' | 'players'
 
 function fmtDuration(ms: number): string {
   const m = Math.round(ms / 60_000);
-  return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`;
+  return m >= 60 ? tr`${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m} min`;
 }
 
 /** One-page-per-section PDF report. */
 export async function exportPdf(eventId: string): Promise<Buffer> {
   const r = await computeResults(eventId);
   const ev = await one('SELECT start_at, meeting_address FROM events WHERE id = $1', [eventId]);
-  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: `${r.eventName} — results`, Creator: 'AirsoftHub' } });
+  const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: tr`${r.eventName} — results`, Creator: 'AirsoftHub' } });
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
   const done = new Promise<Buffer>((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));
@@ -166,19 +167,19 @@ export async function exportPdf(eventId: string): Promise<Buffer> {
   const olive = '#4A5A1F';
   const muted = '#565C51';
 
-  doc.fillColor(olive).fontSize(9).text('AIRSOFTHUB · EVENT REPORT', { characterSpacing: 1.5 });
+  doc.fillColor(olive).fontSize(9).text(tr`AIRSOFTHUB · EVENT REPORT`, { characterSpacing: 1.5 });
   doc.moveDown(0.3).fillColor('#151813').fontSize(22).text(r.eventName.toUpperCase());
   doc
     .fontSize(10)
     .fillColor(muted)
     .text(
-      [MODE_LABELS[r.gameMode] ?? r.gameMode, ev?.start_at ? new Date(ev.start_at).toUTCString().slice(0, 22) : null, ev?.meeting_address, `Played ${fmtDuration(r.durationMs)}`]
+      [MODE_LABELS()[r.gameMode] ?? r.gameMode, ev?.start_at ? eventDate(ev.start_at, tr.lang) : null, ev?.meeting_address, tr`Played ${fmtDuration(r.durationMs)}`]
         .filter(Boolean)
         .join('  ·  '),
     );
   doc.moveDown();
   const winner = r.teams.find((t) => t.teamId === r.winnerTeamId);
-  doc.fillColor('#151813').fontSize(14).text(r.isDraw ? 'Result: draw' : winner ? `Winner: ${winner.name}` : 'No winner yet');
+  doc.fillColor('#151813').fontSize(14).text(r.isDraw ? tr`Result: draw` : winner ? tr`Winner: ${winner.name}` : tr`No winner yet`);
   doc.moveDown();
 
   const table = (title: string, header: string[], rows: (string | number)[][], widths: number[]) => {
@@ -204,35 +205,35 @@ export async function exportPdf(eventId: string): Promise<Buffer> {
   };
 
   table(
-    'Final leaderboard',
-    ['#', 'Team', 'Points', 'Credits', 'Captured', 'Held', 'Perks'],
+    tr`Final leaderboard`,
+    ['#', tr`Team`, tr`Points`, tr`Credits`, tr`Captured`, tr`Held`, tr`Perks`],
     r.teams.map((t) => [t.rank, t.name, t.points, t.currency, t.objectivesCaptured, t.objectivesHeld, t.perksPurchased]),
     [28, 170, 70, 70, 60, 50, 50],
   );
   table(
-    'Top players',
-    ['Player', 'Team', 'Points', 'Captures', 'Credits'],
+    tr`Top players`,
+    [tr`Player`, tr`Team`, tr`Points`, tr`Captures`, tr`Credits`],
     r.players.slice(0, 25).map((p) => [p.nickname, teamName.get(p.teamId ?? '') ?? '', p.points, p.captures, p.currencyEarned]),
     [160, 140, 70, 70, 60],
   );
   table(
-    'Objective timeline',
-    ['Time (UTC)', 'Objective', 'Team', 'Player', 'Method'],
-    r.timeline.map((c) => [c.createdAt.slice(11, 19), c.objectiveName + (c.revoked ? ' (revoked)' : ''), teamName.get(c.teamId) ?? '', c.nickname ?? '', c.method]),
+    tr`Objective timeline`,
+    [tr`Time (UTC)`, tr`Objective`, tr`Team`, tr`Player`, tr`Method`],
+    r.timeline.map((c) => [c.createdAt.slice(11, 19), c.objectiveName + (c.revoked ? tr` (revoked)` : ''), teamName.get(c.teamId) ?? '', c.nickname ?? '', c.method]),
     [70, 160, 110, 110, 50],
   );
   if (r.perks.length) {
     table(
-      'Perks',
-      ['Time (UTC)', 'Perk', 'Team', 'Price', 'Status'],
-      r.perks.map((p) => [p.createdAt.slice(11, 19), p.perkName, teamName.get(p.teamId) ?? '', p.price, p.status + (p.refunded ? ', refunded' : '')]),
+      tr`Perks`,
+      [tr`Time (UTC)`, tr`Perk`, tr`Team`, tr`Price`, tr`Status`],
+      r.perks.map((p) => [p.createdAt.slice(11, 19), p.perkName, teamName.get(p.teamId) ?? '', p.price, p.status + (p.refunded ? tr`, refunded` : '')]),
       [70, 160, 120, 60, 90],
     );
   }
   if (r.adjustments.length) {
     table(
-      'Game Master adjustments',
-      ['Time (UTC)', 'Team', 'Kind', 'Amount', 'Reason'],
+      tr`Game Master adjustments`,
+      [tr`Time (UTC)`, tr`Team`, tr`Kind`, tr`Amount`, tr`Reason`],
       r.adjustments.map((a) => [a.createdAt.slice(11, 19), teamName.get(a.teamId) ?? '', a.kind, a.amount, a.reason]),
       [70, 110, 60, 60, 200],
     );

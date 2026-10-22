@@ -19,7 +19,7 @@ import { formatRelative } from '../core/util/format';
         <ng-icon [name]="a.priority === 'emergency' ? 'lucideSiren' : 'lucideMegaphone'" size="20" class="mt-0.5 shrink-0" aria-hidden="true" />
         <div class="min-w-0 flex-1">
           <p class="label-caps !text-current opacity-80">
-            {{ a.priority === 'emergency' ? 'Emergency' : a.scope === 'team' ? 'Team message' : a.scope === 'player' ? 'Message to you' : 'Announcement' }}
+            {{ a.priority === 'emergency' ? txt.emergency : a.scope === 'team' ? txt.teamMessage : a.scope === 'player' ? txt.messageToYou : txt.announcement }}
             · {{ when() }}
           </p>
           <p class="font-bold">{{ a.title }}</p>
@@ -28,7 +28,7 @@ import { formatRelative } from '../core/util/format';
           }
         </div>
         @if (dismissible()) {
-          <button type="button" class="tap -m-2 grid place-items-center rounded-sm" (click)="dismiss.emit()" aria-label="Dismiss announcement">
+          <button type="button" class="tap -m-2 grid place-items-center rounded-sm" (click)="dismiss.emit()" aria-label="Dismiss announcement" i18n-aria-label>
             <ng-icon name="lucideX" size="18" aria-hidden="true" />
           </button>
         }
@@ -37,6 +37,14 @@ import { formatRelative } from '../core/util/format';
   `,
 })
 export class AnnouncementBanner {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    emergency: $localize`Emergency`,
+    teamMessage: $localize`Team message`,
+    messageToYou: $localize`Message to you`,
+    announcement: $localize`Announcement`,
+  };
+
   readonly announcement = input<Announcement | null>(null);
   readonly dismissible = input(true);
   readonly dismiss = output<void>();

@@ -1,8 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, take } from 'rxjs';
 import { ApiService } from '../api/api.service';
 import { AuthResponse, MeUser, RegisterRequest } from '../api/models';
+import { activeLanguage, isUiLanguage, rememberLanguage } from '../i18n/language';
 
 /**
  * Session state. The access token lives only in memory; the refresh token is an
@@ -37,16 +39,44 @@ export class AuthService {
     }
     // No session hint cookie → nothing to restore (avoids a guaranteed 401).
     const hasSession = typeof document !== 'undefined' && /(?:^|;\s*)zeus_session=1/.test(document.cookie);
-    this.initPromise ??= (hasSession ? this.refresh() : Promise.resolve(false)).then(() => this._ready.set(true));
+    this.initPromise ??= (hasSession ? this.refresh() : Promise.resolve(false)).then(() => {
+      const user = this._user();
+      // Opening the app: switch to the profile language straight away.
+      if (user && this.useProfileLanguage(user)) location.reload();
+      else this._ready.set(true);
+    });
     return this.initPromise;
   }
 
   async login(email: string, password: string): Promise<MeUser> {
-    return this.apply(await this.api.login(email, password));
+    return this.afterSignIn(this.apply(await this.api.login(email, password)));
   }
 
   async register(body: RegisterRequest): Promise<MeUser> {
-    return this.apply(await this.api.register(body));
+    return this.afterSignIn(this.apply(await this.api.register(body)));
+  }
+
+  /**
+   * The profile language wins over the device. Translations are fixed per page load, so a
+   * different language means a reload: callers navigate right after signing in, so wait for that.
+   */
+  private afterSignIn(user: MeUser): MeUser {
+    if (this.isBrowser && this.useProfileLanguage(user)) {
+      this.router.events
+        .pipe(
+          filter((e) => e instanceof NavigationEnd),
+          take(1),
+        )
+        .subscribe(() => location.reload());
+    }
+    return user;
+  }
+
+  /** Remembers the profile language for this device; true when it differs from the current UI. */
+  private useProfileLanguage(user: MeUser): boolean {
+    if (!isUiLanguage(user.language) || user.language === activeLanguage()) return false;
+    rememberLanguage(user.language);
+    return true;
   }
 
   /** Change the password; the server signs out other sessions and returns a new one for this device. */

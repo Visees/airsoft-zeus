@@ -10,6 +10,7 @@ import { transition } from './lifecycle.js';
 import { loadObjectives, settleRecurring, statusOf, type ObjRow } from './objectives.js';
 import { expireEffects } from './perks.js';
 import { captureBlock } from './rules.js';
+import { tr } from '../i18n/index.js';
 
 const ENGINE_LOCK = 730_301;
 let timer: NodeJS.Timeout | null = null;
@@ -72,7 +73,7 @@ async function tickEvent(eventId: string): Promise<void> {
   if (ctx.event.auto_end && ctx.event.ends_at && new Date(ctx.event.ends_at).getTime() <= now) {
     await tx(async (t) => {
       const locked = await eventContext(eventId, owner.owner_id, t, true, false);
-      if (locked.event.status === 'live') await transition(t, locked, 'completed', null, 'Time is up');
+      if (locked.event.status === 'live') await transition(t, locked, 'completed', null, tr`Time is up`);
     });
     return;
   }
@@ -100,11 +101,11 @@ async function tickEvent(eventId: string): Promise<void> {
     await tx(async (t) => {
       await t.query('UPDATE objectives SET last_status = $2 WHERE id = $1', [o.id, status]);
       if (status === 'active' && (o.last_status === 'inactive' || o.last_status === 'locked')) {
-        await activity(t, eventId, { type: 'objective_available', message: `${o.name} is now available`, scope: o.visibility?.mode === 'all' ? 'all' : 'gm', objectiveId: o.id });
+        await activity(t, eventId, { type: 'objective_available', message: (tr) => tr`${o.name} is now available`, scope: o.visibility?.mode === 'all' ? 'all' : 'gm', objectiveId: o.id });
         if ((o.visibility?.mode ?? 'all') === 'all') {
           await notify(t, await eventPlayers(t, eventId), {
             type: 'objective_available',
-            title: 'New objective available',
+            title: (tr) => tr`New objective available`,
             body: o.name,
             eventId,
             url: `/events/${eventId}/live/objectives/${o.id}`,
@@ -161,7 +162,7 @@ async function tickEvent(eventId: string): Promise<void> {
           type: 'disconnected',
           severity: 'warning',
           userId: l.user_id,
-          message: `${l.nickname} has not sent a position since ${new Date(l.last_location_at).toISOString().slice(11, 16)} UTC`,
+          message: (tr) => tr`${l.nickname} has not sent a position since ${new Date(l.last_location_at).toISOString().slice(11, 16)} UTC`,
           dedupeKey: `disc:${l.user_id}`,
         });
       }
@@ -180,8 +181,8 @@ async function startingSoon(): Promise<void> {
     await tx(async (t) => {
       await notify(t, await eventPlayers(t, e.id), {
         type: 'event_starting_soon',
-        title: `${e.name} starts soon`,
-        body: 'Open the lobby, accept the rules and turn on location.',
+        title: (tr) => tr`${e.name} starts soon`,
+        body: (tr) => tr`Open the lobby, accept the rules and turn on location.`,
         priority: 'high',
         eventId: e.id,
         url: `/events/${e.id}/lobby`,

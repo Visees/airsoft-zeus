@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { tr } from '../i18n/index.js';
 
 export const precision = z.enum(['exact', 'approximate', 'delayed', 'area']);
 export type Precision = z.infer<typeof precision>;
@@ -177,8 +178,8 @@ export const scoring = (stored: unknown): Scoring => merge(DEFAULT_SCORING, stor
 export const geofence = (stored: unknown): Geofence => merge(DEFAULT_GEOFENCE, stored ?? {});
 export const rewards = (stored: unknown): Rewards => merge(DEFAULT_REWARDS, stored ?? {});
 
-/** Default perks offered by "Add default perks". */
-export const DEFAULT_PERKS = [
+/** Default perks offered by "Add default perks", built per call in the GM's language. */
+export const defaultPerks = () => [
   {
     name: 'UAV',
     type: 'uav',
@@ -187,7 +188,7 @@ export const DEFAULT_PERKS = [
     durationSec: 90,
     cooldownSec: 600,
     target: 'enemy_team',
-    description: 'Shows the positions of an enemy team on your team’s map while it is active.',
+    description: tr`Shows the positions of an enemy team on your team’s map while it is active.`,
     config: { uav: DEFAULT_PERK_CONFIG.uav },
   },
   {
@@ -198,7 +199,7 @@ export const DEFAULT_PERKS = [
     durationSec: 180,
     cooldownSec: 600,
     target: 'objective',
-    description: 'The chosen objective cannot be captured by the enemy team until the jammer expires.',
+    description: tr`The chosen objective cannot be captured by the enemy team until the jammer expires.`,
     config: {},
   },
   {
@@ -210,7 +211,7 @@ export const DEFAULT_PERKS = [
     cooldownSec: 900,
     target: 'enemy_team',
     requiresApproval: true,
-    description: 'Takes 20% of an enemy team’s credits. A team can’t be robbed again for 10 minutes.',
+    description: tr`Takes 20% of an enemy team’s credits. A team can’t be robbed again for 10 minutes.`,
     config: { theft: DEFAULT_PERK_CONFIG.theft },
   },
   {
@@ -221,7 +222,7 @@ export const DEFAULT_PERKS = [
     durationSec: 30,
     cooldownSec: 300,
     target: 'enemy_team',
-    description: 'One snapshot of approximate enemy positions, visible for 30 seconds.',
+    description: tr`One snapshot of approximate enemy positions, visible for 30 seconds.`,
     config: { recon: DEFAULT_PERK_CONFIG.recon },
   },
   {
@@ -232,7 +233,7 @@ export const DEFAULT_PERKS = [
     durationSec: 300,
     cooldownSec: 900,
     target: 'objective',
-    description: 'Other teams cannot capture the chosen objective for 5 minutes.',
+    description: tr`Other teams cannot capture the chosen objective for 5 minutes.`,
     config: {},
   },
   {
@@ -243,7 +244,7 @@ export const DEFAULT_PERKS = [
     durationSec: 300,
     cooldownSec: 1200,
     target: 'none',
-    description: 'Points from captures and held objectives are doubled for 5 minutes.',
+    description: tr`Points from captures and held objectives are doubled for 5 minutes.`,
     config: { doublePoints: DEFAULT_PERK_CONFIG.doublePoints },
   },
   {
@@ -255,7 +256,7 @@ export const DEFAULT_PERKS = [
     cooldownSec: 300,
     target: 'none',
     eligible: 'squad_leaders',
-    description: 'One player of your squad respawns on the spot. Show this to the nearest marshal.',
+    description: tr`One player of your squad respawns on the spot. Show this to the nearest marshal.`,
     config: {},
   },
   {
@@ -267,7 +268,7 @@ export const DEFAULT_PERKS = [
     cooldownSec: 900,
     target: 'none',
     requiresApproval: true,
-    description: 'The Game Master places an ammo and medic cache near your team.',
+    description: tr`The Game Master places an ammo and medic cache near your team.`,
     config: {},
   },
   {
@@ -279,7 +280,7 @@ export const DEFAULT_PERKS = [
     cooldownSec: 900,
     target: 'enemy_team',
     requiresApproval: true,
-    description: 'The enemy team must stay off the radio for 2 minutes. Enforced by marshals.',
+    description: tr`The enemy team must stay off the radio for 2 minutes. Enforced by marshals.`,
     config: {},
   },
 ] as const;

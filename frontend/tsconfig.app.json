@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node", "google.maps"]
+    "types": ["node", "google.maps", "@angular/localize"]
   },
   "include": ["src/**/*.ts", "libs/ui/**/src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts"]

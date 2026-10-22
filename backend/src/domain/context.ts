@@ -3,6 +3,7 @@ import { one, pool, type Queryable, type Row } from '../db.js';
 import { forbidden, notFound } from '../errors.js';
 import { scoring, tracking, visibility, type Scoring, type Tracking, type VisibilityRules } from './defaults.js';
 import type { EventStatus, Viewer } from './rules.js';
+import { tr } from '../i18n/index.js';
 
 export interface EventRow extends Row {
   id: string;
@@ -66,7 +67,7 @@ export function playsIn(m: Pick<MemberRow, 'role' | 'status' | 'team_id'> | null
 
 export async function loadEvent(eventId: string, q: Queryable = pool, lock = false): Promise<EventRow> {
   const ev = await one<EventRow>(`SELECT * FROM events WHERE id = $1${lock ? ' FOR UPDATE' : ''}`, [eventId], q);
-  if (!ev) throw notFound('Event not found.');
+  if (!ev) throw notFound(tr`Event not found.`);
   return ev;
 }
 
@@ -126,8 +127,8 @@ export function canViewEvent(ctx: EventContext): boolean {
 export async function requireGm(eventId: string, userId: string, q: Queryable = pool, lockEvent = false): Promise<EventContext> {
   const ctx = await eventContext(eventId, userId, q, lockEvent);
   if (!ctx.isGm) {
-    if (!canViewEvent(ctx)) throw notFound('Event not found.');
-    throw forbidden('Only the Game Masters of this event can do that.', 'not_gm');
+    if (!canViewEvent(ctx)) throw notFound(tr`Event not found.`);
+    throw forbidden(tr`Only the Game Masters of this event can do that.`, 'not_gm');
   }
   return ctx;
 }
@@ -136,13 +137,13 @@ export async function requireGm(eventId: string, userId: string, q: Queryable = 
 export async function requireMember(eventId: string, userId: string, q: Queryable = pool, lockEvent = false): Promise<EventContext> {
   const ctx = await eventContext(eventId, userId, q, lockEvent);
   if (ctx.isGm || ctx.member?.status === 'approved') return ctx;
-  if (!canViewEvent(ctx)) throw notFound('Event not found.');
-  throw forbidden('Join the event first.', 'not_member');
+  if (!canViewEvent(ctx)) throw notFound(tr`Event not found.`);
+  throw forbidden(tr`Join the event first.`, 'not_member');
 }
 
 export async function requireViewable(eventId: string, userId: string, q: Queryable = pool): Promise<EventContext> {
   const ctx = await eventContext(eventId, userId, q);
-  if (!canViewEvent(ctx)) throw notFound('Event not found.');
+  if (!canViewEvent(ctx)) throw notFound(tr`Event not found.`);
   return ctx;
 }
 

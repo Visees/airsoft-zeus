@@ -54,7 +54,7 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
     }
   `,
   template: `
-    <h2 class="sr-only">Scan QR code</h2>
+    <h2 class="sr-only" i18n>Scan QR code</h2>
     <!-- Camera -->
     <div class="relative min-h-56 flex-1 overflow-hidden bg-black">
       <video #video class="absolute inset-0 size-full object-cover" playsinline muted aria-hidden="true"></video>
@@ -72,8 +72,8 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
 
       <!-- Top bar -->
       <div class="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-2">
-        <a [routerLink]="backLink()" class="hud tap inline-flex items-center gap-1 px-3 text-sm font-semibold" aria-label="Back">
-          <ng-icon name="lucideArrowLeft" size="18" aria-hidden="true" /> Back
+        <a [routerLink]="backLink()" class="hud tap inline-flex items-center gap-1 px-3 text-sm font-semibold" aria-label="Back" i18n-aria-label>
+          <ng-icon name="lucideArrowLeft" size="18" aria-hidden="true" /> <ng-container i18n>Back</ng-container>
         </a>
         @if (torchSupported() && camState() === 'scanning') {
           <button
@@ -83,7 +83,7 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
             [attr.aria-pressed]="torchOn()"
             (click)="toggleTorch()"
           >
-            <ng-icon name="lucideZap" size="18" aria-hidden="true" /> {{ torchOn() ? 'Light on' : 'Light' }}
+            <ng-icon name="lucideZap" size="18" aria-hidden="true" /> {{ torchOn() ? txt.lightOn : txt.light }}
           </button>
         }
       </div>
@@ -93,19 +93,19 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
         @switch (camState()) {
           @case ('starting') {
             <p class="flex items-center gap-2 font-semibold">
-              <ng-icon name="lucideLoader2" size="20" class="animate-spin" aria-hidden="true" /> Starting the camera…
+              <ng-icon name="lucideLoader2" size="20" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Starting the camera…</ng-container>
             </p>
           }
           @case ('decoded') {
             <p class="flex flex-col items-center gap-2 font-semibold">
-              <ng-icon name="lucideScanQrCode" size="40" aria-hidden="true" /> Code read
+              <ng-icon name="lucideScanQrCode" size="40" aria-hidden="true" /> <ng-container i18n>Code read</ng-container>
             </p>
           }
           @case ('denied') {
             <div class="max-w-sm">
               <ng-icon name="lucideCamera" size="36" aria-hidden="true" />
-              <p class="mt-2 text-lg font-bold">Camera access is blocked</p>
-              <p class="mt-1 text-sm opacity-90">
+              <p class="mt-2 text-lg font-bold" i18n>Camera access is blocked</p>
+              <p class="mt-1 text-sm opacity-90" i18n>
                 Allow the camera for this site: tap the lock or settings icon next to the address bar, set Camera to Allow, then tap “Try again”.
               </p>
             </div>
@@ -113,29 +113,29 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
           @case ('nocamera') {
             <div class="max-w-sm">
               <ng-icon name="lucideCamera" size="36" aria-hidden="true" />
-              <p class="mt-2 text-lg font-bold">No camera found</p>
-              <p class="mt-1 text-sm opacity-90">This device has no usable camera. Enter the code by hand instead.</p>
+              <p class="mt-2 text-lg font-bold" i18n>No camera found</p>
+              <p class="mt-1 text-sm opacity-90" i18n>This device has no usable camera. Enter the code by hand instead.</p>
             </div>
           }
           @case ('unsupported') {
             <div class="max-w-sm">
               <ng-icon name="lucideCamera" size="36" aria-hidden="true" />
-              <p class="mt-2 text-lg font-bold">Camera not available</p>
-              <p class="mt-1 text-sm opacity-90">This browser cannot use the camera here. Enter the code by hand instead.</p>
+              <p class="mt-2 text-lg font-bold" i18n>Camera not available</p>
+              <p class="mt-1 text-sm opacity-90" i18n>This browser cannot use the camera here. Enter the code by hand instead.</p>
             </div>
           }
           @case ('busy') {
             <div class="max-w-sm">
               <ng-icon name="lucideCamera" size="36" aria-hidden="true" />
-              <p class="mt-2 text-lg font-bold">Camera is busy</p>
-              <p class="mt-1 text-sm opacity-90">Another app is using the camera. Close it and tap “Try again”.</p>
+              <p class="mt-2 text-lg font-bold" i18n>Camera is busy</p>
+              <p class="mt-1 text-sm opacity-90" i18n>Another app is using the camera. Close it and tap “Try again”.</p>
             </div>
           }
           @case ('error') {
             <div class="max-w-sm">
               <ng-icon name="lucideCircleAlert" size="36" aria-hidden="true" />
-              <p class="mt-2 text-lg font-bold">The camera could not start</p>
-              <p class="mt-1 text-sm opacity-90">Tap “Try again”, or enter the code by hand.</p>
+              <p class="mt-2 text-lg font-bold" i18n>The camera could not start</p>
+              <p class="mt-1 text-sm opacity-90" i18n>Tap “Try again”, or enter the code by hand.</p>
             </div>
           }
         }
@@ -146,18 +146,18 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
     <div class="flex shrink-0 flex-col gap-3 border-t border-border bg-card p-4">
       @if (target(); as t) {
         <p class="text-sm">
-          <span class="label-caps">Capturing</span>
+          <span class="label-caps" i18n>Capturing</span>
           <span class="ml-1 font-bold uppercase">{{ t }}</span>
         </p>
       }
 
       @if (scanError()) {
         <div class="rounded-md border-2 border-destructive bg-destructive/10 p-3" role="alert">
-          <p class="font-bold text-destructive">✕ Code not accepted</p>
+          <p class="font-bold text-destructive" i18n>✕ Code not accepted</p>
           <p class="text-sm">{{ scanError() }}</p>
         </div>
       } @else if (camState() === 'scanning' && attempt.state() === 'idle') {
-        <p class="text-sm font-semibold" role="status">Point the camera at the QR code on the objective. Hold steady about 30 cm away.</p>
+        <p class="text-sm font-semibold" role="status" i18n>Point the camera at the QR code on the objective. Hold steady about 30 cm away.</p>
       }
 
       @if (mismatchNote()) {
@@ -169,14 +169,14 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
       <div class="flex flex-col gap-2 sm:flex-row">
         @if (canScanAgain()) {
           <button hlmBtn type="button" class="h-12 flex-1" (click)="scanAgain()">
-            <ng-icon name="lucideScanLine" size="18" aria-hidden="true" /> {{ camFailed() ? 'Try again' : 'Scan again' }}
+            <ng-icon name="lucideScanLine" size="18" aria-hidden="true" /> {{ camFailed() ? txt.tryAgain : txt.scanAgain }}
           </button>
         }
         @if (attempt.state() === 'success' && scanned(); as s) {
-          <a hlmBtn variant="outline" class="h-12 flex-1" [routerLink]="objectiveLink(s.objectiveId)">Open objective</a>
+          <a hlmBtn variant="outline" class="h-12 flex-1" [routerLink]="objectiveLink(s.objectiveId)" i18n>Open objective</a>
         } @else {
           <a hlmBtn variant="outline" class="h-12 flex-1" [routerLink]="manualLink()">
-            <ng-icon name="lucideKeyRound" size="18" aria-hidden="true" /> Enter the code by hand
+            <ng-icon name="lucideKeyRound" size="18" aria-hidden="true" /> <ng-container i18n>Enter the code by hand</ng-container>
           </a>
         }
       </div>
@@ -184,6 +184,14 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
   `,
 })
 export class QrScannerScreen {
+  /** UI text used inside template expressions. */
+  protected readonly txt = {
+    lightOn: $localize`Light on`,
+    light: $localize`Light`,
+    tryAgain: $localize`Try again`,
+    scanAgain: $localize`Scan again`,
+  };
+
   /** ?objective=<id>: the objective the player meant to capture. */
   readonly objective = input<string | undefined>(undefined);
 
@@ -216,7 +224,7 @@ export class QrScannerScreen {
 
   protected readonly target = computed(() => {
     const s = this.scanned();
-    if (s) return this.scannedName() ?? 'Scanned objective';
+    if (s) return this.scannedName() ?? $localize`Scanned objective`;
     const id = this.objective();
     return id ? (this.store.objectiveById().get(id)?.name ?? null) : null;
   });
@@ -225,8 +233,8 @@ export class QrScannerScreen {
     const s = this.scanned();
     const wanted = this.objective();
     if (!s || !wanted || s.objectiveId === wanted) return null;
-    const wantedName = this.store.objectiveById().get(wanted)?.name ?? 'the objective you opened';
-    return `You scanned ${this.scannedName() ?? 'a different objective'}, not ${wantedName}. Capturing the one you scanned.`;
+    const wantedName = this.store.objectiveById().get(wanted)?.name ?? $localize`the objective you opened`;
+    return $localize`You scanned ${this.scannedName() ?? $localize`a different objective`}:scanned:, not ${wantedName}:wanted:. Capturing the one you scanned.`;
   });
 
   protected readonly backLink = computed(() => {
@@ -306,11 +314,11 @@ export class QrScannerScreen {
     vibrate(40);
     const parsed = parseObjectiveQr(text);
     if (!parsed) {
-      this.scanError.set('This QR code is not an AirsoftHub objective code.');
+      this.scanError.set($localize`This QR code is not an AirsoftHub objective code.`);
       return;
     }
     if (parsed.eventId !== this.store.eventId()) {
-      this.scanError.set('This code belongs to another event.');
+      this.scanError.set($localize`This code belongs to another event.`);
       return;
     }
     this.scanned.set(parsed);

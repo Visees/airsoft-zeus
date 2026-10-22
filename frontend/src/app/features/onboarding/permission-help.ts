@@ -11,19 +11,19 @@ export type PermState = 'checking' | 'granted' | 'denied' | 'prompt' | 'unsuppor
   template: `
     @switch (state()) {
       @case ('granted') {
-        <zeus-status-chip label="Allowed" glyph="✓" tone="primary" />
+        <zeus-status-chip label="Allowed" glyph="✓" tone="primary" i18n-label />
       }
       @case ('denied') {
-        <zeus-status-chip label="Blocked" glyph="✕" tone="danger" />
+        <zeus-status-chip label="Blocked" glyph="✕" tone="danger" i18n-label />
       }
       @case ('unsupported') {
-        <zeus-status-chip label="Not supported" glyph="–" tone="neutral" />
+        <zeus-status-chip label="Not supported" glyph="–" tone="neutral" i18n-label />
       }
       @case ('checking') {
-        <zeus-status-chip label="Checking" glyph="◌" tone="neutral" />
+        <zeus-status-chip label="Checking" glyph="◌" tone="neutral" i18n-label />
       }
       @default {
-        <zeus-status-chip label="Not asked yet" glyph="○" tone="neutral" />
+        <zeus-status-chip label="Not asked yet" glyph="○" tone="neutral" i18n-label />
       }
     }
   `,
@@ -39,13 +39,13 @@ export class PermissionChip {
   host: { class: 'block' },
   template: `
     <div class="rounded-md border border-border bg-muted p-3 text-sm">
-      <p class="font-semibold">How to allow {{ what() }} again</p>
+      <p class="font-semibold" i18n>How to allow {{ what() }} again</p>
       <ul class="mt-2 flex flex-col gap-1.5 text-muted-foreground">
-        <li class="flex gap-2"><span aria-hidden="true">▸</span><span><strong class="text-foreground">Android / Chrome:</strong> tap the icon left of the address bar → Permissions → {{ label() }} → Allow. In the installed app: long-press the app icon → App info → Permissions.</span></li>
-        <li class="flex gap-2"><span aria-hidden="true">▸</span><span><strong class="text-foreground">iPhone / Safari:</strong> Settings → {{ iosPath() }}.</span></li>
-        <li class="flex gap-2"><span aria-hidden="true">▸</span><span><strong class="text-foreground">Desktop:</strong> click the lock icon next to the address → Site settings → {{ label() }} → Allow.</span></li>
+        <li class="flex gap-2"><span aria-hidden="true">▸</span><span i18n><strong class="text-foreground">Android / Chrome:</strong> tap the icon left of the address bar → Permissions → {{ label() }} → Allow. In the installed app: long-press the app icon → App info → Permissions.</span></li>
+        <li class="flex gap-2"><span aria-hidden="true">▸</span><span i18n><strong class="text-foreground">iPhone / Safari:</strong> Settings → {{ iosPath() }}.</span></li>
+        <li class="flex gap-2"><span aria-hidden="true">▸</span><span i18n><strong class="text-foreground">Desktop:</strong> click the lock icon next to the address → Site settings → {{ label() }} → Allow.</span></li>
       </ul>
-      <p class="mt-2 text-muted-foreground">Then reload the app.</p>
+      <p class="mt-2 text-muted-foreground" i18n>Then reload the app.</p>
     </div>
   `,
 })
@@ -55,11 +55,11 @@ export class PermissionHelp {
     return this.kind() === 'location' ? 'location' : 'notifications';
   }
   protected label(): string {
-    return this.kind() === 'location' ? 'Location' : 'Notifications';
+    return this.kind() === 'location' ? $localize`Location` : $localize`Notifications`;
   }
   protected iosPath(): string {
     return this.kind() === 'location'
-      ? 'Privacy & Security → Location Services → Safari Websites (or AirsoftHub, if installed) → While Using the App'
-      : 'Notifications → AirsoftHub → Allow Notifications (only for the app added to the Home Screen)';
+      ? $localize`Privacy & Security → Location Services → Safari Websites (or AirsoftHub, if installed) → While Using the App`
+      : $localize`Notifications → AirsoftHub → Allow Notifications (only for the app added to the Home Screen)`;
   }
 }

@@ -11,6 +11,7 @@ import { activity, alert, eventPlayers, notify } from './journal.js';
 import { applyLedger } from './ledger.js';
 import { performCapture, statusOf, type ObjRow } from './objectives.js';
 import { captureBlock, degrade, objectiveVisible, type Sample } from './rules.js';
+import { tr } from '../i18n/index.js';
 
 const RING_MAX = 90;
 const RING_WINDOW_MS = 20 * 60_000;
@@ -45,13 +46,13 @@ export interface ReportResult {
 export async function reportLocation(eventId: string, userId: string, deviceSamples: InSample[], screenObjectiveId: string | null, sentAt?: number): Promise<ReportResult> {
   const ctx = await eventContext(eventId, userId);
   const m = ctx.member;
-  if (!m || !playsIn(m)) throw forbidden('Only players of this event share their location.', 'tracking_not_allowed');
-  if (!m.tracking_consent_at) throw forbidden('Turn on location sharing for this event first.', 'tracking_not_allowed');
+  if (!m || !playsIn(m)) throw forbidden(tr`Only players of this event share their location.`, 'tracking_not_allowed');
+  if (!m.tracking_consent_at) throw forbidden(tr`Turn on location sharing for this event first.`, 'tracking_not_allowed');
   const status = ctx.event.status;
-  if (status === 'paused' && ctx.tracking.stopWhenPaused) throw precondition('The game is paused; location sharing resumes with the game.', 'tracking_paused');
-  if (status !== 'live' && status !== 'paused') throw precondition('Location is only shared while the game is running.', 'not_live');
+  if (status === 'paused' && ctx.tracking.stopWhenPaused) throw precondition(tr`The game is paused; location sharing resumes with the game.`, 'tracking_paused');
+  if (status !== 'live' && status !== 'paused') throw precondition(tr`Location is only shared while the game is running.`, 'not_live');
 
-  await consume('loc', `${eventId}:${userId}`, 1, Math.max(1, Math.floor(ctx.tracking.intervalSec / 2)), 'Location updates are too frequent.');
+  await consume('loc', `${eventId}:${userId}`, 1, Math.max(1, Math.floor(ctx.tracking.intervalSec / 2)), tr`Location updates are too frequent.`);
 
   const now = Date.now();
   const samples = toServerClock(deviceSamples, sentAt, now);
@@ -99,7 +100,7 @@ export async function reportLocation(eventId: string, userId: string, deviceSamp
         type: 'gps_suspicious',
         severity: first.flag === 'mock' ? 'critical' : 'warning',
         userId,
-        message: `Suspicious location data: ${first.detail}`,
+        message: (tr) => tr`Suspicious location data: ${first.detail}`,
         data: { flags: v.suspicious.map((s) => s.flag), details: v.suspicious.map((s) => s.detail) },
         dedupeKey: `gps:${userId}`,
       });
@@ -197,7 +198,7 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
           await notify(t, await eventPlayers(t, eventId, adv.completedBy), {
             type: 'objective_captured',
             title: `${live.name}: zone secured`,
-            body: 'Enter the code or scan the QR code to capture it.',
+            body: (tr) => tr`Enter the code or scan the QR code to capture it.`,
             priority: 'high',
             eventId,
             url: `/events/${eventId}/live/objectives/${o.id}`,
@@ -214,12 +215,12 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
       if (adv.state.contested !== live.contested) {
         await t.query('UPDATE objectives SET contested = $2, updated_at = now() WHERE id = $1', [o.id, adv.state.contested]);
         if (adv.state.contested) {
-          await activity(t, eventId, { type: 'objective_contested', message: `${live.name} is contested`, scope: 'all', objectiveId: o.id });
+          await activity(t, eventId, { type: 'objective_contested', message: (tr) => tr`${live.name} is contested`, scope: 'all', objectiveId: o.id });
           const defenders = live.owner_team_id ? await eventPlayers(t, eventId, live.owner_team_id) : [];
           await notify(t, defenders, {
             type: 'objective_contested',
-            title: `${live.name} is contested`,
-            body: 'Enemies are inside the zone.',
+            title: (tr) => tr`${live.name} is contested`,
+            body: (tr) => tr`Enemies are inside the zone.`,
             priority: 'high',
             eventId,
             url: `/events/${eventId}/live/objectives/${o.id}`,
@@ -230,7 +231,7 @@ async function processGeofences(ctx: EventContext, userId: string, teamId: strin
       if (adv.contestEndedAfterMs !== null && adv.contestEndedAfterMs >= 20_000 && live.owner_team_id && adv.state.present[live.owner_team_id]) {
         const r = rewardsOf(live.rewards);
         if (r.defenseBonus) {
-          await applyLedger(t, { eventId, teamId: live.owner_team_id, kind: 'points', type: 'defense_bonus', amount: r.defenseBonus, scoring: ctx.scoring, objectiveId: o.id, reason: `Defended ${live.name}` });
+          await applyLedger(t, { eventId, teamId: live.owner_team_id, kind: 'points', type: 'defense_bonus', amount: r.defenseBonus, scoring: ctx.scoring, objectiveId: o.id, reason: (tr) => tr`Defended ${live.name}` });
         }
       }
       return { state: adv.state, captured, multiplier: adv.multiplier[teamId] ?? 1 };

@@ -1,6 +1,6 @@
 import { GeofenceConfig, LatLng, PoiType, Rewards, Zone, ZoneKind } from '../../../core/api/models';
 import { pathLengthM, polygonAreaM2 } from '../../../core/util/geo';
-import { formatDistance } from '../../../core/util/format';
+import { formatDecimal, formatDistance } from '../../../core/util/format';
 
 /**
  * Defaults and option lists shared by the GM map tools (map editor, objective and POI editors).
@@ -49,20 +49,20 @@ export const POI_TYPE_COLORS: Record<PoiType, string> = {
 export const MARKER_COLORS = ['#E6B04F', '#9DAE5C', '#3B82C4', '#D9822B', '#C75B9B', '#5BB8B0', '#8E7CC3', '#F0595C', '#E9ECE6'];
 
 export const MAP_ICONS: { value: string; label: string; icon: string }[] = [
-  { value: 'flag', label: 'Flag', icon: 'lucideFlag' },
-  { value: 'target', label: 'Target', icon: 'lucideTarget' },
-  { value: 'crosshair', label: 'Crosshair', icon: 'lucideCrosshair' },
-  { value: 'radio', label: 'Radio', icon: 'lucideRadio' },
-  { value: 'antenna', label: 'Antenna', icon: 'lucideAntenna' },
-  { value: 'package', label: 'Crate', icon: 'lucidePackage' },
-  { value: 'file', label: 'Documents', icon: 'lucideFileText' },
-  { value: 'fuel', label: 'Fuel', icon: 'lucideFuel' },
-  { value: 'truck', label: 'Vehicle', icon: 'lucideTruck' },
-  { value: 'zap', label: 'Power', icon: 'lucideZap' },
-  { value: 'tent', label: 'Camp', icon: 'lucideTent' },
-  { value: 'hospital', label: 'Medical', icon: 'lucideHospital' },
-  { value: 'shield', label: 'Shield', icon: 'lucideShield' },
-  { value: 'star', label: 'Star', icon: 'lucideStar' },
+  { value: 'flag', label: $localize`Flag`, icon: 'lucideFlag' },
+  { value: 'target', label: $localize`Target`, icon: 'lucideTarget' },
+  { value: 'crosshair', label: $localize`Crosshair`, icon: 'lucideCrosshair' },
+  { value: 'radio', label: $localize`Radio`, icon: 'lucideRadio' },
+  { value: 'antenna', label: $localize`Antenna`, icon: 'lucideAntenna' },
+  { value: 'package', label: $localize`Crate`, icon: 'lucidePackage' },
+  { value: 'file', label: $localize`Documents`, icon: 'lucideFileText' },
+  { value: 'fuel', label: $localize`Fuel`, icon: 'lucideFuel' },
+  { value: 'truck', label: $localize`Vehicle`, icon: 'lucideTruck' },
+  { value: 'zap', label: $localize`Power`, icon: 'lucideZap' },
+  { value: 'tent', label: $localize`Camp`, icon: 'lucideTent' },
+  { value: 'hospital', label: $localize`Medical`, icon: 'lucideHospital' },
+  { value: 'shield', label: $localize`Shield`, icon: 'lucideShield' },
+  { value: 'star', label: $localize`Star`, icon: 'lucideStar' },
 ];
 
 export function mapIconName(value: string | null | undefined): string {
@@ -104,9 +104,9 @@ export function generateCaptureCode(length = 6): string {
 
 /** "1.25 ha", "350 m", "r 40 m · 0.50 ha" — size info for element lists. */
 export function zoneSizeLabel(z: Pick<Zone, 'geometry' | 'points' | 'radiusM'>): string {
-  if (z.geometry === 'polygon') return `${(polygonAreaM2(z.points) / 10_000).toFixed(2)} ha`;
+  if (z.geometry === 'polygon') return `${formatDecimal(polygonAreaM2(z.points) / 10_000, 2)} ha`;
   if (z.geometry === 'polyline') return formatDistance(pathLengthM(z.points));
-  if (z.geometry === 'circle' && z.radiusM) return `r ${Math.round(z.radiusM)} m · ${((Math.PI * z.radiusM * z.radiusM) / 10_000).toFixed(2)} ha`;
+  if (z.geometry === 'circle' && z.radiusM) return `r ${Math.round(z.radiusM)} m · ${formatDecimal((Math.PI * z.radiusM * z.radiusM) / 10_000, 2)} ha`;
   return '';
 }
 

@@ -65,11 +65,11 @@ export class StatTiles {
     const s = this.stats();
     const rate = winRate(s);
     return [
-      { label: 'Games', value: formatNumber(s.gamesPlayed), icon: 'lucideCalendarDays', span: false },
-      { label: 'Captures', value: formatNumber(s.objectivesCaptured), icon: 'lucideFlag', span: false },
-      { label: 'Points', value: formatNumber(s.totalPoints), icon: 'lucideTrophy', span: false },
-      { label: 'Wins', value: formatNumber(s.wins), icon: 'lucideMedal', span: false },
-      { label: 'Win rate', value: rate === null ? '—' : `${rate}%`, icon: 'lucideGauge', span: true },
+      { label: $localize`Games`, value: formatNumber(s.gamesPlayed), icon: 'lucideCalendarDays', span: false },
+      { label: $localize`Captures`, value: formatNumber(s.objectivesCaptured), icon: 'lucideFlag', span: false },
+      { label: $localize`Points`, value: formatNumber(s.totalPoints), icon: 'lucideTrophy', span: false },
+      { label: $localize`Wins`, value: formatNumber(s.wins), icon: 'lucideMedal', span: false },
+      { label: $localize`Win rate`, value: rate === null ? '—' : `${rate}%`, icon: 'lucideGauge', span: true },
     ];
   });
 }
@@ -93,7 +93,7 @@ export class StatTiles {
               @if (!compact()) {
                 <p class="text-sm text-muted-foreground">{{ b.description }}</p>
               }
-              <p class="mt-0.5 text-xs text-muted-foreground">Earned {{ date(b.awardedAt) }}</p>
+              <p class="mt-0.5 text-xs text-muted-foreground" i18n>Earned {{ date(b.awardedAt) }}</p>
             </div>
           </li>
         }
@@ -106,7 +106,7 @@ export class StatTiles {
 export class BadgeGrid {
   readonly badges = input.required<Badge[]>();
   readonly compact = input(false);
-  readonly emptyText = input('No badges yet. Badges are awarded for first captures, wins and milestones in games.');
+  readonly emptyText = input($localize`No badges yet. Badges are awarded for first captures, wins and milestones in games.`);
   protected readonly date = formatDate;
 }
 

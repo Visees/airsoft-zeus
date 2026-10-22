@@ -22,7 +22,7 @@ import { ClubForm } from './club-form';
     @if (isNew()) {
       <div class="page-narrow">
         <zeus-page-header title="Create a club" back="/profile/edit" backLabel="Edit profile"
-          subtitle="A club page groups your team mates. You become its owner and it is set as your club." />
+          subtitle="A club page groups your team mates. You become its owner and it is set as your club." i18n-title i18n-backLabel i18n-subtitle />
         <div class="panel p-4">
           <zeus-club-form (saved)="created($event)" (cancel)="back()" />
         </div>
@@ -32,32 +32,32 @@ import { ClubForm } from './club-form';
         @if (loading()) {
           <zeus-loading-skeleton [rows]="4" [avatar]="true" />
         } @else if (notFound()) {
-          <zeus-page-header title="Club" />
-          <zeus-empty-state icon="lucideShield" title="Club not found" message="It may have been removed, or the link is wrong.">
-            <a hlmBtn routerLink="/clubs/new" class="h-11">Create a club</a>
+          <zeus-page-header title="Club" i18n-title />
+          <zeus-empty-state icon="lucideShield" title="Club not found" message="It may have been removed, or the link is wrong." i18n-title i18n-message>
+            <a hlmBtn routerLink="/clubs/new" class="h-11" i18n>Create a club</a>
           </zeus-empty-state>
         } @else if (error() && !club()) {
-          <zeus-page-header title="Club" />
+          <zeus-page-header title="Club" i18n-title />
           <zeus-error-state [error]="error()" (retry)="load(clubId())" />
         } @else if (club(); as c) {
           @if (editing()) {
-            <zeus-page-header title="Edit club" [subtitle]="c.name" />
+            <zeus-page-header title="Edit club" [subtitle]="c.name" i18n-title />
             <div class="panel p-4">
               <zeus-club-form [club]="c" (saved)="updated($event)" (cancel)="editing.set(false)" />
             </div>
           } @else {
-            <zeus-page-header [title]="c.name" eyebrow="Club">
+            <zeus-page-header [title]="c.name" eyebrow="Club" i18n-eyebrow>
               @if (isOwner()) {
                 <button hlmBtn variant="outline" type="button" class="h-11" (click)="editing.set(true)">
-                  <ng-icon name="lucidePencil" size="16" aria-hidden="true" /> Edit club
+                  <ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit club</ng-container>
                 </button>
               }
             </zeus-page-header>
 
-            <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Club details">
+            <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Club details" i18n-aria-label>
               <div class="grid size-24 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted">
                 @if (c.logoUrl) {
-                  <img [src]="c.logoUrl" [alt]="c.name + ' logo'" class="size-full object-cover" />
+                  <img [src]="c.logoUrl" alt="{{ c.name }} logo" i18n-alt class="size-full object-cover" />
                 } @else {
                   <ng-icon name="lucideShield" size="36" class="text-muted-foreground" aria-hidden="true" />
                 }
@@ -66,20 +66,20 @@ import { ClubForm } from './club-form';
                 <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                   @if (place()) {
                     <div>
-                      <dt class="label-caps">Based in</dt>
+                      <dt class="label-caps" i18n>Based in</dt>
                       <dd>{{ place() }}</dd>
                     </div>
                   }
                   <div>
-                    <dt class="label-caps">Members</dt>
+                    <dt class="label-caps" i18n>Members</dt>
                     <dd class="num">{{ c.memberCount }}</dd>
                   </div>
                   @if (c.website) {
                     <div class="sm:col-span-2">
-                      <dt class="label-caps">Website</dt>
+                      <dt class="label-caps" i18n>Website</dt>
                       <dd>
                         <a [href]="c.website" target="_blank" rel="noopener noreferrer nofollow" class="inline-flex items-center gap-1 font-semibold break-all text-primary underline-offset-2 hover:underline">
-                          {{ c.website }} <ng-icon name="lucideExternalLink" size="13" aria-hidden="true" /><span class="sr-only">(opens in a new tab)</span>
+                          {{ c.website }} <ng-icon name="lucideExternalLink" size="13" aria-hidden="true" /><span class="sr-only" i18n>(opens in a new tab)</span>
                         </a>
                       </dd>
                     </div>
@@ -90,13 +90,13 @@ import { ClubForm } from './club-form';
                 }
                 <div class="mt-1 flex flex-wrap items-center gap-2">
                   @if (isMyClub()) {
-                    <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">✓ Your club</span>
+                    <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary" i18n>✓ Your club</span>
                     @if (!isOwner()) {
-                      <button hlmBtn variant="ghost" size="sm" type="button" class="tap" [disabled]="busy()" (click)="leave()">Leave club</button>
+                      <button hlmBtn variant="ghost" size="sm" type="button" class="tap" [disabled]="busy()" (click)="leave()" i18n>Leave club</button>
                     }
                   } @else {
                     <button hlmBtn type="button" class="h-11" [disabled]="busy()" (click)="join()">
-                      <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" /> Set as my club
+                      <ng-icon name="lucideUserPlus" size="16" aria-hidden="true" /> <ng-container i18n>Set as my club</ng-container>
                     </button>
                   }
                 </div>
@@ -104,7 +104,7 @@ import { ClubForm } from './club-form';
             </section>
 
             <section class="mt-6" aria-labelledby="club-members">
-              <h2 id="club-members" class="label-caps mb-2">Members · <span class="num">{{ members().length }}</span></h2>
+              <h2 id="club-members" class="label-caps mb-2" i18n>Members · <span class="num">{{ members().length }}</span></h2>
               @if (members().length) {
                 <ul class="panel divide-y divide-border overflow-hidden">
                   @for (m of members(); track m.id) {
@@ -114,7 +114,7 @@ import { ClubForm } from './club-form';
                         <span class="min-w-0 flex-1">
                           <span class="block truncate font-semibold">{{ m.nickname }}
                             @if (m.id === ownerId()) {
-                              <span class="ml-1 rounded-sm bg-muted px-1 text-xs font-semibold text-muted-foreground">Owner</span>
+                              <span class="ml-1 rounded-sm bg-muted px-1 text-xs font-semibold text-muted-foreground" i18n>Owner</span>
                             }
                           </span>
                           @if (m.playerRole) {
@@ -127,10 +127,10 @@ import { ClubForm } from './club-form';
                   }
                 </ul>
                 @if (members().length < c.memberCount) {
-                  <p class="mt-2 text-xs text-muted-foreground">Members who hide their club are not listed.</p>
+                  <p class="mt-2 text-xs text-muted-foreground" i18n>Members who hide their club are not listed.</p>
                 }
               } @else {
-                <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">No public members yet. Players appear here when they set this club in their profile.</p>
+                <p class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground" i18n>No public members yet. Players appear here when they set this club in their profile.</p>
               }
             </section>
           }
@@ -193,14 +193,14 @@ export class ClubScreen {
   }
 
   protected async created(c: Club): Promise<void> {
-    this.toast.success(`${c.name} created`, 'It is now set as your club.');
+    this.toast.success($localize`${c.name}:name: created`, $localize`It is now set as your club.`);
     // The server links the new club to the creator's profile.
     await this.auth.reloadUser();
     await this.router.navigate(['/clubs', c.id], { replaceUrl: true });
   }
 
   protected async updated(c: Club): Promise<void> {
-    this.toast.success('Club saved');
+    this.toast.success($localize`Club saved`);
     this.editing.set(false);
     await this.load(c.id);
     void this.auth.reloadUser();
@@ -216,7 +216,7 @@ export class ClubScreen {
     this.busy.set(true);
     try {
       this.auth.setUser(await this.api.updateMe({ clubId: c.id, clubName: c.name }));
-      this.toast.success(`${c.name} is now your club`);
+      this.toast.success($localize`${c.name}:name: is now your club`);
       await this.load(c.id);
     } catch (e) {
       this.toast.error(e);
@@ -229,16 +229,16 @@ export class ClubScreen {
     const c = this.club();
     if (!c) return;
     const ok = await this.confirm.ask({
-      title: `Leave ${c.name}?`,
-      consequences: ['The club is removed from your profile.', 'You can set it again at any time.'],
-      confirmLabel: 'Leave club',
+      title: $localize`Leave ${c.name}:name:?`,
+      consequences: [$localize`The club is removed from your profile.`, $localize`You can set it again at any time.`],
+      confirmLabel: $localize`Leave club`,
       destructive: true,
     });
     if (!ok) return;
     this.busy.set(true);
     try {
       this.auth.setUser(await this.api.updateMe({ clubId: null, clubName: null }));
-      this.toast.info(`You left ${c.name}`);
+      this.toast.info($localize`You left ${c.name}:name:`);
       await this.load(c.id);
     } catch (e) {
       this.toast.error(e);

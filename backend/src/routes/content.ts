@@ -17,6 +17,7 @@ import { alert, audit } from '../domain/journal.js';
 import { loadObjectives, objectiveDto, objectiveDtos, OBJECTIVE_SELECT, performCapture, statusOf, type ObjRow } from '../domain/objectives.js';
 import { contentVisible, objectiveVisible } from '../domain/rules.js';
 import * as dto from '../domain/serialize.js';
+import { tr } from '../i18n/index.js';
 
 export const contentRouter = Router();
 
@@ -78,14 +79,14 @@ const OBJ_COLS: Record<string, string> = {
 function checkCode(code: string | null | undefined): string | null {
   if (code === undefined || code === null || code === '') return null;
   const c = normalizeCode(code);
-  if (!/^[A-Z0-9]{4,32}$/.test(c)) throw badRequest('Codes use 4–32 letters and digits.', 'invalid_argument', { captureCode: '4–32 letters and digits' });
+  if (!/^[A-Z0-9]{4,32}$/.test(c)) throw badRequest(tr`Codes use 4–32 letters and digits.`, 'invalid_argument', { captureCode: tr`4–32 letters and digits` });
   return c;
 }
 
 async function gmObjective(ctx: EventContext, objectiveId: string) {
   const set = await loadObjectives(ctx.event.id);
   const row = set.rows.find((r) => r.id === objectiveId);
-  if (!row) throw notFound('Objective not found.');
+  if (!row) throw notFound(tr`Objective not found.`);
   return objectiveDto(ctx, row, statusOf(row, set.counts), set.armed.get(row.id) ?? {});
 }
 
@@ -100,7 +101,7 @@ contentRouter.get('/:eventId/objectives/:objectiveId', async (req, res) => {
   const set = await loadObjectives(ctx.event.id);
   const row = set.rows.find((r) => r.id === objectiveId);
   const status = row ? statusOf(row, set.counts) : null;
-  if (!row || !status || !objectiveVisible(row, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) throw notFound('Objective not found.');
+  if (!row || !status || !objectiveVisible(row, status, ctx.viewer, { status: ctx.event.status, phase: ctx.event.phase, rules: ctx.rules })) throw notFound(tr`Objective not found.`);
   const captures = await many(`SELECT ${dto.CAPTURE_SELECT} WHERE c.objective_id = $1 ORDER BY c.created_at DESC LIMIT 30`, [objectiveId]);
   res.json({ objective: objectiveDto(ctx, row, status, set.armed.get(row.id) ?? {}), captures: captures.map(dto.capture) });
 });
@@ -111,9 +112,9 @@ contentRouter.post('/:eventId/objectives', async (req, res) => {
   const b = body(req, objectiveInput.partial().required({ name: true, lat: true, lng: true }));
   const id = await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     const n = await one<{ n: number }>('SELECT count(*)::int AS n FROM objectives WHERE event_id = $1', [eventId], t);
-    if ((n?.n ?? 0) >= 500) throw conflict('An event can have at most 500 objectives.', 'too_many');
+    if ((n?.n ?? 0) >= 500) throw conflict(tr`An event can have at most 500 objectives.`, 'too_many');
     const code = checkCode(b.captureCode);
     const objId = await insertObjective(t, eventId, {
       name: b.name,
@@ -153,7 +154,7 @@ contentRouter.post('/:eventId/objectives', async (req, res) => {
 
 function uniqueCode(err: unknown): never {
   if ((err as { code?: string; constraint?: string }).code === '23505' && (err as { constraint?: string }).constraint === 'objectives_code_per_event') {
-    throw conflict('Another objective already uses this code.', 'code_taken', { captureCode: 'Already used by another objective' });
+    throw conflict(tr`Another objective already uses this code.`, 'code_taken', { captureCode: tr`Already used by another objective` });
   }
   throw err;
 }
@@ -165,11 +166,11 @@ contentRouter.patch('/:eventId/objectives/:objectiveId', async (req, res) => {
   const b = body(req, objectiveInput.partial());
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     const cur = await one<ObjRow>('SELECT * FROM objectives WHERE id = $1 AND event_id = $2 FOR UPDATE', [objectiveId, eventId], t);
-    if (!cur) throw notFound('Objective not found.');
+    if (!cur) throw notFound(tr`Objective not found.`);
     if (b.prerequisiteIds?.includes(objectiveId) || b.nextObjectiveId === objectiveId) {
-      throw badRequest('An objective cannot depend on itself.', 'invalid_argument', { prerequisiteIds: 'Remove this objective' });
+      throw badRequest(tr`An objective cannot depend on itself.`, 'invalid_argument', { prerequisiteIds: tr`Remove this objective` });
     }
     const sets: string[] = [];
     const params: unknown[] = [objectiveId];
@@ -210,10 +211,10 @@ contentRouter.delete('/:eventId/objectives/:objectiveId', async (req, res) => {
   const objectiveId = idParam(req, 'objectiveId');
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
-    if (ctx.event.started_at) throw conflict('Objectives cannot be deleted after the game started. Disable it instead.', 'game_started');
+    if (ctx.event.started_at) throw conflict(tr`Objectives cannot be deleted after the game started. Disable it instead.`, 'game_started');
     await t.query('UPDATE objectives SET prerequisite_ids = array_remove(prerequisite_ids, $2) WHERE event_id = $1', [eventId, objectiveId]);
     const r = await t.query('DELETE FROM objectives WHERE id = $1 AND event_id = $2', [objectiveId, eventId]);
-    if (!r.rowCount) throw notFound('Objective not found.');
+    if (!r.rowCount) throw notFound(tr`Objective not found.`);
     await audit(t, eventId, me.id, 'objective.delete', { type: 'objective', id: objectiveId });
   });
   hub.invalidate(eventId, ['objectives']);
@@ -227,8 +228,8 @@ contentRouter.post('/:eventId/objectives/:objectiveId/duplicate', async (req, re
   const id = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const o = await one('SELECT * FROM objectives WHERE id = $1 AND event_id = $2', [objectiveId, eventId], t);
-    if (!o) throw notFound('Objective not found.');
-    const newId = await insertObjective(t, eventId, { ...o, id: null, name: `${o.name} (copy)`.slice(0, 120), lat: o.lat + 0.00013, lng: o.lng + 0.00013 });
+    if (!o) throw notFound(tr`Objective not found.`);
+    const newId = await insertObjective(t, eventId, { ...o, id: null, name: tr`${o.name} (copy)`.slice(0, 120), lat: o.lat + 0.00013, lng: o.lng + 0.00013 });
     await t.query('UPDATE objectives SET allowed_team_ids = $2, prerequisite_ids = $3, capture_code = $4 WHERE id = $1', [
       newId,
       o.allowed_team_ids,
@@ -243,7 +244,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/duplicate', async (req, re
 
 async function qrFor(eventId: string, objectiveId: string) {
   const o = await one<{ qr_token: string; qr_version: number }>('SELECT qr_token, qr_version FROM objectives WHERE id = $1 AND event_id = $2', [objectiveId, eventId]);
-  if (!o) throw notFound('Objective not found.');
+  if (!o) throw notFound(tr`Objective not found.`);
   const payload = `zeus:obj:${eventId}:${objectiveId}:${o.qr_token}`;
   const opts = { errorCorrectionLevel: 'M' as const, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } };
   return {
@@ -272,7 +273,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/qr/regenerate', async (req
       eventId,
       randomToken(18),
     ]);
-    if (!r.rowCount) throw notFound('Objective not found.');
+    if (!r.rowCount) throw notFound(tr`Objective not found.`);
     await audit(t, eventId, me.id, 'objective.qr.regenerate', { type: 'objective', id: objectiveId });
   });
   res.setHeader('Cache-Control', 'no-store');
@@ -291,15 +292,15 @@ contentRouter.post('/:eventId/objectives/:objectiveId/capture', async (req, res)
   const objectiveId = idParam(req, 'objectiveId');
   const b = body(req, z.object({ method: z.enum(['code', 'qr']), code: z.string().max(64).optional(), qrPayload: z.string().max(300).optional(), clientTxId }));
   const ctx = await requireMember(eventId, me.id);
-  if (ctx.isGm || !ctx.member || !playsIn(ctx.member)) throw forbidden('Game Masters capture objectives from the control center.', 'not_player');
-  if (!ctx.member.team_id) throw conflict('You are not on a team.', 'no_team');
+  if (ctx.isGm || !ctx.member || !playsIn(ctx.member)) throw forbidden(tr`Game Masters capture objectives from the control center.`, 'not_player');
+  if (!ctx.member.team_id) throw conflict(tr`You are not on a team.`, 'no_team');
 
   const attemptKey = `${me.id}:${objectiveId}`;
   if (b.method === 'code') {
-    await consume('cap-code-min', attemptKey, 5, 60, 'Too many code attempts. Wait a minute.');
-    await consume('cap-code-hour', attemptKey, 30, 3600, 'Too many code attempts on this objective. Ask the Game Master.');
+    await consume('cap-code-min', attemptKey, 5, 60, tr`Too many code attempts. Wait a minute.`);
+    await consume('cap-code-hour', attemptKey, 30, 3600, tr`Too many code attempts on this objective. Ask the Game Master.`);
   } else {
-    await consume('cap-qr', me.id, 10, 60, 'Too many scans. Wait a minute.');
+    await consume('cap-qr', me.id, 10, 60, tr`Too many scans. Wait a minute.`);
   }
 
   // Secret check happens before the transaction so failed attempts are always recorded.
@@ -307,18 +308,18 @@ contentRouter.post('/:eventId/objectives/:objectiveId/capture', async (req, res)
     'SELECT methods, capture_code, qr_token FROM objectives WHERE id = $1 AND event_id = $2',
     [objectiveId, eventId],
   );
-  if (!o) throw notFound('Objective not found.');
+  if (!o) throw notFound(tr`Objective not found.`);
   let failure: { code: string; message: string } | null = null;
   if (b.method === 'code') {
-    if (!o.methods.includes('code')) failure = { code: 'method_not_allowed', message: 'This objective is not captured with a code.' };
-    else if (!b.code || !o.capture_code || !safeEqual(normalizeCode(b.code), normalizeCode(o.capture_code))) failure = { code: 'wrong_code', message: 'Wrong code.' };
+    if (!o.methods.includes('code')) failure = { code: 'method_not_allowed', message: tr`This objective is not captured with a code.` };
+    else if (!b.code || !o.capture_code || !safeEqual(normalizeCode(b.code), normalizeCode(o.capture_code))) failure = { code: 'wrong_code', message: tr`Wrong code.` };
   } else {
     const qr = b.qrPayload ? parseQr(b.qrPayload) : null;
-    if (!o.methods.includes('qr')) failure = { code: 'method_not_allowed', message: 'This objective is not captured with a QR code.' };
-    else if (!qr) failure = { code: 'invalid_qr', message: 'This is not an AirsoftHub objective code.' };
-    else if (qr.eventId !== eventId) failure = { code: 'wrong_event', message: 'This QR code belongs to another event.' };
-    else if (qr.objectiveId !== objectiveId) failure = { code: 'wrong_objective', message: 'This QR code belongs to another objective.' };
-    else if (!safeEqual(qr.token, o.qr_token)) failure = { code: 'invalid_qr', message: 'This QR code was replaced by the Game Master.' };
+    if (!o.methods.includes('qr')) failure = { code: 'method_not_allowed', message: tr`This objective is not captured with a QR code.` };
+    else if (!qr) failure = { code: 'invalid_qr', message: tr`This is not an AirsoftHub objective code.` };
+    else if (qr.eventId !== eventId) failure = { code: 'wrong_event', message: tr`This QR code belongs to another event.` };
+    else if (qr.objectiveId !== objectiveId) failure = { code: 'wrong_objective', message: tr`This QR code belongs to another objective.` };
+    else if (!safeEqual(qr.token, o.qr_token)) failure = { code: 'invalid_qr', message: tr`This QR code was replaced by the Game Master.` };
   }
   if (failure) {
     await pool.query('INSERT INTO capture_attempts (event_id, objective_id, user_id, method, success, reason) VALUES ($1,$2,$3,$4,false,$5)', [
@@ -335,7 +336,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/capture', async (req, res)
           type: 'capture_failed',
           severity: left <= 5 ? 'warning' : 'info',
           userId: me.id,
-          message: `${me.nickname} entered ${30 - left} wrong codes on an objective`,
+          message: (tr) => tr`${me.nickname} entered ${30 - left} wrong codes on an objective`,
           data: { objectiveId },
           dedupeKey: `codes:${me.id}:${objectiveId}`,
         }),
@@ -429,8 +430,8 @@ const ZONE_COLS: Record<string, string> = {
 
 function checkGeometry(geometry: string, points: { lat: number; lng: number }[], radius: number | null | undefined) {
   const need = geometry === 'polygon' ? 3 : geometry === 'polyline' ? 2 : 1;
-  if (points.length < need) throw badRequest(`A ${geometry} needs at least ${need} point${need > 1 ? 's' : ''}.`, 'invalid_argument', { points: 'Not enough points' });
-  if (geometry === 'circle' && !radius) throw badRequest('A circle needs a radius.', 'invalid_argument', { radiusM: 'Required' });
+  if (points.length < need) throw badRequest(tr`This shape needs at least ${need} points.`, 'invalid_argument', { points: tr`Not enough points` });
+  if (geometry === 'circle' && !radius) throw badRequest(tr`A circle needs a radius.`, 'invalid_argument', { radiusM: tr`Required` });
 }
 
 function teamAllianceFn(teams: { id: string; alliance_id: string | null }[]) {
@@ -499,7 +500,7 @@ contentRouter.patch('/:eventId/pois/:poiId', async (req, res) => {
       sets.push(`visibility = $${params.length}`);
     }
     const r = await one(`UPDATE pois SET ${[...sets, 'updated_at = now()'].join(', ')} WHERE id = $1 AND event_id = $2 RETURNING *`, params, t);
-    if (!r) throw notFound('Point not found.');
+    if (!r) throw notFound(tr`Point not found.`);
     await audit(t, eventId, me.id, 'poi.update', { type: 'poi', id: poiId, after: b });
     return r;
   });
@@ -513,7 +514,7 @@ contentRouter.delete('/:eventId/pois/:poiId', async (req, res) => {
   await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const r = await t.query('DELETE FROM pois WHERE id = $1 AND event_id = $2', [idParam(req, 'poiId'), eventId]);
-    if (!r.rowCount) throw notFound('Point not found.');
+    if (!r.rowCount) throw notFound(tr`Point not found.`);
     await audit(t, eventId, me.id, 'poi.delete', { type: 'poi', id: req.params.poiId });
   });
   hub.invalidate(eventId, ['pois']);
@@ -533,7 +534,7 @@ contentRouter.post('/:eventId/zones', async (req, res) => {
   const row = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const n = await one<{ n: number }>('SELECT count(*)::int AS n FROM zones WHERE event_id = $1', [eventId], t);
-    if ((n?.n ?? 0) >= 500) throw conflict('An event can have at most 500 map shapes.', 'too_many');
+    if ((n?.n ?? 0) >= 500) throw conflict(tr`An event can have at most 500 map shapes.`, 'too_many');
     const r = await one(
       `INSERT INTO zones (event_id, kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, team_id, visibility)
        VALUES ($1,$2,$3,$4,$5,COALESCE($6,''),COALESCE($7,''),COALESCE($8,'#9DAE5C'),COALESCE($9,0.15),COALESCE($10,2),$11,$12,COALESCE($13,'{"mode":"all"}'::jsonb)) RETURNING *`,
@@ -556,7 +557,7 @@ contentRouter.patch('/:eventId/zones/:zoneId', async (req, res) => {
   const row = await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const cur = await one('SELECT geometry, points, radius_m FROM zones WHERE id = $1 AND event_id = $2', [zoneId, eventId], t);
-    if (!cur) throw notFound('Shape not found.');
+    if (!cur) throw notFound(tr`Shape not found.`);
     checkGeometry(b.geometry ?? cur.geometry, b.points ?? cur.points, b.radiusM === undefined ? cur.radius_m : b.radiusM);
     const sets: string[] = [];
     const params: unknown[] = [zoneId];
@@ -589,7 +590,7 @@ contentRouter.delete('/:eventId/zones/:zoneId', async (req, res) => {
   await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     const r = await t.query('DELETE FROM zones WHERE id = $1 AND event_id = $2', [idParam(req, 'zoneId'), eventId]);
-    if (!r.rowCount) throw notFound('Shape not found.');
+    if (!r.rowCount) throw notFound(tr`Shape not found.`);
     await audit(t, eventId, me.id, 'zone.delete', { type: 'zone', id: req.params.zoneId });
   });
   hub.invalidate(eventId, ['zones']);
@@ -626,12 +627,12 @@ function parseImport(format: 'geojson' | 'csv', content: string): Parsed {
     try {
       gj = JSON.parse(content);
     } catch {
-      throw badRequest('This is not valid GeoJSON.', 'invalid_import');
+      throw badRequest(tr`This is not valid GeoJSON.`, 'invalid_import');
     }
     const features = gj.type === 'FeatureCollection' ? (gj.features ?? []) : gj.type === 'Feature' ? [gj as never] : [];
     for (const f of features.slice(0, 1000)) {
       const p = f.properties ?? {};
-      const name = String(p.name ?? p.title ?? 'Imported').slice(0, 120);
+      const name = String(p.name ?? p.title ?? tr`Imported`).slice(0, 120);
       const desc = String(p.description ?? '').slice(0, 2000);
       const type = String(p.type ?? p.kind ?? '');
       const g = f.geometry;
@@ -645,10 +646,10 @@ function parseImport(format: 'geojson' | 'csv', content: string): Parsed {
     const lines = content.split(/\r?\n/).filter((l) => l.trim());
     const header = lines[0]?.toLowerCase().split(/[;,]/).map((h) => h.trim()) ?? [];
     const idx = (n: string) => header.indexOf(n);
-    if (idx('lat') < 0 || idx('lng') < 0) throw badRequest('The CSV needs a header with type,name,lat,lng[,description].', 'invalid_import');
+    if (idx('lat') < 0 || idx('lng') < 0) throw badRequest(tr`The CSV needs a header with type,name,lat,lng[,description].`, 'invalid_import');
     for (const line of lines.slice(1, 1001)) {
       const cells = line.split(/[;,](?=(?:[^"]*"[^"]*")*[^"]*$)/).map((c) => c.trim().replace(/^"|"$/g, ''));
-      add(cells[idx('type')] ?? 'poi', (cells[idx('name')] ?? 'Imported').slice(0, 120), (cells[idx('description')] ?? '').slice(0, 2000), 'point', [
+      add(cells[idx('type')] ?? 'poi', (cells[idx('name')] ?? tr`Imported`).slice(0, 120), (cells[idx('description')] ?? '').slice(0, 2000), 'point', [
         { lat: Number(cells[idx('lat')]), lng: Number(cells[idx('lng')]) },
       ], null);
     }
@@ -661,7 +662,7 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   const b = body(req, z.object({ format: z.enum(['geojson', 'csv']), content: z.string().max(2_000_000) }));
   const parsed = parseImport(b.format, b.content);
-  if (!parsed.objectives.length && !parsed.pois.length && !parsed.zones.length) throw badRequest('Nothing to import: no valid coordinates found.', 'invalid_import');
+  if (!parsed.objectives.length && !parsed.pois.length && !parsed.zones.length) throw badRequest(tr`Nothing to import: no valid coordinates found.`, 'invalid_import');
   await tx(async (t) => {
     await requireGm(eventId, me.id, t);
     for (const o of parsed.objectives) {
@@ -698,11 +699,11 @@ contentRouter.post('/:eventId/map/apply-template', async (req, res) => {
   const eventId = idParam(req, 'eventId');
   const b = body(req, z.object({ templateId: uuid }));
   const tpl = await one('SELECT data FROM map_templates WHERE id = $1 AND owner_id = $2', [b.templateId, me.id]);
-  if (!tpl) throw notFound('Template not found.');
+  if (!tpl) throw notFound(tr`Template not found.`);
   const data = tpl.data as { area?: { lat: number; lng: number; zoom: number }; zones: never[]; pois: never[]; objectives: Record<string, unknown>[] };
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
-    if (FINISHED.includes(ctx.event.status)) throw conflict('This event is over.', 'event_finished');
+    if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
     for (const o of data.objectives ?? []) {
       const id = await insertObjective(t, eventId, o);
       if ((o.methods as string[] | undefined)?.includes('code')) await t.query('UPDATE objectives SET capture_code = $2 WHERE id = $1', [id, readableCode(6)]);

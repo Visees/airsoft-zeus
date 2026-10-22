@@ -23,10 +23,10 @@ interface NavItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-h-dvh lg:pl-60' },
   template: `
-    <a href="#main" class="sr-only-focusable fixed left-2 top-2 z-50 rounded-sm bg-primary px-3 py-2 text-primary-foreground">Skip to content</a>
+    <a href="#main" class="sr-only-focusable fixed left-2 top-2 z-50 rounded-sm bg-primary px-3 py-2 text-primary-foreground" i18n>Skip to content</a>
 
     <!-- Desktop rail -->
-    <nav class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar lg:flex" aria-label="Main">
+    <nav class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar lg:flex" aria-label="Main" i18n-aria-label>
       <a routerLink="/home" class="flex items-center gap-2 px-5 py-5">
         <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">AH</span>
         <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
@@ -45,28 +45,28 @@ interface NavItem {
           </li>
         }
       </ul>
-      <p class="label-caps mt-6 px-6">Game Master</p>
+      <p class="label-caps mt-6 px-6" i18n>Game Master</p>
       <ul class="mt-1 flex flex-col gap-0.5 px-3">
         <li>
           <a routerLink="/gm/new" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold"
             class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
-            <ng-icon name="lucidePlus" size="18" aria-hidden="true" /> Create event
+            <ng-icon name="lucidePlus" size="18" aria-hidden="true" /> <ng-container i18n>Create event</ng-container>
           </a>
         </li>
         <li>
           <a routerLink="/events/mine" [queryParams]="{ tab: 'gm' }"
             class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
-            <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> Events I run
+            <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Events I run</ng-container>
           </a>
         </li>
       </ul>
       @if (user()?.isAdmin) {
-        <p class="label-caps mt-6 px-6">Platform</p>
+        <p class="label-caps mt-6 px-6" i18n>Platform</p>
         <ul class="mt-1 flex flex-col gap-0.5 px-3">
           <li>
             <a routerLink="/admin" routerLinkActive="!bg-sidebar-accent !text-foreground font-semibold"
               class="flex h-11 items-center gap-3 rounded-sm px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
-              <ng-icon name="lucideShield" size="18" aria-hidden="true" /> Admin
+              <ng-icon name="lucideShield" size="18" aria-hidden="true" /> <ng-container i18n>Admin</ng-container>
             </a>
           </li>
         </ul>
@@ -88,12 +88,12 @@ interface NavItem {
 
     <!-- Phone top bar -->
     <header class="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur lg:hidden" style="padding-top: var(--safe-top)">
-      <a routerLink="/home" class="flex items-center gap-2" aria-label="AirsoftHub home">
+      <a routerLink="/home" class="flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
         <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">AH</span>
         <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
       <span class="ml-auto"><zeus-connection-status [compact]="true" [showSync]="false" /></span>
-      <a routerLink="/settings" class="tap grid place-items-center" aria-label="Settings">
+      <a routerLink="/settings" class="tap grid place-items-center" aria-label="Settings" i18n-aria-label>
         <ng-icon name="lucideSettings" size="20" aria-hidden="true" />
       </a>
     </header>
@@ -103,7 +103,7 @@ interface NavItem {
     </main>
 
     <!-- Phone bottom nav -->
-    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/97 backdrop-blur lg:hidden" aria-label="Main" style="padding-bottom: var(--safe-bottom)">
+    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/97 backdrop-blur lg:hidden" aria-label="Main" style="padding-bottom: var(--safe-bottom)" i18n-aria-label>
       <ul class="grid grid-cols-5">
         @for (item of items; track item.link) {
           <li>
@@ -129,10 +129,10 @@ export class AppShell {
   protected readonly userInitials = computed(() => initials(this.user()?.nickname));
 
   protected readonly items: (NavItem & { short?: string })[] = [
-    { label: 'Home', icon: 'lucideHouse', link: '/home', exact: true },
-    { label: 'Discover events', short: 'Discover', icon: 'lucideSearch', link: '/events/discover' },
-    { label: 'My events', short: 'My events', icon: 'lucideCalendarDays', link: '/events/mine' },
-    { label: 'Notifications', short: 'Alerts', icon: 'lucideBell', link: '/notifications' },
-    { label: 'Profile', icon: 'lucideUser', link: '/profile' },
+    { label: $localize`Home`, icon: 'lucideHouse', link: '/home', exact: true },
+    { label: $localize`Discover events`, short: $localize`Discover`, icon: 'lucideSearch', link: '/events/discover' },
+    { label: $localize`My events`, short: $localize`My events`, icon: 'lucideCalendarDays', link: '/events/mine' },
+    { label: $localize`Notifications`, short: $localize`Alerts`, icon: 'lucideBell', link: '/notifications' },
+    { label: $localize`Profile`, icon: 'lucideUser', link: '/profile' },
   ];
 }
