@@ -147,7 +147,12 @@ interface SharingIndicator {
         <!-- Compact: one line, timer · GPS and sharing · team, the first row's children joining the line -->
         <div class="flex flex-col compact:flex-row compact:items-center compact:gap-3">
         <div class="flex items-center justify-between gap-3 compact:contents">
-          <zeus-game-timer class="compact:order-1" [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
+          <div class="flex min-w-0 items-center gap-1 compact:order-1">
+            <a [routerLink]="backLink()" class="tap -my-2 -ml-2 grid shrink-0 place-items-center rounded-sm text-muted-foreground hover:text-foreground compact:my-0 compact:size-8 compact:min-h-8 compact:min-w-8" aria-label="Back to event" i18n-aria-label>
+              <ng-icon name="lucideArrowLeft" size="20" aria-hidden="true" />
+            </a>
+            <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
+          </div>
           @if (store.isGm()) {
             <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary compact:order-3" i18n>GAME MASTER</span>
           } @else if (store.myTeam(); as team) {
@@ -172,13 +177,13 @@ interface SharingIndicator {
           @if (sharing(); as s) {
             <button
               type="button"
-              class="-my-2 inline-flex h-11 items-center gap-1 rounded-sm px-1.5 text-xs font-bold compact:my-0 compact:h-8"
-              [class]="s.tone"
+              class="-my-2 inline-flex h-11 items-center rounded-sm text-xs font-bold compact:my-0 compact:h-8"
               [disabled]="!s.action"
               (click)="onSharingTap(s.action)"
-              aria-label="Location sharing: {{ s.label }}{{ s.action ? txt.openOptions : '' }}" i18n-aria-label
+              ariaLabel="Location sharing: {{ s.label }}{{ s.action ? txt.openOptions : '' }}" i18n-ariaLabel
             >
-              <span aria-hidden="true">{{ s.glyph }}</span>{{ s.label }}
+              <!-- The tone (border, fill) sits on the chip, the button around it is the 44px tap area -->
+              <span class="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5" [class]="s.tone"><span aria-hidden="true">{{ s.glyph }}</span>{{ s.label }}</span>
             </button>
           }
           @if (status() === 'paused') {
@@ -218,10 +223,10 @@ interface SharingIndicator {
                 what your team sees.
               </p>
               <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-                <a hlmBtn class="h-12 flex-1" [routerLink]="['/gm/events', eventId(), 'control']">
+                <a hlmBtn class="h-12 sm:flex-1" [routerLink]="['/gm/events', eventId(), 'control']">
                   <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" /> <ng-container i18n>Open control center</ng-container>
                 </a>
-                <button hlmBtn variant="outline" class="h-12 flex-1" type="button" (click)="gmPromptDismissed.set(true)" i18n>Stay in player view</button>
+                <button hlmBtn variant="outline" class="h-12 sm:flex-1" type="button" (click)="gmPromptDismissed.set(true)" i18n>Stay in player view</button>
               </div>
             </section>
           }
@@ -425,6 +430,12 @@ export class LiveShell {
   /** Run the GPS tracker: game running, approved member, consent given, not stopped by the player. */
   private readonly wantsTracking = computed(
     () => this.running() && this.isPlayer() && this.consented() && !this.stoppedByUser(),
+  );
+
+  private readonly gmView = this.router.routerState.snapshot.root.queryParams['view'] === 'gm';
+  /** HUD back arrow: the event page, or the control center for a Game Master who opened the GM view from there. */
+  protected readonly backLink = computed(() =>
+    this.gmView ? ['/gm/events', this.eventId(), 'control'] : ['/events', this.eventId()],
   );
 
   protected readonly showGmPrompt = computed(

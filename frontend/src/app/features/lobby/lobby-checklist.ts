@@ -138,7 +138,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
               <p class="text-sm text-muted-foreground">{{ m.trackingConsented ? txt.youAgreedSharingStarts : txt.yourConsentIsNeeded }}</p>
             </div>
           </div>
-          <dl class="grid gap-x-3 gap-y-1.5 rounded-sm border border-border bg-muted/40 p-3 text-sm sm:grid-cols-[auto_1fr]">
+          <dl class="grid grid-cols-1 gap-x-3 gap-y-1.5 rounded-sm border border-border bg-muted/40 p-3 text-sm sm:grid-cols-[auto_1fr]">
             <dt class="label-caps self-center" i18n>When</dt>
             <dd i18n>Only while the game is live{{ e.tracking.stopWhenPaused ? txt.notWhilePaused : '' }}. It stops when the game ends or you leave.</dd>
             <dt class="label-caps self-center" i18n>How often</dt>
@@ -158,7 +158,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
           @if (m.trackingConsented) {
             <button hlmBtn variant="ghost" type="button" class="tap self-start text-muted-foreground" [disabled]="busy() === 'consent'" (click)="withdrawConsent()" i18n>Withdraw consent</button>
           } @else {
-            <button hlmBtn type="button" class="h-11" [disabled]="busy() === 'consent'" (click)="giveConsent()">
+            <button hlmBtn type="button" class="h-auto min-h-11 py-2 whitespace-normal" [disabled]="busy() === 'consent'" (click)="giveConsent()">
               <ng-icon name="lucideMapPin" size="16" aria-hidden="true" /> <ng-container i18n>Share my location during this game</ng-container>
             </button>
           }
@@ -185,7 +185,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
             </div>
           </div>
           @if (canChooseTeam()) {
-            <ul class="grid gap-2 sm:grid-cols-2">
+            <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
               @for (t of teams(); track t.id) {
                 @let full = t.capacity > 0 && t.memberCount >= t.capacity;
                 @let mine = t.id === m.teamId;

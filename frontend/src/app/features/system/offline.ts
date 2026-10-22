@@ -13,7 +13,7 @@ import { AuthLayout } from '../auth/auth-layout';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <zeus-auth-layout>
-      <zeus-connection-status layoutAction />
+      <zeus-connection-status layoutAction [compact]="true" [showSync]="false" />
       <div class="flex flex-col items-start gap-3">
         <span class="grid size-12 place-items-center rounded-md bg-destructive/10 text-destructive" aria-hidden="true"><ng-icon name="lucideWifiOff" size="24" /></span>
         <h1 class="text-3xl uppercase" i18n>You are offline</h1>

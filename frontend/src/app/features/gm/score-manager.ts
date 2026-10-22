@@ -43,7 +43,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'teams']" i18n>Teams and squads</a>
           </zeus-empty-state>
         } @else {
-          <div class="panel overflow-x-auto">
+          <div class="relative panel overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
                 <tr class="border-b border-border text-left text-muted-foreground">
@@ -64,7 +64,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                     <td class="px-3 py-2 text-right"><zeus-currency-display [amount]="t.currency" size="sm" [showUnit]="false" /></td>
                     <td class="num hidden px-3 py-2 text-right sm:table-cell">{{ t.objectivesHeld }}</td>
                     <td class="px-3 py-1 text-right">
-                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAdjust(t)" aria-label="Adjust {{ t.name }}" i18n-aria-label i18n>Adjust</button>
+                      <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAdjust(t)" ariaLabel="Adjust {{ t.name }}" i18n-ariaLabel i18n>Adjust</button>
                     </td>
                   </tr>
                 }
@@ -87,7 +87,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             <ng-icon name="lucideFileDown" size="16" aria-hidden="true" /> {{ exporting() ? txt.exporting : txt.exportCsv }}
           </button>
         </div>
-        <div class="mb-3 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
           <div class="flex flex-col gap-1.5">
             <label hlmLabel for="lf-kind" i18n>Balance</label>
             <select id="lf-kind" [class]="selectClass" [value]="kind()" (change)="setKind($any($event.target).value)">
@@ -116,7 +116,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
         } @else {
           <ol class="panel divide-y divide-border">
             @for (l of entries(); track l.id) {
-              <li class="grid gap-x-4 gap-y-1 p-3 text-sm lg:grid-cols-[7rem_10rem_1fr_9rem]">
+              <li class="grid grid-cols-1 gap-x-4 gap-y-1 p-3 text-sm lg:grid-cols-[7rem_10rem_1fr_9rem]">
                 <div class="flex items-center gap-2 lg:flex-col lg:items-start lg:gap-0">
                   <time class="num font-semibold" [attr.datetime]="l.createdAt" [title]="dateTime(l.createdAt)">{{ time(l.createdAt) }}</time>
                   <span class="text-xs text-muted-foreground">{{ relative(l.createdAt) }}</span>

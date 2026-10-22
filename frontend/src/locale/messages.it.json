@@ -280,11 +280,8 @@
     "1489583407513644402": "Ti inviamo un link per verificarla. Non viene mai mostrata agli altri giocatori.",
     "5506569422969383542": "Nickname",
     "2086986284613104049": " Il tuo nome pubblico: compare sulla mappa, nelle squadre e nei risultati. {$INTERPOLATION} ",
-    "4332926764927906890": "Accetto i",
     "2029980907058777630": "Termini di servizio",
-    "2610660096020781562": "e l'",
     "8439955599488894226": "Informativa sulla privacy",
-    "3477802999336444032": ", inclusa la condivisione della posizione durante gli eventi live a cui partecipo.",
     "1882417016002095967": "Creazione account…",
     "1853472239850378242": " Hai già un account? {$START_LINK}Accedi{$CLOSE_LINK}",
     "633254002168550119": "Accetta i Termini di servizio e l'Informativa sulla privacy per creare un account.",
@@ -2694,7 +2691,6 @@
     "5862821796400146724": "Non supportato",
     "5697157670923434360": "Verifica",
     "2921347786783741410": "Non ancora chiesto",
-    "4590023622262979736": "Come consentire di nuovo {$INTERPOLATION}",
     "2351515937899625560": "{$START_TAG_STRONG}Android / Chrome:{$CLOSE_TAG_STRONG} tocca l'icona a sinistra della barra degli indirizzi → Autorizzazioni → {$INTERPOLATION} → Consenti. Nell'app installata: tieni premuta l'icona dell'app → Informazioni app → Autorizzazioni.",
     "8664724859304390544": "{$START_TAG_STRONG}iPhone / Safari:{$CLOSE_TAG_STRONG} Impostazioni → {$INTERPOLATION}.",
     "7016902800839647175": "{$START_TAG_STRONG}Computer:{$CLOSE_TAG_STRONG} fai clic sull'icona del lucchetto accanto all'indirizzo → Impostazioni sito → {$INTERPOLATION} → Consenti.",
@@ -3340,6 +3336,9 @@
     "8964930426722571872": " Prendere e tenere gli obiettivi fa guadagnare alla squadra entrambi. Con i crediti si comprano potenziamenti come una ricognizione UAV o uno scudo su un obiettivo. ",
     "7007832078681376921": " Hai un codice dal tuo Game Master? Accedi o registrati, poi inseriscilo in “Partecipa con un codice”. ",
     "4210788055753826345": "Solo mappa: nascondi l'interfaccia",
-    "336354714033881357": "Mostra l'interfaccia"
+    "336354714033881357": "Mostra l'interfaccia",
+    "4498795364940713905": "Come consentire di nuovo la posizione",
+    "4216151224980662038": "Come consentire di nuovo le notifiche",
+    "4934093634243630156": "Accetto i {$START_TAG_BUTTON}Termini di servizio{$CLOSE_TAG_BUTTON} e l'{$START_TAG_BUTTON_1}Informativa sulla privacy{$CLOSE_TAG_BUTTON}, inclusa la condivisione della posizione durante gli eventi live a cui partecipo."
   }
 }

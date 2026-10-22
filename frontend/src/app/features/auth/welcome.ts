@@ -21,7 +21,7 @@ import { AuthLayout } from './auth-layout';
         </p>
       </section>
 
-      <ul class="mt-8 grid gap-3 sm:grid-cols-3" aria-label="How it works" i18n-aria-label>
+      <ul class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="How it works" i18n-aria-label>
         <!-- 1. Live map -->
         <li class="panel flex flex-col overflow-hidden">
           <div class="relative h-32 border-b border-border bg-muted" aria-hidden="true">

@@ -94,10 +94,10 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
           @for (m of pending(); track m.userId) {
             <li>
               <zeus-player-list-item [member]="m" [showPresence]="false">
-                <button hlmBtn size="icon-lg" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, true)" aria-label="Approve {{ m.nickname }}" i18n-aria-label>
+                <button hlmBtn size="icon-lg" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, true)" ariaLabel="Approve {{ m.nickname }}" i18n-ariaLabel>
                   <ng-icon name="lucideCheck" size="18" aria-hidden="true" />
                 </button>
-                <button hlmBtn size="icon-lg" variant="outline" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, false)" aria-label="Reject {{ m.nickname }}" i18n-aria-label>
+                <button hlmBtn size="icon-lg" variant="outline" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, false)" ariaLabel="Reject {{ m.nickname }}" i18n-ariaLabel>
                   <ng-icon name="lucideX" size="18" aria-hidden="true" />
                 </button>
               </zeus-player-list-item>

@@ -28,7 +28,7 @@ const RETENTION_OPTIONS = [
       <!-- Who sees what -->
       <section class="panel p-4" aria-labelledby="pv-who">
         <h2 id="pv-who" class="label-caps" i18n>Who sees what</h2>
-        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div class="rounded-md border border-border p-3">
             <p class="flex items-center gap-2 font-semibold"><ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Other players</ng-container></p>
             <ul class="mt-2 flex flex-col gap-1 text-sm">

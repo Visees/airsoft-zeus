@@ -188,7 +188,7 @@ export class PlayerListItem {
   template: `
     @let o = objective();
     <article class="panel flex flex-col gap-2 p-3" [class.opacity-70]="o.status === 'disabled' || o.status === 'completed'">
-      <button type="button" class="flex items-start gap-3 text-left" (click)="open.emit(o)" aria-label="Open {{ o.name }}" i18n-aria-label>
+      <button type="button" class="flex items-start gap-3 text-left" (click)="open.emit(o)" ariaLabel="Open {{ o.name }}" i18n-ariaLabel>
         <span class="grid size-11 shrink-0 place-items-center rounded-md border-2" [style.border-color]="o.color" [style.color]="o.color" aria-hidden="true">
           <ng-icon [name]="methodIcon()" size="20" />
         </span>
@@ -230,7 +230,7 @@ export class PlayerListItem {
         } @else {
           <span class="text-xs text-muted-foreground" i18n>Unclaimed</span>
         }
-        <button hlmBtn size="sm" variant="outline" class="tap" type="button" (click)="navigate.emit(o)" aria-label="Show {{ o.name }} on map" i18n-aria-label>
+        <button hlmBtn size="sm" variant="outline" class="tap" type="button" (click)="navigate.emit(o)" ariaLabel="Show {{ o.name }} on map" i18n-ariaLabel>
           <ng-icon name="lucideNavigation" size="16" class="text-nav" aria-hidden="true" /> <ng-container i18n>Map</ng-container>
         </button>
       </div>
@@ -326,7 +326,7 @@ export class ObjectiveCard {
       }
       <div class="mt-auto flex items-center justify-between gap-2">
         <span class="text-xs text-muted-foreground">{{ availabilityLabel() }}</span>
-        <button hlmBtn class="h-11 min-w-28" type="button" [disabled]="!canBuy()" (click)="buy.emit(p)" aria-label="Buy {{ p.name }} for {{ p.price }} credits" i18n-aria-label>
+        <button hlmBtn class="h-11 min-w-28" type="button" [disabled]="!canBuy()" (click)="buy.emit(p)" ariaLabel="Buy {{ p.name }} for {{ p.price }} credits" i18n-ariaLabel>
           <ng-icon name="lucideShoppingCart" size="16" aria-hidden="true" /> <ng-container i18n>Buy</ng-container>
         </button>
       </div>

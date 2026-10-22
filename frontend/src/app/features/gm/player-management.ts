@@ -84,7 +84,7 @@ function filterOf(s: MemberStatus): StatusFilter {
   template: `
     <div class="page">
       <zeus-page-header title="Players" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" [subtitle]="subtitle()" i18n-title i18n-backLabel>
-        <zeus-connection-status [compact]="true" />
+        <zeus-connection-status [compact]="true" [quietOnline]="true" />
         <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'teams']">
           <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Teams and squads</ng-container>
         </a>
@@ -106,7 +106,7 @@ function filterOf(s: MemberStatus): StatusFilter {
 
       <!-- Filters -->
       <div class="mb-3 flex flex-col gap-3">
-        <div role="radiogroup" aria-label="Filter by status" class="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" i18n-aria-label>
+        <div role="radiogroup" aria-label="Filter by status" class="relative -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" i18n-aria-label>
           @for (f of statusFilters; track f.value) {
             <label class="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-sm border px-3 text-sm has-focus-visible:ring-2 has-focus-visible:ring-ring"
               [class]="status() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:text-foreground'">
@@ -116,7 +116,7 @@ function filterOf(s: MemberStatus): StatusFilter {
             </label>
           }
         </div>
-        <div class="grid gap-2 sm:grid-cols-[1fr_14rem]">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_14rem]">
           <div class="relative">
             <label for="pl-search" class="sr-only" i18n>Search by nickname</label>
             <ng-icon name="lucideSearch" size="16" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -161,7 +161,7 @@ function filterOf(s: MemberStatus): StatusFilter {
             <zeus-empty-state icon="lucideUsers" [title]="emptyTitle()" [message]="search() || teamFilter() ? txt.noPlayerMatchesThe : null" />
           } @else if (desktop()) {
             <!-- Desktop table -->
-            <div class="panel overflow-x-auto">
+            <div class="relative panel overflow-x-auto">
               <table class="w-full text-left text-sm">
                 <caption class="sr-only" i18n>{{ statusLabel() }} players, {{ visible().length }} shown</caption>
                 <thead class="border-b border-border">
@@ -187,7 +187,7 @@ function filterOf(s: MemberStatus): StatusFilter {
                     <tr [class]="detailId() === m.userId ? 'bg-primary/5' : ''">
                       @if (status() === 'pending') {
                         <td class="px-3">
-                          <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" aria-label="Select {{ m.nickname }}" i18n-aria-label />
+                          <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" ariaLabel="Select {{ m.nickname }}" i18n-ariaLabel />
                         </td>
                       }
                       <td class="px-3 py-2">
@@ -259,11 +259,11 @@ function filterOf(s: MemberStatus): StatusFilter {
                   <div class="flex items-center gap-2">
                     @if (status() === 'pending') {
                       <label class="grid size-11 shrink-0 cursor-pointer place-items-center">
-                        <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" aria-label="Select {{ m.nickname }}" i18n-aria-label />
+                        <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" ariaLabel="Select {{ m.nickname }}" i18n-ariaLabel />
                       </label>
                     }
                     <zeus-player-list-item class="min-w-0 flex-1" [member]="m" [team]="teamOf(m)" [squad]="squadOf(m)" [showPresence]="m.status === 'approved'" [showGps]="running()">
-                      <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" aria-label="Details of {{ m.nickname }}" i18n-aria-label>
+                      <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" ariaLabel="Details of {{ m.nickname }}" i18n-ariaLabel>
                         <ng-icon name="lucideInfo" size="18" aria-hidden="true" />
                       </button>
                     </zeus-player-list-item>
@@ -345,26 +345,26 @@ function filterOf(s: MemberStatus): StatusFilter {
     <ng-template #rowActions let-m let-full="full">
       @switch (m.status) {
         @case ('pending') {
-          <button hlmBtn size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, true)" aria-label="Approve {{ m.nickname }}" i18n-aria-label>
+          <button hlmBtn size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, true)" ariaLabel="Approve {{ m.nickname }}" i18n-ariaLabel>
             <ng-icon name="lucideUserCheck" size="14" aria-hidden="true" /> <ng-container i18n>Approve</ng-container>
           </button>
-          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, false)" aria-label="Reject {{ m.nickname }}" i18n-aria-label>
+          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="review(m, false)" ariaLabel="Reject {{ m.nickname }}" i18n-ariaLabel>
             <ng-icon name="lucideUserX" size="14" aria-hidden="true" /> <ng-container i18n>Reject</ng-container>
           </button>
         }
         @case ('approved') {
-          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" aria-label="Remove {{ m.nickname }}" i18n-aria-label>
+          <button hlmBtn variant="destructive" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" ariaLabel="Remove {{ m.nickname }}" i18n-ariaLabel>
             <ng-icon name="lucideUserMinus" size="14" aria-hidden="true" /> {{ full ? txt.removeFromEvent : txt.remove }}
           </button>
         }
         @case ('invited') {
-          <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" aria-label="Cancel invitation of {{ m.nickname }}" i18n-aria-label>
+          <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" [disabled]="busyId() === m.userId" (click)="remove(m)" ariaLabel="Cancel invitation of {{ m.nickname }}" i18n-ariaLabel>
             <ng-icon name="lucideX" size="14" aria-hidden="true" /> <ng-container i18n>Cancel invitation</ng-container>
           </button>
         }
       }
       @if (desktop() && !full) {
-        <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" aria-label="Details of {{ m.nickname }}" i18n-aria-label>
+        <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" ariaLabel="Details of {{ m.nickname }}" i18n-ariaLabel>
           <ng-icon name="lucideInfo" size="16" aria-hidden="true" />
         </button>
       }

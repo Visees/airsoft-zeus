@@ -63,7 +63,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
           }
         </section>
 
-        <div class="mt-6 grid gap-6 lg:grid-cols-5">
+        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
           <!-- History -->
           <section class="lg:col-span-3" aria-labelledby="st-history">
             <h2 id="st-history" class="label-caps mb-2" i18n>Game history · <span class="num">{{ d.history.length }}</span></h2>

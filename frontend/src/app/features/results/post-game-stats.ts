@@ -84,7 +84,7 @@ let uid = 0;
           <!-- Team comparison -->
           <section aria-labelledby="cmp-title">
             <h2 id="cmp-title" class="label-caps mb-3" i18n>Team comparison</h2>
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               @for (metric of metrics; track metric.key) {
                 <div class="panel p-4">
                   <h3 class="mb-3 flex items-center gap-1.5 text-sm font-semibold uppercase">
@@ -115,7 +115,7 @@ let uid = 0;
             @if (!objectiveRows().length) {
               <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No objective was captured in this game.</p>
             } @else {
-              <div class="panel overflow-x-auto">
+              <div class="relative panel overflow-x-auto">
                 <table class="w-full min-w-md text-sm">
                   <caption class="sr-only" i18n>Number of captures of each objective by team</caption>
                   <thead>
@@ -190,7 +190,7 @@ let uid = 0;
               </div>
               <details class="mt-2">
                 <summary class="tap inline-flex cursor-pointer items-center text-sm font-semibold text-primary" i18n>Show captures as a table</summary>
-                <div class="panel mt-2 overflow-x-auto">
+                <div class="relative panel mt-2 overflow-x-auto">
                   <table class="w-full min-w-120 text-sm">
                     <caption class="sr-only" i18n>All captures by objective</caption>
                     <thead>
@@ -240,7 +240,7 @@ let uid = 0;
             @if (!r.players.length) {
               <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No player data recorded.</p>
             } @else {
-              <div class="panel overflow-x-auto">
+              <div class="relative panel overflow-x-auto">
                 <table class="w-full text-sm">
                   <caption class="sr-only" i18n>Players sorted by {{ sortLabel() }}</caption>
                   <thead>
@@ -262,7 +262,7 @@ let uid = 0;
                       <tr class="border-b border-border last:border-0" [class]="i < 3 ? 'bg-primary/5' : ''">
                         <td class="num p-2 pl-3 font-bold">
                           @if (i < 3) {
-                            <span class="inline-flex items-center gap-0.5 text-primary" aria-label="{{ ordinal(i + 1) }} place" i18n-aria-label><ng-icon name="lucideMedal" size="14" aria-hidden="true" />{{ i + 1 }}</span>
+                            <span class="inline-flex items-center gap-0.5 text-primary" ariaLabel="{{ ordinal(i + 1) }} place" i18n-ariaLabel><ng-icon name="lucideMedal" size="14" aria-hidden="true" />{{ i + 1 }}</span>
                           } @else {
                             {{ i + 1 }}
                           }
@@ -288,7 +288,7 @@ let uid = 0;
             @if (!perkSummary().length) {
               <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No perks were bought in this game.</p>
             } @else {
-              <ul class="grid gap-2 sm:grid-cols-2">
+              <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 @for (p of perkSummary(); track p.name) {
                   <li class="panel p-3">
                     <div class="flex items-start justify-between gap-2">

@@ -33,7 +33,12 @@ const TRACKER_STATE_LABELS: Record<TrackerState, string> = {
   selector: 'zeus-connection-status',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex items-center gap-1.5 text-xs font-semibold', role: 'status', '[attr.aria-label]': 'aria()' },
+  host: {
+    class: 'inline-flex items-center gap-1.5 text-xs font-semibold',
+    role: 'status',
+    '[attr.aria-label]': 'aria()',
+    '[style.display]': "quietOnline() && conn.state() === 'online' ? 'none' : null",
+  },
   template: `
     @switch (conn.state()) {
       @case ('online') {
@@ -64,6 +69,8 @@ export class ConnectionStatus {
   protected readonly conn = inject(ConnectivityService);
   readonly compact = input(false);
   readonly showSync = input(true);
+  /** Show nothing while online: page headers repeat it only when there is a problem (the top bar always shows it). */
+  readonly quietOnline = input(false);
   private readonly now = nowSignal(5000);
   protected readonly synced = computed(() => {
     this.now();

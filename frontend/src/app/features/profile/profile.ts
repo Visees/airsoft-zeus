@@ -73,7 +73,7 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
         <section class="mt-6" aria-labelledby="pr-stats">
           <div class="mb-2 flex items-baseline justify-between">
             <h2 id="pr-stats" class="label-caps" i18n>Statistics</h2>
-            <a routerLink="/profile/stats" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Game history</a>
+            <a routerLink="/profile/stats" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Game history</a>
           </div>
           <zeus-stat-tiles [stats]="u.stats" />
         </section>

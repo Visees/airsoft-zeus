@@ -66,7 +66,7 @@ const URL_PATTERN = /^(https?:\/\/)?[^\s/$.?#][^\s]*\.[^\s]{2,}$/i;
         @if (err('name'); as e) { <p id="cf-name-err" class="field-error">{{ e }}</p> }
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1.5">
           <label hlmLabel for="cf-country" i18n>Country</label>
           <select id="cf-country" formControlName="country" class="h-11 w-full rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30">

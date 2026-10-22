@@ -59,7 +59,7 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
       }
       <div [class]="advanced() ? 'col-span-2 flex items-center justify-between gap-2' : 'col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-end'">
         <zeus-save-state [state]="state()" />
-        <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" aria-label="Delete squad {{ s.callsign || s.name }}" i18n-aria-label>
+        <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" ariaLabel="Delete squad {{ s.callsign || s.name }}" i18n-ariaLabel>
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>
       </div>
@@ -189,9 +189,9 @@ export class SquadRow {
   host: { class: 'block' },
   template: `
     @let t = team();
-    <article class="panel flex flex-col" aria-label="Team {{ t.name }}" i18n-aria-label>
+    <article class="panel flex flex-col" ariaLabel="Team {{ t.name }}" i18n-ariaLabel>
       <header class="flex flex-wrap items-center gap-2 p-3" [class.border-b]="expanded()" [class.border-border]="expanded()">
-        <zeus-team-badge [team]="t" size="lg" class="min-w-0 flex-1" />
+        <zeus-team-badge [team]="t" size="lg" class="min-w-0 flex-1 basis-40" />
         <span class="num text-sm text-muted-foreground" [attr.aria-label]="playerCount(t.memberCount, t.capacity)">
           {{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }}
           <ng-icon name="lucideUsers" size="14" aria-hidden="true" />
@@ -201,7 +201,7 @@ export class SquadRow {
           hlmBtn
           variant="outline"
           size="sm"
-          class="h-11"
+          class="ml-auto h-11"
           type="button"
           [attr.aria-expanded]="expanded()"
           [attr.aria-controls]="id + '-body'"
@@ -218,7 +218,7 @@ export class SquadRow {
           [disabled]="running()"
           [attr.title]="running() ? txt.teamsCannotBeDeleted : null"
           (click)="remove()"
-          aria-label="Delete team {{ t.name }}" i18n-aria-label
+          ariaLabel="Delete team {{ t.name }}" i18n-ariaLabel
         >
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>

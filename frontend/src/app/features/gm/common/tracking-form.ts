@@ -89,7 +89,7 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
 
       <section class="flex flex-col gap-3" aria-labelledby="tr-g1">
         <h3 id="tr-g1" class="text-sm font-bold uppercase" i18n>Update frequency</h3>
-        <div class="grid gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-1.5">
             <label hlmLabel for="tr-int" i18n>Report every (s)</label>
             <input hlmInput id="tr-int" type="number" min="5" max="120" inputmode="numeric" class="num h-11" formControlName="intervalSec" aria-describedby="tr-int-h" [attr.aria-invalid]="!!err('intervalSec')" />

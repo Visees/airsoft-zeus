@@ -106,7 +106,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
           </div>
         }
 
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <!-- Main column -->
           <div class="flex min-w-0 flex-col gap-6">
             <div class="relative aspect-16/7 overflow-hidden rounded-md border border-border bg-muted">
@@ -130,7 +130,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
             <!-- Key facts -->
             <section aria-labelledby="facts-title">
               <h2 id="facts-title" class="label-caps mb-2" i18n>Briefing</h2>
-              <dl class="panel grid divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
+              <dl class="panel grid grid-cols-1 divide-y divide-border sm:grid-cols-2 sm:divide-y-0">
                 <div class="flex gap-3 p-3 sm:border-b sm:border-border">
                   <ng-icon name="lucideCalendarDays" size="18" class="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <div>
@@ -211,7 +211,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
             @if (e.teams.length) {
               <section aria-labelledby="teams-title">
                 <h2 id="teams-title" class="label-caps mb-2" i18n>Teams · <span class="num">{{ e.teams.length }}</span></h2>
-                <ul class="grid gap-2 sm:grid-cols-2">
+                <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   @for (t of sortedTeams(); track t.id) {
                     <li class="panel flex items-center justify-between gap-3 p-3" [class.border-primary]="t.id === e.myTeamId">
                       <zeus-team-badge [team]="t" />
@@ -417,8 +417,8 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
             @if (e.isGm && e.joinCode && e.status !== 'cancelled' && e.status !== 'completed') {
               <section class="panel flex flex-col gap-3 p-4" aria-labelledby="share-title">
                 <h2 id="share-title" class="label-caps" i18n>Invite players</h2>
-                <div class="flex items-center justify-between gap-2 rounded-sm border border-dashed border-border bg-muted px-3 py-2">
-                  <div>
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-dashed border-border bg-muted px-3 py-2">
+                  <div class="min-w-0">
                     <p class="label-caps" i18n>Join code</p>
                     <p class="num text-2xl font-bold tracking-[0.2em]">{{ e.joinCode }}</p>
                   </div>

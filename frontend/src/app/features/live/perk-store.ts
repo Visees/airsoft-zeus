@@ -84,7 +84,7 @@ interface BuyIntent {
           @if (!perks().length) {
             <zeus-empty-state icon="lucideStore" title="No perks for sale" message="The Game Master has not added any perks to the store." i18n-title i18n-message />
           } @else {
-            <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               @for (p of perks(); track p.id) {
                 <li><zeus-perk-card class="h-full" [perk]="p" (buy)="startBuy($event)" /></li>
               }

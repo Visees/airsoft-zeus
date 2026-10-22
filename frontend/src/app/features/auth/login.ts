@@ -50,7 +50,7 @@ import { postAuthUrl } from './post-auth';
         <div class="flex flex-col gap-1.5">
           <div class="flex items-end justify-between gap-2">
             <label hlmLabel for="li-password" i18n>Password</label>
-            <a routerLink="/auth/forgot-password" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Forgot password?</a>
+            <a routerLink="/auth/forgot-password" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Forgot password?</a>
           </div>
           <zeus-password-input [control]="form.controls.password" inputId="li-password" autocomplete="current-password"
             [invalid]="!!err('password')" [describedBy]="err('password') ? 'li-password-err' : null" />

@@ -46,7 +46,7 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
                 <li class="flex gap-2"><span aria-hidden="true" class="text-primary">▸</span><span>{{ s }}</span></li>
               }
             </ul>
-            <button hlmBtn type="button" variant="outline" class="mt-4 h-11" (click)="legal().open(d)">
+            <button hlmBtn type="button" variant="outline" class="mt-4 h-auto min-h-11 py-2 text-left whitespace-normal" (click)="legal().open(d)">
               <ng-icon name="lucideFileText" size="16" aria-hidden="true" /> <ng-container i18n>Read the full {{ d.title }}</ng-container>
             </button>
           </section>

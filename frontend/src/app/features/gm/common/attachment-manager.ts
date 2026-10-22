@@ -46,7 +46,7 @@ let nextKey = 0;
                 <span class="block text-xs text-muted-foreground">{{ kind(a.mimeType) }} · <span class="num">{{ size(a.sizeBytes) }}</span></span>
               </span>
               @if (!readonly()) {
-                <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" [disabled]="deleting() === a.id" (click)="remove(a)" aria-label="Delete {{ a.fileName }}" i18n-aria-label>
+                <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" [disabled]="deleting() === a.id" (click)="remove(a)" ariaLabel="Delete {{ a.fileName }}" i18n-ariaLabel>
                   <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                 </button>
               }
@@ -58,7 +58,7 @@ let nextKey = 0;
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-sm font-semibold" [title]="q.file.name">{{ q.file.name }}</span>
                 @if (q.progress !== null) {
-                  <span class="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Uploading {{ q.file.name }}" i18n-aria-label aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct(q.progress)">
+                  <span class="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" ariaLabel="Uploading {{ q.file.name }}" i18n-ariaLabel aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct(q.progress)">
                     <span class="block h-full bg-primary transition-[width]" [style.width.%]="pct(q.progress)"></span>
                   </span>
                 } @else {
@@ -66,7 +66,7 @@ let nextKey = 0;
                 }
               </span>
               @if (!eventId()) {
-                <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="unqueue(q)" aria-label="Remove {{ q.file.name }}" i18n-aria-label>
+                <button hlmBtn variant="ghost" size="sm" class="h-11" type="button" (click)="unqueue(q)" ariaLabel="Remove {{ q.file.name }}" i18n-ariaLabel>
                   <ng-icon name="lucideX" size="16" aria-hidden="true" />
                 </button>
               }

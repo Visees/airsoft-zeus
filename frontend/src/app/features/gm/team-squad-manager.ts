@@ -29,7 +29,7 @@ interface RosterGroup {
   template: `
     <div class="page">
       <zeus-page-header title="Teams and squads" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
-        <zeus-connection-status [compact]="true" />
+        <zeus-connection-status [compact]="true" [quietOnline]="true" />
         @if (event()) {
           <button hlmBtn variant="outline" class="h-11" type="button" (click)="addTeam()" [disabled]="busy() || event()!.teams.length >= 16">
             <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Add team</ng-container>
@@ -49,7 +49,7 @@ interface RosterGroup {
           </div>
         }
 
-        <div class="mb-6 grid gap-4 lg:grid-cols-2">
+        <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <zeus-team-selection-settings [event]="e" (updated)="event.set($event)" />
 
           <section class="panel flex flex-col gap-3 p-4" aria-labelledby="unassigned-h">
@@ -84,7 +84,7 @@ interface RosterGroup {
           @if (sortedTeams().length < 2) {
             <p class="mb-3 text-sm text-warning" role="status" i18n>◐ Add a second team: the game cannot start with one.</p>
           }
-          <div class="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
             @for (t of sortedTeams(); track t.id) {
               <zeus-team-editor
                 [eventId]="e.id"
@@ -96,7 +96,7 @@ interface RosterGroup {
                 advanced
                 (changed)="load()"
               >
-                <section class="border-t border-border p-3" aria-label="Roster of {{ t.name }}" i18n-aria-label>
+                <section class="border-t border-border p-3" ariaLabel="Roster of {{ t.name }}" i18n-ariaLabel>
                   <h3 class="label-caps mb-1" i18n>Roster · {{ rosterCount(t) }}{{ t.capacity ? ' / ' + t.capacity : '' }}</h3>
                   @for (g of roster(t); track g.squad?.id ?? 'none') {
                     @if (g.squad || roster(t).length > 1) {

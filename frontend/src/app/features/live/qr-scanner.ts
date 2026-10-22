@@ -168,14 +168,14 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
 
       <div class="flex flex-col gap-2 sm:flex-row">
         @if (canScanAgain()) {
-          <button hlmBtn type="button" class="h-12 flex-1" (click)="scanAgain()">
+          <button hlmBtn type="button" class="h-12 sm:flex-1" (click)="scanAgain()">
             <ng-icon name="lucideScanLine" size="18" aria-hidden="true" /> {{ camFailed() ? txt.tryAgain : txt.scanAgain }}
           </button>
         }
         @if (attempt.state() === 'success' && scanned(); as s) {
-          <a hlmBtn variant="outline" class="h-12 flex-1" [routerLink]="objectiveLink(s.objectiveId)" i18n>Open objective</a>
+          <a hlmBtn variant="outline" class="h-12 sm:flex-1" [routerLink]="objectiveLink(s.objectiveId)" i18n>Open objective</a>
         } @else {
-          <a hlmBtn variant="outline" class="h-12 flex-1" [routerLink]="manualLink()">
+          <a hlmBtn variant="outline" class="h-12 sm:flex-1" [routerLink]="manualLink()">
             <ng-icon name="lucideKeyRound" size="18" aria-hidden="true" /> <ng-container i18n>Enter the code by hand</ng-container>
           </a>
         }

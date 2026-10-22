@@ -90,8 +90,12 @@ interface NavItem {
     </nav>
 
     <!-- Phone top bar -->
-    <header class="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur lg:hidden" style="padding-top: var(--safe-top)">
-      <a routerLink="/home" class="flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
+    <!-- 3.5rem of bar below the status bar (border-box: the inset is added to the height, not taken from it) -->
+    <header
+      class="sticky top-0 z-20 flex h-[calc(3.5rem+var(--safe-top))] items-center gap-2 border-b border-border bg-background/95 backdrop-blur lg:hidden"
+      style="padding-top: var(--safe-top); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right))"
+    >
+      <a routerLink="/home" class="hit flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
         <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">AH</span>
         <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
@@ -101,12 +105,12 @@ interface NavItem {
       </a>
     </header>
 
-    <main id="main" class="min-h-[calc(100dvh-3.5rem)] lg:min-h-dvh">
+    <main id="main" class="min-h-[calc(100dvh-3.5rem-var(--safe-top))] lg:min-h-dvh">
       <router-outlet />
     </main>
 
     <!-- Phone bottom nav -->
-    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/97 backdrop-blur lg:hidden" aria-label="Main" style="padding-bottom: var(--safe-bottom)" i18n-aria-label>
+    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/97 backdrop-blur lg:hidden" aria-label="Main" style="padding-bottom: var(--safe-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right)" i18n-aria-label>
       <ul class="grid" [style.grid-template-columns]="'repeat(' + items().length + ', minmax(0, 1fr))'">
         @for (item of items(); track item.link) {
           <li>

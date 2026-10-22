@@ -195,7 +195,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                   <span class="grid size-11 shrink-0 place-items-center rounded-md bg-muted text-primary" aria-hidden="true">
                     <ng-icon [name]="iconOf(p)" size="20" />
                   </span>
-                  <div class="min-w-0 flex-1">
+                  <div class="min-w-0 flex-1 basis-48">
                     <p class="label-caps">{{ typeLabel(p.type) }}{{ p.requiresApproval ? txt.needsApproval : '' }}</p>
                     <p class="truncate font-bold uppercase">{{ p.name }}</p>
                     <p class="num text-xs text-muted-foreground">
@@ -206,14 +206,17 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                       }
                     </p>
                   </div>
-                  <zeus-currency-display [amount]="p.price" size="md" />
-                  <span class="flex min-h-11 items-center gap-2">
-                    <hlm-switch [checked]="p.enabled" [aria-label]="(p.enabled ? txt.disable : txt.enable) + p.name" (checkedChange)="toggleEnabled(p, $event)" />
-                    <span class="w-14 text-xs text-muted-foreground" aria-hidden="true">{{ p.enabled ? txt.on : txt.off }}</span>
-                  </span>
-                  <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="openEdit(p)" aria-label="Edit {{ p.name }}" i18n-aria-label>
-                    <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
-                  </button>
+                  <!-- Phones: price and controls on their own line, so the name keeps the full width -->
+                  <div class="flex w-full items-center gap-3 sm:w-auto">
+                    <zeus-currency-display class="mr-auto sm:mr-0" [amount]="p.price" size="md" />
+                    <span class="flex min-h-11 items-center gap-2">
+                      <hlm-switch [checked]="p.enabled" [aria-label]="(p.enabled ? txt.disable : txt.enable) + p.name" (checkedChange)="toggleEnabled(p, $event)" />
+                      <span class="w-14 text-xs text-muted-foreground" aria-hidden="true">{{ p.enabled ? txt.on : txt.off }}</span>
+                    </span>
+                    <button hlmBtn variant="outline" size="sm" class="h-11" type="button" (click)="openEdit(p)" ariaLabel="Edit {{ p.name }}" i18n-ariaLabel>
+                      <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
+                    </button>
+                  </div>
                 </li>
               }
             </ul>

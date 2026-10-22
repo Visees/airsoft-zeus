@@ -118,6 +118,12 @@ Signed in, the profile language wins (`AuthService`); Settings and Edit profile 
 * Every text in a template gets `i18n` (element text) or `i18n-<attr>` (`aria-label`, `title`,
   `placeholder`, `alt`, and component inputs that show text such as `title`, `message`,
   `backLabel`). Wrap text next to icons or inside `@if` blocks in `<ng-container i18n>`.
+* A translated `aria-*` attribute with a value in it is written as the DOM property:
+  `ariaLabel="Remove {{ m.nickname }}" i18n-ariaLabel`. With `aria-label="…{{ }}" i18n-aria-label`
+  Angular sets a plain JS property and the attribute never reaches the page (screen readers get nothing).
+  Static labels (`aria-label="Close" i18n-aria-label`) are fine as they are.
+* Angular drops whitespace-only text between elements: write `&ngsp;` where a space must stay,
+  e.g. `<ng-container i18n>I accept the</ng-container>&ngsp;<button …>`.
 * No English inside template expressions (`{{ busy() ? 'Saving…' : 'Save' }}`): put the strings
   in the component (`protected readonly txt = { saving: $localize\`Saving…\`, … }`), or use
   `@if` with `i18n` blocks, or ICU (`{n, plural, =1 {1 player} other {{{ n }} players}}`).

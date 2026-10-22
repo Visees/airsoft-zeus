@@ -39,7 +39,7 @@ export class PermissionChip {
   host: { class: 'block' },
   template: `
     <div class="rounded-md border border-border bg-muted p-3 text-sm">
-      <p class="font-semibold" i18n>How to allow {{ what() }} again</p>
+      <p class="font-semibold">{{ heading() }}</p>
       <ul class="mt-2 flex flex-col gap-1.5 text-muted-foreground">
         <li class="flex gap-2"><span aria-hidden="true">▸</span><span i18n><strong class="text-foreground">Android / Chrome:</strong> tap the icon left of the address bar → Permissions → {{ label() }} → Allow. In the installed app: long-press the app icon → App info → Permissions.</span></li>
         <li class="flex gap-2"><span aria-hidden="true">▸</span><span i18n><strong class="text-foreground">iPhone / Safari:</strong> Settings → {{ iosPath() }}.</span></li>
@@ -51,8 +51,8 @@ export class PermissionChip {
 })
 export class PermissionHelp {
   readonly kind = input.required<'location' | 'notifications'>();
-  protected what(): string {
-    return this.kind() === 'location' ? 'location' : 'notifications';
+  protected heading(): string {
+    return this.kind() === 'location' ? $localize`How to allow location again` : $localize`How to allow notifications again`;
   }
   protected label(): string {
     return this.kind() === 'location' ? $localize`Location` : $localize`Notifications`;

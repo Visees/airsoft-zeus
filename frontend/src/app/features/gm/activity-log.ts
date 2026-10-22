@@ -70,7 +70,7 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
       </zeus-page-header>
 
       <div class="mb-3 flex flex-wrap items-center gap-3">
-        <div role="tablist" aria-label="Log" class="flex overflow-x-auto rounded-md border border-border bg-muted p-1" i18n-aria-label>
+        <div role="tablist" aria-label="Log" class="relative flex overflow-x-auto rounded-md border border-border bg-muted p-1" i18n-aria-label>
           @for (t of tabs; track t.id) {
             <button
               type="button"
@@ -165,7 +165,7 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
                       <div class="border-t border-border p-3">
                         @if (diff(a); as rows) {
                           @if (rows.length) {
-                            <div class="overflow-x-auto">
+                            <div class="relative overflow-x-auto">
                               <table class="w-full min-w-md text-xs">
                                 <thead>
                                   <tr class="text-left text-muted-foreground">

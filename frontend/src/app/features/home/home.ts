@@ -46,7 +46,7 @@ import { StatTiles } from '../profile/profile-ui';
       </zeus-page-header>
 
       @if (loading()) {
-        <div class="grid gap-4 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div class="flex flex-col gap-4 lg:col-span-2">
             <div class="panel h-44 animate-pulse bg-muted" aria-hidden="true"></div>
             <zeus-loading-skeleton [rows]="3" />
@@ -64,7 +64,7 @@ import { StatTiles } from '../profile/profile-ui';
           </div>
         }
 
-        <div class="grid gap-6 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div class="flex min-w-0 flex-col gap-6 lg:col-span-2">
             <!-- Active event -->
             @if (d.activeEvent; as e) {
@@ -255,7 +255,7 @@ import { StatTiles } from '../profile/profile-ui';
               <div class="mb-2 flex items-baseline justify-between gap-2">
                 <h2 id="home-recent" class="label-caps" i18n>Recently played</h2>
                 @if (d.recentEvents.length) {
-                  <a routerLink="/events/mine" [queryParams]="{ tab: 'past' }" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>All past events</a>
+                  <a routerLink="/events/mine" [queryParams]="{ tab: 'past' }" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>All past events</a>
                 }
               </div>
               @if (d.recentEvents.length) {
@@ -285,7 +285,7 @@ import { StatTiles } from '../profile/profile-ui';
             <section aria-labelledby="home-stats">
               <div class="mb-2 flex items-baseline justify-between gap-2">
                 <h2 id="home-stats" class="label-caps" i18n>Your stats</h2>
-                <a routerLink="/profile/stats" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Details</a>
+                <a routerLink="/profile/stats" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Details</a>
               </div>
               <zeus-stat-tiles [stats]="d.stats" />
             </section>
@@ -297,7 +297,7 @@ import { StatTiles } from '../profile/profile-ui';
                     · <ng-container i18n><span class="num">{{ d.unreadNotifications }}</span> unread</ng-container>
                   }
                 </h2>
-                <a routerLink="/notifications" class="text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>See all</a>
+                <a routerLink="/notifications" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>See all</a>
               </div>
               @if (d.latestNotifications.length) {
                 <ul class="panel divide-y divide-border overflow-hidden">

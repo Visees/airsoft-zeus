@@ -42,9 +42,9 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
     <div class="page-narrow">
       <zeus-page-header title="Settings" i18n-title />
 
-      <nav class="mb-4 flex gap-2 overflow-x-auto pb-1 text-sm" aria-label="Settings sections" i18n-aria-label>
+      <nav class="relative mb-4 flex gap-2 overflow-x-auto pb-1 text-sm" aria-label="Settings sections" i18n-aria-label>
         @for (s of sections; track s.id) {
-          <a [href]="'#' + s.id" (click)="jump($event, s.id)" class="shrink-0 rounded-sm border border-border px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground">{{ s.label }}</a>
+          <a [href]="'#' + s.id" (click)="jump($event, s.id)" class="flex min-h-11 shrink-0 items-center rounded-sm border border-border px-3 text-muted-foreground hover:bg-muted hover:text-foreground">{{ s.label }}</a>
         }
       </nav>
 

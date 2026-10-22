@@ -174,7 +174,7 @@ const GROUPS: MatrixGroup[] = [
           <h3 [id]="id + '-' + $index" class="mb-1 border-b border-border pb-1 text-sm font-bold uppercase">{{ g.title }}</h3>
           <div class="divide-y divide-border">
             @for (r of g.rows; track r.key) {
-              <div class="grid gap-2 py-3 md:grid-cols-[minmax(12rem,2fr)_3fr] md:items-center md:gap-4">
+              <div class="grid grid-cols-1 gap-2 py-3 md:grid-cols-[minmax(12rem,2fr)_3fr] md:items-center md:gap-4">
                 <div>
                   <p [id]="id + '-' + r.key" class="text-sm font-medium">{{ r.label }}</p>
                   <p [id]="id + '-' + r.key + '-h'" class="text-xs text-muted-foreground">{{ r.help }}</p>
@@ -188,7 +188,7 @@ const GROUPS: MatrixGroup[] = [
 
       <section [attr.aria-labelledby]="id + '-p'">
         <h3 [id]="id + '-p'" class="mb-1 border-b border-border pb-1 text-sm font-bold uppercase" i18n>Precision parameters</h3>
-        <div class="grid gap-4 py-3 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 py-3 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
             <label hlmLabel [for]="id + '-rad'" i18n>Approximate radius (m)</label>
             <input hlmInput [id]="id + '-rad'" type="number" min="5" inputmode="numeric" class="num h-11" formControlName="approxRadiusM" [attr.aria-invalid]="!!err('approxRadiusM')" [attr.aria-describedby]="id + '-rad-h'" />

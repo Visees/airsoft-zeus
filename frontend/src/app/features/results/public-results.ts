@@ -26,7 +26,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
   template: `
     <header class="border-b border-border bg-card">
       <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
-        <a routerLink="/welcome" class="flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
+        <a routerLink="/welcome" class="hit flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
           <span class="grid size-9 place-items-center rounded-md bg-primary font-mono text-lg font-bold text-primary-foreground" aria-hidden="true">AH</span>
           <span class="text-sm font-bold tracking-wide uppercase" style="font-stretch: 80%">AirsoftHub</span>
         </a>
@@ -64,7 +64,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
               </p>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
               <div class="flex min-w-0 flex-col gap-6">
                 <zeus-results-winner [results]="r" />
                 <zeus-results-leaderboard [results]="r" />

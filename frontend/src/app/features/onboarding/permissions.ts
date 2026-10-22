@@ -20,7 +20,7 @@ type Step = 'location' | 'notifications';
   template: `
     <zeus-auth-layout [center]="false">
       <div class="flex items-center justify-between gap-3">
-        <p class="label-caps"><ng-container i18n>Set up · step <span class="num">{{ stepIndex() + 1 }}</span> of</ng-container> <span class="num">2</span></p>
+        <p class="label-caps"><ng-container i18n>Set up · step <span class="num">{{ stepIndex() + 1 }}</span> of</ng-container>&ngsp;<span class="num">2</span></p>
         <div class="flex gap-1" aria-hidden="true">
           <span class="h-1.5 w-8 rounded-full bg-primary"></span>
           <span class="h-1.5 w-8 rounded-full" [class.bg-primary]="step() === 'notifications'" [class.bg-muted]="step() !== 'notifications'"></span>

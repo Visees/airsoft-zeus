@@ -105,7 +105,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   class="group flex w-full flex-col items-stretch gap-1.5 text-left disabled:cursor-not-allowed"
                   [disabled]="!event() || busy()"
                   [attr.aria-current]="state === 'current' ? 'step' : null"
-                  aria-label="Step {{ s.n }}: {{ s.label }}{{ state === 'complete' ? txt.complete : state === 'current' ? txt.currentStep : '' }}" i18n-aria-label
+                  ariaLabel="Step {{ s.n }}: {{ s.label }}{{ state === 'complete' ? txt.complete : state === 'current' ? txt.currentStep : '' }}" i18n-ariaLabel
                   (click)="jump(s.n)"
                 >
                   <span
@@ -153,9 +153,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
           @switch (currentStep()) {
             <!-- STEP 0 · start -->
             @case (0) {
-              <div class="grid gap-4 lg:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <button type="button" class="panel flex items-start gap-3 p-4 text-left hover:border-primary/60" (click)="goto(1)">
-                  <ng-icon name="lucidePlus" size="24" class="text-primary" aria-hidden="true" />
+                  <ng-icon name="lucidePlus" size="24" class="shrink-0 text-primary" aria-hidden="true" />
                   <span>
                     <span class="block font-bold uppercase" i18n>Start from scratch</span>
                     <span class="mt-1 block text-sm text-muted-foreground" i18n>An empty draft with sensible defaults for tracking, visibility and scoring.</span>
@@ -249,7 +249,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                       </button>
                     </zeus-empty-state>
                   } @else {
-                    <div class="grid gap-4 lg:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       @for (t of sortedTeams(); track t.id) {
                         <zeus-team-editor [eventId]="e.id" [team]="t" [allTeams]="e.teams" [squads]="e.squads" startExpanded (changed)="refreshEvent()" />
                       }
@@ -268,7 +268,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
             <!-- STEP 3 · map -->
             @case (3) {
               @if (event(); as e) {
-                <div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
                   <section class="panel flex flex-col gap-4 p-4" aria-labelledby="map-sum">
                     <h3 id="map-sum" class="label-caps" i18n>Map content</h3>
                     @if (contentLoading() && !content()) {
@@ -330,7 +330,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                 <div class="flex flex-col gap-4">
                   <section class="panel p-4 text-sm" aria-labelledby="cap-methods">
                     <h3 id="cap-methods" class="label-caps mb-2" i18n>Capture methods</h3>
-                    <ul class="grid gap-3 sm:grid-cols-3">
+                    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <li class="flex gap-2"><ng-icon name="lucideKeyRound" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>Code</strong> — players type a code written at the objective.</span></li>
                       <li class="flex gap-2"><ng-icon name="lucideQrCode" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>QR</strong> — players scan a printed QR code placed on site.</span></li>
                       <li class="flex gap-2"><ng-icon name="lucideCrosshair" size="18" class="mt-0.5 shrink-0 text-primary" aria-hidden="true" /><span i18n><strong>Hold zone</strong> — players stay inside a radius for a set time; GPS checks it.</span></li>
@@ -363,7 +363,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                               }
                             </span>
                           </span>
-                          <a hlmBtn variant="outline" size="sm" class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', o.id]" [queryParams]="{ returnTo: returnTo() }" aria-label="Edit {{ o.name }}" i18n-aria-label>
+                          <a hlmBtn variant="outline" size="sm" class="h-11" [routerLink]="['/gm/events', e.id, 'objectives', o.id]" [queryParams]="{ returnTo: returnTo() }" ariaLabel="Edit {{ o.name }}" i18n-ariaLabel>
                             <ng-icon name="lucidePencil" size="14" aria-hidden="true" /> <ng-container i18n>Edit</ng-container>
                           </a>
                         </li>
@@ -388,7 +388,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
             <!-- STEP 6 · review -->
             @case (6) {
               @if (event(); as e) {
-                <div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
                   <section class="panel p-4" aria-labelledby="chk">
                     <h3 id="chk" class="label-caps mb-2" i18n>Checklist · {warnings().length, plural, =1 {1 warning} other {{{ warnings().length }} warnings}}</h3>
                     @if (contentLoading() && !content()) {

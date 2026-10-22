@@ -39,7 +39,7 @@ const CSV_KINDS: { kind: ExportKind; label: string; description: string; gmOnly?
         <zeus-error-state [error]="error()" (retry)="load()" />
       } @else if (event(); as e) {
         <zeus-page-header title="Export results" [eyebrow]="e.name" [back]="'/events/' + e.id + '/results'" backLabel="Results" i18n-title i18n-backLabel>
-          <zeus-connection-status [compact]="true" />
+          <zeus-connection-status [compact]="true" [quietOnline]="true" />
         </zeus-page-header>
 
         @if (!canExport()) {
@@ -78,7 +78,7 @@ const CSV_KINDS: { kind: ExportKind; label: string; description: string; gmOnly?
                   <p class="font-semibold">{{ c.label }}</p>
                   <p class="text-sm text-muted-foreground">{{ c.description }}</p>
                 </div>
-                <button hlmBtn variant="outline" type="button" class="h-11 shrink-0" [disabled]="!canExport() || running().has(c.kind)" (click)="download(c.kind)" aria-label="Download {{ c.label }} CSV" i18n-aria-label>
+                <button hlmBtn variant="outline" type="button" class="h-11 shrink-0" [disabled]="!canExport() || running().has(c.kind)" (click)="download(c.kind)" ariaLabel="Download {{ c.label }} CSV" i18n-ariaLabel>
                   @if (running().has(c.kind)) {
                     <ng-icon name="lucideLoader2" size="16" class="animate-spin" aria-hidden="true" /> <ng-container i18n>Preparing…</ng-container>
                   } @else if (done().has(c.kind)) {

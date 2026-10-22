@@ -66,7 +66,7 @@ export function showCaptureBar(s: GeofenceStatus | null | undefined): s is Geofe
         aria-valuemin="0"
         aria-valuemax="100"
         [attr.aria-valuenow]="pct()"
-        aria-label="Zone capture {{ pct() }}%" i18n-aria-label
+        ariaLabel="Zone capture {{ pct() }}%" i18n-ariaLabel
       >
         <div class="h-full transition-[width] duration-500 ease-linear" [style.width.%]="pct()" [style.background]="color()"></div>
       </div>

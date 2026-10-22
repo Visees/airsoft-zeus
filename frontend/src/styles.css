@@ -199,6 +199,15 @@
     min-height: 44px;
     min-width: 44px;
   }
+  /* 44px tap area around a small link or control without changing the layout */
+  .hit {
+    position: relative;
+  }
+  .hit::after {
+    content: '';
+    position: absolute;
+    inset: min(0px, (100% - 44px) / 2);
+  }
   .page {
     width: 100%;
     max-width: 72rem;
@@ -242,6 +251,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* iOS zooms the page when a focused field's text is under 16px. Outside the layers so it wins
+   over the text-sm / md:text-sm utilities; touch screens only, desktop keeps the compact size. */
+@media (pointer: coarse) {
+  :is(input, select, textarea):is(.text-xs, .text-sm, .md\:text-sm) {
+    font-size: 1rem;
   }
 }
 

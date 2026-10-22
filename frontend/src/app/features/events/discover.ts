@@ -27,7 +27,7 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
         </a>
       </zeus-page-header>
 
-      <form class="panel mb-4 grid gap-3 p-3 sm:grid-cols-[1fr_12rem_11rem]" role="search" (submit)="$event.preventDefault(); flushSearch()">
+      <form class="panel mb-4 grid grid-cols-1 gap-3 p-3 sm:grid-cols-[1fr_12rem_11rem]" role="search" (submit)="$event.preventDefault(); flushSearch()">
         <div class="flex flex-col gap-1.5">
           <label hlmLabel for="discover-q" i18n>Search</label>
           <div class="relative">
@@ -110,7 +110,7 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
           <a hlmBtn class="tap" routerLink="/events/join" i18n>Join with a code</a>
         </zeus-empty-state>
       } @else {
-        <ul class="grid gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
+        <ul class="grid grid-cols-1 gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
           @for (e of items(); track e.id) {
             <li><zeus-event-card [event]="e" /></li>
           }

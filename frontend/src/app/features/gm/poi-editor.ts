@@ -204,7 +204,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                   @for (p of customPhases(); track p) {
                     <span class="inline-flex h-9 items-center gap-1 rounded-sm border border-border bg-muted pl-2 text-sm">
                       {{ p }}
-                      <button type="button" class="grid size-9 place-items-center rounded-sm hover:bg-background" (click)="removePhase(p)" aria-label="Remove phase {{ p }}" i18n-aria-label>
+                      <button type="button" class="grid size-9 place-items-center rounded-sm hover:bg-background" (click)="removePhase(p)" ariaLabel="Remove phase {{ p }}" i18n-ariaLabel>
                         <ng-icon name="lucideX" size="14" aria-hidden="true" />
                       </button>
                     </span>
@@ -217,7 +217,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                 </div>
                 <p class="mt-1 text-sm text-muted-foreground" i18n>Custom phases match the phase label the GM sets on the event.</p>
               </fieldset>
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="p-from" i18n>Visible from</label>
                   <input hlmInput id="p-from" type="datetime-local" formControlName="activeFrom" class="h-11" />

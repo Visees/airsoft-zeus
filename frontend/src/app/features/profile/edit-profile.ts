@@ -117,7 +117,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             <h2 id="ep-personal" class="label-caps flex items-center gap-1"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> <ng-container i18n>Personal details · private</ng-container></h2>
             <p class="mt-1 text-xs text-muted-foreground" i18n>Never shown to other players or Game Masters.</p>
           </div>
-          <div class="grid gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="ep-first" i18n>First name</label>
               <input hlmInput id="ep-first" class="h-11" formControlName="firstName" autocomplete="given-name" maxlength="60" [attr.aria-invalid]="!!err('firstName')" />
@@ -152,7 +152,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             <p class="mt-1 text-xs text-muted-foreground" i18n>Visible to others if you allow it in <a routerLink="/settings/privacy" class="font-semibold text-primary underline-offset-2 hover:underline">Privacy settings</a>.</p>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="ep-country" i18n>Country</label>
               <select id="ep-country" formControlName="country" class="h-11 w-full rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30">
@@ -206,8 +206,8 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             <p id="ep-club-help" class="text-xs text-muted-foreground" aria-live="polite">
               @if (form.controls.clubId.value) {
                 <span class="text-primary" i18n>✓ Linked to a club page.</span>
-                <a [routerLink]="['/clubs', form.controls.clubId.value]" class="font-semibold text-primary underline-offset-2 hover:underline" i18n>View</a> ·
-                <button type="button" class="font-semibold underline-offset-2 hover:underline" (click)="unlinkClub()" i18n>Unlink</button>
+                <a [routerLink]="['/clubs', form.controls.clubId.value]" class="hit font-semibold text-primary underline-offset-2 hover:underline" i18n>View</a> ·
+                <button type="button" class="hit font-semibold underline-offset-2 hover:underline" (click)="unlinkClub()" i18n>Unlink</button>
               } @else if (!auth.can('create_clubs')) {
                 <ng-container i18n>Search existing clubs or type a name.</ng-container>
               } @else if (form.controls.clubName.value.trim()) {
@@ -219,7 +219,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             </p>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="ep-role" i18n>Usual role</label>
               <select id="ep-role" formControlName="playerRole" class="h-11 w-full rounded-md border border-input bg-transparent px-2.5 dark:bg-input/30">
@@ -255,7 +255,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             <h2 id="ep-ec" class="label-caps flex items-center gap-1"><ng-icon name="lucideHeartPulse" size="12" aria-hidden="true" /> <ng-container i18n>Emergency contact · optional</ng-container></h2>
             <p class="mt-1 text-xs text-muted-foreground" i18n>Someone to call if you get hurt during a game. Never shown to other players.</p>
           </div>
-          <div class="grid gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="ep-ec-name" i18n>Name</label>
               <input hlmInput id="ep-ec-name" class="h-11" formControlName="ecName" autocomplete="off" maxlength="80" [attr.aria-invalid]="!!err('ecName')" />

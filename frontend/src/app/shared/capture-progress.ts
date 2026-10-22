@@ -13,7 +13,7 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center gap-4' },
   template: `
-    <div class="relative size-28 shrink-0" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct()" aria-label="Capture progress {{ pct() }}%" i18n-aria-label>
+    <div class="relative size-28 shrink-0" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct()" ariaLabel="Capture progress {{ pct() }}%" i18n-ariaLabel>
       <svg viewBox="0 0 100 100" class="size-full -rotate-90">
         <circle cx="50" cy="50" r="44" fill="none" stroke="var(--muted)" stroke-width="9" />
         <circle

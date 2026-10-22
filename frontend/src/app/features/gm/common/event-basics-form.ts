@@ -242,7 +242,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
 
       <fieldset class="panel flex flex-col gap-4 p-4">
         <legend class="label-caps float-left mb-1 w-full" i18n>Schedule</legend>
-        <div class="grid gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-1.5">
             <label hlmLabel for="bf-date"><ng-container i18n>Date</ng-container> <span aria-hidden="true">*</span></label>
             <input hlmInput id="bf-date" type="date" class="h-11" formControlName="date" [attr.aria-invalid]="!!err('date')" />
@@ -278,7 +278,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
         <div class="flex flex-col gap-1.5">
           <label hlmLabel for="bf-coords" i18n>Coordinates (optional)</label>
           <div class="flex flex-col gap-2 sm:flex-row">
-            <input hlmInput id="bf-coords" class="num h-11 flex-1" formControlName="meetingCoords" inputmode="decimal" placeholder="45.4642, 9.1900" [attr.aria-invalid]="!!err('meetingCoords')" aria-describedby="bf-coords-h" />
+            <input hlmInput id="bf-coords" class="num h-11 sm:flex-1" formControlName="meetingCoords" inputmode="decimal" placeholder="45.4642, 9.1900" [attr.aria-invalid]="!!err('meetingCoords')" aria-describedby="bf-coords-h" />
             <button hlmBtn variant="outline" class="h-11" type="button" (click)="useMyLocation()" [disabled]="locating()">
               <ng-icon name="lucideLocateFixed" size="16" class="text-nav" aria-hidden="true" /> {{ locating() ? txt.locating : txt.useMyLocation }}
             </button>

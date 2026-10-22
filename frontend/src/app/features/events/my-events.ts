@@ -45,7 +45,7 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
         }
       </zeus-page-header>
 
-      <nav aria-label="Event lists" class="-mx-4 mb-4 overflow-x-auto px-4" i18n-aria-label>
+      <nav aria-label="Event lists" class="relative -mx-4 mb-4 overflow-x-auto px-4" i18n-aria-label>
         <ul class="flex min-w-max gap-1 border-b border-border">
           @for (t of tabs; track t.id) {
             <li>
@@ -97,7 +97,7 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
         </zeus-empty-state>
       } @else {
         <h2 class="label-caps mb-2">{{ tabLabel() }} · <span class="num">{{ items().length }}</span></h2>
-        <ul class="grid gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
+        <ul class="grid grid-cols-1 gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
           @for (e of items(); track e.id) {
             <li class="flex flex-col gap-2">
               <zeus-event-card [event]="e" [link]="linkFor(e)" />

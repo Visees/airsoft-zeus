@@ -21,7 +21,7 @@ import { formatNumber } from '../core/util/format';
         [class.text-3xl]="size() === 'lg'"
         [class.text-lg]="size() === 'md'"
         [class.text-sm]="size() === 'sm'"
-        aria-label="{{ fmt(amount()) }} credits" i18n-aria-label
+        ariaLabel="{{ fmt(amount()) }} credits" i18n-ariaLabel
         >{{ fmt(amount()) }}</span
       >
     }

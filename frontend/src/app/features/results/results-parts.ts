@@ -80,11 +80,11 @@ export class ResultsWinner {
           @for (t of teams(); track t.teamId) {
             <li class="panel p-3" [class.border-primary]="t.teamId === results().winnerTeamId">
               <div class="flex items-center gap-3">
-                <span class="num w-9 shrink-0 text-lg font-bold" aria-label="Rank {{ t.rank }}" i18n-aria-label>{{ ordinal(t.rank) }}</span>
+                <span class="num w-9 shrink-0 text-lg font-bold" ariaLabel="Rank {{ t.rank }}" i18n-ariaLabel>{{ ordinal(t.rank) }}</span>
                 <zeus-team-badge class="min-w-0 flex-1" [team]="badge(t)" />
                 <span class="num shrink-0 text-lg font-bold">{{ fmt(t.points) }}<span class="text-xs font-normal text-muted-foreground" i18n> pts</span></span>
               </div>
-              <dl class="mt-2 grid grid-cols-4 gap-2 text-xs">
+              <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
                 <div><dt class="label-caps" i18n>Credits</dt><dd class="num">{{ fmt(t.currency) }}</dd></div>
                 <div><dt class="label-caps" i18n>Captured</dt><dd class="num">{{ t.objectivesCaptured }}</dd></div>
                 <div><dt class="label-caps" i18n>Held</dt><dd class="num">{{ t.objectivesHeld }}</dd></div>
@@ -94,7 +94,7 @@ export class ResultsWinner {
           }
         </ol>
         <!-- Wider screens -->
-        <div class="panel hidden overflow-x-auto sm:block">
+        <div class="relative panel hidden overflow-x-auto sm:block">
           <table class="w-full text-sm">
             <caption class="sr-only" i18n>Final leaderboard</caption>
             <thead>
@@ -150,7 +150,7 @@ export class ResultsLeaderboard {
         <ol class="panel divide-y divide-border">
           @for (c of visible(); track c.id) {
             <li class="flex gap-3 p-3" [class.opacity-60]="c.revoked">
-              <div class="w-16 shrink-0 text-right">
+              <div class="min-w-16 shrink-0 text-right">
                 <p class="num text-sm font-semibold">{{ elapsed(c.createdAt) }}</p>
                 <p class="num text-xs text-muted-foreground">{{ time(c.createdAt) }}</p>
               </div>
@@ -217,7 +217,7 @@ export class ResultsTimeline {
         <ol class="panel divide-y divide-border">
           @for (p of top(); track p.userId ?? p.nickname; let i = $index) {
             <li class="flex items-center gap-3 p-3">
-              <span class="num grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold" [class]="i < 3 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'" aria-label="Rank {{ i + 1 }}" i18n-aria-label>{{ i + 1 }}</span>
+              <span class="num grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold" [class]="i < 3 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'" ariaLabel="Rank {{ i + 1 }}" i18n-ariaLabel>{{ i + 1 }}</span>
               <div class="min-w-0 flex-1">
                 <p class="truncate font-semibold">{{ p.nickname }}</p>
                 <p class="flex items-center gap-2 text-xs text-muted-foreground">

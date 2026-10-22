@@ -54,7 +54,7 @@ import { LobbyRoster } from './lobby-roster';
       } @else if (event(); as e) {
         <zeus-page-header [title]="e.name" eyebrow="Lobby" [back]="'/events/' + e.id" backLabel="Event details" i18n-eyebrow i18n-backLabel>
           <zeus-status-chip [spec]="statusChip()" />
-          <zeus-connection-status [compact]="true" />
+          <zeus-connection-status [compact]="true" [quietOnline]="true" />
         </zeus-page-header>
 
         @if (offline()) {
@@ -102,7 +102,7 @@ import { LobbyRoster } from './lobby-roster';
         }
 
         <!-- Summary -->
-        <section class="panel mb-4 grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center" aria-label="Event summary" i18n-aria-label>
+        <section class="panel mb-4 grid grid-cols-1 gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center" aria-label="Event summary" i18n-aria-label>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
             <div>
               <dt class="label-caps" i18n>Mode</dt>
@@ -124,7 +124,7 @@ import { LobbyRoster } from './lobby-roster';
                 <dd class="flex flex-wrap items-center gap-2">
                   <span>{{ e.meetingAddress || txt.pinnedLocation }}</span>
                   @if (e.meetingLat !== null && e.meetingLng !== null) {
-                    <a class="inline-flex items-center gap-1 text-sm font-semibold text-nav underline-offset-4 hover:underline" [href]="'https://www.google.com/maps/dir/?api=1&destination=' + e.meetingLat + ',' + e.meetingLng" target="_blank" rel="noopener noreferrer">
+                    <a class="hit inline-flex items-center gap-1 text-sm font-semibold text-nav underline-offset-4 hover:underline" [href]="'https://www.google.com/maps/dir/?api=1&destination=' + e.meetingLat + ',' + e.meetingLng" target="_blank" rel="noopener noreferrer">
                       <ng-icon name="lucideNavigation" size="14" aria-hidden="true" /> <ng-container i18n>Directions<span class="sr-only"> (opens Google Maps)</span></ng-container>
                     </a>
                   }
@@ -142,7 +142,7 @@ import { LobbyRoster } from './lobby-roster';
           }
         </section>
 
-        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
           <div class="flex min-w-0 flex-col gap-4">
             @if (!e.isGm && e.me && preGame()) {
               <zeus-lobby-checklist [event]="e" (memberChange)="onMemberChange($event)" />

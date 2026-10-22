@@ -100,7 +100,7 @@ export class PasswordInput {
       </div>
       <span class="label-caps w-16 text-right">{{ scoreLabel() }}</span>
     </div>
-    <ul class="mt-2 grid gap-1 text-sm sm:grid-cols-2" [attr.id]="listId()" aria-label="Password requirements" i18n-aria-label>
+    <ul class="mt-2 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2" [attr.id]="listId()" aria-label="Password requirements" i18n-aria-label>
       @for (h of hints(); track h.label) {
         <li class="flex items-start gap-1.5" [class.text-muted-foreground]="!h.ok">
           <span aria-hidden="true" class="w-4 shrink-0 text-center" [class.text-primary]="h.ok">{{ h.ok ? '✓' : '○' }}</span>

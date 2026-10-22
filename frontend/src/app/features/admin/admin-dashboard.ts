@@ -24,7 +24,7 @@ type StatusFilter = SupportStatus | 'all';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <div class="mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status" i18n-aria-label>
+    <div class="relative mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status" i18n-aria-label>
       @for (f of filters(); track f.value) {
         <button type="button" class="tap shrink-0 rounded-sm border px-3 text-sm" [attr.aria-pressed]="status() === f.value"
           [class]="status() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:bg-muted'"
@@ -232,7 +232,7 @@ export class AdminNews {
       </div>
     </form>
 
-    <div class="mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter users" i18n-aria-label>
+    <div class="relative mb-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter users" i18n-aria-label>
       @for (f of filters; track f.value) {
         <button type="button" class="tap shrink-0 rounded-sm border px-3 text-sm" [attr.aria-pressed]="filter() === f.value"
           [class]="filter() === f.value ? 'border-primary bg-primary/10 font-semibold' : 'border-border text-muted-foreground hover:bg-muted'"

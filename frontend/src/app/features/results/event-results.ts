@@ -68,7 +68,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
           </div>
         }
 
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <div class="flex min-w-0 flex-col gap-6">
             <zeus-results-winner [results]="r" />
 

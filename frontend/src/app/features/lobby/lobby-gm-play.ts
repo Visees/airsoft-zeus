@@ -60,9 +60,9 @@ import { TeamBadge } from '../../shared/team-badge';
       @if (myTeam()) {
         <div class="flex flex-col gap-2 sm:flex-row">
           @if (running()) {
-            <a hlmBtn class="h-11 flex-1" [routerLink]="['/events', e.id, 'live']"><ng-icon name="lucideMap" size="16" aria-hidden="true" /> <ng-container i18n>Open live map</ng-container></a>
+            <a hlmBtn class="h-11 sm:flex-1" [routerLink]="['/events', e.id, 'live']"><ng-icon name="lucideMap" size="16" aria-hidden="true" /> <ng-container i18n>Open live map</ng-container></a>
           }
-          <button hlmBtn variant="outline" type="button" class="h-11 flex-1" [disabled]="busy()" (click)="leaveTeam()">
+          <button hlmBtn variant="outline" type="button" class="h-11 sm:flex-1" [disabled]="busy()" (click)="leaveTeam()">
             <ng-icon name="lucideLogOut" size="16" aria-hidden="true" /> {{ busy() ? txt.saving : txt.stopPlaying }}
           </button>
         </div>

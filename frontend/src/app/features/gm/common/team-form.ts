@@ -159,7 +159,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
         <zeus-team-badge [team]="preview()" size="lg" />
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
         <div class="flex flex-col gap-1.5">
           <label hlmLabel [for]="id + '-name'" i18n>Team name</label>
           <input hlmInput [id]="id + '-name'" class="h-11" formControlName="name" autocomplete="off" [attr.aria-invalid]="!!err('name')" />
@@ -184,7 +184,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
           @for (c of colors; track c) {
             <label class="relative grid size-11 cursor-pointer place-items-center rounded-sm border-2 has-focus-visible:ring-2 has-focus-visible:ring-ring"
               [class]="isColor(c) ? 'border-foreground' : 'border-transparent'">
-              <input type="radio" class="sr-only" [name]="id + '-color'" [checked]="isColor(c)" (change)="setColor(c)" aria-label="Colour {{ c }}" i18n-aria-label />
+              <input type="radio" class="sr-only" [name]="id + '-color'" [checked]="isColor(c)" (change)="setColor(c)" ariaLabel="Colour {{ c }}" i18n-ariaLabel />
               <span class="size-8 rounded-sm" [style.background]="c" aria-hidden="true"></span>
               @if (isColor(c)) {
                 <span class="absolute inset-0 grid place-items-center text-sm font-bold text-white [text-shadow:0_0_3px_#000]" aria-hidden="true">✓</span>
@@ -204,7 +204,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
         }
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-1.5">
           <span hlmLabel [id]="id + '-pat-l'" i18n>Pattern</span>
           <div role="radiogroup" [attr.aria-labelledby]="id + '-pat-l'" class="flex flex-wrap gap-1.5">
@@ -233,7 +233,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
       </div>
 
       @if (advanced()) {
-        <div class="grid gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
             <label hlmLabel [for]="id + '-ally'" i18n>Alliance (optional)</label>
             <input hlmInput [id]="id + '-ally'" class="h-11" formControlName="allianceId" placeholder="north" autocomplete="off" [attr.aria-describedby]="id + '-ally-h'" i18n-placeholder />

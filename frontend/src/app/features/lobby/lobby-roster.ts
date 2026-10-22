@@ -104,7 +104,7 @@ interface TeamGroup {
                             }
                           </select>
                           @if (m.role === 'player') {
-                            <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" aria-label="Remove {{ m.nickname }}" i18n-aria-label>
+                            <button hlmBtn variant="ghost" type="button" class="tap text-destructive" [disabled]="busy() === m.userId" (click)="remove(m)" ariaLabel="Remove {{ m.nickname }}" i18n-ariaLabel>
                               <ng-icon name="lucideUserMinus" size="18" aria-hidden="true" />
                             </button>
                           }

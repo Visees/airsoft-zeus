@@ -146,7 +146,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   }
                 </div>
               </fieldset>
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
                   <span hlmLabel id="lbl-img" i18n>Image</span>
                   @if (value().imageUrl) {
@@ -220,7 +220,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             <!-- ============ Capture methods ============ -->
             <section id="obj-methods" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-methods" formGroupName="methods">
               <h2 id="h-methods" class="label-caps" i18n>Capture methods</h2>
-              <div class="grid gap-2 sm:grid-cols-3">
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="checkbox" formControlName="code" class="size-5 accent-primary" />
                   <span><span class="font-semibold" i18n>Manual code</span><br /><span class="text-xs text-muted-foreground" i18n>Players type a code found on site</span></span>
@@ -294,7 +294,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   <p class="text-sm text-muted-foreground" role="status" i18n>Loading QR code…</p>
                 } @else {
                   <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                    <div class="w-64 max-w-full rounded-md bg-white p-3 [&_svg]:h-auto [&_svg]:w-full" [innerHTML]="qrSvg()" role="img" aria-label="QR code for {{ objective()?.name }}" i18n-aria-label></div>
+                    <div class="w-64 max-w-full rounded-md bg-white p-3 [&_svg]:h-auto [&_svg]:w-full" [innerHTML]="qrSvg()" role="img" ariaLabel="QR code for {{ objective()?.name }}" i18n-ariaLabel></div>
                     <div class="flex w-full flex-col gap-2 sm:w-auto">
                       <button hlmBtn type="button" variant="outline" class="h-11 justify-start" (click)="downloadPng()">
                         <ng-icon name="lucideDownload" size="16" aria-hidden="true" /> <ng-container i18n>Download PNG</ng-container>
@@ -318,7 +318,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               @if (!geofenceUsed()) {
                 <p class="text-sm text-muted-foreground" i18n>Enable the geofence method or "Require holding the zone" to use these settings.</p>
               }
-              <div class="grid gap-4 sm:grid-cols-3" [class.opacity-60]="!geofenceUsed()">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3" [class.opacity-60]="!geofenceUsed()">
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.radiusM, id: 'g-radius', label: txt.radiusM, min: 3, path: 'geofence.radiusM' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.durationSec, id: 'g-dur', label: txt.requiredTimeS, min: 0, path: 'geofence.durationSec' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxAccuracyM, id: 'g-acc', label: txt.maxGpsAccuracyM, min: 1, path: 'geofence.maxAccuracyM' }" />
@@ -360,7 +360,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 </label>
               </div>
               @if (value().geofence?.multiPlayerBoost) {
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.boostPerExtraPlayer, id: 'g-boost', label: txt.speedUpPerExtra, min: 0, step: 0.05, path: 'geofence.boostPerExtraPlayer', hint: txt.n025EachExtra }" />
                   <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: g.maxMultiplier, id: 'g-maxm', label: txt.maximumMultiplier, min: 1, step: 0.25, path: 'geofence.maxMultiplier' }" />
                 </div>
@@ -370,7 +370,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             <!-- ============ Rewards ============ -->
             <section id="obj-rewards" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-rew" formGroupName="rewards">
               <h2 id="h-rew" class="label-caps" i18n>Rewards</h2>
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.points, id: 'r-pts', label: txt.victoryPointsPerCapture, min: 0, path: 'rewards.points' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.currency, id: 'r-cur', label: txt.creditsPerCapture, min: 0, path: 'rewards.currency' }" />
                 <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: r.recurringPointsPerMinute, id: 'r-rpts', label: txt.pointsPerMinuteWhile, min: 0, path: 'rewards.recurringPointsPerMinute' }" />
@@ -382,7 +382,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               @if (event()?.teams?.length) {
                 <div>
                   <h3 class="mb-2 text-sm font-semibold" i18n>Per-team overrides</h3>
-                  <div class="overflow-x-auto">
+                  <div class="relative overflow-x-auto">
                     <table class="w-full min-w-88 text-sm">
                       <thead>
                         <tr class="text-left text-muted-foreground">
@@ -399,13 +399,13 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                               <span class="inline-flex items-center gap-1.5"><zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}</span>
                             </td>
                             <td class="py-1.5 pr-2">
-                              <input type="checkbox" formControlName="override" class="size-5 accent-primary" aria-label="Override rewards for {{ t.name }}" i18n-aria-label />
+                              <input type="checkbox" formControlName="override" class="size-5 accent-primary" ariaLabel="Override rewards for {{ t.name }}" i18n-ariaLabel />
                             </td>
                             <td class="py-1.5 pr-2">
-                              <input hlmInput type="number" min="0" formControlName="points" class="num h-10 w-24" aria-label="Points for {{ t.name }}" i18n-aria-label />
+                              <input hlmInput type="number" min="0" formControlName="points" class="num h-10 w-24" ariaLabel="Points for {{ t.name }}" i18n-ariaLabel />
                             </td>
                             <td class="py-1.5">
-                              <input hlmInput type="number" min="0" formControlName="currency" class="num h-10 w-24" aria-label="Credits for {{ t.name }}" i18n-aria-label />
+                              <input hlmInput type="number" min="0" formControlName="currency" class="num h-10 w-24" ariaLabel="Credits for {{ t.name }}" i18n-ariaLabel />
                             </td>
                           </tr>
                         }
@@ -420,7 +420,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
             <!-- ============ Availability ============ -->
             <section id="obj-availability" class="panel flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-av">
               <h2 id="h-av" class="label-caps" i18n>Availability and limits</h2>
-              <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
                   <label hlmLabel for="o-start" i18n>Available from</label>
                   <input hlmInput id="o-start" type="datetime-local" formControlName="availabilityStart" class="h-11" />

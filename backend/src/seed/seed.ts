@@ -130,6 +130,11 @@ export async function seed(): Promise<void> {
     await transition(t, ctx, 'completed', gmId, null);
   });
   await pool.query(`UPDATE events SET ended_at = end_at WHERE id = $1`, [past.id]);
+  // The old game's captures happened just now: move them into its time window (results show time since start).
+  // ledger_entries is append-only, so its rows keep today's date.
+  for (const table of ['objective_captures', 'activity']) {
+    await pool.query(`UPDATE ${table} SET created_at = created_at - ($2::timestamptz - $3::timestamptz) WHERE event_id = $1`, [past.id, new Date(now), new Date(past.start.getTime() + 20 * 60_000)]);
+  }
 
   // Positions for the live game: team A near the west, team B east.
   for (const [i, [nick, , team]] of PLAYERS.entries()) {

@@ -18,7 +18,7 @@ import { MARKER_COLORS } from './map-defaults';
         [class.border-transparent]="!same(c)"
         [class.ring-2]="same(c)"
         [class.ring-ring]="same(c)"
-        aria-label="Colour {{ c }}" i18n-aria-label
+        ariaLabel="Colour {{ c }}" i18n-ariaLabel
         [attr.aria-pressed]="same(c)"
         [disabled]="disabled()"
         (click)="pick(c)"
@@ -31,7 +31,7 @@ import { MARKER_COLORS } from './map-defaults';
         [value]="value()"
         [disabled]="disabled()"
         (input)="pick($any($event.target).value)"
-        aria-label="{{ label() }}: custom colour" i18n-aria-label
+        ariaLabel="{{ label() }}: custom colour" i18n-ariaLabel
       />
       <span class="num text-xs uppercase text-muted-foreground">{{ value() }}</span>
     </label>

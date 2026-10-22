@@ -49,7 +49,7 @@ export function scoringValue(form: ScoringForm): ScoringSettings {
       <p class="text-sm text-muted-foreground" i18n>
         Points decide the winner. Credits are a separate currency teams earn from objectives and spend in the perk store.
       </p>
-      <div class="grid gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="flex flex-col gap-1.5">
           <label hlmLabel for="sc-pts" i18n>Starting points</label>
           <input hlmInput id="sc-pts" type="number" inputmode="numeric" class="num h-11" formControlName="startingPoints" [attr.aria-invalid]="!!err('startingPoints')" />

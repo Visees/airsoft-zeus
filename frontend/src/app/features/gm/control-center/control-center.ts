@@ -214,7 +214,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
       <!-- ======================= phone / tablet portrait ======================= -->
       <div class="flex min-h-0 flex-1 flex-col">
         <div class="relative h-[42dvh] shrink-0 border-b border-border"><ng-container [ngTemplateOutlet]="mapTpl" /></div>
-        <div role="tablist" aria-label="Sections" class="flex shrink-0 overflow-x-auto border-b border-border bg-card" i18n-aria-label>
+        <div role="tablist" aria-label="Sections" class="relative flex shrink-0 overflow-x-auto border-b border-border bg-card" i18n-aria-label>
           @for (t of phoneTabs; track t.id) {
             <button
               type="button"
@@ -348,7 +348,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 <zeus-score-display [points]="t.points" size="sm" [showUnit]="false" />
                 <zeus-currency-display [amount]="t.currency" size="sm" [showUnit]="false" />
               </div>
-              <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="openAdjust(t.id, null)" aria-label="Adjust points or credits of {{ t.name }}" i18n-aria-label>
+              <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="openAdjust(t.id, null)" ariaLabel="Adjust points or credits of {{ t.name }}" i18n-ariaLabel>
                 <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" />
               </button>
             </li>

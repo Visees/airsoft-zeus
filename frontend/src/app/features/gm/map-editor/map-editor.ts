@@ -210,13 +210,13 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
       <div class="relative flex min-h-0 flex-1 flex-col-reverse lg:flex-row">
         <!-- ======================= tools ======================= -->
         <nav
-          class="z-30 flex h-16 shrink-0 items-stretch overflow-x-auto border-t border-border bg-card lg:h-auto lg:w-16 lg:flex-col lg:overflow-visible lg:border-r lg:border-t-0 lg:py-2"
+          class="relative z-30 flex h-16 shrink-0 items-stretch overflow-x-auto border-t border-border bg-card lg:h-auto lg:w-16 lg:flex-col lg:overflow-visible lg:border-r lg:border-t-0 lg:py-2"
           aria-label="Map tools" i18n-aria-label
         >
           @for (t of tools; track t.id) {
             <button
               type="button"
-              class="flex min-w-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-semibold lg:min-h-14 lg:flex-none"
+              class="flex min-w-14 shrink-0 grow flex-col items-center justify-center gap-0.5 px-1 text-[0.7rem] font-semibold lg:min-h-14 lg:flex-none"
               [class]="tool() === t.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
               [attr.aria-pressed]="tool() === t.id"
               [attr.aria-keyshortcuts]="t.key"
@@ -230,7 +230,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
           }
           <button
             type="button"
-            class="flex min-w-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[0.68rem] font-semibold text-muted-foreground hover:bg-muted lg:mt-auto lg:min-h-14 lg:flex-none"
+            class="flex min-w-14 shrink-0 grow flex-col items-center justify-center gap-0.5 px-1 text-[0.7rem] font-semibold text-muted-foreground hover:bg-muted lg:mt-auto lg:min-h-14 lg:flex-none"
             [attr.aria-pressed]="listOpen()"
             aria-controls="element-list"
             (click)="listOpen.set(!listOpen())"
@@ -775,7 +775,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                   <p class="num text-xs text-muted-foreground" i18n>{{ t.objectiveCount }} obj · {{ t.poiCount }} POI · {{ t.zoneCount }} zones · {{ fmtDate(t.createdAt) }}</p>
                 </div>
                 <button hlmBtn type="button" class="h-10" (click)="applyTemplate(t)" [disabled]="busy()" i18n>Apply</button>
-                <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="deleteTemplate(t)" aria-label="Delete template {{ t.name }}" i18n-aria-label>
+                <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="deleteTemplate(t)" ariaLabel="Delete template {{ t.name }}" i18n-ariaLabel>
                   <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                 </button>
               </li>

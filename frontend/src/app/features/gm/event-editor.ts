@@ -114,11 +114,11 @@ interface NavCard {
           </div>
         }
 
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <!-- Settings tabs -->
           <div hlmTabs [tab]="tab()" (tabActivated)="tab.set($any($event))" class="min-w-0">
-            <div class="-mx-1 overflow-x-auto px-1 pb-1">
-              <div hlmTabsList class="h-11 w-full min-w-max" aria-label="Event settings" i18n-aria-label>
+            <div class="relative -mx-1 overflow-x-auto px-1 pb-1">
+              <div hlmTabsList class="h-11 w-full min-w-max group-data-horizontal/tabs:h-11" aria-label="Event settings" i18n-aria-label>
                 <button hlmTabsTrigger="basics" class="h-full px-3"><ng-container i18n>Basics</ng-container> @if (dirtyMark('basics')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
                 <button hlmTabsTrigger="registration" class="h-full px-3"><ng-container i18n>Registration</ng-container> @if (dirtyMark('registration')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
                 <button hlmTabsTrigger="rules" class="h-full px-3"><ng-container i18n>Rules of play</ng-container> @if (dirtyMark('rules')) { <span aria-label="unsaved" class="text-warning" i18n-aria-label>◐</span> }</button>
@@ -195,7 +195,7 @@ interface NavCard {
                         }
                       </span>
                       @if (e.gameMasters.length > 1) {
-                        <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" (click)="removeGm(g)" aria-label="Remove {{ g.nickname }} as Game Master" i18n-aria-label>
+                        <button hlmBtn variant="ghost" size="sm" class="h-11 text-destructive" type="button" (click)="removeGm(g)" ariaLabel="Remove {{ g.nickname }} as Game Master" i18n-ariaLabel>
                           <ng-icon name="lucideUserMinus" size="16" aria-hidden="true" /> <ng-container i18n>Remove</ng-container>
                         </button>
                       }
@@ -220,7 +220,7 @@ interface NavCard {
 
           <!-- Navigation -->
           <aside class="flex flex-col gap-4" aria-label="Event sections" i18n-aria-label>
-            <nav class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1" aria-label="Manage" i18n-aria-label>
+            <nav class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1" aria-label="Manage" i18n-aria-label>
               @for (c of navCards(); track c.title) {
                 <a [routerLink]="c.link" [queryParams]="c.query ?? null" class="panel flex min-h-14 items-center gap-3 p-3 hover:border-primary/60">
                   <ng-icon [name]="c.icon" size="20" class="shrink-0" [class.text-warning]="c.tone === 'warning'" [class.text-primary]="c.tone !== 'warning'" aria-hidden="true" />

@@ -39,7 +39,7 @@ export function attachmentKind(mime: string): string {
             <span class="block truncate font-semibold" [title]="a.fileName">{{ a.fileName }}</span>
             <span class="block text-xs text-muted-foreground">{{ kind(a.mimeType) }} · <span class="num">{{ size(a.sizeBytes) }}</span></span>
           </span>
-          <button hlmBtn variant="outline" class="tap shrink-0" type="button" [disabled]="downloading() === a.id" (click)="download(a)" aria-label="Download {{ a.fileName }}" i18n-aria-label>
+          <button hlmBtn variant="outline" class="tap shrink-0" type="button" [disabled]="downloading() === a.id" (click)="download(a)" ariaLabel="Download {{ a.fileName }}" i18n-ariaLabel>
             <ng-icon [name]="downloading() === a.id ? 'lucideLoader2' : 'lucideDownload'" size="16" [class.animate-spin]="downloading() === a.id" aria-hidden="true" />
             <span class="hidden sm:inline">{{ downloading() === a.id ? txt.downloading : txt.download }}</span>
           </button>

@@ -78,13 +78,8 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
           <div class="flex items-start gap-3">
             <input id="su-terms" type="checkbox" formControlName="acceptTerms" class="mt-0.5 size-6 shrink-0 accent-primary"
               [attr.aria-invalid]="!!err('acceptTerms')" [attr.aria-describedby]="err('acceptTerms') ? 'su-terms-err' : null" />
-            <label for="su-terms" class="text-sm leading-6">
-              <ng-container i18n>I accept the</ng-container>
-              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(terms)" i18n>Terms of Service</button>
-              <ng-container i18n>and the</ng-container>
-              <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(privacy)" i18n>Privacy Policy</button><ng-container i18n>,
-              including location sharing during live events I join.</ng-container>
-            </label>
+            <!-- One message, links inside: the translation decides the spacing around them (Italian "e l'Informativa") -->
+            <label for="su-terms" class="text-sm leading-6" i18n>I accept the <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(terms)">Terms of Service</button> and the <button type="button" class="font-semibold text-primary underline underline-offset-2" (click)="legal().open(privacy)">Privacy Policy</button>, including location sharing during live events I join.</label>
           </div>
           @if (err('acceptTerms'); as e) {
             <p id="su-terms-err" class="field-error">{{ e }}</p>
