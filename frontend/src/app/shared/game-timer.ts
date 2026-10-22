@@ -20,7 +20,7 @@ export function nowSignal(intervalMs = 1000) {
 @Component({
   selector: 'zeus-game-timer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex items-center gap-2', role: 'timer', '[attr.aria-label]': 'ariaLabel()' },
+  host: { '[class]': 'hostClass()', role: 'timer', '[attr.aria-label]': 'ariaLabel()' },
   template: `
     @if (caption()) {
       <span class="label-caps" [class.!text-warning]="mode() === 'paused'">{{ caption() }}</span>
@@ -30,6 +30,7 @@ export function nowSignal(intervalMs = 1000) {
       [class.text-3xl]="size() === 'lg'"
       [class.text-xl]="size() === 'md'"
       [class.text-base]="size() === 'sm'"
+      [class.leading-none]="stacked()"
       [class.text-warning]="warn()"
       [class.text-destructive]="critical()"
       aria-hidden="true"
@@ -44,6 +45,12 @@ export class GameTimer {
   readonly serverOffsetMs = input(0);
   readonly size = input<'sm' | 'md' | 'lg'>('md');
   readonly showCaption = input(true);
+  /** Caption above the digits, to leave room beside a 1:00:00+ clock on a narrow bar; one line in compact (phone sideways). */
+  readonly stacked = input(false);
+
+  protected readonly hostClass = computed(() =>
+    this.stacked() ? 'inline-flex flex-col items-start gap-0.5 leading-none compact:flex-row compact:items-center compact:gap-2' : 'inline-flex items-center gap-2',
+  );
 
   private readonly now = nowSignal();
   private readonly serverNow = computed(() => this.now() + this.serverOffsetMs());

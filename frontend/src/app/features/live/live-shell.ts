@@ -151,7 +151,7 @@ interface SharingIndicator {
             <a [routerLink]="backLink()" class="tap -my-2 -ml-2 grid shrink-0 place-items-center rounded-sm text-muted-foreground hover:text-foreground compact:my-0 compact:size-8 compact:min-h-8 compact:min-w-8" aria-label="Back to event" i18n-aria-label>
               <ng-icon name="lucideArrowLeft" size="20" aria-hidden="true" />
             </a>
-            <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
+            <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" [stacked]="true" />
           </div>
           @if (store.isGm()) {
             <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary compact:order-3" i18n>GAME MASTER</span>

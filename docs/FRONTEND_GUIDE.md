@@ -56,7 +56,7 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
 | `zeus-squad-badge` | `squad, leader` |
 | `zeus-status-chip` | `[spec]="eventStatusChip(s)"` / `objectiveStatusChip` / `purchaseStatusChip`, or `label, glyph, tone` |
 | `zeus-score-display` / `zeus-currency-display` | `points` / `amount` (null = hidden), `label, size` |
-| `zeus-game-timer` | `clock, startAt, serverOffsetMs, size` — `nowSignal()` helper exported from the same file |
+| `zeus-game-timer` | `clock, startAt, serverOffsetMs, size, stacked` (caption above the digits, one line in `compact:`; the live HUD uses it so `H:MM:SS` fits beside the team at 320 px) — `nowSignal()` helper exported from the same file |
 | `zeus-capture-progress` | `status: GeofenceStatus` |
 | `zeus-gps-status`, `zeus-connection-status` | live indicators |
 | `zeus-announcement-banner` | `announcement` (`dismiss`) |
