@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
+import { adminGuard, authGuard, gmGuard, guestGuard, rootRedirectGuard, verifiedGuard } from './core/auth/guards';
 import { LiveStore } from './core/live/live-store';
 import { LIVE_MAP_KEEP_ALIVE } from './core/routing/keep-alive-route-strategy';
 import { AppShell } from './layout/app-shell';
@@ -49,14 +49,14 @@ export const routes: Routes = [
   // --- GM full-screen tools ------------------------------------------------------------
   {
     path: 'gm/events/:eventId/control',
-    canActivate: [verifiedGuard],
+    canActivate: [verifiedGuard, gmGuard],
     providers: [LiveStore],
     title: $localize`Control center`,
     loadComponent: () => import('./features/gm/control-center/control-center').then((m) => m.ControlCenterScreen),
   },
   {
     path: 'gm/events/:eventId/map',
-    canActivate: [verifiedGuard],
+    canActivate: [verifiedGuard, gmGuard],
     title: $localize`Tactical map editor`,
     loadComponent: () => import('./features/gm/map-editor/map-editor').then((m) => m.MapEditorScreen),
   },
@@ -100,16 +100,16 @@ export const routes: Routes = [
       { path: 'settings/privacy', title: $localize`Privacy`, loadComponent: () => import('./features/settings/privacy-settings').then((m) => m.PrivacySettingsScreen) },
 
       { path: 'gm/new', title: $localize`Create event`, loadComponent: () => import('./features/gm/wizard/create-event-wizard').then((m) => m.CreateEventWizardScreen) },
-      { path: 'gm/events/:eventId', title: $localize`Event editor`, loadComponent: () => import('./features/gm/event-editor').then((m) => m.EventEditorScreen) },
-      { path: 'gm/events/:eventId/teams', title: $localize`Teams and squads`, loadComponent: () => import('./features/gm/team-squad-manager').then((m) => m.TeamSquadManagerScreen) },
+      { path: 'gm/events/:eventId', canActivate: [gmGuard], title: $localize`Event editor`, loadComponent: () => import('./features/gm/event-editor').then((m) => m.EventEditorScreen) },
+      { path: 'gm/events/:eventId/teams', canActivate: [gmGuard], title: $localize`Teams and squads`, loadComponent: () => import('./features/gm/team-squad-manager').then((m) => m.TeamSquadManagerScreen) },
       /** objectiveId may be 'new' (?lat=&lng= prefill) */
-      { path: 'gm/events/:eventId/objectives/:objectiveId', title: $localize`Objective editor`, loadComponent: () => import('./features/gm/objective-editor').then((m) => m.ObjectiveEditorScreen) },
+      { path: 'gm/events/:eventId/objectives/:objectiveId', canActivate: [gmGuard], title: $localize`Objective editor`, loadComponent: () => import('./features/gm/objective-editor').then((m) => m.ObjectiveEditorScreen) },
       /** poiId may be 'new' (?lat=&lng= prefill) */
-      { path: 'gm/events/:eventId/pois/:poiId', title: $localize`POI editor`, loadComponent: () => import('./features/gm/poi-editor').then((m) => m.PoiEditorScreen) },
-      { path: 'gm/events/:eventId/perks', title: $localize`Perk store`, loadComponent: () => import('./features/gm/perk-editor').then((m) => m.PerkEditorScreen) },
-      { path: 'gm/events/:eventId/players', title: $localize`Players`, loadComponent: () => import('./features/gm/player-management').then((m) => m.PlayerManagementScreen) },
-      { path: 'gm/events/:eventId/scores', title: $localize`Scores and currency`, loadComponent: () => import('./features/gm/score-manager').then((m) => m.ScoreManagerScreen) },
-      { path: 'gm/events/:eventId/activity', title: $localize`Activity log`, loadComponent: () => import('./features/gm/activity-log').then((m) => m.ActivityLogScreen) },
+      { path: 'gm/events/:eventId/pois/:poiId', canActivate: [gmGuard], title: $localize`POI editor`, loadComponent: () => import('./features/gm/poi-editor').then((m) => m.PoiEditorScreen) },
+      { path: 'gm/events/:eventId/perks', canActivate: [gmGuard], title: $localize`Perk store`, loadComponent: () => import('./features/gm/perk-editor').then((m) => m.PerkEditorScreen) },
+      { path: 'gm/events/:eventId/players', canActivate: [gmGuard], title: $localize`Players`, loadComponent: () => import('./features/gm/player-management').then((m) => m.PlayerManagementScreen) },
+      { path: 'gm/events/:eventId/scores', canActivate: [gmGuard], title: $localize`Scores and currency`, loadComponent: () => import('./features/gm/score-manager').then((m) => m.ScoreManagerScreen) },
+      { path: 'gm/events/:eventId/activity', canActivate: [gmGuard], title: $localize`Activity log`, loadComponent: () => import('./features/gm/activity-log').then((m) => m.ActivityLogScreen) },
     ],
   },
 

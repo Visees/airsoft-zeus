@@ -1,5 +1,8 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { ApiService } from '../api/api.service';
+import { ApiError } from '../api/api-error';
+import { ToastService } from '../ui/toast.service';
 import { AuthService } from './auth.service';
 
 /** Signed in (any verification state). */
@@ -29,6 +32,40 @@ export const adminGuard: CanActivateFn = async () => {
   const router = inject(Router);
   await auth.init();
   return auth.user()?.isAdmin ? true : router.createUrlTree(['/home']);
+};
+
+/** `userId:eventId` pairs already confirmed as GM, so hopping between GM screens skips the request. */
+const confirmedGm = new Set<string>();
+
+/**
+ * Game Master of the `:eventId` route param. Goes after verifiedGuard.
+ * Others land on the event page; offline it lets through and the screen's own error state takes over
+ * (the server enforces GM rights on every call anyway).
+ */
+export const gmGuard: CanActivateFn = async (route) => {
+  const auth = inject(AuthService);
+  const api = inject(ApiService);
+  const router = inject(Router);
+  const toast = inject(ToastService);
+  await auth.init();
+  const eventId = route.paramMap.get('eventId');
+  const userId = auth.user()?.id;
+  if (!eventId || !userId) return router.createUrlTree(['/home']);
+  const key = `${userId}:${eventId}`;
+  if (confirmedGm.has(key)) return true;
+  try {
+    const event = await api.event(eventId);
+    if (event.isGm) {
+      confirmedGm.add(key);
+      return true;
+    }
+  } catch (err) {
+    const e = ApiError.from(err);
+    if (e.status === 404) return router.createUrlTree(['/events/mine']);
+    if (e.status !== 403) return true;
+  }
+  toast.warning($localize`This page is for the event's Game Masters`);
+  return router.createUrlTree(['/events', eventId]);
 };
 
 /** Only for signed-out visitors (welcome, login, sign-up). */
