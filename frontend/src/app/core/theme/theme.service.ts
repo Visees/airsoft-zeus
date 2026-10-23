@@ -2,11 +2,12 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { safeStorage } from '../util/storage';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type ThemePreference = 'system' | 'light' | 'dark' | 'classic';
 
 /**
  * Light/dark handling. Live game screens call setLiveMode(true): they go dark unless the
  * user explicitly chose light, because dark is easier on night vision and battery outdoors.
+ * 'classic' is dark with the neutral-gray palette (`.dark-classic` in styles.css).
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -18,10 +19,11 @@ export class ThemeService {
   readonly preference = signal<ThemePreference>(safeStorage.get<ThemePreference>('zeus.theme') ?? 'system');
   readonly isDark = computed(() => {
     const pref = this.preference();
-    if (pref === 'dark') return true;
+    if (pref === 'dark' || pref === 'classic') return true;
     if (pref === 'light') return false;
     return this.liveMode() || this.systemDark();
   });
+  readonly isClassic = computed(() => this.preference() === 'classic');
 
   constructor() {
     if (this.isBrowser && typeof matchMedia !== 'undefined') {
@@ -31,15 +33,22 @@ export class ThemeService {
     }
     effect(() => {
       const dark = this.isDark();
+      const classic = this.isClassic();
       this.doc.documentElement.classList.toggle('dark', dark);
+      this.doc.documentElement.classList.toggle('dark-classic', classic);
       const meta = this.doc.querySelector('meta[name="theme-color"]');
-      meta?.setAttribute('content', dark ? '#0e100f' : '#f2f2ec');
+      meta?.setAttribute('content', classic ? '#121212' : dark ? '#0e100f' : '#f2f2ec');
     });
   }
 
   setPreference(pref: ThemePreference): void {
     this.preference.set(pref);
     safeStorage.set('zeus.theme', pref);
+  }
+
+  /** Dark, keeping the classic palette if that is what the user picked. */
+  setDark(): void {
+    if (!this.isClassic()) this.setPreference('dark');
   }
 
   setLiveMode(on: boolean): void {

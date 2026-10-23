@@ -272,7 +272,7 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
       <section class="flex flex-col gap-2" aria-labelledby="theme-title">
         <h3 id="theme-title" class="label-caps" i18n>Display</h3>
         <div class="grid grid-cols-2 gap-2" role="group" aria-labelledby="theme-title">
-          <button hlmBtn [variant]="theme.isDark() ? 'default' : 'outline'" type="button" class="h-12" [attr.aria-pressed]="theme.isDark()" (click)="theme.setPreference('dark')">
+          <button hlmBtn [variant]="theme.isDark() ? 'default' : 'outline'" type="button" class="h-12" [attr.aria-pressed]="theme.isDark()" (click)="theme.setDark()">
             <ng-icon name="lucideMoon" size="18" aria-hidden="true" /> <ng-container i18n>Dark</ng-container>
           </button>
           <button hlmBtn [variant]="!theme.isDark() ? 'default' : 'outline'" type="button" class="h-12" [attr.aria-pressed]="!theme.isDark()" (click)="theme.setPreference('light')">

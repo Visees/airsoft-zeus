@@ -30,6 +30,10 @@ Implemented once in `frontend/src/styles.css` (CSS custom properties → Tailwin
 | destructive (red) | `#F0595C` | `#C42B2F` | danger, enemies, destructive actions only |
 | nav (cyan) | `#4FC7DD` | `#0B7A90` | own location, distance, navigation only |
 
+**Classic dark** (theme choice in Settings, `.dark-classic`): same accents, neutral-gray
+surfaces instead of green-tinted graphite: background `#121212`, card `#1E1E1E`, popover
+`#2A2A2A`, muted `#262626`, border `#333333`, muted-foreground `#A3A3A3`.
+
 Status is never colour alone: every status chip has a shape glyph + label
 (`●` online, `◐` stale, `○` offline, `▲` contested, `■` locked, `◆` captured).
 

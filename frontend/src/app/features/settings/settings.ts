@@ -54,7 +54,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
           <h2 id="set-appearance-h" class="label-caps" i18n>Appearance</h2>
           <fieldset class="mt-3">
             <legend class="sr-only" i18n>Theme</legend>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
               @for (t of themes; track t.value) {
                 <label class="flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-sm has-focus-visible:ring-2 has-focus-visible:ring-ring"
                   [class]="theme.preference() === t.value ? 'border-primary bg-primary/10 font-semibold text-foreground' : 'border-border text-muted-foreground hover:bg-muted'">
@@ -290,6 +290,7 @@ export class SettingsScreen implements OnInit {
     { value: 'system', label: $localize`System`, icon: 'lucideMonitor' },
     { value: 'light', label: $localize`Light`, icon: 'lucideSun' },
     { value: 'dark', label: $localize`Dark`, icon: 'lucideMoon' },
+    { value: 'classic', label: $localize`Classic dark`, icon: 'lucideMoonStar' },
   ];
 
   // --- permissions ---

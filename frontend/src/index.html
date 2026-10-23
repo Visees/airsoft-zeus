@@ -18,7 +18,8 @@
       try {
         var p = localStorage.getItem('zeus.theme');
         p = p ? JSON.parse(p) : 'system';
-        if (p === 'dark' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+        if (p === 'dark' || p === 'classic' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+        if (p === 'classic') document.documentElement.classList.add('dark-classic');
       } catch (e) {}
     </script>
   </head>

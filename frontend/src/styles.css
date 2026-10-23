@@ -125,6 +125,33 @@
   --sidebar-ring: #a4b465;
 }
 
+/* "Classic dark" theme choice: neutral grays instead of green-tinted graphite, with
+ * bigger steps between layers. Accents and signal colours stay as in dark. */
+:root.dark.dark-classic {
+  --background: #121212;
+  --foreground: #e6e6e6;
+  --card: #1e1e1e;
+  --card-foreground: #e6e6e6;
+  --popover: #2a2a2a;
+  --popover-foreground: #e6e6e6;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #e6e6e6;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #2e2e2e;
+  --accent-foreground: #e6e6e6;
+  --warning-surface: #2f2614;
+  --border: #333333;
+  --input: #474747;
+  --hud: rgb(30 30 30 / 0.92);
+
+  --sidebar: #181818;
+  --sidebar-foreground: #e6e6e6;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #e6e6e6;
+  --sidebar-border: #333333;
+}
+
 @theme inline {
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
