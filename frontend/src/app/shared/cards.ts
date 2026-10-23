@@ -78,11 +78,11 @@ import { TeamBadge } from './team-badge';
             · {{ e.meetingAddress }}
           }
         </p>
-        <div class="mt-auto flex items-center gap-3 text-xs text-muted-foreground">
-          <span class="inline-flex items-center gap-1"><ng-icon name="lucideUsers" size="13" aria-hidden="true" />
+        <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+          <span class="inline-flex items-center gap-1 whitespace-nowrap"><ng-icon name="lucideUsers" size="13" aria-hidden="true" />
             <ng-container i18n><span class="num">{{ e.approvedCount }}/{{ e.maxPlayers }}</span> players</ng-container></span>
           @if (e.teamCount) {
-            <span class="num" i18n>{{ e.teamCount }} teams</span>
+            <span class="num whitespace-nowrap" i18n>{{ e.teamCount }} teams</span>
           }
         </div>
       </div>

@@ -81,7 +81,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page pb-44 lg:pb-8" #root>
+    <div class="page pb-[calc(11rem+var(--safe-bottom))] lg:pb-8" #root>
       <zeus-page-header
         [title]="event()?.name || txt.createEvent"
         [eyebrow]="event() ? txt.eventSetup : txt.newEvent"

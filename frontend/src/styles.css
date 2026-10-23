@@ -151,6 +151,8 @@
     font-size: 1rem;
     line-height: 1.5;
     overflow-x: clip;
+    /* body clips sideways overflow, so a long URL, email or word must wrap instead of being cut off */
+    overflow-wrap: break-word;
   }
   h1,
   h2,
@@ -220,7 +222,8 @@
     max-width: 72rem;
     margin-inline: auto;
     padding-inline: 1rem;
-    padding-block: 1rem 6rem;
+    /* clears the phone tab bar (4rem) and, in the edge-to-edge app, the Android navigation bar below it */
+    padding-block: 1rem calc(6rem + var(--safe-bottom));
   }
   @media (min-width: 1024px) {
     .page {
@@ -233,7 +236,7 @@
     max-width: 40rem;
     margin-inline: auto;
     padding-inline: 1rem;
-    padding-block: 1rem 6rem;
+    padding-block: 1rem calc(6rem + var(--safe-bottom));
   }
   .field-error {
     font-size: 0.875rem;

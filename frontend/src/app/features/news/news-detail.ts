@@ -55,11 +55,11 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
           }
           @if (n.linkUrl) {
             @if (external(n.linkUrl)) {
-              <a hlmBtn [href]="n.linkUrl" target="_blank" rel="noopener noreferrer" class="h-12 self-start">
+              <a hlmBtn [href]="n.linkUrl" target="_blank" rel="noopener noreferrer" class="h-auto min-h-12 max-w-full self-start py-2 whitespace-normal">
                 {{ n.linkLabel || txt.openLink }} <ng-icon name="lucideExternalLink" size="16" aria-hidden="true" />
               </a>
             } @else {
-              <a hlmBtn [routerLink]="n.linkUrl" class="h-12 self-start">
+              <a hlmBtn [routerLink]="n.linkUrl" class="h-auto min-h-12 max-w-full self-start py-2 whitespace-normal">
                 {{ n.linkLabel || txt.open }} <ng-icon name="lucideArrowRight" size="16" aria-hidden="true" />
               </a>
             }

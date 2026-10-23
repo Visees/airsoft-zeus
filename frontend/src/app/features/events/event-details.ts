@@ -35,7 +35,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, ErrorState, PageHeader, StatusChip, TeamBadge, ConnectionStatus, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page" [class.max-lg:pb-40]="!!pinned()">
+    <div class="page" [class]="pinned() ? 'max-lg:pb-[calc(10rem+var(--safe-bottom))]' : ''">
       @if (loading() && !event()) {
         <div class="flex flex-col gap-4" role="status" aria-label="Loading event" i18n-aria-label>
           <div class="aspect-16/7 w-full animate-pulse rounded-md bg-muted"></div>

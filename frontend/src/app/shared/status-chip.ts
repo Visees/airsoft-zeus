@@ -23,7 +23,7 @@ const TONE_CLASSES: Record<ChipTone, string> = {
   selector: 'zeus-status-chip',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'hostClass()' },
-  template: `<span aria-hidden="true">{{ resolved().glyph }}</span><span>{{ resolved().label }}</span>`,
+  template: `<span aria-hidden="true">{{ resolved().glyph }}</span><span class="truncate">{{ resolved().label }}</span>`,
 })
 export class StatusChip {
   readonly spec = input<ChipSpec | null>(null);
@@ -34,7 +34,8 @@ export class StatusChip {
   protected readonly resolved = computed<ChipSpec>(() => this.spec() ?? { label: this.label(), glyph: this.glyph(), tone: this.tone() });
   protected readonly hostClass = computed(
     () =>
-      `inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap ${TONE_CLASSES[this.resolved().tone]}`,
+      // max-w-full + truncate: on a narrow screen or with a large system font the label ends in … instead of being cut
+      `inline-flex max-w-full items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap ${TONE_CLASSES[this.resolved().tone]}`,
   );
 }
 
