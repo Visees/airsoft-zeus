@@ -60,6 +60,11 @@
   --ring: #4a5a1f;
   --hud: rgb(255 255 255 / 0.92);
 
+  /* Logo artwork colours (app icon, splash); dark themes tint "hub" with the theme accent.
+   * Only the <zeus-logo> wordmark uses them. */
+  --logo-ink: #353e41;
+  --logo-accent: #ba1d21;
+
   --chart-1: #4a5a1f;
   --chart-2: #0b7a90;
   --chart-3: #8f5d09;
@@ -109,6 +114,9 @@
   --ring: #a4b465;
   --hud: rgb(14 16 15 / 0.9);
 
+  --logo-ink: #f0f2f3;
+  --logo-accent: var(--primary);
+
   --chart-1: #a4b465;
   --chart-2: #4fc7dd;
   --chart-3: #e6b04f;
@@ -126,8 +134,18 @@
 }
 
 /* "Classic dark" theme choice: neutral grays instead of green-tinted graphite, with
- * bigger steps between layers. Accents and signal colours stay as in dark. */
+ * bigger steps between layers, and the logo red as accent instead of olive.
+ * Other signal colours stay as in dark. */
 :root.dark.dark-classic {
+  --primary: #e8555a;
+  --primary-foreground: #1a0606;
+  --success: #e8555a;
+  --ring: #e8555a;
+  --chart-1: #e8555a;
+  --sidebar-primary: #e8555a;
+  --sidebar-primary-foreground: #1a0606;
+  --sidebar-ring: #e8555a;
+
   --background: #121212;
   --foreground: #e6e6e6;
   --card: #1e1e1e;

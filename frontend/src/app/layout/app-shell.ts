@@ -6,6 +6,7 @@ import { AuthService } from '../core/auth/auth.service';
 import { NotificationCenter } from '../core/notifications/notification-center.service';
 import { initials } from '../core/util/format';
 import { ConnectionStatus } from '../shared/link-status';
+import { Logo } from '../shared/logo';
 
 interface NavItem {
   label: string;
@@ -20,7 +21,7 @@ interface NavItem {
  */
 @Component({
   selector: 'zeus-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIcon, ConnectionStatus],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIcon, ConnectionStatus, Logo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-h-dvh lg:pl-60' },
   template: `
@@ -28,9 +29,8 @@ interface NavItem {
 
     <!-- Desktop rail -->
     <nav class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar lg:flex" aria-label="Main" i18n-aria-label>
-      <a routerLink="/home" class="flex items-center gap-2 px-5 py-5">
-        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">AH</span>
-        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
+      <a routerLink="/home" class="flex items-center px-5 py-6" aria-label="AirsoftHub home" i18n-aria-label>
+        <zeus-logo class="h-7" />
       </a>
       <ul class="flex flex-col gap-0.5 px-3">
         @for (item of items(); track item.link) {
@@ -95,9 +95,8 @@ interface NavItem {
       class="sticky top-0 z-20 flex h-[calc(3.5rem+var(--safe-top))] items-center gap-2 border-b border-border bg-background/95 backdrop-blur lg:hidden"
       style="padding-top: var(--safe-top); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right))"
     >
-      <a routerLink="/home" class="hit flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
-        <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">AH</span>
-        <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
+      <a routerLink="/home" class="hit flex items-center" aria-label="AirsoftHub home" i18n-aria-label>
+        <zeus-logo class="h-6" />
       </a>
       <span class="ml-auto"><zeus-connection-status [compact]="true" [showSync]="false" /></span>
       <a routerLink="/settings" class="tap grid place-items-center" aria-label="Settings" i18n-aria-label>

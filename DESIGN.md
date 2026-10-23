@@ -30,9 +30,10 @@ Implemented once in `frontend/src/styles.css` (CSS custom properties → Tailwin
 | destructive (red) | `#F0595C` | `#C42B2F` | danger, enemies, destructive actions only |
 | nav (cyan) | `#4FC7DD` | `#0B7A90` | own location, distance, navigation only |
 
-**Classic dark** (theme choice in Settings, `.dark-classic`): same accents, neutral-gray
-surfaces instead of green-tinted graphite: background `#121212`, card `#1E1E1E`, popover
-`#2A2A2A`, muted `#262626`, border `#333333`, muted-foreground `#A3A3A3`.
+**Classic dark** (theme choice in Settings, `.dark-classic`): neutral-gray surfaces instead
+of green-tinted graphite: background `#121212`, card `#1E1E1E`, popover `#2A2A2A`, muted
+`#262626`, border `#333333`, muted-foreground `#A3A3A3`. Primary is the logo red, lightened to
+`#E8555A` on `#1A0606` text, in place of olive; the other accents stay as in dark.
 
 Status is never colour alone: every status chip has a shape glyph + label
 (`●` online, `◐` stale, `○` offline, `▲` contested, `■` locked, `◆` captured).
@@ -74,7 +75,10 @@ Capture progress ring animates; nothing loops decoratively. All motion is disabl
 
 ## Rules
 
-* Red means danger or enemy. Never use it for decoration or brand.
+* Red means danger or enemy. Never use it for decoration or brand. The exceptions are the
+  logo and the classic dark theme, whose primary is red. Always render the logo with
+  `<zeus-logo>` (`shared/logo.ts`, traced from the app icon artwork, colours `--logo-ink` /
+  `--logo-accent`; in dark themes "hub" takes the theme primary), never as styled text.
 * Cyan means *you* / navigation. Never use it for buttons.
 * No camouflage, stencil fonts, neon, glows, gradients, or skull/weapon iconography.
 * Map first on live screens; panels are bottom sheets on phones, side panels on ≥1024px.
