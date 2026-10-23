@@ -68,6 +68,18 @@ const fromMl = (zoom: number) => zoom + 1;
 const DASHES = { solid: null, dash: [3, 2], dot: [0.6, 2] } as const;
 type Dash = keyof typeof DASHES;
 
+interface MarkerEntry {
+  marker: MlMarker;
+  el: HTMLElement;
+  sig: string;
+  /** Where the marker is drawn now, and where it is heading (the latest position). */
+  cur: LatLng;
+  to: LatLng;
+  /** When the latest position arrived (performance.now()). */
+  lastAt: number;
+  anim?: { from: LatLng; start: number; dur: number };
+}
+
 interface ShapeProps {
   zoneId: string | null;
   color: string;
@@ -268,7 +280,9 @@ export class TacticalMap {
   /** The MapLibre map (it stays alive when the schematic view is shown). */
   private map: MlMap | null = null;
   private engine: MapEngine | null = null;
-  private readonly markers = new Map<string, { marker: MlMarker; el: HTMLElement; sig: string }>();
+  private readonly markers = new Map<string, MarkerEntry>();
+  /** Frame loop that glides other players' markers between position updates. */
+  private markerAnim = 0;
   /** Game shapes (zones, rings, draft) and the own accuracy circle, re-added after a style change. */
   private shapeData: FeatureCollection<Geometry, ShapeProps> = { type: 'FeatureCollection', features: [] };
   private selfData: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -380,7 +394,10 @@ export class TacticalMap {
     });
 
     this.destroyRef.onDestroy(() => {
-      if (this.isBrowser) cancelAnimationFrame(this.selfAnim);
+      if (this.isBrowser) {
+        cancelAnimationFrame(this.selfAnim);
+        cancelAnimationFrame(this.markerAnim);
+      }
       this.markers.forEach((m) => m.marker.remove());
       this.map?.remove();
     });
@@ -672,6 +689,40 @@ export class TacticalMap {
     if (this.styleReady) (this.map?.getSource('zeus-self') as GeoJSONSource | undefined)?.setData(this.selfData);
   }
 
+  /**
+   * Move a player's marker to a new position over the time since its previous update, so a
+   * player seen every few seconds walks across the map instead of jumping. Large jumps and
+   * reduced motion skip the glide.
+   */
+  private glideMarker(m: MarkerEntry, to: LatLng): void {
+    const now = performance.now();
+    if (Math.abs(to.lat - m.to.lat) < 1e-7 && Math.abs(to.lng - m.to.lng) < 1e-7) return;
+    const gap = now - m.lastAt;
+    m.lastAt = now;
+    m.to = to;
+    if (!this.isBrowser || distanceM(m.cur, to) > 150 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      m.anim = undefined;
+      m.cur = to;
+      m.marker.setLngLat([to.lng, to.lat]);
+      return;
+    }
+    m.anim = { from: m.cur, start: now, dur: Math.min(3000, Math.max(300, gap)) };
+    if (!this.markerAnim) this.markerAnim = requestAnimationFrame((t) => this.stepMarkers(t));
+  }
+
+  private stepMarkers(now: number): void {
+    let moving = false;
+    for (const m of this.markers.values()) {
+      if (!m.anim) continue;
+      const t = Math.min(1, (now - m.anim.start) / m.anim.dur);
+      m.cur = { lat: m.anim.from.lat + (m.to.lat - m.anim.from.lat) * t, lng: m.anim.from.lng + (m.to.lng - m.anim.from.lng) * t };
+      m.marker.setLngLat([m.cur.lng, m.cur.lat]);
+      if (t < 1) moving = true;
+      else m.anim = undefined;
+    }
+    this.markerAnim = moving ? requestAnimationFrame((t) => this.stepMarkers(t)) : 0;
+  }
+
   private syncMap(d: {
     objectives: Objective[];
     pois: Poi[];
@@ -697,12 +748,17 @@ export class TacticalMap {
       pos: LatLng,
       sig: string,
       build: () => HTMLElement,
-      opts: { z: number; onClick?: () => void; draggable?: boolean; onDragEnd?: (p: LatLng) => void },
+      opts: { z: number; onClick?: () => void; draggable?: boolean; onDragEnd?: (p: LatLng) => void; glide?: boolean },
     ) => {
       seenM.add(key);
       const existing = this.markers.get(key);
       if (existing) {
-        existing.marker.setLngLat([pos.lng, pos.lat]);
+        if (opts.glide) this.glideMarker(existing, pos);
+        else {
+          existing.anim = undefined;
+          existing.cur = pos;
+          existing.marker.setLngLat([pos.lng, pos.lat]);
+        }
         if (existing.sig !== sig) {
           setMarkerContent(existing.el, build());
           existing.sig = sig;
@@ -728,7 +784,7 @@ export class TacticalMap {
           opts.onDragEnd!({ lat: p.lat, lng: p.lng });
         });
       }
-      this.markers.set(key, { marker, el, sig });
+      this.markers.set(key, { marker, el, sig, cur: pos, to: pos, lastAt: performance.now() });
     };
 
     const shape = (geometry: Geometry, p: Partial<ShapeProps> & { color: string }) =>
@@ -798,6 +854,7 @@ export class TacticalMap {
       upsertMarker(key, { lat: pos.lat, lng: pos.lng }, sig, () => playerMarker(pos, team, { selected, showLabel: d.labels }), {
         z: pos.kind === 'ally' ? 500 : 450,
         onClick: () => this.playerClick.emit(this.positions().find((x) => x.userId === pos.userId && x.kind === pos.kind) ?? pos),
+        glide: true,
       });
       if (pos.radiusM && pos.radiusM > 0) {
         const color = pos.kind === 'ally' ? (team?.color ?? '#888') : cssVar('--destructive');

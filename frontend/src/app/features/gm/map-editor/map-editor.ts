@@ -332,6 +332,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             [editable]="dragEnabled()"
             [draft]="draft()"
             [fitKey]="fitKey()"
+            [shapesClickable]="!placing()"
             (mapClick)="onMapClick($event)"
             (objectiveClick)="onObjectiveClick($event)"
             (poiClick)="onPoiClick($event)"
@@ -1070,7 +1071,8 @@ export class MapEditorScreen implements OnInit {
     let zs = this.zones().filter((z) => z.id !== editing);
     if (!L.zones) zs = zs.filter((z) => z.kind === 'label' || z.geometry === 'point');
     if (!L.labels) zs = zs.filter((z) => z.kind !== 'label' && z.geometry !== 'point');
-    // While placing, filled shapes would swallow taps on the Google map: draw them as outlines.
+    // While placing, shapes are outlines (the ground under them stays visible) and taps on them
+    // reach the map (shapesClickable is off), so corners can sit on an existing border.
     if (this.placing()) zs = zs.map(outlineZone);
     return zs;
   });
