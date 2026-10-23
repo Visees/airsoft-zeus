@@ -193,7 +193,7 @@ New APK:
 cd frontend
 npx cap sync
 # raise versionCode (and versionName) in android/app/build.gradle
-cd android; .\gradlew assembleRelease     # → app/build/outputs/apk/release/app-release.apk
+cd android; .\gradlew assembleRelease     # → app/build/outputs/apk/release/airsofthub-<versionName>-release.apk
 ```
 
 Players install it over the old one (same signing key, higher versionCode). The release key is
