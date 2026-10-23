@@ -328,6 +328,19 @@ run('API end-to-end', () => {
     expect((await alpha.post(`/events/${eventId}/members/${gmId}/assign`, { teamId: alphaTeam })).status).toBe(403);
   });
 
+  it('stores Web Push subscriptions and native app FCM tokens per user, and removes them', async () => {
+    const token = `fcm-${tx()}:APA91b-test`;
+    expect((await alpha.post('/me/push-subscriptions', { fcmToken: token })).status).toBe(200);
+    expect((await alpha.post('/me/push-subscriptions', { fcmToken: 'bad token!' })).status).toBe(400);
+    // The same device signing in as someone else moves the token to them.
+    expect((await alpha2.post('/me/push-subscriptions', { fcmToken: token })).status).toBe(200);
+    const endpoints = async (c: Client) => ((await c.get('/me/export')).body.pushSubscriptions as Json[]).map((s) => s.endpoint);
+    expect(await endpoints(alpha)).not.toContain(token);
+    expect(await endpoints(alpha2)).toContain(token);
+    expect((await alpha2.call('DELETE', '/me/push-subscriptions', { endpoint: token })).status).toBe(200);
+    expect(await endpoints(alpha2)).not.toContain(token);
+  });
+
   it('keeps support conversations private between the author and the admins', async () => {
     const created = await alpha.post('/support', { category: 'bug', subject: 'E2E map does not load', body: 'Steps: open the lobby.', context: { page: '/home' } });
     expect(created.status, JSON.stringify(created.body)).toBe(201);

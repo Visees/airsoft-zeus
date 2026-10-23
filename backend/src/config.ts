@@ -32,6 +32,8 @@ const schema = z.object({
   VAPID_PUBLIC_KEY: z.string().default(''),
   VAPID_PRIVATE_KEY: z.string().default(''),
   VAPID_SUBJECT: z.string().default('mailto:admin@localhost'),
+  /** Firebase service account key (the JSON, or the JSON base64-encoded) for push in the native apps. */
+  FCM_SERVICE_ACCOUNT: z.string().default(''),
 
   UPLOAD_DIR: z.string().default('./uploads'),
   MAX_UPLOAD_BYTES: z.coerce.number().int().default(5 * 1024 * 1024),

@@ -5,6 +5,7 @@ import { AppConfig } from './models';
 const FALLBACK: AppConfig = {
   esriApiKey: '',
   vapidPublicKey: null,
+  nativePush: false,
   termsVersion: '2026-10',
   privacyVersion: '2026-10',
   maxUploadBytes: 5 * 1024 * 1024,

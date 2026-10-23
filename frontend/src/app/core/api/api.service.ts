@@ -176,9 +176,11 @@ export class ApiService {
   markNotificationsRead(ids: Uuid[] | 'all') {
     return this.post<{ ok: true }>('/me/notifications/read', ids === 'all' ? { all: true } : { ids });
   }
-  savePushSubscription(subscription: PushSubscriptionJSON) {
+  /** A browser's Web Push subscription, or the native app's FCM token. */
+  savePushSubscription(subscription: PushSubscriptionJSON | { fcmToken: string }) {
     return this.post<{ ok: true }>('/me/push-subscriptions', subscription);
   }
+  /** `endpoint`: the Web Push endpoint, or the FCM token. */
   deletePushSubscription(endpoint: string) {
     return this.delete<{ ok: true }>('/me/push-subscriptions', { endpoint });
   }

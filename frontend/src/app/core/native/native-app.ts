@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 import type { GeolocationPlugin } from '@capacitor/geolocation';
+import type { PushNotificationsPlugin } from '@capacitor/push-notifications';
 
 /**
  * The Android and iOS apps are a Capacitor shell that loads this site (see capacitor.config.ts).
@@ -16,6 +17,22 @@ export function isNativeApp(): boolean {
   );
 }
 
+type CapacitorGlobal = { isPluginAvailable?: (name: string) => boolean; getPlatform?: () => string };
+
+/**
+ * Whether the installed app has a native plugin. The site updates without a store build, so it can
+ * be newer than the app on the phone: an older app lacks plugins added since.
+ */
+export function nativePluginAvailable(name: string): boolean {
+  if (!isNativeApp()) return false;
+  return (window as { Capacitor?: CapacitorGlobal }).Capacitor?.isPluginAvailable?.(name) === true;
+}
+
+export function nativePlatform(): 'android' | 'ios' | 'web' {
+  if (!isNativeApp()) return 'web';
+  return ((window as { Capacitor?: CapacitorGlobal }).Capacitor?.getPlatform?.() as 'android' | 'ios' | undefined) ?? 'web';
+}
+
 /*
  * A plugin is a proxy that sends every property to the native side, `then` included, so it must
  * never be what a promise resolves to: the promise would call `plugin.then()`, which fails with
@@ -24,6 +41,7 @@ export function isNativeApp(): boolean {
 let bgGeo: Promise<{ plugin: BackgroundGeolocationPlugin }> | null = null;
 let geo: Promise<{ plugin: GeolocationPlugin }> | null = null;
 let core: Promise<typeof import('@capacitor/core')> | null = null;
+let push: Promise<{ plugin: PushNotificationsPlugin }> | null = null;
 
 /*
  * Each module is imported once and the promise kept. About a minute after the screen turns off the
@@ -46,6 +64,19 @@ function backgroundGeolocation(): Promise<{ plugin: BackgroundGeolocationPlugin 
 function nativeGeolocation(): Promise<{ plugin: GeolocationPlugin }> {
   geo ??= import('@capacitor/geolocation').then((m) => ({ plugin: m.Geolocation }));
   return geo;
+}
+
+/** Push through Firebase Cloud Messaging (see PushService), injectable so tests can replace it. */
+@Injectable({ providedIn: 'root' })
+export class NativePush {
+  /** False in an app installed before push was added: it keeps the old behaviour (unsupported). */
+  readonly available = nativePluginAvailable('PushNotifications');
+  readonly android = nativePlatform() === 'android';
+
+  plugin(): Promise<{ plugin: PushNotificationsPlugin }> {
+    push ??= import('@capacitor/push-notifications').then((m) => ({ plugin: m.PushNotifications }));
+    return push;
+  }
 }
 
 /** The app's location plugins, injectable so tests can replace them. */

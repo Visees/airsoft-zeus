@@ -64,6 +64,8 @@ export interface AppConfig {
   /** ArcGIS Location Platform key for satellite imagery; '' hides the satellite map. */
   esriApiKey: string;
   vapidPublicKey: string | null;
+  /** The server can send push to the native apps (FCM configured). */
+  nativePush: boolean;
   termsVersion: string;
   privacyVersion: string;
   maxUploadBytes: number;

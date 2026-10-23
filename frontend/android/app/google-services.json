@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "243389470858",
+    "project_id": "airsofthub-ed569",
+    "storage_bucket": "airsofthub-ed569.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243389470858:android:f09d01badb4d9ac9997573",
+        "android_client_info": {
+          "package_name": "app.airsofthub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjJk4-t9voY7x5AOoA-2Vje0e6nCCAqK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

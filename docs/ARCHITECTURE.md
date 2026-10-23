@@ -32,7 +32,7 @@
 | `src/domain/perks.ts` | Store availability, purchase, approval, activation per perk type, cancel/refund, expiry. |
 | `src/domain/lifecycle.ts` | Event state machine and its side effects (start balances, pause clock, end game, stats, badges). |
 | `src/domain/tick.ts` | Engine heartbeat: recurring rewards, effect expiry, time windows, presence decay, disconnect alerts, auto-end, "starting soon", retention. |
-| `src/domain/journal.ts` | Activity feed, GM alerts, audit log, notifications (DB + socket + Web Push) — emitted after commit. |
+| `src/domain/journal.ts` | Activity feed, GM alerts, audit log, notifications (DB + socket + Web Push / FCM for the apps, `push.ts`) — emitted after commit. |
 | `src/realtime/hub.ts` | Socket.IO: auth, rooms, filtered emits, positions broadcaster. |
 | `src/routes/*` | HTTP API (contract: `frontend/src/app/core/api/models.ts` + `api.service.ts`). |
 

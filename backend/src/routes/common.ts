@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { requireFeature } from '../auth/features.js';
 import { currentUser, requireVerified } from '../auth/middleware.js';
 import { config } from '../config.js';
+import { fcmEnabled } from '../fcm.js';
 import { many, one } from '../db.js';
 import { badRequest, forbidden, notFound } from '../errors.js';
 import { randomToken } from '../lib/ids.js';
@@ -23,6 +24,7 @@ commonRouter.get('/config', (_req, res) => {
   res.json({
     esriApiKey: config.ESRI_API_KEY,
     vapidPublicKey: config.VAPID_PUBLIC_KEY || null,
+    nativePush: fcmEnabled,
     termsVersion: config.TERMS_VERSION,
     privacyVersion: config.PRIVACY_VERSION,
     maxUploadBytes: config.MAX_UPLOAD_BYTES,

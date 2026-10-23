@@ -267,14 +267,19 @@ meRouter.post('/notifications/read', requireAuth, async (req, res) => {
 
 meRouter.post('/push-subscriptions', requireAuth, async (req, res) => {
   const me = currentUser(req);
+  // A browser sends its Web Push subscription; the native apps send their FCM token.
   const b = body(
     req,
-    z.object({ endpoint: z.string().url().max(1000).startsWith('https://'), keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(100) }) }),
+    z.union([
+      z.object({ endpoint: z.string().url().max(1000).startsWith('https://'), keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(100) }) }),
+      z.object({ fcmToken: z.string().min(20).max(1000).regex(/^[\w:.-]+$/) }),
+    ]),
   );
+  const [kind, endpoint, p256dh, auth] = 'fcmToken' in b ? ['fcm', b.fcmToken, null, null] : ['web', b.endpoint, b.keys.p256dh, b.keys.auth];
   await one(
-    `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent) VALUES ($1,$2,$3,$4,$5)
-     ON CONFLICT (endpoint) DO UPDATE SET user_id = EXCLUDED.user_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth RETURNING id`,
-    [me.id, b.endpoint, b.keys.p256dh, b.keys.auth, req.get('user-agent')?.slice(0, 300) ?? null],
+    `INSERT INTO push_subscriptions (user_id, kind, endpoint, p256dh, auth, user_agent) VALUES ($1,$2,$3,$4,$5,$6)
+     ON CONFLICT (endpoint) DO UPDATE SET user_id = EXCLUDED.user_id, kind = EXCLUDED.kind, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth RETURNING id`,
+    [me.id, kind, endpoint, p256dh, auth, req.get('user-agent')?.slice(0, 300) ?? null],
   );
   res.json({ ok: true });
 });

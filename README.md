@@ -85,7 +85,7 @@ cd frontend && npx ng build                 # production build incl. SSR server
    `POSTGRES_PASSWORD`, `JWT_SECRET` (≥ 32 random chars: `openssl rand -base64 48`).
    Strongly recommended: SMTP settings on port 587 (Brevo, Resend, Mailjet…; port 25 is
    blocked on Oracle/AWS), `VAPID_*` keys (`npx web-push generate-vapid-keys`) for push
-   notifications. Optional: `ESRI_API_KEY` (free ArcGIS Location Platform key, restricted to
+   notifications, `FCM_SERVICE_ACCOUNT` for push in the apps (see below). Optional: `ESRI_API_KEY` (free ArcGIS Location Platform key, restricted to
    your domain) adds the satellite map; the topographic map needs no key. Keep
    `SEED_DEMO_DATA=false`.
 4. Enable **auto-deploy on push**.
@@ -129,8 +129,28 @@ which Android doesn't throttle in the background. It does so only when the event
 setting "Background tracking" is on (default); otherwise the app keeps the screen awake like
 the browser. Files to download open the share sheet. No backend change was needed.
 
-Not in the app yet: push notifications (WebViews have no Web Push; needs FCM/APNs and a
-backend sender) and printing QR codes from the objective editor (GMs use the website).
+Push in the app: the WebView has no Web Push, so the app registers a Firebase Cloud Messaging
+token (`@capacitor/push-notifications`) and the API sends to it through the FCM HTTP API
+(`backend/src/fcm.ts`, no Firebase SDK on the server). Firebase is used only to deliver
+notifications. Setup, once:
+
+1. [Firebase console](https://console.firebase.google.com): a project with an Android app
+   `app.airsofthub`. Its `google-services.json` is committed in `frontend/android/app/` (no
+   secrets in it); without it the build has no push. Not needed: SHA-1, Analytics, the Gradle
+   snippets (the Capacitor project already applies the plugin when the file exists).
+2. Project settings → Service accounts → Generate new private key. Keep the file out of git; put
+   it base64-encoded in Coolify as `FCM_SERVICE_ACCOUNT`
+   (`[Convert]::ToBase64String([IO.File]::ReadAllBytes("key.json"))` in PowerShell). The API
+   config then reports `nativePush: true` and the app offers push.
+3. iOS (later): an APNs key from the Apple Developer account uploaded to Firebase (Project
+   settings → Cloud Messaging), the Push Notifications capability in Xcode, and
+   `GoogleService-Info.plist`.
+
+Android channels (created by the app; users can tune them in the phone's settings):
+`emergency` (GM emergencies), `alerts` (game start/pause, objectives, perks), `general`.
+As on the web, the API pushes only to users without an open socket, except emergencies.
+
+Not in the app yet: printing QR codes from the objective editor (GMs use the website).
 
 Build (from `frontend/`):
 

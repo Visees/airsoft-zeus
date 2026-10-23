@@ -1,12 +1,12 @@
 # Build progress / handoff
 
-Last update: 2026-10-23 — Free topographic map (MapLibre) replaces Google Maps.
+Last update: 2026-10-23 — Push notifications in the native apps (FCM).
 
 ## Stack (decided)
 
 Angular 22 + Tailwind 4 + Spartan UI (frontend, SSR server proxies `/api` and `/socket.io`),
 Express 5 + TypeScript + PostgreSQL + Socket.IO (backend), Docker Compose for Coolify.
-No Flutter, no Firebase. Node 24 needed locally for the Angular CLI (`fnm install 24`).
+No Flutter; Firebase only for push delivery in the apps (FCM). Node 24 needed locally for the Angular CLI (`fnm install 24`).
 
 ## Done
 
@@ -310,6 +310,27 @@ and the notes below.
 * `APP_URL` defaults to the production site https://airsoftzeus.visedev.it. The app runs the
   deployed frontend, so the native code works only once this frontend is deployed. App id
   `app.airsofthub` (not final until published). Icons/splash are Capacitor defaults.
-* Not done: native push (FCM/APNs; Web Push doesn't exist in WebViews, the app shows push as
-  unsupported), QR print window in the app, Italian Info.plist texts. Not yet built or run on a
+* Not done: QR print window in the app, Italian Info.plist texts. Not yet built or run on a
   device (no Android SDK on the dev machine; iOS needs a Mac).
+
+## Push in the native apps (2026-10-23)
+
+* The WebView has no Web Push, so the app uses Firebase Cloud Messaging: `PushService` has a
+  native branch (`@capacitor/push-notifications` via `NativePush` in `native-app.ts`) that asks
+  permission, registers, saves the FCM token through the same `/me/push-subscriptions` route
+  (`{ fcmToken }`), and opens the notification's `url` on tap. Settings, onboarding and the lobby
+  checklist work unchanged. An app installed before this has no plugin and keeps showing push as
+  unsupported.
+* Backend: migration `0008-native-push.sql` (`push_subscriptions.kind` web|fcm, the token in
+  `endpoint`), `backend/src/fcm.ts` sends through the FCM HTTP v1 API with a service-account JWT
+  (no firebase-admin); `sendPush` sends to both kinds and drops unregistered tokens.
+  `FCM_SERVICE_ACCOUNT` (JSON or base64) turns it on; `/api/config` reports `nativePush`.
+* Android: channels `emergency` / `alerts` / `general` (priority emergency / high / normal),
+  notification icon `ic_stat_notify`, `POST_NOTIFICATIONS`, `google-services.json` committed.
+* "Turn off on this device" now sticks (localStorage `push-off`): before, the next start
+  subscribed again because the permission was still granted. Same on the web.
+* Tests: `test/fcm.test.ts` (message format, auth, dead tokens), an e2e test for tokens,
+  `push.service.native.spec.ts`.
+* To do: build an APK and test on a phone (notification with the app closed and with the screen
+  off during a game, tap navigation, channel sounds); set `FCM_SERVICE_ACCOUNT` in Coolify; iOS
+  (APNs key, capability, `GoogleService-Info.plist`).
