@@ -19,7 +19,7 @@ type StatusFilter = SupportStatus | 'all';
 
 /** Every support conversation, filtered by status. */
 @Component({
-  selector: 'zeus-admin-tickets',
+  selector: 'ah-admin-tickets',
   imports: [HlmButton, LoadingSkeleton, EmptyState, ErrorState, SupportTicketCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -38,15 +38,15 @@ type StatusFilter = SupportStatus | 'all';
     </div>
 
     @if (loading()) {
-      <zeus-loading-skeleton [rows]="4" />
+      <ah-loading-skeleton [rows]="4" />
     } @else if (error() && !items().length) {
-      <zeus-error-state [error]="error()" (retry)="load()" />
+      <ah-error-state [error]="error()" (retry)="load()" />
     } @else if (!items().length) {
-      <zeus-empty-state icon="lucideLifeBuoy" title="Nothing here" [message]="status() === 'open' ? txt.noConversationIsWaiting : txt.noConversationsWithThis" i18n-title />
+      <ah-empty-state icon="lucideLifeBuoy" title="Nothing here" [message]="status() === 'open' ? txt.noConversationIsWaiting : txt.noConversationsWithThis" i18n-title />
     } @else {
       <ul class="flex flex-col gap-2" aria-label="Conversations" i18n-aria-label>
         @for (t of items(); track t.id) {
-          <li><zeus-support-ticket-card [ticket]="t" [admin]="true" /></li>
+          <li><ah-support-ticket-card [ticket]="t" [admin]="true" /></li>
         }
       </ul>
       @if (nextCursor()) {
@@ -136,23 +136,23 @@ export class AdminTickets {
 
 /** All News, drafts and scheduled posts included. */
 @Component({
-  selector: 'zeus-admin-news',
+  selector: 'ah-admin-news',
   imports: [RouterLink, HlmButton, LoadingSkeleton, EmptyState, ErrorState, NewsCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     @if (loading()) {
-      <zeus-loading-skeleton [rows]="5" />
+      <ah-loading-skeleton [rows]="5" />
     } @else if (error() && !items().length) {
-      <zeus-error-state [error]="error()" (retry)="load()" />
+      <ah-error-state [error]="error()" (retry)="load()" />
     } @else if (!items().length) {
-      <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Published news shows up on everyone's home page." i18n-title i18n-message>
+      <ah-empty-state icon="lucideNewspaper" title="No news yet" message="Published news shows up on everyone's home page." i18n-title i18n-message>
         <a hlmBtn routerLink="/news/new/edit" class="h-11" i18n>Write the first one</a>
-      </zeus-empty-state>
+      </ah-empty-state>
     } @else {
       <ul class="flex flex-col gap-2" aria-label="News" i18n-aria-label>
         @for (n of items(); track n.id) {
-          <li><zeus-news-card [news]="n" /></li>
+          <li><ah-news-card [news]="n" /></li>
         }
       </ul>
       @if (nextCursor()) {
@@ -218,7 +218,7 @@ export class AdminNews {
 
 /** Every account: search, filters, link to the user page where features are switched on or off. */
 @Component({
-  selector: 'zeus-admin-users',
+  selector: 'ah-admin-users',
   imports: [RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, StatusChip, Avatar, LoadingSkeleton, EmptyState, ErrorState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -241,28 +241,28 @@ export class AdminNews {
     </div>
 
     @if (loading()) {
-      <zeus-loading-skeleton [rows]="5" [avatar]="true" />
+      <ah-loading-skeleton [rows]="5" [avatar]="true" />
     } @else if (error() && !items().length) {
-      <zeus-error-state [error]="error()" (retry)="load()" />
+      <ah-error-state [error]="error()" (retry)="load()" />
     } @else if (!items().length) {
-      <zeus-empty-state icon="lucideUsers" title="No users found" message="Try another search or filter." i18n-title i18n-message />
+      <ah-empty-state icon="lucideUsers" title="No users found" message="Try another search or filter." i18n-title i18n-message />
     } @else {
       <ul class="panel divide-y divide-border" aria-label="Users" i18n-aria-label>
         @for (u of items(); track u.id) {
           <li>
             <a [routerLink]="['/admin/users', u.id]" class="flex min-h-16 items-center gap-3 px-3 py-2.5 hover:bg-muted/60">
-              <zeus-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="40" />
+              <ah-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="40" />
               <span class="min-w-0 flex-1">
                 <span class="flex flex-wrap items-center gap-1.5">
                   <span class="truncate font-semibold">{{ u.nickname }}</span>
                   @if (u.isAdmin) {
-                    <zeus-status-chip [label]="txt.admin" glyph="★" tone="primary" />
+                    <ah-status-chip [label]="txt.admin" glyph="★" tone="primary" />
                   }
                   @if (u.customAccess) {
-                    <zeus-status-chip [label]="txt.customAccess" glyph="◆" tone="nav" />
+                    <ah-status-chip [label]="txt.customAccess" glyph="◆" tone="nav" />
                   }
                   @if (!u.emailVerified) {
-                    <zeus-status-chip [label]="txt.unverified" glyph="!" tone="warning" />
+                    <ah-status-chip [label]="txt.unverified" glyph="!" tone="warning" />
                   }
                 </span>
                 <span class="block truncate text-sm text-muted-foreground">{{ u.email }}</span>
@@ -384,14 +384,14 @@ export class AdminUsers {
  * the home page and every user account. Route: /admin/:tab (tickets | news | users), behind adminGuard.
  */
 @Component({
-  selector: 'zeus-admin-dashboard-screen',
+  selector: 'ah-admin-dashboard-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, AdminTickets, AdminNews, AdminUsers],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Admin" subtitle="Support conversations, the News on the home page and every user account." back="/profile" i18n-title i18n-subtitle>
+      <ah-page-header title="Admin" subtitle="Support conversations, the News on the home page and every user account." back="/profile" i18n-title i18n-subtitle>
         <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Write news</ng-container></a>
-      </zeus-page-header>
+      </ah-page-header>
 
       <dl class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Summary" i18n-aria-label>
         @for (t of tiles(); track t.label) {
@@ -415,11 +415,11 @@ export class AdminUsers {
       </nav>
 
       @if (current() === 'news') {
-        <zeus-admin-news />
+        <ah-admin-news />
       } @else if (current() === 'users') {
-        <zeus-admin-users />
+        <ah-admin-users />
       } @else {
-        <zeus-admin-tickets [overview]="overview()" />
+        <ah-admin-tickets [overview]="overview()" />
       }
     </div>
   `,

@@ -259,7 +259,7 @@ export class LiveStore {
   }
 
   private cacheKey(eventId: Uuid): string {
-    return `zeus.live.${this.auth.user()?.id ?? 'anon'}.${eventId}`;
+    return `airsofthub.live.${this.auth.user()?.id ?? 'anon'}.${eventId}`;
   }
 }
 

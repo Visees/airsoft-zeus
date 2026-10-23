@@ -14,11 +14,11 @@ type Step = 'location' | 'notifications';
 
 /** Onboarding step 2: location and notifications, each skippable. */
 @Component({
-  selector: 'zeus-permissions-screen',
+  selector: 'ah-permissions-screen',
   imports: [AuthLayout, NgIcon, HlmButton, PermissionChip, PermissionHelp],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout [center]="false">
+    <ah-auth-layout [center]="false">
       <div class="flex items-center justify-between gap-3">
         <p class="label-caps"><ng-container i18n>Set up · step <span class="num">{{ stepIndex() + 1 }}</span> of</ng-container>&ngsp;<span class="num">2</span></p>
         <div class="flex gap-1" aria-hidden="true">
@@ -41,10 +41,10 @@ type Step = 'location' | 'notifications';
           </ul>
           <div class="flex items-center justify-between gap-3">
             <span class="text-sm text-muted-foreground" i18n>Browser permission</span>
-            <zeus-permission-chip [state]="locationState()" />
+            <ah-permission-chip [state]="locationState()" />
           </div>
           @if (locationState() === 'denied') {
-            <zeus-permission-help kind="location" />
+            <ah-permission-help kind="location" />
           }
           @if (locationState() === 'unsupported') {
             <p class="text-sm text-muted-foreground" i18n>This browser cannot share location. Use Chrome or Safari on your phone to play.</p>
@@ -64,10 +64,10 @@ type Step = 'location' | 'notifications';
           </ul>
           <div class="flex items-center justify-between gap-3">
             <span class="text-sm text-muted-foreground" i18n>Browser permission</span>
-            <zeus-permission-chip [state]="notifState()" />
+            <ah-permission-chip [state]="notifState()" />
           </div>
           @if (notifState() === 'denied') {
-            <zeus-permission-help kind="notifications" />
+            <ah-permission-help kind="notifications" />
           }
           @if (notifState() === 'unsupported') {
             <p class="text-sm text-muted-foreground" i18n>
@@ -100,7 +100,7 @@ type Step = 'location' | 'notifications';
           <button hlmBtn type="button" variant="link" class="h-11" (click)="step.set('location')" i18n>Back to location</button>
         }
       </div>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class PermissionsScreen implements OnInit {

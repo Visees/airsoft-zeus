@@ -9,7 +9,7 @@ let nextId = 0;
  * The state is shown by knob position and an On/Off text, not by colour alone.
  */
 @Component({
-  selector: 'zeus-switch-row',
+  selector: 'ah-switch-row',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SwitchRow), multi: true }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

@@ -5,7 +5,7 @@ import { PLAYER_ROLE_LABELS, formatDate, formatNumber, initials } from '../../co
 
 /** Round avatar with initials fallback. */
 @Component({
-  selector: 'zeus-avatar',
+  selector: 'ah-avatar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-block shrink-0' },
   template: `
@@ -42,7 +42,7 @@ export function winRate(stats: PlayerStats): number | null {
 
 /** Stat tiles: games, captures, points, wins, win rate. */
 @Component({
-  selector: 'zeus-stat-tiles',
+  selector: 'ah-stat-tiles',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -76,7 +76,7 @@ export class StatTiles {
 
 /** Badges grid with descriptions. */
 @Component({
-  selector: 'zeus-badge-grid',
+  selector: 'ah-badge-grid',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

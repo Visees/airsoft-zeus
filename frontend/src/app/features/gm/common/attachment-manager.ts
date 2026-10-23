@@ -24,7 +24,7 @@ let nextKey = 0;
  * the parent calls `uploadPending(eventId)`.
  */
 @Component({
-  selector: 'zeus-attachment-manager',
+  selector: 'ah-attachment-manager',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

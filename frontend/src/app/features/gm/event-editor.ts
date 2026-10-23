@@ -38,7 +38,7 @@ interface NavCard {
 }
 
 @Component({
-  selector: 'zeus-event-editor-screen',
+  selector: 'ah-event-editor-screen',
   imports: [
     ReactiveFormsModule,
     NgTemplateOutlet,
@@ -63,15 +63,15 @@ interface NavCard {
   template: `
     <div class="page" #root>
       @if (loading() && !event()) {
-        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
-        <zeus-loading-skeleton [rows]="6" />
+        <ah-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
+        <ah-loading-skeleton [rows]="6" />
       } @else if (loadError(); as err) {
-        <zeus-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="err" (retry)="load()" />
+        <ah-page-header title="Event editor" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
+        <ah-error-state [error]="err" (retry)="load()" />
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" eyebrow="Event editor" back="/events/mine" backLabel="My events" [subtitle]="subtitle()" i18n-eyebrow i18n-backLabel>
-          <zeus-status-chip [spec]="chip()" />
-        </zeus-page-header>
+        <ah-page-header [title]="e.name" eyebrow="Event editor" back="/events/mine" backLabel="My events" [subtitle]="subtitle()" i18n-eyebrow i18n-backLabel>
+          <ah-status-chip [spec]="chip()" />
+        </ah-page-header>
 
         <!-- Lifecycle -->
         <section class="mb-4 flex flex-wrap items-center gap-2" aria-label="Event status actions" i18n-aria-label>
@@ -128,7 +128,7 @@ interface NavCard {
             </div>
 
             <div hlmTabsContent="basics" class="pt-3">
-              <zeus-event-basics-form [form]="basicsForm" [showRegistration]="false" />
+              <ah-event-basics-form [form]="basicsForm" [showRegistration]="false" />
               <ng-container *ngTemplateOutlet="saveBar; context: { section: 'basics' }" />
             </div>
 
@@ -137,11 +137,11 @@ interface NavCard {
                 <fieldset class="panel flex flex-col gap-3 p-4">
                   <legend class="label-caps float-left mb-1 w-full" i18n>Who can join</legend>
                   <span hlmLabel id="reg-vis-l" i18n>Visibility</span>
-                  <zeus-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="reg-vis-l" stacked />
+                  <ah-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="reg-vis-l" stacked />
                   <div class="divide-y divide-border">
-                    <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits for your approval in Players." i18n-label i18n-description />
-                    <zeus-switch-row formControlName="registrationLocked" label="Lock registration" description="No new registrations, even while registration is open. Invitations still work." i18n-label i18n-description />
-                    <zeus-switch-row formControlName="autoEnd" label="End the game automatically" description="The game ends by itself at the expected end time. Off: you end it from the control center." i18n-label i18n-description />
+                    <ah-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits for your approval in Players." i18n-label i18n-description />
+                    <ah-switch-row formControlName="registrationLocked" label="Lock registration" description="No new registrations, even while registration is open. Invitations still work." i18n-label i18n-description />
+                    <ah-switch-row formControlName="autoEnd" label="End the game automatically" description="The game ends by itself at the expected end time. Off: you end it from the control center." i18n-label i18n-description />
                   </div>
                 </fieldset>
                 <section class="panel flex flex-col gap-2 p-4" aria-labelledby="jc-h">
@@ -168,12 +168,12 @@ interface NavCard {
             </div>
 
             <div hlmTabsContent="rules" class="pt-3">
-              <zeus-rules-of-play [form]="rulesForm" [eventId]="e.id" [perkCount]="perkCount()" (perksAdded)="loadSide()" />
+              <ah-rules-of-play [form]="rulesForm" [eventId]="e.id" [perkCount]="perkCount()" (perksAdded)="loadSide()" />
               <ng-container *ngTemplateOutlet="saveBar; context: { section: 'rules' }" />
             </div>
 
             <div hlmTabsContent="attachments" class="pt-3">
-              <zeus-attachment-manager [eventId]="e.id" [attachments]="e.attachments" [readonly]="e.status === 'completed' || e.status === 'cancelled'" (changed)="refresh()" />
+              <ah-attachment-manager [eventId]="e.id" [attachments]="e.attachments" [readonly]="e.status === 'completed' || e.status === 'cancelled'" (changed)="refresh()" />
             </div>
 
             <div hlmTabsContent="gms" class="pt-3">
@@ -241,9 +241,9 @@ interface NavCard {
                 </a>
               </div>
               @if (sideError(); as err) {
-                <zeus-error-state [error]="err" (retry)="loadSide()" />
+                <ah-error-state [error]="err" (retry)="loadSide()" />
               } @else if (objectives() === null) {
-                <zeus-loading-skeleton [rows]="2" />
+                <ah-loading-skeleton [rows]="2" />
               } @else {
                 <ul class="flex flex-col">
                   @for (o of objectives(); track o.id) {
@@ -284,7 +284,7 @@ interface NavCard {
 
     <ng-template #saveBar let-section="section">
       <div class="sticky bottom-[calc(4rem+var(--safe-bottom))] z-10 mt-4 flex items-center justify-end gap-3 border-t border-border bg-background/95 py-3 backdrop-blur lg:bottom-0">
-        <zeus-save-state [state]="sectionState(section)" [error]="errorOf(section)" />
+        <ah-save-state [state]="sectionState(section)" [error]="errorOf(section)" />
         <button hlmBtn class="h-11 min-w-28" type="button" (click)="save(section)" [disabled]="sectionState(section) === 'saving'">
           {{ sectionState(section) === 'saving' ? txt.saving : txt.save }}
         </button>

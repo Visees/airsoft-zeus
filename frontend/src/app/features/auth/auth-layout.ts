@@ -7,7 +7,7 @@ import { UI_LANGUAGES, UiLanguage, activeLanguage, switchLanguage } from '../../
  * logo mark, a centred narrow column, safe-area padding.
  */
 @Component({
-  selector: 'zeus-auth-layout',
+  selector: 'ah-auth-layout',
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-dvh flex-col bg-background text-foreground' },

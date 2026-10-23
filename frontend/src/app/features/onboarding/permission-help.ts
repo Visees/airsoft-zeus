@@ -5,25 +5,25 @@ export type PermState = 'checking' | 'granted' | 'denied' | 'prompt' | 'unsuppor
 
 /** Granted / blocked / not asked chip — glyph + label, never colour alone. */
 @Component({
-  selector: 'zeus-permission-chip',
+  selector: 'ah-permission-chip',
   imports: [StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('granted') {
-        <zeus-status-chip label="Allowed" glyph="✓" tone="primary" i18n-label />
+        <ah-status-chip label="Allowed" glyph="✓" tone="primary" i18n-label />
       }
       @case ('denied') {
-        <zeus-status-chip label="Blocked" glyph="✕" tone="danger" i18n-label />
+        <ah-status-chip label="Blocked" glyph="✕" tone="danger" i18n-label />
       }
       @case ('unsupported') {
-        <zeus-status-chip label="Not supported" glyph="–" tone="neutral" i18n-label />
+        <ah-status-chip label="Not supported" glyph="–" tone="neutral" i18n-label />
       }
       @case ('checking') {
-        <zeus-status-chip label="Checking" glyph="◌" tone="neutral" i18n-label />
+        <ah-status-chip label="Checking" glyph="◌" tone="neutral" i18n-label />
       }
       @default {
-        <zeus-status-chip label="Not asked yet" glyph="○" tone="neutral" i18n-label />
+        <ah-status-chip label="Not asked yet" glyph="○" tone="neutral" i18n-label />
       }
     }
   `,
@@ -34,7 +34,7 @@ export class PermissionChip {
 
 /** How to re-enable a blocked permission in the browser / OS. */
 @Component({
-  selector: 'zeus-permission-help',
+  selector: 'ah-permission-help',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

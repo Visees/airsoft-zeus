@@ -11,27 +11,27 @@ import { NewsCard } from './news-ui';
 
 /** All News. Admins also see drafts and scheduled posts, and can write new ones. Route: /news */
 @Component({
-  selector: 'zeus-news-list-screen',
+  selector: 'ah-news-list-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, NewsCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home" i18n-title i18n-subtitle>
+      <ah-page-header title="News" subtitle="Updates, sponsors and announcements from the AirsoftHub team." back="/home" i18n-title i18n-subtitle>
         @if (isEditor()) {
           <a hlmBtn routerLink="/news/new/edit" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Write news</ng-container></a>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (error() && !items().length) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
-        <zeus-empty-state icon="lucideNewspaper" title="No news yet" message="Updates and announcements will show up here." i18n-title i18n-message />
+        <ah-empty-state icon="lucideNewspaper" title="No news yet" message="Updates and announcements will show up here." i18n-title i18n-message />
       } @else {
         <ul class="flex flex-col gap-2" aria-label="News" i18n-aria-label>
           @for (n of items(); track n.id) {
-            <li><zeus-news-card [news]="n" /></li>
+            <li><ah-news-card [news]="n" /></li>
           }
         </ul>
         @if (nextCursor()) {

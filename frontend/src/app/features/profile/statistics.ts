@@ -17,21 +17,21 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
 };
 
 @Component({
-  selector: 'zeus-statistics-screen',
+  selector: 'ah-statistics-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, StatTiles, BadgeGrid, TeamSwatch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Statistics" back="/profile" backLabel="Profile" i18n-title i18n-backLabel />
+      <ah-page-header title="Statistics" back="/profile" backLabel="Profile" i18n-title i18n-backLabel />
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (error() && !data()) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (data(); as d) {
         <section aria-labelledby="st-overview">
           <h2 id="st-overview" class="sr-only" i18n>Overview</h2>
-          <zeus-stat-tiles [stats]="d.stats" [wide]="true" />
+          <ah-stat-tiles [stats]="d.stats" [wide]="true" />
         </section>
 
         <!-- Win / loss / draw -->
@@ -85,7 +85,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
                           @if (g.teamName) {
                             <span class="inline-flex items-center gap-1">
                               @if (g.teamColor) {
-                                <zeus-team-swatch [color]="g.teamColor" [size]="12" />
+                                <ah-team-swatch [color]="g.teamColor" [size]="12" />
                               }
                               {{ g.teamName }}
                             </span>
@@ -104,11 +104,11 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
                 }
               </ul>
             } @else {
-              <zeus-empty-state icon="lucideHistory" title="No games played yet" message="Finished games appear here with your team, result, points and captures." i18n-title i18n-message>
+              <ah-empty-state icon="lucideHistory" title="No games played yet" message="Finished games appear here with your team, result, points and captures." i18n-title i18n-message>
                 @if (auth.can('discover_events')) {
                   <a hlmBtn routerLink="/events/discover" class="h-11" i18n>Discover events</a>
                 }
-              </zeus-empty-state>
+              </ah-empty-state>
             }
           </section>
 
@@ -116,7 +116,7 @@ const RESULT: Record<'win' | 'loss' | 'draw', { label: string; glyph: string; cl
           <section class="lg:col-span-2" aria-labelledby="st-badges">
             <h2 id="st-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ d.badges.length }}</span></h2>
             <div class="[&_ul]:lg:grid-cols-1">
-              <zeus-badge-grid [badges]="d.badges" [compact]="true" />
+              <ah-badge-grid [badges]="d.badges" [compact]="true" />
             </div>
           </section>
         </div>

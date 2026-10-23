@@ -22,8 +22,8 @@ import { requestLang, toLang, tr } from '../i18n/index.js';
 
 export const authRouter = Router();
 
-const COOKIE = 'zeus_rt';
-const HINT = 'zeus_session';
+const COOKIE = 'airsofthub_rt';
+const HINT = 'airsofthub_session';
 export function clearSessionCookies(res: Response): void {
   res.clearCookie(COOKIE, { path: '/api/auth' });
   res.clearCookie(HINT, { path: '/' });

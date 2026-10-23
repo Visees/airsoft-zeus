@@ -55,7 +55,7 @@ export function showCaptureBar(s: GeofenceStatus | null | undefined): s is Geofe
 
 /** Thin capture progress bar with a one-line state, for lists and map previews. */
 @Component({
-  selector: 'zeus-capture-bar',
+  selector: 'ah-capture-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-1' },
   template: `

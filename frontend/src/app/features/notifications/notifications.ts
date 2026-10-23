@@ -12,37 +12,37 @@ import { EmptyState, ErrorState, LoadingSkeleton, PageHeader } from '../../share
 import { NotificationRow, notificationLink } from './notification-ui';
 
 @Component({
-  selector: 'zeus-notifications-screen',
+  selector: 'ah-notifications-screen',
   imports: [NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, ConnectionStatus, NotificationRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Notifications" [subtitle]="subtitle()" i18n-title>
+      <ah-page-header title="Notifications" [subtitle]="subtitle()" i18n-title>
         @if (unreadCount() > 0) {
           <button hlmBtn variant="outline" type="button" class="h-11" [disabled]="markingAll()" (click)="markAllRead()">
             <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> {{ markingAll() ? txt.marking : txt.markAllRead }}
           </button>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="6" [avatar]="true" />
+        <ah-loading-skeleton [rows]="6" [avatar]="true" />
       } @else if (error() && !items().length) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
-        <zeus-empty-state icon="lucideBell" title="No notifications yet"
+        <ah-empty-state icon="lucideBell" title="No notifications yet"
           message="Invitations, registration updates and messages from Game Masters will appear here." i18n-title i18n-message />
       } @else {
         @if (error()) {
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted p-3 text-sm" role="status">
-            <zeus-connection-status />
+            <ah-connection-status />
             <span class="text-muted-foreground" i18n>Showing the last loaded notifications.</span>
           </div>
         }
         <ul class="panel divide-y divide-border overflow-hidden" aria-label="Notifications" i18n-aria-label>
           @for (n of items(); track n.id) {
             <li>
-              <zeus-notification-row [notification]="n" [now]="now()" [clamp]="expandedId() !== n.id" (open)="open($event)" />
+              <ah-notification-row [notification]="n" [now]="now()" [clamp]="expandedId() !== n.id" (open)="open($event)" />
             </li>
           }
         </ul>

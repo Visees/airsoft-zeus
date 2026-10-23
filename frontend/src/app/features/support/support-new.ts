@@ -23,12 +23,12 @@ const PLACEHOLDERS: Record<SupportCategory, { subject: string; body: string }> =
 
 /** Write to the AirsoftHub team. Route: /support/new (?category=bug|report|general) */
 @Component({
-  selector: 'zeus-support-new-screen',
+  selector: 'ah-support-new-screen',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header eyebrow="Help & feedback" title="New message" back="/support" backLabel="All messages" i18n-eyebrow i18n-title i18n-backLabel />
+      <ah-page-header eyebrow="Help & feedback" title="New message" back="/support" backLabel="All messages" i18n-eyebrow i18n-title i18n-backLabel />
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-5" novalidate>
         <fieldset class="flex flex-col gap-2">

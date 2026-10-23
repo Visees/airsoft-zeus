@@ -27,7 +27,7 @@ export function attachmentKind(mime: string): string {
 
 /** Event documents with download buttons, for the people taking part. */
 @Component({
-  selector: 'zeus-attachment-list',
+  selector: 'ah-attachment-list',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

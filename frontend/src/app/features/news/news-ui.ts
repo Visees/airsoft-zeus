@@ -35,7 +35,7 @@ export function isExternalLink(url: string): boolean {
 
 /** News in lists (home, /news). Whole card is a link to the article. */
 @Component({
-  selector: 'zeus-news-card',
+  selector: 'ah-news-card',
   imports: [RouterLink, NgIcon, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block [contain:inline-size]' },
@@ -57,7 +57,7 @@ export function isExternalLink(url: string): boolean {
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
         <div class="flex flex-wrap items-center gap-1.5">
-          <zeus-status-chip [spec]="chip()" />
+          <ah-status-chip [spec]="chip()" />
           @if (n.pinned) {
             <span class="inline-flex items-center gap-1 text-xs font-semibold text-primary"><ng-icon name="lucidePin" size="12" aria-hidden="true" /> <ng-container i18n>Pinned</ng-container></span>
           }

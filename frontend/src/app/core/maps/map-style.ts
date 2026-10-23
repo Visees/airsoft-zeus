@@ -165,7 +165,7 @@ function topoStyle(o: StyleOptions): StyleSpecification {
   const bIdx = s.layers.findIndex((l) => l.id === 'building');
   const building = s.layers[bIdx] as LayerSpecification & { maxzoom?: number };
   delete building.maxzoom;
-  building.paint = { 'fill-pattern': 'zeus-hatch' };
+  building.paint = { 'fill-pattern': 'ah-hatch' };
   s.layers.splice(bIdx + 1, 0, {
     id: 'building-outline',
     type: 'line',
@@ -185,7 +185,7 @@ function topoStyle(o: StyleOptions): StyleSpecification {
     'source-layer': wood['source-layer'],
     ...(wood.filter ? { filter: wood.filter } : {}),
     minzoom: 13,
-    paint: { 'fill-pattern': 'zeus-trees', 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0.5, 15, 1] },
+    paint: { 'fill-pattern': 'ah-trees', 'fill-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0.5, 15, 1] },
   });
 
   // Relief and contours above land cover, below roads. Contours are light at field zoom so the
@@ -292,7 +292,7 @@ function peaksLayer(color: string, halo: string): LayerSpecification {
 /** Pattern images the styles reference; added on the map's styleimagemissing event. */
 export function patternImage(id: string, dark: boolean): { width: number; height: number; data: Uint8Array } | null {
   const c = dark ? DARK : LIGHT;
-  if (id === 'zeus-hatch') {
+  if (id === 'ah-hatch') {
     // 8 px diagonal hatch (drawn at 2x), tiled seamlessly.
     return draw(16, (g, n) => {
       g.fillStyle = c.hatchBg;
@@ -307,7 +307,7 @@ export function patternImage(id: string, dark: boolean): { width: number; height
       }
     });
   }
-  if (id === 'zeus-trees') {
+  if (id === 'ah-trees') {
     // Two small trees per 22 px tile, staggered, on a transparent background.
     return draw(44, (g) => {
       g.strokeStyle = c.tree;

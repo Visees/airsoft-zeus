@@ -12,27 +12,27 @@ import { isExternalLink, newsCategoryChip, newsState } from './news-ui';
 
 /** One News article. Route: /news/:newsId */
 @Component({
-  selector: 'zeus-news-detail-screen',
+  selector: 'ah-news-detail-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, ErrorState, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="News" back="/news" backLabel="All news" i18n-title i18n-backLabel>
+      <ah-page-header title="News" back="/news" backLabel="All news" i18n-title i18n-backLabel>
         @if (isEditor() && news(); as n) {
           <a hlmBtn variant="outline" [routerLink]="['/news', n.id, 'edit']" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit</ng-container></a>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="6" />
+        <ah-loading-skeleton [rows]="6" />
       } @else if (!news()) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else {
         @let n = news()!;
         <article class="flex flex-col gap-4" aria-labelledby="news-title">
           <h2 id="news-title" class="text-2xl uppercase sm:text-3xl">{{ n.title }}</h2>
           <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <zeus-status-chip [spec]="chip(n)" />
+            <ah-status-chip [spec]="chip(n)" />
             @if (state(n) === 'draft') {
               <span class="rounded-sm border border-dashed border-border px-1.5 py-0.5 text-xs" i18n>Draft: only admins can see it</span>
             } @else if (state(n) === 'scheduled') {

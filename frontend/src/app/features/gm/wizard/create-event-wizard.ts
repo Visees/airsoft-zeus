@@ -60,7 +60,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'zeus-create-event-wizard-screen',
+  selector: 'ah-create-event-wizard-screen',
   imports: [
     ReactiveFormsModule,
     RouterLink,
@@ -82,16 +82,16 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page pb-[calc(11rem+var(--safe-bottom))] lg:pb-8" #root>
-      <zeus-page-header
+      <ah-page-header
         [title]="event()?.name || txt.createEvent"
         [eyebrow]="event() ? txt.eventSetup : txt.newEvent"
         [back]="event() ? '/gm/events/' + event()!.id : '/events/mine'"
         [backLabel]="event() ? txt.eventEditor : txt.myEvents"
       >
         @if (event(); as e) {
-          <zeus-status-chip [spec]="statusChip(e.status)" />
+          <ah-status-chip [spec]="statusChip(e.status)" />
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (currentStep() > 0) {
         <nav aria-label="Setup steps" class="mb-6" i18n-aria-label>
@@ -138,9 +138,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
       }
 
       @if (loading() && !event()) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (loadError(); as err) {
-        <zeus-error-state [error]="err" (retry)="reload()" />
+        <ah-error-state [error]="err" (retry)="reload()" />
       } @else {
         <section aria-labelledby="wizard-step-title">
           <div class="mb-4">
@@ -164,9 +164,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                 <div class="panel flex flex-col gap-3 p-4">
                   <h3 class="font-bold uppercase" i18n>From a template</h3>
                   @if (templatesLoading()) {
-                    <zeus-loading-skeleton [rows]="2" />
+                    <ah-loading-skeleton [rows]="2" />
                   } @else if (templatesError(); as err) {
-                    <zeus-error-state [error]="err" (retry)="loadTemplates()" />
+                    <ah-error-state [error]="err" (retry)="loadTemplates()" />
                   } @else if (!templates().length) {
                     <p class="text-sm text-muted-foreground" i18n>No templates yet. Save an event as a template from its editor to reuse teams, rules and the map.</p>
                   } @else {
@@ -223,9 +223,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
 
             <!-- STEP 1 · basics -->
             @case (1) {
-              <zeus-event-basics-form [form]="basicsForm" [joinCode]="event()?.joinCode ?? null" />
+              <ah-event-basics-form [form]="basicsForm" [joinCode]="event()?.joinCode ?? null" />
               <div class="mt-4">
-                <zeus-attachment-manager [eventId]="event()?.id ?? null" [attachments]="event()?.attachments ?? []" (changed)="refreshEvent()" />
+                <ah-attachment-manager [eventId]="event()?.id ?? null" [attachments]="event()?.attachments ?? []" (changed)="refreshEvent()" />
               </div>
             }
 
@@ -240,18 +240,18 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                     </div>
                   }
                   @if (!sortedTeams().length) {
-                    <zeus-empty-state icon="lucideUsers" title="No teams yet" message="Add the usual two-team setup in one click, then rename and recolour as you like." i18n-title i18n-message>
+                    <ah-empty-state icon="lucideUsers" title="No teams yet" message="Add the usual two-team setup in one click, then rename and recolour as you like." i18n-title i18n-message>
                       <button hlmBtn class="h-11" type="button" (click)="addTwoTeams()" [disabled]="busy()">
                         <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> <ng-container i18n>Add two teams (Alpha and Bravo)</ng-container>
                       </button>
                       <button hlmBtn variant="outline" class="h-11" type="button" (click)="addTeam()" [disabled]="busy()">
                         <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Add one team</ng-container>
                       </button>
-                    </zeus-empty-state>
+                    </ah-empty-state>
                   } @else {
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       @for (t of sortedTeams(); track t.id) {
-                        <zeus-team-editor [eventId]="e.id" [team]="t" [allTeams]="e.teams" [squads]="e.squads" startExpanded (changed)="refreshEvent()" />
+                        <ah-team-editor [eventId]="e.id" [team]="t" [allTeams]="e.teams" [squads]="e.squads" startExpanded (changed)="refreshEvent()" />
                       }
                     </div>
                     <div>
@@ -260,7 +260,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                       </button>
                     </div>
                   }
-                  <zeus-team-selection-settings [event]="e" (updated)="onEventUpdated($event)" />
+                  <ah-team-selection-settings [event]="e" (updated)="onEventUpdated($event)" />
                 </div>
               }
             }
@@ -272,9 +272,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   <section class="panel flex flex-col gap-4 p-4" aria-labelledby="map-sum">
                     <h3 id="map-sum" class="label-caps" i18n>Map content</h3>
                     @if (contentLoading() && !content()) {
-                      <zeus-loading-skeleton [rows]="1" />
+                      <ah-loading-skeleton [rows]="1" />
                     } @else if (contentError(); as err) {
-                      <zeus-error-state [error]="err" (retry)="loadContent()" />
+                      <ah-error-state [error]="err" (retry)="loadContent()" />
                     } @else {
                       <dl class="grid grid-cols-3 gap-3 text-center">
                         <div class="rounded-sm bg-muted p-3">
@@ -303,7 +303,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   <section class="panel flex flex-col gap-3 p-4" aria-labelledby="map-tpl">
                     <h3 id="map-tpl" class="label-caps" i18n>Apply a saved map template</h3>
                     @if (mapTemplatesLoading()) {
-                      <zeus-loading-skeleton [rows]="2" />
+                      <ah-loading-skeleton [rows]="2" />
                     } @else if (!mapTemplates().length) {
                       <p class="text-sm text-muted-foreground" i18n>No map templates yet. Save one from the map editor of a finished event to reuse its zones, points and objectives.</p>
                     } @else {
@@ -344,9 +344,9 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                     </a>
                   </div>
                   @if (contentLoading() && !content()) {
-                    <zeus-loading-skeleton [rows]="3" />
+                    <ah-loading-skeleton [rows]="3" />
                   } @else if (contentError(); as err) {
-                    <zeus-error-state [error]="err" (retry)="loadContent()" />
+                    <ah-error-state [error]="err" (retry)="loadContent()" />
                   } @else {
                     <ul class="flex flex-col gap-2">
                       @for (o of content()?.objectives ?? []; track o.id) {
@@ -369,7 +369,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                         </li>
                       } @empty {
                         <li>
-                          <zeus-empty-state icon="lucideTarget" title="No objectives yet" message="Add control points, intel drops or flags. You can also place them from the map editor." i18n-title i18n-message />
+                          <ah-empty-state icon="lucideTarget" title="No objectives yet" message="Add control points, intel drops or flags. You can also place them from the map editor." i18n-title i18n-message />
                         </li>
                       }
                     </ul>
@@ -381,7 +381,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
             <!-- STEP 5 · rules of play -->
             @case (5) {
               @if (event(); as e) {
-                <zeus-rules-of-play [form]="rulesForm" [eventId]="e.id" [perkCount]="content()?.perks?.length ?? null" (perksAdded)="loadContent()" />
+                <ah-rules-of-play [form]="rulesForm" [eventId]="e.id" [perkCount]="content()?.perks?.length ?? null" (perksAdded)="loadContent()" />
               }
             }
 
@@ -392,7 +392,7 @@ function endAfterStart(g: AbstractControl): ValidationErrors | null {
                   <section class="panel p-4" aria-labelledby="chk">
                     <h3 id="chk" class="label-caps mb-2" i18n>Checklist · {warnings().length, plural, =1 {1 warning} other {{{ warnings().length }} warnings}}</h3>
                     @if (contentLoading() && !content()) {
-                      <zeus-loading-skeleton [rows]="3" />
+                      <ah-loading-skeleton [rows]="3" />
                     } @else {
                       <ul class="divide-y divide-border">
                         @for (c of checklist(); track c.label) {

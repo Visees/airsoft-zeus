@@ -59,31 +59,31 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
 
 /** Team balances, GM adjustments and the append-only ledger. Route: /gm/events/:eventId/scores */
 @Component({
-  selector: 'zeus-score-manager-screen',
+  selector: 'ah-score-manager-screen',
   imports: [NgTemplateOutlet, RouterLink, NgIcon, HlmButton, HlmLabel, CurrencyDisplay, ScoreDisplay, EmptyState, ErrorState, LoadingSkeleton, PageHeader, TeamBadge, AdjustBalanceDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Scores and currency" [eyebrow]="event()?.name ?? txt.gameMaster" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
+      <ah-page-header title="Scores and currency" [eyebrow]="event()?.name ?? txt.gameMaster" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
         <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'control']">
           <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
         </a>
         <button hlmBtn class="h-11" type="button" (click)="openAdjust(null)" [disabled]="!teams().length">
           <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" /> <ng-container i18n>Adjust points or credits</ng-container>
         </button>
-      </zeus-page-header>
+      </ah-page-header>
 
       <!-- balances -->
       <section class="mb-8" aria-labelledby="h-bal">
         <h2 id="h-bal" class="label-caps mb-2" i18n>Team balances · {{ teams().length }} teams</h2>
         @if (loadingEvent()) {
-          <zeus-loading-skeleton [rows]="3" />
+          <ah-loading-skeleton [rows]="3" />
         } @else if (eventError()) {
-          <zeus-error-state [error]="eventError()" (retry)="loadEvent()" />
+          <ah-error-state [error]="eventError()" (retry)="loadEvent()" />
         } @else if (!teams().length) {
-          <zeus-empty-state icon="lucideUsers" title="No teams yet" message="Create teams before adjusting scores." i18n-title i18n-message>
+          <ah-empty-state icon="lucideUsers" title="No teams yet" message="Create teams before adjusting scores." i18n-title i18n-message>
             <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'teams']" i18n>Teams and squads</a>
-          </zeus-empty-state>
+          </ah-empty-state>
         } @else {
           <div class="relative panel overflow-x-auto">
             <table class="w-full text-sm">
@@ -101,9 +101,9 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
                 @for (t of rankedTeams(); track t.id; let i = $index) {
                   <tr class="border-b border-border last:border-0">
                     <td class="num px-3 py-2 text-muted-foreground">{{ i + 1 }}</td>
-                    <td class="px-3 py-2"><zeus-team-badge [team]="t" size="sm" /></td>
-                    <td class="px-3 py-2 text-right"><zeus-score-display [points]="t.points" size="sm" [showUnit]="false" /></td>
-                    <td class="px-3 py-2 text-right"><zeus-currency-display [amount]="t.currency" size="sm" [showUnit]="false" /></td>
+                    <td class="px-3 py-2"><ah-team-badge [team]="t" size="sm" /></td>
+                    <td class="px-3 py-2 text-right"><ah-score-display [points]="t.points" size="sm" [showUnit]="false" /></td>
+                    <td class="px-3 py-2 text-right"><ah-currency-display [amount]="t.currency" size="sm" [showUnit]="false" /></td>
                     <td class="num hidden px-3 py-2 text-right sm:table-cell">{{ t.objectivesHeld }}</td>
                     <td class="px-3 py-1 text-right">
                       <button hlmBtn type="button" variant="outline" class="h-10" (click)="openAdjust(t)" ariaLabel="Adjust {{ t.name }}" i18n-ariaLabel i18n>Adjust</button>
@@ -150,11 +150,11 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
         </div>
 
         @if (ledgerLoading() && !entries().length) {
-          <zeus-loading-skeleton [rows]="5" />
+          <ah-loading-skeleton [rows]="5" />
         } @else if (ledgerError() && !entries().length) {
-          <zeus-error-state [error]="ledgerError()" (retry)="reloadLedger()" />
+          <ah-error-state [error]="ledgerError()" (retry)="reloadLedger()" />
         } @else if (!entries().length) {
-          <zeus-empty-state icon="lucideHistory" title="No ledger entries" message="Starting balances are written when the game starts; captures, purchases and adjustments follow." i18n-title i18n-message />
+          <ah-empty-state icon="lucideHistory" title="No ledger entries" message="Starting balances are written when the game starts; captures, purchases and adjustments follow." i18n-title i18n-message />
         } @else {
           <ol class="panel divide-y divide-border">
             @for (r of rows(); track r.id) {
@@ -167,7 +167,7 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
                       <span class="block text-xs text-muted-foreground max-lg:hidden">{{ relative(g.last.createdAt) }}</span>
                     </div>
                     <div class="flex min-w-0 flex-wrap items-center gap-x-2 lg:flex-col lg:items-start lg:gap-1">
-                      <zeus-team-badge [team]="teamById().get(g.last.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
+                      <ah-team-badge [team]="teamById().get(g.last.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
                       <ng-container [ngTemplateOutlet]="kindTpl" [ngTemplateOutletContext]="{ $implicit: g.last }" />
                     </div>
                     <p class="col-start-2 flex min-w-0 items-start gap-1 text-xs text-muted-foreground lg:col-start-auto lg:items-center lg:text-sm lg:text-foreground">
@@ -198,7 +198,7 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
                 <span class="block text-xs text-muted-foreground max-lg:hidden">{{ relative(l.createdAt) }}</span>
               </div>
               <div class="flex min-w-0 flex-wrap items-center gap-x-2 lg:flex-col lg:items-start lg:gap-1">
-                <zeus-team-badge [team]="teamById().get(l.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
+                <ah-team-badge [team]="teamById().get(l.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
                 <ng-container [ngTemplateOutlet]="kindTpl" [ngTemplateOutletContext]="{ $implicit: l }" />
               </div>
               <div class="col-start-2 min-w-0 lg:col-start-auto">
@@ -252,7 +252,7 @@ function foldRecurring(entries: LedgerEntry[]): LedgerRow[] {
       </section>
     </div>
 
-    <zeus-adjust-balance-dialog
+    <ah-adjust-balance-dialog
       [eventId]="eventId()"
       [teams]="teams()"
       [members]="members()"

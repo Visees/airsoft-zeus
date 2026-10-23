@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Uuid } from '../../core/api/models';
 import { safeStorage } from '../../core/util/storage';
 
-const STOPPED_KEY = 'zeus.live.sharingStopped';
+const STOPPED_KEY = 'airsofthub.live.sharingStopped';
 
 /**
  * Player choices about location sharing that must survive navigation between the live

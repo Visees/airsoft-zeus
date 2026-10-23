@@ -43,7 +43,7 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
 
 /** Location sharing controls, sync status, rules, messages, links, theme, leave event. */
 @Component({
-  selector: 'zeus-live-more',
+  selector: 'ah-live-more',
   imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, PreciseLocationHelp, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -109,7 +109,7 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
           }
         </dl>
         @if (mine() && tracker.approximateOnly()) {
-          <zeus-precise-location-help />
+          <ah-precise-location-help />
         }
         @if (flags().length) {
           <ul class="flex flex-col gap-1 text-sm text-warning">
@@ -180,7 +180,7 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
       <section class="panel flex flex-col gap-2 p-4" aria-labelledby="sync-title">
         <h3 id="sync-title" class="label-caps" i18n>Connection</h3>
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <zeus-connection-status [showSync]="false" />
+          <ah-connection-status [showSync]="false" />
           <span class="text-sm" i18n>Last sync <span class="num font-semibold">{{ lastSyncLabel() }}</span></span>
         </div>
         @if (store.fromCache()) {
@@ -214,7 +214,7 @@ const FIX_SOURCE_LABELS: Record<FixSource, string> = {
         @if (attachments().length) {
           <section class="flex flex-col gap-2" aria-labelledby="att-title">
             <h3 id="att-title" class="label-caps" i18n>Attachments · <span class="num">{{ attachments().length }}</span></h3>
-            <zeus-attachment-list [eventId]="ev.id" [attachments]="attachments()" />
+            <ah-attachment-list [eventId]="ev.id" [attachments]="attachments()" />
           </section>
         }
       }

@@ -23,7 +23,7 @@ import { PRIVACY, TERMS } from '../onboarding/legal-text';
 import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permission-help';
 
 @Component({
-  selector: 'zeus-settings-screen',
+  selector: 'ah-settings-screen',
   imports: [
     ReactiveFormsModule,
     RouterLink,
@@ -40,7 +40,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Settings" i18n-title />
+      <ah-page-header title="Settings" i18n-title />
 
       <nav class="relative mb-4 flex gap-2 overflow-x-auto pb-1 text-sm" aria-label="Settings sections" i18n-aria-label>
         @for (s of sections; track s.id) {
@@ -87,7 +87,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
         <section id="set-notifications" class="panel scroll-mt-20 p-4" aria-labelledby="set-notif-h">
           <div class="flex items-center justify-between gap-3">
             <h2 id="set-notif-h" class="label-caps" i18n>Notifications</h2>
-            <zeus-permission-chip [state]="notifState()" />
+            <ah-permission-chip [state]="notifState()" />
           </div>
           <p class="mt-2 text-sm text-muted-foreground" i18n>
             Push notifications reach you with the app closed: invitations, approvals, game start and pause, objectives under attack and Game Master messages.
@@ -118,7 +118,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
             }
           </div>
           @if (notifState() === 'denied') {
-            <zeus-permission-help class="mt-3" kind="notifications" />
+            <ah-permission-help class="mt-3" kind="notifications" />
           }
         </section>
 
@@ -126,7 +126,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
         <section id="set-location" class="panel scroll-mt-20 p-4" aria-labelledby="set-loc-h">
           <div class="flex items-center justify-between gap-3">
             <h2 id="set-loc-h" class="label-caps" i18n>Location</h2>
-            <zeus-permission-chip [state]="locationState()" />
+            <ah-permission-chip [state]="locationState()" />
           </div>
           <p class="mt-2 text-sm text-muted-foreground" i18n>
             Used only while you are in a live event, as the event rules allow. You can stop sharing from the live screen at any time.
@@ -140,7 +140,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
             <p class="mt-2 text-sm text-muted-foreground" i18n>To revoke it, change the site permission in your browser or phone settings.</p>
           }
           @if (locationState() === 'denied') {
-            <zeus-permission-help class="mt-3" kind="location" />
+            <ah-permission-help class="mt-3" kind="location" />
           }
         </section>
 
@@ -160,22 +160,22 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
             <h3 class="font-semibold" i18n>Change password</h3>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="set-pw-current" i18n>Current password</label>
-              <zeus-password-input [control]="pwForm.controls.current" inputId="set-pw-current" autocomplete="current-password"
+              <ah-password-input [control]="pwForm.controls.current" inputId="set-pw-current" autocomplete="current-password"
                 [invalid]="!!pwErr('current')" [describedBy]="pwErr('current') ? 'set-pw-current-err' : null" />
               @if (pwErr('current'); as e) { <p id="set-pw-current-err" class="field-error">{{ e }}</p> }
             </div>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="set-pw-new" i18n>New password</label>
-              <zeus-password-input [control]="pwForm.controls.next" inputId="set-pw-new" autocomplete="new-password"
+              <ah-password-input [control]="pwForm.controls.next" inputId="set-pw-new" autocomplete="new-password"
                 [invalid]="!!pwErr('next')" [describedBy]="pwErr('next') ? 'set-pw-new-err set-pw-hints' : 'set-pw-hints'" />
               @if (pwErr('next'); as e) { <p id="set-pw-new-err" class="field-error">{{ e }}</p> }
               @if (newPw()) {
-                <zeus-password-strength [password]="newPw()" [avoid]="avoid()" listId="set-pw-hints" />
+                <ah-password-strength [password]="newPw()" [avoid]="avoid()" listId="set-pw-hints" />
               }
             </div>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="set-pw-confirm" i18n>Repeat new password</label>
-              <zeus-password-input [control]="pwForm.controls.confirm" inputId="set-pw-confirm" autocomplete="new-password"
+              <ah-password-input [control]="pwForm.controls.confirm" inputId="set-pw-confirm" autocomplete="new-password"
                 [invalid]="!!confirmErr()" [describedBy]="confirmErr() ? 'set-pw-confirm-err' : null" />
               @if (confirmErr(); as e) { <p id="set-pw-confirm-err" class="field-error">{{ e }}</p> }
             </div>
@@ -233,7 +233,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
           <form class="mt-4 flex flex-col gap-3" (submit)="$event.preventDefault(); deleteAccount()" novalidate>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="set-del-pw" i18n>Your password</label>
-              <zeus-password-input [control]="deletePw" inputId="set-del-pw" autocomplete="current-password"
+              <ah-password-input [control]="deletePw" inputId="set-del-pw" autocomplete="current-password"
                 [invalid]="!!deleteErr()" [describedBy]="deleteErr() ? 'set-del-err' : null" />
               @if (deleteErr(); as e) { <p id="set-del-err" class="field-error" role="alert">{{ e }}</p> }
             </div>
@@ -244,7 +244,7 @@ import { PermState, PermissionChip, PermissionHelp } from '../onboarding/permiss
         </section>
       </div>
     </div>
-    <zeus-legal-dialog />
+    <ah-legal-dialog />
   `,
 })
 export class SettingsScreen implements OnInit {

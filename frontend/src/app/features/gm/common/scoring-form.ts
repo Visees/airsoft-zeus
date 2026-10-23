@@ -39,7 +39,7 @@ export function scoringValue(form: ScoringForm): ScoringSettings {
 
 /** Points and currency settings. */
 @Component({
-  selector: 'zeus-scoring-form',
+  selector: 'ah-scoring-form',
   imports: [ReactiveFormsModule, HlmInput, HlmLabel, SegmentedControl, SwitchRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -74,14 +74,14 @@ export function scoringValue(form: ScoringForm): ScoringSettings {
           }
         </div>
       </div>
-      <zeus-switch-row
+      <ah-switch-row
         formControlName="allowNegativePoints"
         label="Allow negative points"
         description="Penalties can take a team below zero. Off: points stop at 0. Credits never go below zero." i18n-label i18n-description
       />
       <div class="flex flex-col gap-1.5">
         <span hlmLabel id="sc-win-l" i18n>Winner</span>
-        <zeus-segmented formControlName="winCondition" [options]="winOptions" labelledby="sc-win-l" stacked />
+        <ah-segmented formControlName="winCondition" [options]="winOptions" labelledby="sc-win-l" stacked />
       </div>
     </fieldset>
   `,

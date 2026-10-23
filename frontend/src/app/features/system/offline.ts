@@ -8,12 +8,12 @@ import { ConnectionStatus } from '../../shared/link-status';
 import { AuthLayout } from '../auth/auth-layout';
 
 @Component({
-  selector: 'zeus-offline-screen',
+  selector: 'ah-offline-screen',
   imports: [AuthLayout, RouterLink, NgIcon, HlmButton, ConnectionStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
-      <zeus-connection-status layoutAction [compact]="true" [showSync]="false" />
+    <ah-auth-layout>
+      <ah-connection-status layoutAction [compact]="true" [showSync]="false" />
       <div class="flex flex-col items-start gap-3">
         <span class="grid size-12 place-items-center rounded-md bg-destructive/10 text-destructive" aria-hidden="true"><ng-icon name="lucideWifiOff" size="24" /></span>
         <h1 class="text-3xl uppercase" i18n>You are offline</h1>
@@ -36,7 +36,7 @@ import { AuthLayout } from '../auth/auth-layout';
           <p class="text-sm text-muted-foreground" role="status" i18n>Your device reports a connection again. Tap “Try again”.</p>
         }
       </div>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class OfflineScreen {

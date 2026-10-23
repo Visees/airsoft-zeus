@@ -62,7 +62,7 @@ export function injectAssign() {
 
 /** Compact team / squad / squad-leader control for one player. */
 @Component({
-  selector: 'zeus-member-assign',
+  selector: 'ah-member-assign',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap items-center gap-1.5' },

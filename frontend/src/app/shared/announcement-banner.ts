@@ -5,7 +5,7 @@ import { formatRelative } from '../core/util/format';
 
 /** GM announcement banner. Emergency = red with siren; high = amber; normal = neutral. */
 @Component({
-  selector: 'zeus-announcement-banner',
+  selector: 'ah-announcement-banner',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

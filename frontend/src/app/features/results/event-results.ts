@@ -18,7 +18,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
 
 /** After-action report: winner, leaderboard, timeline, perks, GM adjustments, sharing. */
 @Component({
-  selector: 'zeus-event-results-screen',
+  selector: 'ah-event-results-screen',
   imports: [
     RouterLink,
     NgIcon,
@@ -41,36 +41,36 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
       @if (loading() && !results()) {
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
         <div class="mb-4 h-28 animate-pulse rounded-md bg-muted" aria-hidden="true"></div>
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (notFinished()) {
-        <zeus-page-header [title]="event()?.name || txt.results" eyebrow="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-eyebrow i18n-backLabel />
-        <zeus-empty-state icon="lucideHourglass" title="Results appear when the game ends" message="Scores, captures and the winner are published here as soon as the Game Master ends the game." i18n-title i18n-message>
+        <ah-page-header [title]="event()?.name || txt.results" eyebrow="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-eyebrow i18n-backLabel />
+        <ah-empty-state icon="lucideHourglass" title="Results appear when the game ends" message="Scores, captures and the winner are published here as soon as the Game Master ends the game." i18n-title i18n-message>
           <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to the event</a>
           @if (event()?.status === 'live' || event()?.status === 'paused') {
             <a hlmBtn class="tap" [routerLink]="event()?.isGm ? ['/gm/events', eventId(), 'control'] : ['/events', eventId(), 'live']">
               {{ event()?.isGm ? txt.controlCenter : txt.openLiveMap }}
             </a>
           }
-        </zeus-empty-state>
+        </ah-empty-state>
       } @else if (error() && !results()) {
-        <zeus-page-header title="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-page-header title="Results" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (results(); as r) {
-        <zeus-page-header [title]="r.eventName" eyebrow="Results" [subtitle]="subtitle()" [back]="'/events/' + r.eventId" backLabel="Event" i18n-eyebrow i18n-backLabel>
+        <ah-page-header [title]="r.eventName" eyebrow="Results" [subtitle]="subtitle()" [back]="'/events/' + r.eventId" backLabel="Event" i18n-eyebrow i18n-backLabel>
           <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'stats']"><ng-icon name="lucideChartColumn" size="16" aria-hidden="true" /> <ng-container i18n>Statistics</ng-container></a>
           <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', r.eventId, 'results', 'export']"><ng-icon name="lucideDownload" size="16" aria-hidden="true" /> <ng-container i18n>Export</ng-container></a>
-        </zeus-page-header>
+        </ah-page-header>
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
             <span i18n>Showing the results loaded earlier.</span>
-            <zeus-connection-status />
+            <ah-connection-status />
           </div>
         }
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <div class="flex min-w-0 flex-col gap-6">
-            <zeus-results-winner [results]="r" />
+            <ah-results-winner [results]="r" />
 
             <dl class="grid grid-cols-3 gap-2">
               <div class="panel p-3">
@@ -87,8 +87,8 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
               </div>
             </dl>
 
-            <zeus-results-leaderboard [results]="r" />
-            <zeus-results-timeline [results]="r" />
+            <ah-results-leaderboard [results]="r" />
+            <ah-results-timeline [results]="r" />
 
             <section aria-labelledby="perks-title">
               <h2 id="perks-title" class="label-caps mb-2" i18n>Perks purchased · <span class="num">{{ r.perks.length }}</span></h2>
@@ -101,7 +101,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                       <div class="min-w-0 flex-1">
                         <p class="font-semibold">{{ p.perkName }}</p>
                         <p class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <zeus-team-badge [team]="team(p.teamId)" size="sm" [showIcon]="false" />
+                          <ah-team-badge [team]="team(p.teamId)" size="sm" [showIcon]="false" />
                           <span>{{ p.buyerNickname || txt.gameMaster }}</span>
                           <span class="num">{{ time(p.createdAt) }}</span>
                           @if (p.targetTeamId && team(p.targetTeamId); as target) {
@@ -109,7 +109,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                           }
                         </p>
                       </div>
-                      <zeus-status-chip [spec]="purchaseChip(p.status)" />
+                      <ah-status-chip [spec]="purchaseChip(p.status)" />
                       <span class="num w-20 shrink-0 text-right text-sm font-semibold" i18n>{{ fmt(p.price) }} cr{{ p.refunded ? ' ↺' : '' }}</span>
                     </li>
                   }
@@ -127,7 +127,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
                     <li class="flex gap-3 p-3">
                       <div class="min-w-0 flex-1">
                         <p class="flex flex-wrap items-center gap-2">
-                          <zeus-team-badge [team]="team(a.teamId)" size="sm" [showIcon]="false" />
+                          <ah-team-badge [team]="team(a.teamId)" size="sm" [showIcon]="false" />
                           <span class="text-xs font-semibold" [class.text-destructive]="a.type === 'penalty'">{{ a.type === 'penalty' ? '▲ ' : '' }}{{ ledgerLabel(a.type) }}</span>
                         </p>
                         <p class="mt-1 text-sm">{{ a.reason || txt.noReasonGiven }}</p>
@@ -150,7 +150,7 @@ import { badgeOf, publicResultsUrl, teamsById } from './results-utils';
           </div>
 
           <aside class="flex flex-col gap-4 lg:sticky lg:top-4">
-            <zeus-results-top-players [results]="r" />
+            <ah-results-top-players [results]="r" />
 
             <section class="panel flex flex-col gap-3 p-4" aria-labelledby="share-title">
               <h2 id="share-title" class="label-caps" i18n>Share results</h2>

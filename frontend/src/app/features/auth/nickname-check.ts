@@ -56,7 +56,7 @@ export function createNicknameCheck(control: FormControl<string>, current: () =>
 
 /** Status line under the nickname field (polite live region). */
 @Component({
-  selector: 'zeus-nickname-status',
+  selector: 'ah-nickname-status',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'mt-1.5 flex min-h-5 items-center gap-1.5 text-sm', 'aria-live': 'polite' },

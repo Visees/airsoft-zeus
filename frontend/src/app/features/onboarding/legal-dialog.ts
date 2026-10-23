@@ -9,7 +9,7 @@ import { LegalDoc } from './legal-text';
  * Full screen on phones, centred panel on wider screens. Call `open(doc)`.
  */
 @Component({
-  selector: 'zeus-legal-dialog',
+  selector: 'ah-legal-dialog',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

@@ -21,7 +21,7 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
   `err.fields` maps field names to messages for 400 validation errors,
   `err.isNetwork` means offline.
 * Types: `core/api/models.ts` is the API contract. Don't redefine API types locally.
-* Selector prefix `zeus-`. One screen per file under `features/<area>/`.
+* Selector prefix `ah-`. One screen per file under `features/<area>/`.
 * UI copy is written in English and translated to Italian (see "Translations" below). No lorem ipsum.
 
 ## Building blocks (read-only for feature work)
@@ -47,23 +47,23 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
 
 | Selector | Inputs (outputs) |
 | --- | --- |
-| `zeus-tactical-map` (`shared/map/tactical-map.ts`) | `objectives, pois, zones, positions, teams, self, selectedId, center, zoom, showGeofences, showLabels, editable, draft, fitKey, forceSchematic, allowRendererToggle, controlsBottom, shapesClickable, gestureHandling` (`objectiveClick, poiClick, playerClick, zoneClick, mapClick, markerMoved`). Public: `panTo(latLng, zoom?)`, `fitAll()`, `fitBounds(bounds)`, `viewState()` (centre + zoom, null in schematic view), `reattach()`. Zoom values use the classic web-map scale (17 ≈ a field). MapLibre topo/satellite map, schematic fallback; styles in `core/maps/map-style.ts`. Give it an explicit height. |
-| `zeus-event-card` | `event`, `link?` |
-| `zeus-player-list-item` | `member, team, squad, isSelf, showPresence, showGps` + projected actions |
-| `zeus-objective-card` | `objective, distanceM, teams, now` (`open, navigate`) |
-| `zeus-perk-card` | `perk` (`buy`) — uses `perk.availability` |
-| `zeus-team-badge` / `zeus-team-swatch` | `team` (`name,color,pattern,icon`), `size` — colour **+ pattern + icon**. `TEAM_ICONS`, `TEAM_PATTERNS`, `TEAM_COLORS` exported from `team-badge.ts` |
-| `zeus-squad-badge` | `squad, leader` |
-| `zeus-status-chip` | `[spec]="eventStatusChip(s)"` / `objectiveStatusChip` / `purchaseStatusChip`, or `label, glyph, tone` |
-| `zeus-score-display` / `zeus-currency-display` | `points` / `amount` (null = hidden), `label, size` |
-| `zeus-game-timer` | `clock, startAt, serverOffsetMs, size, stacked` (caption above the digits, one line in `compact:`; the live HUD uses it so `H:MM:SS` fits beside the team at 320 px) — `nowSignal()` helper exported from the same file |
-| `zeus-capture-progress` | `status: GeofenceStatus` |
-| `zeus-gps-status`, `zeus-connection-status` | live indicators |
-| `zeus-announcement-banner` | `announcement` (`dismiss`) |
-| `zeus-loading-skeleton` | `rows, avatar` |
-| `zeus-empty-state` | `icon, title, message` + projected action buttons |
-| `zeus-error-state` | `error` (`retry`) |
-| `zeus-page-header` | `title, subtitle, eyebrow, back, backLabel` + projected actions |
+| `ah-tactical-map` (`shared/map/tactical-map.ts`) | `objectives, pois, zones, positions, teams, self, selectedId, center, zoom, showGeofences, showLabels, editable, draft, fitKey, forceSchematic, allowRendererToggle, controlsBottom, shapesClickable, gestureHandling` (`objectiveClick, poiClick, playerClick, zoneClick, mapClick, markerMoved`). Public: `panTo(latLng, zoom?)`, `fitAll()`, `fitBounds(bounds)`, `viewState()` (centre + zoom, null in schematic view), `reattach()`. Zoom values use the classic web-map scale (17 ≈ a field). MapLibre topo/satellite map, schematic fallback; styles in `core/maps/map-style.ts`. Give it an explicit height. |
+| `ah-event-card` | `event`, `link?` |
+| `ah-player-list-item` | `member, team, squad, isSelf, showPresence, showGps` + projected actions |
+| `ah-objective-card` | `objective, distanceM, teams, now` (`open, navigate`) |
+| `ah-perk-card` | `perk` (`buy`) — uses `perk.availability` |
+| `ah-team-badge` / `ah-team-swatch` | `team` (`name,color,pattern,icon`), `size` — colour **+ pattern + icon**. `TEAM_ICONS`, `TEAM_PATTERNS`, `TEAM_COLORS` exported from `team-badge.ts` |
+| `ah-squad-badge` | `squad, leader` |
+| `ah-status-chip` | `[spec]="eventStatusChip(s)"` / `objectiveStatusChip` / `purchaseStatusChip`, or `label, glyph, tone` |
+| `ah-score-display` / `ah-currency-display` | `points` / `amount` (null = hidden), `label, size` |
+| `ah-game-timer` | `clock, startAt, serverOffsetMs, size, stacked` (caption above the digits, one line in `compact:`; the live HUD uses it so `H:MM:SS` fits beside the team at 320 px) — `nowSignal()` helper exported from the same file |
+| `ah-capture-progress` | `status: GeofenceStatus` |
+| `ah-gps-status`, `ah-connection-status` | live indicators |
+| `ah-announcement-banner` | `announcement` (`dismiss`) |
+| `ah-loading-skeleton` | `rows, avatar` |
+| `ah-empty-state` | `icon, title, message` + projected action buttons |
+| `ah-error-state` | `error` (`retry`) |
+| `ah-page-header` | `title, subtitle, eyebrow, back, backLabel` + projected actions |
 
 ### Spartan UI (helm)
 
@@ -97,8 +97,8 @@ Decorative icons get `aria-hidden="true"`; icon-only buttons get `aria-label`.
 * Colour roles: `primary` (olive) actions/own team/success, `warning` (amber) active
   objectives/cooldowns, `destructive` (red) **only** danger/enemies/destructive actions,
   `nav` (cyan) **only** own location/navigation. Never colour alone — add a glyph or label.
-* Every data view: loading (`zeus-loading-skeleton`), empty (`zeus-empty-state`),
-  error (`zeus-error-state` with retry), offline (show cached data + `zeus-connection-status`).
+* Every data view: loading (`ah-loading-skeleton`), empty (`ah-empty-state`),
+  error (`ah-error-state` with retry), offline (show cached data + `ah-connection-status`).
 * Respect `prefers-reduced-motion` (global CSS already does); keep transitions ≤ 200ms.
 
 ## Copy
@@ -111,7 +111,7 @@ facts in empty states ("No objectives yet"), no rhetorical-question placeholders
 
 The app uses Angular's `@angular/localize` with translations loaded at runtime: one build,
 English written inline, Italian in `src/locale/messages.it.json`. The language is picked in
-`main.ts` (stored choice `zeus.lang` → browser → English) before the app is imported, and is
+`main.ts` (stored choice `airsofthub.lang` → browser → English) before the app is imported, and is
 fixed for the page load: `switchLanguage()` (`core/i18n/language.ts`) stores it and reloads.
 Signed in, the profile language wins (`AuthService`); Settings and Edit profile change it.
 

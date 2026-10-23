@@ -19,7 +19,7 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
 
 /** One squad: name, callsign, (icon, leader). Saves each field when it is committed. */
 @Component({
-  selector: 'zeus-squad-row',
+  selector: 'ah-squad-row',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, SaveStateIndicator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -58,7 +58,7 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
         </div>
       }
       <div [class]="advanced() ? 'col-span-2 flex items-center justify-between gap-2' : 'col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end sm:justify-end'">
-        <zeus-save-state [state]="state()" />
+        <ah-save-state [state]="state()" />
         <button hlmBtn variant="ghost" size="icon" class="tap text-destructive" type="button" (click)="remove()" ariaLabel="Delete squad {{ s.callsign || s.name }}" i18n-ariaLabel>
           <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
         </button>
@@ -183,7 +183,7 @@ export class SquadRow {
  * Used by the wizard (simple) and the team manager (advanced: alliance, base, leaders).
  */
 @Component({
-  selector: 'zeus-team-editor',
+  selector: 'ah-team-editor',
   imports: [NgIcon, HlmButton, TeamBadge, TeamFieldsComponent, SaveStateIndicator, SquadRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -191,12 +191,12 @@ export class SquadRow {
     @let t = team();
     <article class="panel flex flex-col" ariaLabel="Team {{ t.name }}" i18n-ariaLabel>
       <header class="flex flex-wrap items-center gap-2 p-3" [class.border-b]="expanded()" [class.border-border]="expanded()">
-        <zeus-team-badge [team]="t" size="lg" class="min-w-0 flex-1 basis-40" />
+        <ah-team-badge [team]="t" size="lg" class="min-w-0 flex-1 basis-40" />
         <span class="num text-sm text-muted-foreground" [attr.aria-label]="playerCount(t.memberCount, t.capacity)">
           {{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }}
           <ng-icon name="lucideUsers" size="14" aria-hidden="true" />
         </span>
-        <zeus-save-state [state]="state()" [error]="saveError()" />
+        <ah-save-state [state]="state()" [error]="saveError()" />
         <button
           hlmBtn
           variant="outline"
@@ -225,7 +225,7 @@ export class SquadRow {
       </header>
 
       <div [id]="id + '-body'" [hidden]="!expanded()" class="flex flex-col gap-4 p-3">
-        <zeus-team-fields [form]="form()" [advanced]="advanced()" [others]="others()" />
+        <ah-team-fields [form]="form()" [advanced]="advanced()" [others]="others()" />
       </div>
 
       @if (showSquads()) {
@@ -237,7 +237,7 @@ export class SquadRow {
             </button>
           </div>
           @for (s of teamSquads(); track s.id) {
-            <zeus-squad-row
+            <ah-squad-row
               [eventId]="eventId()"
               [squad]="s"
               [teams]="allTeams()"

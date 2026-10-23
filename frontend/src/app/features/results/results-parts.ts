@@ -11,7 +11,7 @@ import { CAPTURE_METHOD_LABELS, badgeOf, elapsedLabel, leaders, ordinal, teamsBy
 
 /** Winner (or draw) banner. */
 @Component({
-  selector: 'zeus-results-winner',
+  selector: 'ah-results-winner',
   imports: [NgIcon, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -23,7 +23,7 @@ import { CAPTURE_METHOD_LABELS, badgeOf, elapsedLabel, leaders, ordinal, teamsBy
         <p class="label-caps flex items-center gap-1.5"><ng-icon name="lucideTrophy" size="14" class="text-primary" aria-hidden="true" /> <ng-container i18n>Winner</ng-container></p>
         <h2 id="winner-title" class="sr-only" i18n>Winner: {{ w.name }}</h2>
         <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
-          <zeus-team-badge [team]="badge(w)" size="lg" />
+          <ah-team-badge [team]="badge(w)" size="lg" />
           <p class="num text-3xl font-bold">{{ fmt(w.points) }} <span class="text-sm font-normal text-muted-foreground" i18n>pts</span></p>
         </div>
         @if (runnerUp(); as ru) {
@@ -36,7 +36,7 @@ import { CAPTURE_METHOD_LABELS, badgeOf, elapsedLabel, leaders, ordinal, teamsBy
         <h2 id="winner-title" class="mt-1 text-2xl uppercase" i18n>= Draw</h2>
         <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-2">
           @for (t of tied(); track t.teamId) {
-            <li class="flex items-center gap-2"><zeus-team-badge [team]="badge(t)" /> <span class="num font-bold">{{ fmt(t.points) }}</span></li>
+            <li class="flex items-center gap-2"><ah-team-badge [team]="badge(t)" /> <span class="num font-bold">{{ fmt(t.points) }}</span></li>
           }
         </ul>
       } @else {
@@ -65,7 +65,7 @@ export class ResultsWinner {
 
 /** Final team leaderboard: stacked rows on phones, table from sm. */
 @Component({
-  selector: 'zeus-results-leaderboard',
+  selector: 'ah-results-leaderboard',
   imports: [TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -81,7 +81,7 @@ export class ResultsWinner {
             <li class="panel p-3" [class.border-primary]="t.teamId === results().winnerTeamId">
               <div class="flex items-center gap-3">
                 <span class="num w-9 shrink-0 text-lg font-bold" ariaLabel="Rank {{ t.rank }}" i18n-ariaLabel>{{ ordinal(t.rank) }}</span>
-                <zeus-team-badge class="min-w-0 flex-1" [team]="badge(t)" />
+                <ah-team-badge class="min-w-0 flex-1" [team]="badge(t)" />
                 <span class="num shrink-0 text-lg font-bold">{{ fmt(t.points) }}<span class="text-xs font-normal text-muted-foreground" i18n> pts</span></span>
               </div>
               <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
@@ -112,7 +112,7 @@ export class ResultsWinner {
               @for (t of teams(); track t.teamId) {
                 <tr class="border-b border-border last:border-0" [class]="t.teamId === results().winnerTeamId ? 'bg-primary/5' : ''">
                   <td class="num p-3 font-bold">{{ ordinal(t.rank) }}</td>
-                  <th scope="row" class="p-3 text-left font-normal"><zeus-team-badge [team]="badge(t)" /></th>
+                  <th scope="row" class="p-3 text-left font-normal"><ah-team-badge [team]="badge(t)" /></th>
                   <td class="num p-3 text-right font-bold">{{ fmt(t.points) }}</td>
                   <td class="num p-3 text-right">{{ fmt(t.currency) }}</td>
                   <td class="num p-3 text-right">{{ t.objectivesCaptured }}</td>
@@ -137,7 +137,7 @@ export class ResultsLeaderboard {
 
 /** Objective captures in game order. */
 @Component({
-  selector: 'zeus-results-timeline',
+  selector: 'ah-results-timeline',
   imports: [TeamBadge, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -157,7 +157,7 @@ export class ResultsLeaderboard {
               <div class="min-w-0 flex-1">
                 <p class="font-semibold" [class.line-through]="c.revoked">◆ {{ c.objectiveName }}</p>
                 <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                  <zeus-team-badge [team]="team(c.teamId)" size="sm" [showIcon]="false" />
+                  <ah-team-badge [team]="team(c.teamId)" size="sm" [showIcon]="false" />
                   <span>{{ c.nickname || (c.method === 'gm' ? txt.gameMaster : txt.unknownPlayer) }}</span>
                   <span>· {{ methodLabel(c.method) }}</span>
                   @if (c.revoked) {
@@ -204,7 +204,7 @@ export class ResultsTimeline {
 
 /** Top individual contributions by points. */
 @Component({
-  selector: 'zeus-results-top-players',
+  selector: 'ah-results-top-players',
   imports: [TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -221,7 +221,7 @@ export class ResultsTimeline {
               <div class="min-w-0 flex-1">
                 <p class="truncate font-semibold">{{ p.nickname }}</p>
                 <p class="flex items-center gap-2 text-xs text-muted-foreground">
-                  <zeus-team-badge [team]="team(p.teamId)" size="sm" [showIcon]="false" />
+                  <ah-team-badge [team]="team(p.teamId)" size="sm" [showIcon]="false" />
                   <ng-container i18n><span class="num">{{ p.captures }}</span> captures</ng-container>
                 </p>
               </div>

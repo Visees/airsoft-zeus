@@ -34,7 +34,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
 
 /** One objective: state, conditions, capture controls (code / QR / zone) and capture history. */
 @Component({
-  selector: 'zeus-objective-details',
+  selector: 'ah-objective-details',
   imports: [
     ReactiveFormsModule,
     RouterLink,
@@ -61,19 +61,19 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
         <!-- Header -->
         <header class="flex flex-col gap-1.5">
           <div class="flex flex-wrap items-center gap-1.5">
-            <zeus-status-chip [spec]="chip()" />
+            <ah-status-chip [spec]="chip()" />
             <span class="label-caps">{{ typeLabel() }}</span>
             @if (jamLeft()) {
-              <zeus-status-chip label="Jammed" glyph="⌁" tone="danger" i18n-label />
+              <ah-status-chip label="Jammed" glyph="⌁" tone="danger" i18n-label />
             }
             @if (shieldLeft()) {
-              <zeus-status-chip label="Shielded" glyph="⛉" tone="nav" i18n-label />
+              <ah-status-chip label="Shielded" glyph="⛉" tone="nav" i18n-label />
             }
           </div>
           <h2 class="text-3xl uppercase">{{ o.name }}</h2>
           <p class="flex flex-wrap items-center gap-2 text-sm">
             @if (owner(); as t) {
-              <span class="label-caps" i18n>Held by</span> <zeus-team-badge [team]="t" />
+              <span class="label-caps" i18n>Held by</span> <ah-team-badge [team]="t" />
               @if (o.ownerTeamId === myTeamId()) {
                 <span class="font-semibold text-primary" i18n>(your team)</span>
               }
@@ -192,7 +192,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
           @if (usesZone()) {
             <div class="panel p-4">
               @if (geo(); as g) {
-                <zeus-capture-progress [status]="g" [canAccrue]="canAccrue(o)" />
+                <ah-capture-progress [status]="g" [canAccrue]="canAccrue(o)" />
               } @else if (!sharingActive()) {
                 <div class="flex flex-col gap-2 text-sm">
                   <p class="font-bold" i18n>Location sharing is off</p>
@@ -300,7 +300,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
             </a>
           }
 
-          <zeus-capture-feedback [attempt]="attempt" [objectiveName]="o.name" (retry)="retry()" />
+          <ah-capture-feedback [attempt]="attempt" [objectiveName]="o.name" (retry)="retry()" />
         </section>
 
         <!-- Briefing -->
@@ -337,9 +337,9 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
             }
           </h3>
           @if (detailLoading() && !captures().length) {
-            <zeus-loading-skeleton [rows]="2" />
+            <ah-loading-skeleton [rows]="2" />
           } @else if (detailError() && !captures().length) {
-            <zeus-error-state [error]="detailError()" title="Could not load the history" (retry)="loadDetail()" i18n-title />
+            <ah-error-state [error]="detailError()" title="Could not load the history" (retry)="loadDetail()" i18n-title />
           } @else if (!captures().length) {
             <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>Not captured yet.</p>
           } @else {
@@ -349,7 +349,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
                   <span class="num w-12 shrink-0 font-semibold">{{ time(c.createdAt) }}</span>
                   <span class="min-w-0 flex-1">
                     <span class="flex flex-wrap items-center gap-x-2">
-                      <zeus-team-badge [team]="teamOf(c.teamId)" size="sm" [showIcon]="false" />
+                      <ah-team-badge [team]="teamOf(c.teamId)" size="sm" [showIcon]="false" />
                       <span [class.line-through]="c.revoked">{{ c.nickname || txt.gameMaster }}</span>
                     </span>
                     <span class="text-xs text-muted-foreground">
@@ -366,16 +366,16 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
           }
         </section>
       } @else if (detailLoading() || store.loading()) {
-        <zeus-loading-skeleton [rows]="3" />
+        <ah-loading-skeleton [rows]="3" />
       } @else {
-        <zeus-error-state
+        <ah-error-state
           [error]="detailError()"
           title="Objective not available"
           [showRetry]="!!detailError()"
           (retry)="loadDetail()" i18n-title
         >
           <a hlmBtn variant="outline" class="tap" [routerLink]="listLink()" i18n>All objectives</a>
-        </zeus-error-state>
+        </ah-error-state>
       }
     </div>
   `,

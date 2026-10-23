@@ -27,7 +27,7 @@ import { ConfirmHost } from './shared/confirm-host';
       </div>
     }
     <hlm-toaster position="top-center" [theme]="theme.isDark() ? 'dark' : 'light'" [closeButton]="true" />
-    <zeus-confirm-host />
+    <ah-confirm-host />
   `,
 })
 export class App {

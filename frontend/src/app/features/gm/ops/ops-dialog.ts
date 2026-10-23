@@ -9,7 +9,7 @@ let uid = 0;
  * `@if (open)` in the parent so forms start fresh every time it opens.
  */
 @Component({
-  selector: 'zeus-ops-dialog',
+  selector: 'ah-ops-dialog',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

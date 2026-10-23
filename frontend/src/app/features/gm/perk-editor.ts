@@ -131,7 +131,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
 }
 
 @Component({
-  selector: 'zeus-perk-editor-screen',
+  selector: 'ah-perk-editor-screen',
   imports: [
     ReactiveFormsModule,
     NgIcon,
@@ -153,21 +153,21 @@ function configKeyFor(type: PerkType): ConfigKey | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Perk store" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
+      <ah-page-header title="Perk store" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
         <button hlmBtn variant="outline" class="h-11" type="button" (click)="addDefaults()" [disabled]="busy()">
           <ng-icon name="lucideSparkles" size="16" aria-hidden="true" /> <ng-container i18n>Add default perks</ng-container>
         </button>
         <button hlmBtn class="h-11" type="button" (click)="openNew()">
           <ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New custom perk</ng-container>
         </button>
-      </zeus-page-header>
+      </ah-page-header>
 
       <div [class]="editing() ? 'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_28rem]' : 'grid items-start gap-6'">
         <div class="flex min-w-0 flex-col gap-4">
           @if (event(); as e) {
             @for (k of [storeRev()]; track k) {
             <section class="panel px-4 py-2" aria-label="Store status" i18n-aria-label>
-              <zeus-switch-row
+              <ah-switch-row
                 label="Store open during the game"
                 [description]="e.storeEnabled ? txt.teamsCanBuyEnabled : txt.theStoreIsClosed"
                 [checked]="e.storeEnabled"
@@ -179,14 +179,14 @@ function configKeyFor(type: PerkType): ConfigKey | null {
           }
 
           @if (loading() && !perks()) {
-            <zeus-loading-skeleton [rows]="5" />
+            <ah-loading-skeleton [rows]="5" />
           } @else if (loadError(); as err) {
-            <zeus-error-state [error]="err" (retry)="load()" />
+            <ah-error-state [error]="err" (retry)="load()" />
           } @else if (!sortedPerks().length) {
-            <zeus-empty-state icon="lucideStore" title="No perks yet" message="Add the default set (UAV, jammer, theft, recon, respawn, shield, double points, supply drop, comms jammer) or create your own." i18n-title i18n-message>
+            <ah-empty-state icon="lucideStore" title="No perks yet" message="Add the default set (UAV, jammer, theft, recon, respawn, shield, double points, supply drop, comms jammer) or create your own." i18n-title i18n-message>
               <button hlmBtn class="h-11" type="button" (click)="addDefaults()" [disabled]="busy()" i18n>Add default perks</button>
               <button hlmBtn variant="outline" class="h-11" type="button" (click)="openNew()" i18n>New custom perk</button>
-            </zeus-empty-state>
+            </ah-empty-state>
           } @else {
             <h2 class="label-caps" i18n>Perks · {{ sortedPerks().length }} · {{ enabledCount() }} enabled</h2>
             <ul class="flex flex-col gap-2">
@@ -208,7 +208,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                   </div>
                   <!-- Phones: price and controls on their own line, so the name keeps the full width -->
                   <div class="flex w-full items-center gap-3 sm:w-auto">
-                    <zeus-currency-display class="mr-auto sm:mr-0" [amount]="p.price" size="md" />
+                    <ah-currency-display class="mr-auto sm:mr-0" [amount]="p.price" size="md" />
                     <span class="flex min-h-11 items-center gap-2">
                       <hlm-switch [checked]="p.enabled" [aria-label]="(p.enabled ? txt.disable : txt.enable) + p.name" (checkedChange)="toggleEnabled(p, $event)" />
                       <span class="w-14 text-xs text-muted-foreground" aria-hidden="true">{{ p.enabled ? txt.on : txt.off }}</span>
@@ -223,7 +223,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
           }
         </div>
 
-        <zeus-gm-panel [open]="editing()" [title]="editingId() ? txt.editPerk : txt.newPerk" [eyebrow]="typeLabel(form.controls.type.value)" (closed)="closeEditor()">
+        <ah-gm-panel [open]="editing()" [title]="editingId() ? txt.editPerk : txt.newPerk" [eyebrow]="typeLabel(form.controls.type.value)" (closed)="closeEditor()">
           <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-5" #editorForm [attr.data-rev]="tick()">
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="pk-type" i18n>Type</label>
@@ -276,7 +276,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
 
             <fieldset class="flex flex-col gap-2">
               <legend class="label-caps mb-1" i18n>Who can buy</legend>
-              <zeus-segmented formControlName="eligible" [options]="eligibleOptions" stacked />
+              <ah-segmented formControlName="eligible" [options]="eligibleOptions" stacked />
               @if (form.controls.eligible.value === 'roles') {
                 <div class="grid grid-cols-2 gap-1 rounded-sm border border-border p-2" role="group" aria-label="Roles that can buy" i18n-aria-label>
                   @for (r of roles; track r.value) {
@@ -293,18 +293,18 @@ function configKeyFor(type: PerkType): ConfigKey | null {
             </fieldset>
 
             <div class="divide-y divide-border">
-              <zeus-switch-row formControlName="requiresApproval" label="Requires GM approval" description="Purchases wait in your control center; credits are refunded if you reject them." i18n-label i18n-description />
-              <zeus-switch-row formControlName="enabled" label="Enabled" description="Disabled perks are hidden from the store." i18n-label i18n-description />
+              <ah-switch-row formControlName="requiresApproval" label="Requires GM approval" description="Purchases wait in your control center; credits are refunded if you reject them." i18n-label i18n-description />
+              <ah-switch-row formControlName="enabled" label="Enabled" description="Disabled perks are hidden from the store." i18n-label i18n-description />
             </div>
 
             <fieldset class="flex flex-col gap-2">
               <legend class="label-caps mb-1" i18n>Activation</legend>
-              <zeus-segmented formControlName="activation" [options]="activationOptions" stacked />
+              <ah-segmented formControlName="activation" [options]="activationOptions" stacked />
             </fieldset>
 
             <fieldset class="flex flex-col gap-2">
               <legend class="label-caps mb-1" i18n>Target</legend>
-              <zeus-segmented formControlName="target" [options]="targetOptions" />
+              <ah-segmented formControlName="target" [options]="targetOptions" />
               <p class="text-xs text-muted-foreground" i18n>Preset from the type: UAV, recon and theft target an enemy team; jammer and shield target an objective.</p>
             </fieldset>
 
@@ -317,7 +317,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                     <ng-container i18n>Enemy positions are never sent to the buying team before activation or after expiry.</ng-container>
                   </p>
                   <span hlmLabel id="uav-prec-l" i18n>Precision</span>
-                  <zeus-segmented formControlName="precision" [options]="precisionOptions" labelledby="uav-prec-l" />
+                  <ah-segmented formControlName="precision" [options]="precisionOptions" labelledby="uav-prec-l" />
                   <div class="grid grid-cols-3 gap-2">
                     <div class="flex flex-col gap-1.5">
                       <label hlmLabel for="uav-ref" i18n>Refresh (s)</label>
@@ -348,7 +348,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                   <legend class="label-caps px-1" i18n>Recon scan settings</legend>
                   <p class="text-xs text-muted-foreground" i18n>A one-off snapshot of enemy positions, shown for a short time.</p>
                   <span hlmLabel id="rec-prec-l" i18n>Precision</span>
-                  <zeus-segmented formControlName="precision" [options]="precisionOptions" labelledby="rec-prec-l" />
+                  <ah-segmented formControlName="precision" [options]="precisionOptions" labelledby="rec-prec-l" />
                   <div class="flex flex-col gap-1.5">
                     <label hlmLabel for="rec-rev" i18n>Reveal for (s)</label>
                     <input hlmInput id="rec-rev" type="number" min="5" class="num h-11 max-w-32" formControlName="revealSec" [attr.aria-invalid]="!!cErr('recon', 'revealSec')" />
@@ -361,7 +361,7 @@ function configKeyFor(type: PerkType): ConfigKey | null {
               @case ('theft') {
                 <fieldset formGroupName="theft" class="flex flex-col gap-3 rounded-sm border border-border p-3">
                   <legend class="label-caps px-1" i18n>Currency theft settings</legend>
-                  <zeus-segmented formControlName="mode" [options]="theftModeOptions" />
+                  <ah-segmented formControlName="mode" [options]="theftModeOptions" />
                   <div class="grid grid-cols-2 gap-2">
                     <div class="flex flex-col gap-1.5">
                       <label hlmLabel for="th-amt">{{ form.controls.theft.controls.mode.value === 'percent' ? txt.percentStolen : txt.creditsStolen }}</label>
@@ -407,13 +407,13 @@ function configKeyFor(type: PerkType): ConfigKey | null {
                   <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Delete</ng-container>
                 </button>
               }
-              <span class="ml-auto"><zeus-save-state [state]="effectiveState()" [error]="saveError()" /></span>
+              <span class="ml-auto"><ah-save-state [state]="effectiveState()" [error]="saveError()" /></span>
               <button hlmBtn class="h-11 min-w-28" type="submit" [disabled]="saveState() === 'saving'">
                 {{ saveState() === 'saving' ? txt.saving : editingId() ? txt.savePerk : txt.createPerk }}
               </button>
             </div>
           </form>
-        </zeus-gm-panel>
+        </ah-gm-panel>
       </div>
     </div>
   `,

@@ -13,7 +13,7 @@ export const TEAM_SELECTION_OPTIONS: SegmentOption<EventDetail['teamSelection']>
 
 /** Team selection mode + lock switch, saved immediately. */
 @Component({
-  selector: 'zeus-team-selection-settings',
+  selector: 'ah-team-selection-settings',
   imports: [HlmLabel, SegmentedControl, SwitchRow, SaveStateIndicator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -22,12 +22,12 @@ export const TEAM_SELECTION_OPTIONS: SegmentOption<EventDetail['teamSelection']>
     <section class="panel flex flex-col gap-3 p-4" [attr.aria-labelledby]="id + '-h'">
       <div class="flex items-center justify-between gap-2">
         <h2 [id]="id + '-h'" class="label-caps" i18n>Team selection</h2>
-        <zeus-save-state [state]="state()" />
+        <ah-save-state [state]="state()" />
       </div>
       <span hlmLabel [id]="id + '-l'" class="sr-only" i18n>How players get a team</span>
       @for (k of [rev()]; track k) {
-      <zeus-segmented [options]="options" [value]="e.teamSelection" [labelledby]="id + '-l'" stacked (valueChange)="save({ teamSelection: $event })" />
-      <zeus-switch-row
+      <ah-segmented [options]="options" [value]="e.teamSelection" [labelledby]="id + '-l'" stacked (valueChange)="save({ teamSelection: $event })" />
+      <ah-switch-row
         label="Lock team assignments"
         description="Players can no longer choose or change their team. You can still move them."
         [checked]="e.teamsLocked"

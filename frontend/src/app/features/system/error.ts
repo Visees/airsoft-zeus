@@ -7,11 +7,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AuthLayout } from '../auth/auth-layout';
 
 @Component({
-  selector: 'zeus-error-screen',
+  selector: 'ah-error-screen',
   imports: [AuthLayout, RouterLink, NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       <div class="flex flex-col items-start gap-3" role="alert">
         <span class="grid size-12 place-items-center rounded-md bg-destructive/10 text-destructive" aria-hidden="true"><ng-icon name="lucideTriangleAlert" size="24" /></span>
         <h1 class="text-3xl uppercase" i18n>Something went wrong</h1>
@@ -28,7 +28,7 @@ import { AuthLayout } from '../auth/auth-layout';
           </a>
         </div>
       </div>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class ErrorScreen {

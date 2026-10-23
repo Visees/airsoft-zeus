@@ -22,7 +22,7 @@ interface SquadGroup {
 
 /** My team: score, members by squad, perks, messages, recent ledger and the scoreboard. */
 @Component({
-  selector: 'zeus-team-screen',
+  selector: 'ah-team-screen',
   imports: [PlayerListItem, TeamBadge, SquadBadge, ScoreDisplay, CurrencyDisplay, EmptyState, ErrorState, LoadingSkeleton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -33,11 +33,11 @@ interface SquadGroup {
         <header class="panel flex flex-col gap-3 p-4">
           <p class="label-caps" i18n>Your team</p>
           <h2 class="sr-only">{{ team.name }}</h2>
-          <zeus-team-badge [team]="team" size="lg" />
+          <ah-team-badge [team]="team" size="lg" />
           <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <zeus-score-display [points]="team.points" size="lg" />
+            <ah-score-display [points]="team.points" size="lg" />
             @if (team.currency !== null) {
-              <zeus-currency-display [amount]="team.currency" size="lg" />
+              <ah-currency-display [amount]="team.currency" size="lg" />
             }
           </div>
           <p class="text-sm text-muted-foreground" i18n>
@@ -72,13 +72,13 @@ interface SquadGroup {
         <section class="flex flex-col gap-3" aria-labelledby="members-title">
           <h3 id="members-title" class="label-caps" i18n>Members · <span class="num">{{ memberCount() }}</span></h3>
           @if (!memberCount()) {
-            <zeus-empty-state icon="lucideUsers" title="No teammates yet" message="Players assigned to your team appear here." i18n-title i18n-message />
+            <ah-empty-state icon="lucideUsers" title="No teammates yet" message="Players assigned to your team appear here." i18n-title i18n-message />
           }
           @for (g of squads(); track g.key) {
             <div class="panel px-3 py-2" [class.border-primary]="g.mine" [class.border-2]="g.mine">
               <div class="flex items-center gap-2 py-1">
                 @if (g.squad) {
-                  <zeus-squad-badge [squad]="g.squad" />
+                  <ah-squad-badge [squad]="g.squad" />
                 } @else {
                   <span class="label-caps" i18n>No squad</span>
                 }
@@ -90,7 +90,7 @@ interface SquadGroup {
               <ul class="divide-y divide-border">
                 @for (m of g.members; track m.userId) {
                   <li>
-                    <zeus-player-list-item [member]="m" [squad]="g.squad" [isSelf]="m.userId === myUserId()" [showPresence]="true" />
+                    <ah-player-list-item [member]="m" [squad]="g.squad" [isSelf]="m.userId === myUserId()" [showPresence]="true" />
                   </li>
                 }
               </ul>
@@ -137,9 +137,9 @@ interface SquadGroup {
         <section class="flex flex-col gap-2" aria-labelledby="ledger-title">
           <h3 id="ledger-title" class="label-caps" i18n>Recent points and credits</h3>
           @if (ledgerLoading() && !ledger().length) {
-            <zeus-loading-skeleton [rows]="3" />
+            <ah-loading-skeleton [rows]="3" />
           } @else if (ledgerError() && !ledger().length) {
-            <zeus-error-state [error]="ledgerError()" title="Could not load the history" (retry)="loadLedger()" i18n-title />
+            <ah-error-state [error]="ledgerError()" title="Could not load the history" (retry)="loadLedger()" i18n-title />
           } @else if (!ledger().length) {
             <p class="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground" i18n>No points or credits recorded yet.</p>
           } @else {
@@ -169,7 +169,7 @@ interface SquadGroup {
           }
         </section>
       } @else {
-        <zeus-empty-state
+        <ah-empty-state
           icon="lucideUsers"
           title="You are not on a team"
           message="The Game Master assigns teams. Until then you can follow the game on the map and the scoreboard below." i18n-title i18n-message
@@ -184,16 +184,16 @@ interface SquadGroup {
             <li class="flex items-center gap-3 p-3" [style.background]="t.id === myTeamId() ? 'color-mix(in oklch, var(--primary) 12%, transparent)' : null">
               <span class="num w-6 shrink-0 text-lg font-bold">{{ i + 1 }}</span>
               <span class="min-w-0 flex-1">
-                <zeus-team-badge [team]="t" />
+                <ah-team-badge [team]="t" />
                 @if (t.id === myTeamId()) {
                   <span class="sr-only" i18n>(your team)</span>
                 }
                 <span class="block text-xs text-muted-foreground" i18n><span class="num">{{ t.objectivesHeld }}</span> held</span>
               </span>
               <span class="flex shrink-0 flex-col items-end gap-0.5">
-                <zeus-score-display [points]="t.points" size="md" />
+                <ah-score-display [points]="t.points" size="md" />
                 @if (t.currency !== null) {
-                  <zeus-currency-display [amount]="t.currency" size="sm" />
+                  <ah-currency-display [amount]="t.currency" size="sm" />
                 }
               </span>
             </li>

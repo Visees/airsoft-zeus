@@ -47,16 +47,16 @@ export function rulesToInput(form: RulesForm): Partial<EventInput> {
 
 /** Rules of play: scoring, tracking, visibility and the perk store switch. */
 @Component({
-  selector: 'zeus-rules-of-play',
+  selector: 'ah-rules-of-play',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, SwitchRow, ScoringFormComponent, TrackingFormComponent, VisibilityMatrix],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-6' },
   template: `
-    <zeus-scoring-form [form]="form().controls.scoring" />
+    <ah-scoring-form [form]="form().controls.scoring" />
 
     <fieldset class="panel flex flex-col gap-3 p-4" [formGroup]="form()">
       <legend class="label-caps float-left mb-1 w-full" i18n>Perk store</legend>
-      <zeus-switch-row
+      <ah-switch-row
         formControlName="storeEnabled"
         label="Perk store open during the game"
         description="Teams spend credits on perks such as UAV scans, objective jammers and double points." i18n-label i18n-description
@@ -77,8 +77,8 @@ export function rulesToInput(form: RulesForm): Partial<EventInput> {
       </p>
     </fieldset>
 
-    <zeus-visibility-matrix [form]="form().controls.visibilityRules" />
-    <zeus-tracking-form [form]="form().controls.tracking" />
+    <ah-visibility-matrix [form]="form().controls.visibilityRules" />
+    <ah-tracking-form [form]="form().controls.tracking" />
   `,
 })
 export class RulesOfPlayComponent {

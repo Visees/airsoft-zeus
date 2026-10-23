@@ -17,7 +17,7 @@ interface Group {
 
 /** Objectives grouped by state, nearest first. */
 @Component({
-  selector: 'zeus-objective-list',
+  selector: 'ah-objective-list',
   imports: [ObjectiveCard, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -35,7 +35,7 @@ interface Group {
       </div>
 
       @if (!store.objectives().length) {
-        <zeus-empty-state
+        <ah-empty-state
           icon="lucideCrosshair"
           title="No objectives visible yet"
           message="The Game Master reveals objectives as the game goes on. They appear here and on the map." i18n-title i18n-message
@@ -52,7 +52,7 @@ interface Group {
             <ul class="flex flex-col gap-2">
               @for (it of g.items; track it.o.id) {
                 <li>
-                  <zeus-objective-card
+                  <ah-objective-card
                     [objective]="it.o"
                     [distanceM]="it.distance"
                     [teams]="store.teams()"

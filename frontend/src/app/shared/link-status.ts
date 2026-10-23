@@ -30,7 +30,7 @@ const TRACKER_STATE_LABELS: Record<TrackerState, string> = {
 
 /** Connection indicator: online / reconnecting / offline + last sync time. */
 @Component({
-  selector: 'zeus-connection-status',
+  selector: 'ah-connection-status',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -82,7 +82,7 @@ export class ConnectionStatus {
 
 /** How to fix a kilometres-wide fix (LocationTracker.approximateOnly): turn on precise location. */
 @Component({
-  selector: 'zeus-precise-location-help',
+  selector: 'ah-precise-location-help',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block rounded-sm border border-warning/60 bg-warning/10 p-3 text-sm', role: 'note' },
   template: `
@@ -105,7 +105,7 @@ export class PreciseLocationHelp {
 
 /** GPS indicator: accuracy in metres and quality glyph. */
 @Component({
-  selector: 'zeus-gps-status',
+  selector: 'ah-gps-status',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex items-center gap-1.5 text-xs font-semibold', role: 'status', '[attr.aria-label]': 'aria()' },

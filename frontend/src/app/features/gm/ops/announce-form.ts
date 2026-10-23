@@ -26,7 +26,7 @@ const EMERGENCY_PRESETS = [
  * Host it inside an OpsDialog with `@if (open)` so it starts fresh.
  */
 @Component({
-  selector: 'zeus-announce-form',
+  selector: 'ah-announce-form',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

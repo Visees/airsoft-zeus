@@ -9,18 +9,18 @@ import { countryName } from './countries';
 import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
 
 @Component({
-  selector: 'zeus-profile-screen',
+  selector: 'ah-profile-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, EmptyState, Avatar, StatTiles, BadgeGrid],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
       @if (user(); as u) {
-        <zeus-page-header title="Profile" i18n-title>
+        <ah-page-header title="Profile" i18n-title>
           <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit profile</ng-container></a>
-        </zeus-page-header>
+        </ah-page-header>
 
         <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Profile summary" i18n-aria-label>
-          <zeus-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="88" alt="Avatar of {{ u.nickname }}" i18n-alt />
+          <ah-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="88" alt="Avatar of {{ u.nickname }}" i18n-alt />
           <div class="flex min-w-0 flex-1 flex-col gap-2">
             <div>
               <p class="label-caps" i18n>Nickname · public</p>
@@ -75,12 +75,12 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
             <h2 id="pr-stats" class="label-caps" i18n>Statistics</h2>
             <a routerLink="/profile/stats" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Game history</a>
           </div>
-          <zeus-stat-tiles [stats]="u.stats" />
+          <ah-stat-tiles [stats]="u.stats" />
         </section>
 
         <section class="mt-6" aria-labelledby="pr-badges">
           <h2 id="pr-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ u.badges.length }}</span></h2>
-          <zeus-badge-grid [badges]="u.badges" [compact]="true" />
+          <ah-badge-grid [badges]="u.badges" [compact]="true" />
         </section>
 
         <nav class="mt-6" aria-label="Profile links" i18n-aria-label>
@@ -114,9 +114,9 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
           <ng-icon name="lucideLogOut" size="18" aria-hidden="true" /> {{ loggingOut() ? txt.loggingOut : txt.logOut }}
         </button>
       } @else {
-        <zeus-empty-state icon="lucideUser" title="Not signed in" message="Log in to see your profile." i18n-title i18n-message>
+        <ah-empty-state icon="lucideUser" title="Not signed in" message="Log in to see your profile." i18n-title i18n-message>
           <a hlmBtn routerLink="/auth/login" class="h-11" i18n>Log in</a>
-        </zeus-empty-state>
+        </ah-empty-state>
       }
     </div>
   `,

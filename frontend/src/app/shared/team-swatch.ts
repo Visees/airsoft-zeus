@@ -5,7 +5,7 @@ let uid = 0;
 
 /** Square swatch filled with the team colour + pattern, so teams never differ by hue alone. */
 @Component({
-  selector: 'zeus-team-swatch',
+  selector: 'ah-team-swatch',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-block shrink-0 align-middle', 'aria-hidden': 'true' },
   template: `

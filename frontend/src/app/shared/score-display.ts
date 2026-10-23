@@ -4,7 +4,7 @@ import { formatNumber } from '../core/util/format';
 
 /** Victory points. Always shown with the trophy glyph so it is never confused with currency. */
 @Component({
-  selector: 'zeus-score-display',
+  selector: 'ah-score-display',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex items-center gap-1.5' },

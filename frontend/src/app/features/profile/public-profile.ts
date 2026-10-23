@@ -12,24 +12,24 @@ import { Avatar, BadgeGrid, StatTiles, roleText } from './profile-ui';
 import { ReportDialog } from './report-dialog';
 
 @Component({
-  selector: 'zeus-public-profile-screen',
+  selector: 'ah-public-profile-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, Avatar, StatTiles, BadgeGrid, ReportDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="3" [avatar]="true" />
+        <ah-loading-skeleton [rows]="3" [avatar]="true" />
       } @else if (notFound()) {
-        <zeus-page-header title="Player" i18n-title />
-        <zeus-empty-state icon="lucideUserX" title="Player not found" message="This profile does not exist or the link is wrong." i18n-title i18n-message>
+        <ah-page-header title="Player" i18n-title />
+        <ah-empty-state icon="lucideUserX" title="Player not found" message="This profile does not exist or the link is wrong." i18n-title i18n-message>
           <a hlmBtn routerLink="/home" class="h-11" i18n>Go home</a>
-        </zeus-empty-state>
+        </ah-empty-state>
       } @else if (error() && !profile()) {
-        <zeus-page-header title="Player" i18n-title />
-        <zeus-error-state [error]="error()" (retry)="load(userId())" />
+        <ah-page-header title="Player" i18n-title />
+        <ah-error-state [error]="error()" (retry)="load(userId())" />
       } @else if (profile(); as p) {
         @if (p.deleted) {
-          <zeus-page-header title="Deleted player" i18n-title />
+          <ah-page-header title="Deleted player" i18n-title />
           <div class="panel flex items-center gap-4 p-4">
             <span class="grid size-16 place-items-center rounded-full border border-dashed border-border text-muted-foreground" aria-hidden="true">
               <ng-icon name="lucideUserX" size="26" />
@@ -37,7 +37,7 @@ import { ReportDialog } from './report-dialog';
             <p class="text-sm text-muted-foreground" i18n>This player deleted their account. Their results stay in past events under “Deleted player”.</p>
           </div>
         } @else {
-          <zeus-page-header [title]="p.nickname" eyebrow="Player" i18n-eyebrow>
+          <ah-page-header [title]="p.nickname" eyebrow="Player" i18n-eyebrow>
             @if (isSelf()) {
               <a hlmBtn variant="outline" routerLink="/profile/edit" class="h-11"><ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit</ng-container></a>
             } @else {
@@ -45,7 +45,7 @@ import { ReportDialog } from './report-dialog';
                 <ng-icon name="lucideFlag" size="16" aria-hidden="true" /> <ng-container i18n>Report</ng-container>
               </button>
             }
-          </zeus-page-header>
+          </ah-page-header>
 
           @if (isSelf()) {
             <p class="mb-3 flex items-center gap-2 rounded-md border border-border bg-muted p-3 text-sm">
@@ -55,7 +55,7 @@ import { ReportDialog } from './report-dialog';
           }
 
           <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Player summary" i18n-aria-label>
-            <zeus-avatar [url]="p.avatarUrl" [nickname]="p.nickname" [size]="88" alt="Avatar of {{ p.nickname }}" i18n-alt />
+            <ah-avatar [url]="p.avatarUrl" [nickname]="p.nickname" [size]="88" alt="Avatar of {{ p.nickname }}" i18n-alt />
             <div class="flex min-w-0 flex-1 flex-col gap-3">
               @if (hasDetails()) {
                 <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
@@ -97,19 +97,19 @@ import { ReportDialog } from './report-dialog';
           @if (p.stats) {
             <section class="mt-6" aria-labelledby="pp-stats">
               <h2 id="pp-stats" class="label-caps mb-2" i18n>Statistics</h2>
-              <zeus-stat-tiles [stats]="p.stats" />
+              <ah-stat-tiles [stats]="p.stats" />
             </section>
           }
 
           @if (p.badges.length) {
             <section class="mt-6" aria-labelledby="pp-badges">
               <h2 id="pp-badges" class="label-caps mb-2" i18n>Badges · <span class="num">{{ p.badges.length }}</span></h2>
-              <zeus-badge-grid [badges]="p.badges" />
+              <ah-badge-grid [badges]="p.badges" />
             </section>
           }
 
           @if (!isSelf()) {
-            <zeus-report-dialog [targetUserId]="p.id" [nickname]="p.nickname" />
+            <ah-report-dialog [targetUserId]="p.id" [nickname]="p.nickname" />
           }
         }
       }

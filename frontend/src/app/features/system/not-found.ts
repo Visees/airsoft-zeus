@@ -6,11 +6,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AuthLayout } from '../auth/auth-layout';
 
 @Component({
-  selector: 'zeus-not-found-screen',
+  selector: 'ah-not-found-screen',
   imports: [AuthLayout, RouterLink, NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       <div class="flex flex-col items-start gap-3">
         <p class="num text-5xl font-bold text-muted-foreground" aria-hidden="true">404</p>
         <h1 class="text-3xl uppercase" i18n>Page not found</h1>
@@ -31,7 +31,7 @@ import { AuthLayout } from '../auth/auth-layout';
           }
         </nav>
       </div>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class NotFoundScreen {

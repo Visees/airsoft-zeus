@@ -151,7 +151,7 @@ const GROUPS: MatrixGroup[] = [
 
 /** Map visibility permissions as a matrix: setting | options. Enforced by the server. */
 @Component({
-  selector: 'zeus-visibility-matrix',
+  selector: 'ah-visibility-matrix',
   imports: [ReactiveFormsModule, NgIcon, HlmInput, HlmLabel, SegmentedControl],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -179,7 +179,7 @@ const GROUPS: MatrixGroup[] = [
                   <p [id]="id + '-' + r.key" class="text-sm font-medium">{{ r.label }}</p>
                   <p [id]="id + '-' + r.key + '-h'" class="text-xs text-muted-foreground">{{ r.help }}</p>
                 </div>
-                <zeus-segmented [formControlName]="r.key" [options]="r.options" [labelledby]="id + '-' + r.key" [describedby]="id + '-' + r.key + '-h'" />
+                <ah-segmented [formControlName]="r.key" [options]="r.options" [labelledby]="id + '-' + r.key" [describedby]="id + '-' + r.key + '-h'" />
               </div>
             }
           </div>

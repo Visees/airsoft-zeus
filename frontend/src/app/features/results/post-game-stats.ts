@@ -37,29 +37,29 @@ let uid = 0;
 
 /** Deeper post-game view: team comparison, objective control over time, player ranking, perk usage. */
 @Component({
-  selector: 'zeus-post-game-stats-screen',
+  selector: 'ah-post-game-stats-screen',
   imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, EmptyState, ErrorState, LoadingSkeleton, PageHeader, TeamBadge, TeamSwatch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
       @if (loading() && !results()) {
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
-        <zeus-loading-skeleton [rows]="6" />
+        <ah-loading-skeleton [rows]="6" />
       } @else if (notFinished()) {
-        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
-        <zeus-empty-state icon="lucideChartColumn" title="Statistics appear when the game ends" message="Come back after the Game Master ends the game." i18n-title i18n-message>
+        <ah-page-header title="Post-game statistics" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
+        <ah-empty-state icon="lucideChartColumn" title="Statistics appear when the game ends" message="Come back after the Game Master ends the game." i18n-title i18n-message>
           <a hlmBtn variant="outline" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to the event</a>
-        </zeus-empty-state>
+        </ah-empty-state>
       } @else if (error() && !results()) {
-        <zeus-page-header title="Post-game statistics" [back]="'/events/' + eventId() + '/results'" backLabel="Results" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-page-header title="Post-game statistics" [back]="'/events/' + eventId() + '/results'" backLabel="Results" i18n-title i18n-backLabel />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (results(); as r) {
-        <zeus-page-header title="Statistics" [eyebrow]="r.eventName" [back]="'/events/' + r.eventId + '/results'" backLabel="Results" i18n-title i18n-backLabel />
+        <ah-page-header title="Statistics" [eyebrow]="r.eventName" [back]="'/events/' + r.eventId + '/results'" backLabel="Results" i18n-title i18n-backLabel />
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
             <span i18n>Showing the statistics loaded earlier.</span>
-            <zeus-connection-status />
+            <ah-connection-status />
           </div>
         }
 
@@ -95,7 +95,7 @@ let uid = 0;
                       @let v = metric.key === 'points' ? t.points : t.currency;
                       <li>
                         <div class="mb-1 flex items-center justify-between gap-2 text-sm">
-                          <zeus-team-badge [team]="badge(t)" size="sm" />
+                          <ah-team-badge [team]="badge(t)" size="sm" />
                           <span class="num font-bold">{{ fmt(v) }}<span class="font-normal text-muted-foreground"> {{ metric.unit }}</span></span>
                         </div>
                         <div class="h-3 overflow-hidden rounded-sm bg-muted" aria-hidden="true">
@@ -123,7 +123,7 @@ let uid = 0;
                       <th scope="col" class="label-caps p-3" i18n>Objective</th>
                       @for (t of teams(); track t.teamId) {
                         <th scope="col" class="p-3 text-right">
-                          <span class="inline-flex items-center gap-1 text-xs font-semibold"><zeus-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="12" />{{ t.name }}</span>
+                          <span class="inline-flex items-center gap-1 text-xs font-semibold"><ah-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="12" />{{ t.name }}</span>
                         </th>
                       }
                       <th scope="col" class="label-caps p-3 text-right" i18n>Total</th>
@@ -143,7 +143,7 @@ let uid = 0;
                             <span class="block text-xs font-normal text-destructive" i18n>✕ {{ o.revoked }} revoked</span>
                           }
                         </td>
-                        <td class="p-3"><zeus-team-badge [team]="teamBadge(o.holder)" size="sm" [showIcon]="false" emptyLabel="Nobody" i18n-emptyLabel /></td>
+                        <td class="p-3"><ah-team-badge [team]="teamBadge(o.holder)" size="sm" [showIcon]="false" emptyLabel="Nobody" i18n-emptyLabel /></td>
                       </tr>
                     }
                   </tbody>
@@ -269,7 +269,7 @@ let uid = 0;
                         </td>
                         <th scope="row" class="p-2 text-left font-normal">
                           <span class="block max-w-36 truncate font-semibold sm:max-w-none">{{ p.nickname }}</span>
-                          <zeus-team-badge [team]="teamBadge(p.teamId)" size="sm" [showIcon]="false" />
+                          <ah-team-badge [team]="teamBadge(p.teamId)" size="sm" [showIcon]="false" />
                         </th>
                         <td class="num p-2 text-right" [class.font-bold]="sortKey() === 'points'">{{ fmt(p.points) }}</td>
                         <td class="num p-2 text-right" [class.font-bold]="sortKey() === 'captures'">{{ p.captures }}</td>
@@ -297,7 +297,7 @@ let uid = 0;
                     </div>
                     <ul class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                       @for (b of p.byTeam; track b.teamId) {
-                        <li class="flex items-center gap-1"><zeus-team-badge [team]="teamBadge(b.teamId)" size="sm" [showIcon]="false" /> <span class="num">×{{ b.count }}</span></li>
+                        <li class="flex items-center gap-1"><ah-team-badge [team]="teamBadge(b.teamId)" size="sm" [showIcon]="false" /> <span class="num">×{{ b.count }}</span></li>
                       }
                     </ul>
                     @if (p.failed) {

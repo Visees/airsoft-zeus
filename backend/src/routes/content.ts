@@ -245,7 +245,7 @@ contentRouter.post('/:eventId/objectives/:objectiveId/duplicate', async (req, re
 async function qrFor(eventId: string, objectiveId: string) {
   const o = await one<{ qr_token: string; qr_version: number }>('SELECT qr_token, qr_version FROM objectives WHERE id = $1 AND event_id = $2', [objectiveId, eventId]);
   if (!o) throw notFound(tr`Objective not found.`);
-  const payload = `zeus:obj:${eventId}:${objectiveId}:${o.qr_token}`;
+  const payload = `airsofthub:obj:${eventId}:${objectiveId}:${o.qr_token}`;
   const opts = { errorCorrectionLevel: 'M' as const, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } };
   return {
     payload,
@@ -280,9 +280,9 @@ contentRouter.post('/:eventId/objectives/:objectiveId/qr/regenerate', async (req
   res.json(await qrFor(eventId, objectiveId));
 });
 
-/** Parse `zeus:obj:<eventId>:<objectiveId>:<token>`. */
+/** Parse `airsofthub:obj:<eventId>:<objectiveId>:<token>` (codes printed before the rename start with `zeus:obj:`). */
 function parseQr(payload: string) {
-  const m = payload.trim().match(/^zeus:obj:([0-9a-f-]{36}):([0-9a-f-]{36}):([A-Za-z0-9_-]{16,64})$/i);
+  const m = payload.trim().match(/^(?:airsofthub|zeus):obj:([0-9a-f-]{36}):([0-9a-f-]{36}):([A-Za-z0-9_-]{16,64})$/i);
   return m ? { eventId: m[1].toLowerCase(), objectiveId: m[2].toLowerCase(), token: m[3] } : null;
 }
 

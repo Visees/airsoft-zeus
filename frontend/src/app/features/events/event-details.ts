@@ -31,7 +31,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
 
 /** Event page: briefing, rules and the join / membership actions. */
 @Component({
-  selector: 'zeus-event-details-screen',
+  selector: 'ah-event-details-screen',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, ErrorState, PageHeader, StatusChip, TeamBadge, ConnectionStatus, AttachmentList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -46,7 +46,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
         </div>
       } @else if (error() && !event() && hiddenPrivate()) {
         <!-- Private events are invisible to non-members (API answers 404): join blind with the code. -->
-        <zeus-page-header title="Private event" back="/events/join" backLabel="Join with a code" i18n-title i18n-backLabel />
+        <ah-page-header title="Private event" back="/events/join" backLabel="Join with a code" i18n-title i18n-backLabel />
         <section class="panel mx-auto flex max-w-md flex-col gap-3 p-4" aria-labelledby="blind-join-title">
           <h2 id="blind-join-title" class="text-lg uppercase"><ng-icon name="lucideLock" size="18" class="mr-1 align-[-2px]" aria-hidden="true" /> <ng-container i18n>Join with your code</ng-container></h2>
           <p class="text-sm text-muted-foreground" i18n>The details of this private event are shown once you are registered. The Game Master may need to approve your request.</p>
@@ -80,19 +80,19 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
           </form>
         </section>
       } @else if (error() && !event()) {
-        <zeus-page-header title="Event" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="error()" [title]="errorTitle()" (retry)="load()">
+        <ah-page-header title="Event" back="/events/mine" backLabel="My events" i18n-title i18n-backLabel />
+        <ah-error-state [error]="error()" [title]="errorTitle()" (retry)="load()">
           <a hlmBtn variant="ghost" class="tap" routerLink="/events/join" i18n>Enter a join code</a>
-        </zeus-error-state>
+        </ah-error-state>
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" [eyebrow]="modeLabel()" [back]="backLink().url" [backLabel]="backLink().label">
-          <zeus-status-chip [spec]="statusChip()" />
-        </zeus-page-header>
+        <ah-page-header [title]="e.name" [eyebrow]="modeLabel()" [back]="backLink().url" [backLabel]="backLink().label">
+          <ah-status-chip [spec]="statusChip()" />
+        </ah-page-header>
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
             <span i18n>Showing saved details. Actions need a connection.</span>
-            <zeus-connection-status />
+            <ah-connection-status />
           </div>
         }
 
@@ -214,7 +214,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                 <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   @for (t of sortedTeams(); track t.id) {
                     <li class="panel flex items-center justify-between gap-3 p-3" [class.border-primary]="t.id === e.myTeamId">
-                      <zeus-team-badge [team]="t" />
+                      <ah-team-badge [team]="t" />
                       <span class="text-right text-sm">
                         <span class="num font-semibold">{{ t.memberCount }}{{ t.capacity ? ' / ' + t.capacity : '' }}</span>
                         <span class="text-muted-foreground" i18n> players</span>
@@ -247,7 +247,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                   <ng-icon name="lucidePaperclip" size="14" aria-hidden="true" /> <ng-container i18n>Attachments · <span class="num">{{ e.attachmentCount }}</span></ng-container>
                 </h2>
                 @if (e.attachments.length) {
-                  <zeus-attachment-list [eventId]="e.id" [attachments]="e.attachments" />
+                  <ah-attachment-list [eventId]="e.id" [attachments]="e.attachments" />
                 } @else {
                   <p class="panel flex items-center gap-2 p-4 text-sm text-muted-foreground">
                     <ng-icon name="lucideLock" size="16" class="shrink-0" aria-hidden="true" /> {{ attachmentsHint() }}
@@ -307,7 +307,7 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                 @case ('approved') {
                   <h2 id="action-title" class="text-lg uppercase" i18n>✓ You're registered</h2>
                   @if (myTeam(); as t) {
-                    <p class="flex items-center gap-2 text-sm"><span class="label-caps" i18n>Team</span> <zeus-team-badge [team]="t" size="sm" /></p>
+                    <p class="flex items-center gap-2 text-sm"><span class="label-caps" i18n>Team</span> <ah-team-badge [team]="t" size="sm" /></p>
                   } @else if (e.status !== 'completed' && e.status !== 'cancelled') {
                     <p class="text-sm text-muted-foreground" i18n>No team yet. {{ e.teamSelection === 'player' ? txt.pickOneInThe : txt.theGameMasterAssigns }}</p>
                   }

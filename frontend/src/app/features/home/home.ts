@@ -19,7 +19,7 @@ import { NotificationRow, notificationLink } from '../notifications/notification
 import { StatTiles } from '../profile/profile-ui';
 
 @Component({
-  selector: 'zeus-home-screen',
+  selector: 'ah-home-screen',
   imports: [
     RouterLink,
     NgIcon,
@@ -39,27 +39,27 @@ import { StatTiles } from '../profile/profile-ui';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header eyebrow="Home" [title]="title()" i18n-eyebrow>
+      <ah-page-header eyebrow="Home" [title]="title()" i18n-eyebrow>
         <a hlmBtn variant="outline" routerLink="/events/join" class="h-11">
           <ng-icon name="lucideHash" size="16" aria-hidden="true" /> <ng-container i18n>Join with code</ng-container>
         </a>
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div class="flex flex-col gap-4 lg:col-span-2">
             <div class="panel h-44 animate-pulse bg-muted" aria-hidden="true"></div>
-            <zeus-loading-skeleton [rows]="3" />
+            <ah-loading-skeleton [rows]="3" />
           </div>
-          <zeus-loading-skeleton [rows]="4" />
+          <ah-loading-skeleton [rows]="4" />
         </div>
       } @else if (!data()) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else {
         @let d = data()!;
         @if (error()) {
           <div class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted p-3 text-sm" role="status">
-            <span class="flex items-center gap-2"><zeus-connection-status /> <span class="text-muted-foreground" i18n>Showing the last loaded data.</span></span>
+            <span class="flex items-center gap-2"><ah-connection-status /> <span class="text-muted-foreground" i18n>Showing the last loaded data.</span></span>
             <button hlmBtn variant="ghost" size="sm" type="button" class="tap" (click)="load()" i18n>Retry</button>
           </div>
         }
@@ -71,7 +71,7 @@ import { StatTiles } from '../profile/profile-ui';
               <section class="panel overflow-hidden border-primary/50!" aria-labelledby="home-active">
                 <div class="flex flex-col gap-3 p-4 sm:p-5">
                   <div class="flex flex-wrap items-center gap-2">
-                    <zeus-status-chip [spec]="chip(e)" />
+                    <ah-status-chip [spec]="chip(e)" />
                     <span class="label-caps" i18n>Your active event</span>
                     @if (e.isGm) {
                       <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary" i18n>Game Master</span>
@@ -85,9 +85,9 @@ import { StatTiles } from '../profile/profile-ui';
                     }
                   </p>
                   @if (isRunning(e) && activeDetail(); as det) {
-                    <zeus-game-timer [clock]="det.clock" [serverOffsetMs]="serverOffset()" size="lg" />
+                    <ah-game-timer [clock]="det.clock" [serverOffsetMs]="serverOffset()" size="lg" />
                   } @else if (!isRunning(e)) {
-                    <zeus-game-timer [startAt]="e.startAt" size="md" />
+                    <ah-game-timer [startAt]="e.startAt" size="md" />
                   }
                   <div class="mt-1 flex flex-col gap-2 sm:flex-row">
                     @if (isRunning(e)) {
@@ -117,24 +117,24 @@ import { StatTiles } from '../profile/profile-ui';
                   <h2 id="home-next" class="label-caps" i18n>Next event · {{ date(e.startAt) }}</h2>
                   @if (nextCountdown(); as c) {
                     @if (c.timer) {
-                      <zeus-game-timer [startAt]="e.startAt" size="sm" />
+                      <ah-game-timer [startAt]="e.startAt" size="sm" />
                     } @else {
                       <span class="label-caps" i18n>Starts <span class="num">{{ c.text }}</span></span>
                     }
                   }
                 </div>
-                <zeus-event-card [event]="e" />
+                <ah-event-card [event]="e" />
               </section>
             }
 
             @if (!d.activeEvent && !nextEvent()) {
-              <zeus-empty-state icon="lucideCalendarDays" title="No upcoming events"
+              <ah-empty-state icon="lucideCalendarDays" title="No upcoming events"
                 message="Find a public game near you, or enter the code a Game Master gave you." i18n-title i18n-message>
                 @if (auth.can('discover_events')) {
                   <a hlmBtn routerLink="/events/discover" class="h-11"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover events</ng-container></a>
                 }
                 <a hlmBtn variant="outline" routerLink="/events/join" class="h-11" i18n>Join with code</a>
-              </zeus-empty-state>
+              </ah-empty-state>
             }
 
             <!-- Invitations -->
@@ -144,7 +144,7 @@ import { StatTiles } from '../profile/profile-ui';
                 <ul class="flex flex-col gap-3">
                   @for (inv of d.invitations; track inv.id) {
                     <li class="flex flex-col gap-2">
-                      <zeus-event-card [event]="inv" />
+                      <ah-event-card [event]="inv" />
                       <div class="flex gap-2">
                         <button hlmBtn type="button" class="h-11 flex-1 sm:flex-none" [disabled]="busyId() === inv.id" (click)="respond(inv, true)">
                           <ng-icon name="lucideCheck" size="16" aria-hidden="true" /> <ng-container i18n>Accept</ng-container>
@@ -169,7 +169,7 @@ import { StatTiles } from '../profile/profile-ui';
                 @if (d.news.length) {
                   <ul class="flex flex-col gap-2">
                     @for (n of d.news; track n.id) {
-                      <li><zeus-news-card [news]="n" /></li>
+                      <li><ah-news-card [news]="n" /></li>
                     }
                   </ul>
                 } @else {
@@ -216,7 +216,7 @@ import { StatTiles } from '../profile/profile-ui';
                     <h3 class="label-caps mb-2" i18n>Live now · <span class="num">{{ gm.live.length }}</span></h3>
                     <div class="flex flex-col gap-2">
                       @for (e of gm.live; track e.id) {
-                        <zeus-event-card [event]="e" [link]="['/gm/events', e.id, 'control']" />
+                        <ah-event-card [event]="e" [link]="['/gm/events', e.id, 'control']" />
                       }
                     </div>
                   </div>
@@ -227,7 +227,7 @@ import { StatTiles } from '../profile/profile-ui';
                     <h3 class="label-caps mb-2" i18n>Published · <span class="num">{{ gm.published.length }}</span></h3>
                     <div class="flex flex-col gap-2">
                       @for (e of gm.published; track e.id) {
-                        <zeus-event-card [event]="e" [link]="['/gm/events', e.id]" />
+                        <ah-event-card [event]="e" [link]="['/gm/events', e.id]" />
                       }
                     </div>
                   </div>
@@ -238,7 +238,7 @@ import { StatTiles } from '../profile/profile-ui';
                     <h3 class="label-caps mb-2" i18n>Drafts · <span class="num">{{ gm.drafts.length }}</span></h3>
                     <div class="flex flex-col gap-2">
                       @for (e of gm.drafts; track e.id) {
-                        <zeus-event-card [event]="e" [link]="['/gm/events', e.id]" />
+                        <ah-event-card [event]="e" [link]="['/gm/events', e.id]" />
                       }
                     </div>
                   </div>
@@ -261,7 +261,7 @@ import { StatTiles } from '../profile/profile-ui';
               @if (d.recentEvents.length) {
                 <div class="flex flex-col gap-2">
                   @for (e of d.recentEvents; track e.id) {
-                    <zeus-event-card [event]="e" [link]="['/events', e.id, 'results']" />
+                    <ah-event-card [event]="e" [link]="['/events', e.id, 'results']" />
                   }
                 </div>
               } @else {
@@ -287,7 +287,7 @@ import { StatTiles } from '../profile/profile-ui';
                 <h2 id="home-stats" class="label-caps" i18n>Your stats</h2>
                 <a routerLink="/profile/stats" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Details</a>
               </div>
-              <zeus-stat-tiles [stats]="d.stats" />
+              <ah-stat-tiles [stats]="d.stats" />
             </section>
 
             <section aria-labelledby="home-notif">
@@ -302,7 +302,7 @@ import { StatTiles } from '../profile/profile-ui';
               @if (d.latestNotifications.length) {
                 <ul class="panel divide-y divide-border overflow-hidden">
                   @for (n of d.latestNotifications.slice(0, 4); track n.id) {
-                    <li><zeus-notification-row [notification]="n" [now]="now()" (open)="openNotification($event)" /></li>
+                    <li><ah-notification-row [notification]="n" [now]="now()" (open)="openNotification($event)" /></li>
                   }
                 </ul>
               } @else {

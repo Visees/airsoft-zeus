@@ -47,17 +47,17 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'zeus-edit-profile-screen',
+  selector: 'ah-edit-profile-screen',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, PageHeader, Avatar, NicknameStatusLine, SwitchRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Edit profile" back="/profile" backLabel="Profile" i18n-title i18n-backLabel />
+      <ah-page-header title="Edit profile" back="/profile" backLabel="Profile" i18n-title i18n-backLabel />
 
       <!-- Photo -->
       <section class="panel flex flex-wrap items-center gap-4 p-4" aria-labelledby="ep-photo">
         <div class="relative">
-          <zeus-avatar [url]="previewUrl() ?? user()?.avatarUrl" [nickname]="user()?.nickname" [size]="80" alt="Your profile photo" i18n-alt />
+          <ah-avatar [url]="previewUrl() ?? user()?.avatarUrl" [nickname]="user()?.nickname" [size]="80" alt="Your profile photo" i18n-alt />
           @if (uploading()) {
             <span class="absolute inset-0 grid place-items-center rounded-full bg-background/70" role="status" aria-label="Uploading photo" i18n-aria-label>
               <ng-icon name="lucideLoader2" size="22" class="animate-spin" aria-hidden="true" />
@@ -101,7 +101,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
           @if (nicknameError(); as e) {
             <p id="ep-nickname-status" class="field-error">{{ e }}</p>
           } @else {
-            <zeus-nickname-status id="ep-nickname-status" [status]="nick.status()" [reason]="nick.reason()" />
+            <ah-nickname-status id="ep-nickname-status" [status]="nick.status()" [reason]="nick.reason()" />
           }
         </div>
       </section>
@@ -273,7 +273,7 @@ function pastDateValidator(ctrl: AbstractControl): ValidationErrors | null {
             </div>
           </div>
           <div class="border-t border-border">
-            <zeus-switch-row formControlName="shareEmergencyWithGm" label="Share with Game Masters of events I join"
+            <ah-switch-row formControlName="shareEmergencyWithGm" label="Share with Game Masters of events I join"
               description="Only the Game Masters of events you are registered for can see it, so they can call this person if you are injured. Turn it off at any time." i18n-label i18n-description />
             @if (form.controls.shareEmergencyWithGm.value && !hasEmergencyContact()) {
               <p class="text-xs text-warning" i18n>Add a name and phone above — there is nothing to share yet.</p>

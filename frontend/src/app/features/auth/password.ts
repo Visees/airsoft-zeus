@@ -36,7 +36,7 @@ const SCORE_LABELS = ['', $localize`Too weak`, $localize`Fair`, $localize`Good`,
 
 /** Password input with a show/hide toggle. Bind a FormControl. */
 @Component({
-  selector: 'zeus-password-input',
+  selector: 'ah-password-input',
   imports: [ReactiveFormsModule, HlmInput, NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block' },
@@ -82,7 +82,7 @@ export class PasswordInput {
 
 /** Strength meter + checklist under a new-password field. Not colour-only: label + ✓/○ glyphs. */
 @Component({
-  selector: 'zeus-password-strength',
+  selector: 'ah-password-strength',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `

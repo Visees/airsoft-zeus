@@ -53,7 +53,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
 
 /** Full objective editor (GM). Route: /gm/events/:eventId/objectives/:objectiveId ('new' allowed). */
 @Component({
-  selector: 'zeus-objective-editor-screen',
+  selector: 'ah-objective-editor-screen',
   imports: [
     ReactiveFormsModule,
     NgTemplateOutlet,
@@ -81,21 +81,21 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
   `,
   template: `
     <div class="page max-w-5xl!">
-      <zeus-page-header
+      <ah-page-header
         [title]="isNew() ? txt.newObjective : (objective()?.name ?? txt.objective)"
         [eyebrow]="event()?.name ?? txt.objectiveEditor"
         [back]="backUrl()"
         backLabel="Back" i18n-backLabel
       >
         @if (objective(); as o) {
-          <zeus-status-chip [spec]="chip(o)" />
+          <ah-status-chip [spec]="chip(o)" />
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="6" />
+        <ah-loading-skeleton [rows]="6" />
       } @else if (loadError()) {
-        <zeus-error-state [error]="loadError()" (retry)="load()" />
+        <ah-error-state [error]="loadError()" (retry)="load()" />
       } @else {
         <div class="lg:grid lg:grid-cols-[11rem_1fr] lg:gap-8">
           <nav class="sticky top-4 hidden self-start lg:block" aria-label="Sections" i18n-aria-label>
@@ -141,7 +141,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               </div>
               <div class="flex flex-col gap-1.5">
                 <span hlmLabel i18n>Marker colour</span>
-                <zeus-color-field formControlName="color" label="Marker colour" i18n-label />
+                <ah-color-field formControlName="color" label="Marker colour" i18n-label />
               </div>
               <fieldset class="flex flex-col gap-1.5">
                 <legend class="mb-1.5 text-sm font-medium" i18n>Icon</legend>
@@ -212,7 +212,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> <ng-container i18n>Use my position</ng-container>
                 </button>
               </div>
-              <zeus-tactical-map
+              <ah-tactical-map
                 class="h-72 rounded-md border border-border"
                 [objectives]="mapObjectives()"
                 [zones]="zones()"
@@ -300,7 +300,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                 @if (!objective()?.methods?.includes('qr')) {
                   <p class="text-sm text-muted-foreground" i18n>Save the objective with QR enabled to generate its QR code.</p>
                 } @else if (qrError()) {
-                  <zeus-error-state [error]="qrError()" (retry)="loadQr()" />
+                  <ah-error-state [error]="qrError()" (retry)="loadQr()" />
                 } @else if (!qr()) {
                   <p class="text-sm text-muted-foreground" role="status" i18n>Loading QR code…</p>
                 } @else {
@@ -409,7 +409,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                         @for (t of event()!.teams; track t.id) {
                           <tr class="border-t border-border" [formGroupName]="t.id">
                             <td class="py-1.5 pr-2">
-                              <span class="inline-flex items-center gap-1.5"><zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}</span>
+                              <span class="inline-flex items-center gap-1.5"><ah-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}</span>
                             </td>
                             <td class="py-1.5 pr-2">
                               <input type="checkbox" formControlName="override" class="size-5 accent-primary" ariaLabel="Override rewards for {{ t.name }}" i18n-ariaLabel />
@@ -460,7 +460,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   @for (t of event()?.teams ?? []; track t.id) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
                       <input type="checkbox" class="size-5 accent-primary" [checked]="value().allowedTeamIds?.includes(t.id)" (change)="toggle(form.controls.allowedTeamIds, t.id, $event)" />
-                      <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
+                      <ah-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
                     </label>
                   }
                 </div>
@@ -482,7 +482,7 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
                   @for (t of event()?.teams ?? []; track t.id) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
                       <input type="checkbox" class="size-5 accent-primary" [checked]="value().visibility?.teamIds?.includes(t.id)" (change)="toggle(form.controls.visibility.controls.teamIds, t.id, $event)" />
-                      <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
+                      <ah-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
                     </label>
                   }
                 </div>
@@ -1144,7 +1144,7 @@ export class ObjectiveEditorScreen {
 
   private scrollToFirstError(): void {
     setTimeout(() => {
-      const errors = [...document.querySelectorAll<HTMLElement>('zeus-objective-editor-screen .field-error, zeus-objective-editor-screen [role="alert"]')];
+      const errors = [...document.querySelectorAll<HTMLElement>('ah-objective-editor-screen .field-error, ah-objective-editor-screen [role="alert"]')];
       // open the folded sections that hold an error, then scroll once they are laid out
       const ids = new Set(errors.map((e) => (e.closest('section')?.dataset['fold'] ?? e.closest('section[id]')?.id)).filter((id): id is string => !!id));
       if (ids.size) this.folded.update((s) => new Set([...s].filter((id) => !ids.has(id))));

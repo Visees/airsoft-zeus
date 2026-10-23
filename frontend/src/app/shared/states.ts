@@ -6,7 +6,7 @@ import { ApiError } from '../core/api/api-error';
 
 /** Skeleton rows for list-shaped content. */
 @Component({
-  selector: 'zeus-loading-skeleton',
+  selector: 'ah-loading-skeleton',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block', role: 'status', 'aria-label': 'Loading' },
   template: `
@@ -34,7 +34,7 @@ export class LoadingSkeleton {
 
 /** Empty state: what will appear here and the action that fills it (project actions into it). */
 @Component({
-  selector: 'zeus-empty-state',
+  selector: 'ah-empty-state',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -59,7 +59,7 @@ export class EmptyState {
 
 /** Error state: what failed, and a retry action. */
 @Component({
-  selector: 'zeus-error-state',
+  selector: 'ah-error-state',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block', role: 'alert' },
@@ -98,7 +98,7 @@ export class ErrorState {
 
 /** Page title row with optional back link and actions slot. */
 @Component({
-  selector: 'zeus-page-header',
+  selector: 'ah-page-header',
   imports: [NgIcon, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'mb-4 flex flex-wrap items-end justify-between gap-3' },

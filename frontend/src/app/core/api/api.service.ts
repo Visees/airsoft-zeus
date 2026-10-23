@@ -530,7 +530,7 @@ export class ApiService {
     const token = auth.token();
     const headers: Record<string, string> = { 'Accept-Language': activeLanguage() };
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    if (this.injector.get(PlayerViewService).has(eventId)) headers['X-Zeus-View'] = 'player';
+    if (this.injector.get(PlayerViewService).has(eventId)) headers['X-AirsoftHub-View'] = 'player';
     try {
       const res = await this.postNative(this.ev(eventId, '/locations'), body, headers, LOCATION_REPORT_TIMEOUT_MS);
       return res.data as LocationReportResponse;

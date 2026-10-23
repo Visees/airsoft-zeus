@@ -18,12 +18,12 @@ const RETENTION_OPTIONS = [
 ];
 
 @Component({
-  selector: 'zeus-privacy-settings-screen',
+  selector: 'ah-privacy-settings-screen',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, PageHeader, SwitchRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Privacy" back="/settings" backLabel="Settings" subtitle="Choose what other players and Game Masters can see." i18n-title i18n-backLabel i18n-subtitle />
+      <ah-page-header title="Privacy" back="/settings" backLabel="Settings" subtitle="Choose what other players and Game Masters can see." i18n-title i18n-backLabel i18n-subtitle />
 
       <!-- Who sees what -->
       <section class="panel p-4" aria-labelledby="pv-who">
@@ -57,10 +57,10 @@ const RETENTION_OPTIONS = [
         <section class="panel px-4 pt-3 pb-1" aria-labelledby="pv-profile">
           <h2 id="pv-profile" class="label-caps" i18n>Public profile</h2>
           <div class="divide-y divide-border">
-            <zeus-switch-row formControlName="showClub" label="Show my club" description="On your profile and in the club's member list." i18n-label i18n-description />
-            <zeus-switch-row formControlName="showRole" label="Show my player role" description="For example Medic or Squad leader. Game Masters may still see the role you pick for an event." i18n-label i18n-description />
-            <zeus-switch-row formControlName="showCountry" label="Show my country" i18n-label />
-            <zeus-switch-row formControlName="showStats" label="Show my statistics and badges" description="Games played, captures, points and win rate." i18n-label i18n-description />
+            <ah-switch-row formControlName="showClub" label="Show my club" description="On your profile and in the club's member list." i18n-label i18n-description />
+            <ah-switch-row formControlName="showRole" label="Show my player role" description="For example Medic or Squad leader. Game Masters may still see the role you pick for an event." i18n-label i18n-description />
+            <ah-switch-row formControlName="showCountry" label="Show my country" i18n-label />
+            <ah-switch-row formControlName="showStats" label="Show my statistics and badges" description="Games played, captures, points and win rate." i18n-label i18n-description />
           </div>
         </section>
 
@@ -68,9 +68,9 @@ const RETENTION_OPTIONS = [
         <section class="panel px-4 pt-3 pb-1" aria-labelledby="pv-ec">
           <h2 id="pv-ec" class="label-caps" i18n>Emergency contact</h2>
           <div class="divide-y divide-border">
-            <zeus-switch-row formControlName="emergencyContactEnabled" label="Use my emergency contact"
+            <ah-switch-row formControlName="emergencyContactEnabled" label="Use my emergency contact"
               description="Keep a contact on file for games. Turn off to keep it stored but unused." i18n-label i18n-description />
-            <zeus-switch-row formControlName="shareEmergencyWithGm" label="Share with Game Masters of events I join"
+            <ah-switch-row formControlName="shareEmergencyWithGm" label="Share with Game Masters of events I join"
               description="Only the Game Masters of events you are registered for see the name, phone and relation, so they can call if you are hurt." i18n-label i18n-description />
           </div>
           @if (!hasContact()) {

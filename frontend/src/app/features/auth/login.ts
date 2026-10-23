@@ -14,11 +14,11 @@ import { PasswordInput } from './password';
 import { postAuthUrl } from './post-auth';
 
 @Component({
-  selector: 'zeus-login-screen',
+  selector: 'ah-login-screen',
   imports: [AuthLayout, ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, PasswordInput],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       <h1 class="text-3xl uppercase" i18n>Log in</h1>
       <p class="mt-1 text-sm text-muted-foreground">
         @if (next()) {
@@ -52,7 +52,7 @@ import { postAuthUrl } from './post-auth';
             <label hlmLabel for="li-password" i18n>Password</label>
             <a routerLink="/auth/forgot-password" class="hit text-sm font-semibold text-primary underline-offset-2 hover:underline" i18n>Forgot password?</a>
           </div>
-          <zeus-password-input [control]="form.controls.password" inputId="li-password" autocomplete="current-password"
+          <ah-password-input [control]="form.controls.password" inputId="li-password" autocomplete="current-password"
             [invalid]="!!err('password')" [describedBy]="err('password') ? 'li-password-err' : null" />
           @if (err('password'); as e) {
             <p id="li-password-err" class="field-error">{{ e }}</p>
@@ -70,7 +70,7 @@ import { postAuthUrl } from './post-auth';
           New to AirsoftHub? <a routerLink="/auth/sign-up" class="font-semibold text-primary underline-offset-2 hover:underline">Create an account</a>
         </p>
       </form>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class LoginScreen {

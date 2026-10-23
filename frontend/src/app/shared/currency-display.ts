@@ -4,7 +4,7 @@ import { formatNumber } from '../core/util/format';
 
 /** Spendable team currency ("credits"), always distinct from victory points. null = hidden. */
 @Component({
-  selector: 'zeus-currency-display',
+  selector: 'ah-currency-display',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex items-center gap-1.5' },

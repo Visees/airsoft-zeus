@@ -13,7 +13,7 @@ export function teamsById(r: EventResults): Map<string, TeamResult> {
   return new Map(r.teams.map((t) => [t.teamId, t]));
 }
 
-/** TeamResult → the shape zeus-team-badge expects. */
+/** TeamResult → the shape ah-team-badge expects. */
 export function badgeOf(t: TeamResult | null | undefined): { name: string; color: string; pattern: TeamResult['pattern']; icon: string } | null {
   return t ? { name: t.name, color: t.color, pattern: t.pattern, icon: t.icon } : null;
 }

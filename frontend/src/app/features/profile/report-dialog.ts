@@ -22,7 +22,7 @@ export const REPORT_REASONS: { value: string; label: string }[] = [
 
 /** Report a player: reason + details, in a native modal dialog. */
 @Component({
-  selector: 'zeus-report-dialog',
+  selector: 'ah-report-dialog',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmLabel, HlmTextarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

@@ -4,7 +4,7 @@ import { MARKER_COLORS } from './map-defaults';
 
 /** Swatch picker + free colour input for map element colours (form control, value "#RRGGBB"). */
 @Component({
-  selector: 'zeus-color-field',
+  selector: 'ah-color-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ColorField), multi: true }],
   host: { class: 'flex flex-wrap items-center gap-1.5', role: 'group', '[attr.aria-label]': 'label()' },

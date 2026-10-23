@@ -19,7 +19,7 @@ const URL_PATTERN = /^(https?:\/\/)?[^\s/$.?#][^\s]*\.[^\s]{2,}$/i;
 
 /** Create / edit a club. Emits the saved club. */
 @Component({
-  selector: 'zeus-club-form',
+  selector: 'ah-club-form',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

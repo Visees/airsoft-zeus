@@ -32,27 +32,27 @@ const FEATURES = Object.keys(FEATURE_LABELS) as Feature[];
  * (switched on or off here, saved at once). Route: /admin/users/:userId, behind adminGuard.
  */
 @Component({
-  selector: 'zeus-admin-user-screen',
+  selector: 'ah-admin-user-screen',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, ErrorState, StatusChip, Avatar, StatTiles, SwitchRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header eyebrow="Admin" [title]="user()?.nickname ?? txt.user" back="/admin/users" backLabel="All users" i18n-eyebrow i18n-backLabel>
+      <ah-page-header eyebrow="Admin" [title]="user()?.nickname ?? txt.user" back="/admin/users" backLabel="All users" i18n-eyebrow i18n-backLabel>
         @if (user(); as u) {
           <a hlmBtn variant="outline" class="h-11" [routerLink]="['/players', u.id]">
             <ng-icon name="lucideUser" size="16" aria-hidden="true" /> <ng-container i18n>Public profile</ng-container>
           </a>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="6" [avatar]="true" />
+        <ah-loading-skeleton [rows]="6" [avatar]="true" />
       } @else if (!user()) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (user(); as u) {
         <section class="panel flex flex-col gap-4 p-4" aria-label="Account" i18n-aria-label>
           <div class="flex items-center gap-3">
-            <zeus-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="64" />
+            <ah-avatar [url]="u.avatarUrl" [nickname]="u.nickname" [size]="64" />
             <div class="min-w-0 flex-1">
               @if (fullName()) {
                 <p class="truncate font-semibold">{{ fullName() }}</p>
@@ -60,18 +60,18 @@ const FEATURES = Object.keys(FEATURE_LABELS) as Feature[];
               <a [href]="'mailto:' + u.email" class="block truncate text-sm text-primary underline-offset-2 hover:underline">{{ u.email }}</a>
               <div class="mt-1.5 flex flex-wrap gap-1.5">
                 @if (u.isAdmin) {
-                  <zeus-status-chip [label]="txt.admin" glyph="★" tone="primary" />
+                  <ah-status-chip [label]="txt.admin" glyph="★" tone="primary" />
                 }
                 @if (u.customAccess) {
-                  <zeus-status-chip [label]="txt.customAccess" glyph="◆" tone="nav" />
+                  <ah-status-chip [label]="txt.customAccess" glyph="◆" tone="nav" />
                 }
                 @if (u.emailVerified) {
-                  <zeus-status-chip [label]="txt.emailVerified" glyph="✓" />
+                  <ah-status-chip [label]="txt.emailVerified" glyph="✓" />
                 } @else {
-                  <zeus-status-chip [label]="txt.notVerified" glyph="!" tone="warning" />
+                  <ah-status-chip [label]="txt.notVerified" glyph="!" tone="warning" />
                 }
                 @if (!u.termsAccepted) {
-                  <zeus-status-chip [label]="txt.termsNotAccepted" glyph="!" tone="warning" />
+                  <ah-status-chip [label]="txt.termsNotAccepted" glyph="!" tone="warning" />
                 }
               </div>
             </div>
@@ -134,11 +134,11 @@ const FEATURES = Object.keys(FEATURE_LABELS) as Feature[];
           <ul class="panel divide-y divide-border px-4">
             @for (f of u.features; track f.key) {
               <li class="pb-3">
-                <zeus-switch-row [label]="labels[f.key]" [description]="hints[f.key]" [formControl]="controls[f.key]" />
+                <ah-switch-row [label]="labels[f.key]" [description]="hints[f.key]" [formControl]="controls[f.key]" />
                 @if (!u.isAdmin) {
                   <p class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     @if (f.custom) {
-                      <zeus-status-chip [label]="txt.customForUser" glyph="◆" tone="nav" />
+                      <ah-status-chip [label]="txt.customForUser" glyph="◆" tone="nav" />
                       <button type="button" class="tap font-semibold text-primary underline-offset-2 hover:underline" [disabled]="saving() === f.key" (click)="reset(f)">
                         {{ f.default ? txt.resetToDefaultOn : txt.resetToDefaultOff }}
                       </button>
@@ -162,7 +162,7 @@ const FEATURES = Object.keys(FEATURE_LABELS) as Feature[];
                     <span class="block truncate font-semibold">{{ e.name }}</span>
                     <span class="block text-xs text-muted-foreground">{{ date(e.startAt) }} · {{ e.role === 'gm' ? txt.gameMaster : txt.player }} · {{ memberStatus[e.memberStatus] }}</span>
                   </span>
-                  <zeus-status-chip [spec]="statusChip(e.status)" />
+                  <ah-status-chip [spec]="statusChip(e.status)" />
                 </li>
               }
             </ul>
@@ -173,7 +173,7 @@ const FEATURES = Object.keys(FEATURE_LABELS) as Feature[];
 
         <section class="mt-8" aria-labelledby="au-stats">
           <h2 id="au-stats" class="label-caps mb-2" i18n>Statistics</h2>
-          <zeus-stat-tiles [stats]="u.stats" />
+          <ah-stat-tiles [stats]="u.stats" />
         </section>
       }
     </div>

@@ -28,7 +28,7 @@ interface BuyIntent {
 
 /** Team store: balance, perks, buy flow with targets, purchase history. */
 @Component({
-  selector: 'zeus-perk-store',
+  selector: 'ah-perk-store',
   imports: [NgIcon, HlmButton, PerkCard, CurrencyDisplay, EmptyState, StatusChip, TeamSwatch, LiveSheet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -41,14 +41,14 @@ interface BuyIntent {
         </div>
         @if (store.myTeam(); as team) {
           <div class="panel flex items-center gap-3 px-4 py-2">
-            <zeus-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
-            <zeus-currency-display [amount]="team.currency" label="Balance" size="lg" i18n-label />
+            <ah-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
+            <ah-currency-display [amount]="team.currency" label="Balance" size="lg" i18n-label />
           </div>
         }
       </header>
 
       @if (!storeEnabled()) {
-        <zeus-empty-state icon="lucideStore" title="The store is closed" message="The Game Master has not opened the perk store for this event." i18n-title i18n-message />
+        <ah-empty-state icon="lucideStore" title="The store is closed" message="The Game Master has not opened the perk store for this event." i18n-title i18n-message />
       } @else {
         @if (!store.myTeam()) {
           <p class="panel border-warning/60 p-3 text-sm font-semibold" role="status" i18n>○ Join a team to buy perks.</p>
@@ -82,11 +82,11 @@ interface BuyIntent {
         <section class="flex flex-col gap-2" aria-labelledby="perks-title">
           <h3 id="perks-title" class="label-caps" i18n>Perks · <span class="num">{{ perks().length }}</span></h3>
           @if (!perks().length) {
-            <zeus-empty-state icon="lucideStore" title="No perks for sale" message="The Game Master has not added any perks to the store." i18n-title i18n-message />
+            <ah-empty-state icon="lucideStore" title="No perks for sale" message="The Game Master has not added any perks to the store." i18n-title i18n-message />
           } @else {
             <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               @for (p of perks(); track p.id) {
-                <li><zeus-perk-card class="h-full" [perk]="p" (buy)="startBuy($event)" /></li>
+                <li><ah-perk-card class="h-full" [perk]="p" (buy)="startBuy($event)" /></li>
               }
             </ul>
           }
@@ -109,7 +109,7 @@ interface BuyIntent {
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-1.5">
                       <span class="font-bold uppercase">{{ pu.perkName }}</span>
-                      <zeus-status-chip [spec]="chip(pu)" />
+                      <ah-status-chip [spec]="chip(pu)" />
                     </div>
                     <p class="text-xs text-muted-foreground">
                       <ng-container i18n><span class="num">{{ time(pu.createdAt) }}</span>
@@ -148,7 +148,7 @@ interface BuyIntent {
     </div>
 
     <!-- Target picker -->
-    <zeus-live-sheet [open]="pickerOpen()" [heading]="pickerTitle()" eyebrow="Choose target" (closed)="cancelIntent()" i18n-eyebrow>
+    <ah-live-sheet [open]="pickerOpen()" [heading]="pickerTitle()" eyebrow="Choose target" (closed)="cancelIntent()" i18n-eyebrow>
       @if (intent(); as it) {
         <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); confirmTarget()">
           @if (it.perk.target === 'enemy_team' || it.perk.type === 'jammer') {
@@ -163,7 +163,7 @@ interface BuyIntent {
               @for (t of enemyTeams(); track t.id) {
                 <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
                   <input type="radio" name="team" class="size-5 accent-primary" [checked]="pickTeam() === t.id" (change)="pickTeam.set(t.id)" />
-                  <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="16" />
+                  <ah-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="16" />
                   <span class="font-semibold">{{ t.name }}</span>
                   <span class="num ml-auto text-sm text-muted-foreground" i18n>{{ t.points }} pts</span>
                 </label>
@@ -194,7 +194,7 @@ interface BuyIntent {
           </div>
         </form>
       }
-    </zeus-live-sheet>
+    </ah-live-sheet>
   `,
 })
 export class PerkStoreScreen {

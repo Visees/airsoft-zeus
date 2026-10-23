@@ -14,16 +14,16 @@ import { SupportTicketCard } from './support-ui';
  * everyone's from the dashboard (/admin/tickets). Route: /support
  */
 @Component({
-  selector: 'zeus-support-list-screen',
+  selector: 'ah-support-list-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, SupportTicketCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile" i18n-title i18n-subtitle>
+      <ah-page-header title="Help & feedback" subtitle="Report a bug, flag a problem or write to the AirsoftHub team." back="/profile" i18n-title i18n-subtitle>
         @if (auth.can('support')) {
           <a hlmBtn routerLink="/support/new" class="h-11"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>New message</ng-container></a>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       @if (isAdmin()) {
         <a routerLink="/admin/tickets" class="panel mb-4 flex min-h-14 items-center gap-3 px-4 hover:bg-muted/60">
@@ -37,16 +37,16 @@ import { SupportTicketCard } from './support-ui';
       }
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="4" />
+        <ah-loading-skeleton [rows]="4" />
       } @else if (error() && !items().length) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (!items().length) {
-        <zeus-empty-state icon="lucideLifeBuoy" title="No messages yet"
+        <ah-empty-state icon="lucideLifeBuoy" title="No messages yet"
           message="Found a bug, something wrong in an event, or have an idea? Write to us: we answer here and you get a notification." i18n-title i18n-message />
       } @else {
         <ul class="flex flex-col gap-2" aria-label="Conversations" i18n-aria-label>
           @for (t of items(); track t.id) {
-            <li><zeus-support-ticket-card [ticket]="t" /></li>
+            <li><ah-support-ticket-card [ticket]="t" /></li>
           }
         </ul>
         @if (nextCursor()) {

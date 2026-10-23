@@ -19,7 +19,7 @@ interface NavItem {
  * Phones: top bar + bottom navigation in thumb reach. ≥1024px: left rail.
  */
 @Component({
-  selector: 'zeus-app-shell',
+  selector: 'ah-app-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgIcon, ConnectionStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-h-dvh lg:pl-60' },
@@ -83,7 +83,7 @@ interface NavItem {
           }
           <span class="min-w-0">
             <span class="block truncate text-sm font-semibold">{{ user()?.nickname }}</span>
-            <zeus-connection-status [showSync]="false" />
+            <ah-connection-status [showSync]="false" />
           </span>
         </a>
       </div>
@@ -99,7 +99,7 @@ interface NavItem {
         <span class="grid size-7 place-items-center rounded-sm bg-primary font-mono text-xs font-bold text-primary-foreground" aria-hidden="true">AH</span>
         <span class="text-base font-bold uppercase tracking-wider" style="font-stretch: 80%">AirsoftHub</span>
       </a>
-      <span class="ml-auto"><zeus-connection-status [compact]="true" [showSync]="false" /></span>
+      <span class="ml-auto"><ah-connection-status [compact]="true" [showSync]="false" /></span>
       <a routerLink="/settings" class="tap grid place-items-center" aria-label="Settings" i18n-aria-label>
         <ng-icon name="lucideSettings" size="20" aria-hidden="true" />
       </a>

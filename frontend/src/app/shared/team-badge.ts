@@ -43,13 +43,13 @@ export function teamIconName(icon: string | null | undefined): string {
 
 /** Team identity: pattern swatch + icon + name. */
 @Component({
-  selector: 'zeus-team-badge',
+  selector: 'ah-team-badge',
   imports: [TeamSwatch, NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex items-center gap-1.5 min-w-0' },
   template: `
     @if (team(); as t) {
-      <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="size() === 'lg' ? 20 : 14" />
+      <ah-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="size() === 'lg' ? 20 : 14" />
       @if (showIcon() && t.icon) {
         <ng-icon [name]="iconName(t.icon)" [size]="size() === 'lg' ? '18' : '14'" class="shrink-0 text-muted-foreground" aria-hidden="true" />
       }

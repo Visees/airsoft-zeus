@@ -25,7 +25,7 @@ export function candidates(file, src) {
       const plain = text.replace(/\$\{[^}]*\}/g, ' ');
       if (!/\p{L}{2,}/u.test(plain)) return;
       if (/^[a-z0-9_.:\-\/#@*]+$/.test(plain.trim())) return; // keys, css, ids, paths
-      if (/^lucide|^zeus|^\/|^https?:|^\.|^#|^\[|^data:|^image\/|^application\//.test(plain.trim())) return;
+      if (/^lucide|^ah-|^\/|^https?:|^\.|^#|^\[|^data:|^image\/|^application\//.test(plain.trim())) return;
       if (/^[a-z0-9_\-\s:\/\[\]\.!%()=&>]+$/.test(plain) && /-|:/.test(plain)) return; // tailwind class lists
       const { line } = sf.getLineAndCharacterOfPosition(n.getStart(sf));
       out.push({ node: n, start: n.getStart(sf), end: n.end, line: line + 1, text });

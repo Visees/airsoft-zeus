@@ -16,16 +16,16 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
 
 /** Public events: search, filters, cursor pagination. */
 @Component({
-  selector: 'zeus-discover-screen',
+  selector: 'ah-discover-screen',
   imports: [RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, EventCard, EmptyState, ErrorState, LoadingSkeleton, PageHeader, ConnectionStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Discover events" subtitle="Public games you can request to join." i18n-title i18n-subtitle>
+      <ah-page-header title="Discover events" subtitle="Public games you can request to join." i18n-title i18n-subtitle>
         <a hlmBtn variant="outline" class="tap" routerLink="/events/join">
           <ng-icon name="lucideKeyRound" size="16" aria-hidden="true" /> <ng-container i18n>Join with a code</ng-container>
         </a>
-      </zeus-page-header>
+      </ah-page-header>
 
       <form class="panel mb-4 grid grid-cols-1 gap-3 p-3 sm:grid-cols-[1fr_12rem_11rem]" role="search" (submit)="$event.preventDefault(); flushSearch()">
         <div class="flex flex-col gap-1.5">
@@ -90,16 +90,16 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
       @if (offline() && items().length) {
         <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
           <span i18n>Showing the last results loaded.</span>
-          <zeus-connection-status />
+          <ah-connection-status />
         </div>
       }
 
       @if (loading() && !items().length) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (error() && !items().length) {
-        <zeus-error-state [error]="error()" (retry)="reload()" />
+        <ah-error-state [error]="error()" (retry)="reload()" />
       } @else if (!items().length) {
-        <zeus-empty-state
+        <ah-empty-state
           icon="lucideSearch"
           [title]="hasFilters() ? txt.noEventsMatchThese : txt.noPublicEventsScheduled"
           [message]="hasFilters() ? txt.tryAnotherNameMode : txt.privateGamesAreJoined"
@@ -108,11 +108,11 @@ const MODES = Object.entries(GAME_MODE_LABELS) as [GameMode, string][];
             <button hlmBtn variant="outline" class="tap" type="button" (click)="clearFilters()" i18n>Clear filters</button>
           }
           <a hlmBtn class="tap" routerLink="/events/join" i18n>Join with a code</a>
-        </zeus-empty-state>
+        </ah-empty-state>
       } @else {
         <ul class="grid grid-cols-1 gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
           @for (e of items(); track e.id) {
-            <li><zeus-event-card [event]="e" from="/events/discover" /></li>
+            <li><ah-event-card [event]="e" from="/events/discover" /></li>
           }
         </ul>
         @if (moreError()) {

@@ -9,7 +9,7 @@ import { CaptureAttempt, captureErrorMessage } from './capture-attempt';
  * so screen readers hear "Checking…", then the server's answer.
  */
 @Component({
-  selector: 'zeus-capture-feedback',
+  selector: 'ah-capture-feedback',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

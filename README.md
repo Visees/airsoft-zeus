@@ -27,12 +27,12 @@ docker compose up -d --build
 * Postgres: `localhost:5433`, database/user `zeus`
 
 With `SEED_DEMO_DATA=true` (the local default) the API creates demo data on first start, all
-flagged `is_test_data` and using `@airsoftzeus.test` addresses. Password for every demo
-account: `zeus-demo-2026`.
+flagged `is_test_data` and using `@airsofthub.test` addresses. Password for every demo
+account: `airsofthub-demo-2026`.
 
 | Account | Role |
 | --- | --- |
-| `overwatch@airsoftzeus.test` | Game Master of "Operation Pinewood" (live), "Night Raid at Quarry 7" (registration open) and "Spring Offensive" (completed) |
+| `overwatch@airsofthub.test` | Game Master of "Operation Pinewood" (live), "Night Raid at Quarry 7" (registration open) and "Spring Offensive" (completed) |
 | `kestrel@…`, `mako@…` (squad leader), `juniper@…`, `talon@…`, `brick@…`, `wren@…` | Team Alpha |
 | `sable@…` (squad leader), `ironside@…`, `moth@…`, `viper@…`, `quill@…`, `basalt@…` | Team Bravo |
 
@@ -79,7 +79,7 @@ cd frontend && npx ng build                 # production build incl. SSR server
 1. **New resource → Docker Compose**, from this repository and branch. Coolify defaults to
    `/docker-compose.yaml`: set the location to **`/docker-compose.yml`**.
 2. Assign the domain to the **`frontend`** service, port **4000**, and set `SITE_URL` to that
-   exact address (e.g. `https://zeus.example.com`). HTTPS is automatic once the domain's DNS
+   exact address (e.g. `https://airsofthub.eu`). HTTPS is automatic once the domain's DNS
    A record points at the server.
 3. Paste the variables from `.env.example` with real values. Required: `SITE_URL`,
    `POSTGRES_PASSWORD`, `JWT_SECRET` (≥ 32 random chars: `openssl rand -base64 48`).
@@ -94,7 +94,7 @@ cd frontend && npx ng build                 # production build incl. SSR server
    database, add a Coolify scheduled task on the `postgres` service:
 
    ```bash
-   pg_dump -U zeus -d zeus -Fc > /tmp/zeus-$(date +%F).dump   # then upload with your S3 tool
+   pg_dump -U zeus -d zeus -Fc > /tmp/airsofthub-$(date +%F).dump   # then upload with your S3 tool
    ```
 
    Also back up the `uploads` volume (profile pictures, covers, objective images).
@@ -102,7 +102,7 @@ cd frontend && npx ng build                 # production build incl. SSR server
 **Restore:** stop the `api` service, then on the server
 
 ```bash
-docker compose exec -T postgres pg_restore -U zeus -d zeus --clean --if-exists < zeus-YYYY-MM-DD.dump
+docker compose exec -T postgres pg_restore -U zeus -d zeus --clean --if-exists < airsofthub-YYYY-MM-DD.dump
 ```
 
 and start `api` again. The schema file only runs on an empty volume; later schema changes
@@ -156,7 +156,7 @@ Build (from `frontend/`):
 
 ```bash
 npm install
-npx cap sync                                  # loads https://airsoftzeus.visedev.it; other site: APP_URL=https://… npx cap sync
+npx cap sync                                  # loads https://airsofthub.eu; other site: APP_URL=https://… npx cap sync
 npm run app:android                           # opens Android Studio: Run, or Build > Generate Signed App Bundle/APK
 npm run app:ios                               # macOS only: opens Xcode
 ```

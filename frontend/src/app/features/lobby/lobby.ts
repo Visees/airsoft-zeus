@@ -25,7 +25,7 @@ import { LobbyRoster } from './lobby-roster';
 
 /** Pre-game room: checklist, roster, announcements; GM tools to run the start. */
 @Component({
-  selector: 'zeus-lobby-screen',
+  selector: 'ah-lobby-screen',
   imports: [
     RouterLink,
     NgIcon,
@@ -47,20 +47,20 @@ import { LobbyRoster } from './lobby-roster';
     <div class="page">
       @if (loading() && !event()) {
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
-        <zeus-loading-skeleton [rows]="6" [avatar]="true" />
+        <ah-loading-skeleton [rows]="6" [avatar]="true" />
       } @else if (error() && !event()) {
-        <zeus-page-header title="Lobby" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="error()" (retry)="loadAll()" />
+        <ah-page-header title="Lobby" [back]="'/events/' + eventId()" backLabel="Event" i18n-title i18n-backLabel />
+        <ah-error-state [error]="error()" (retry)="loadAll()" />
       } @else if (event(); as e) {
-        <zeus-page-header [title]="e.name" eyebrow="Lobby" [back]="'/events/' + e.id" backLabel="Event details" i18n-eyebrow i18n-backLabel>
-          <zeus-status-chip [spec]="statusChip()" />
-          <zeus-connection-status [compact]="true" [quietOnline]="true" />
-        </zeus-page-header>
+        <ah-page-header [title]="e.name" eyebrow="Lobby" [back]="'/events/' + e.id" backLabel="Event details" i18n-eyebrow i18n-backLabel>
+          <ah-status-chip [spec]="statusChip()" />
+          <ah-connection-status [compact]="true" [quietOnline]="true" />
+        </ah-page-header>
 
         @if (offline()) {
           <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
             <span i18n>Showing the last data loaded. Changes need a connection.</span>
-            <zeus-connection-status />
+            <ah-connection-status />
           </div>
         }
 
@@ -134,7 +134,7 @@ import { LobbyRoster } from './lobby-roster';
           </dl>
           @if (e.status !== 'cancelled' && e.status !== 'completed') {
             <div class="flex flex-col items-start gap-1 border-t border-border pt-3 sm:items-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-              <zeus-game-timer [clock]="e.clock" [startAt]="e.startAt" [serverOffsetMs]="serverOffset()" size="lg" />
+              <ah-game-timer [clock]="e.clock" [startAt]="e.startAt" [serverOffsetMs]="serverOffset()" size="lg" />
               @if (startOverdue()) {
                 <p class="text-xs text-warning" i18n>▲ Start time passed — waiting for the Game Master</p>
               }
@@ -145,9 +145,9 @@ import { LobbyRoster } from './lobby-roster';
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
           <div class="flex min-w-0 flex-col gap-4">
             @if (!e.isGm && e.me && preGame()) {
-              <zeus-lobby-checklist [event]="e" (memberChange)="onMemberChange($event)" />
+              <ah-lobby-checklist [event]="e" (memberChange)="onMemberChange($event)" />
             }
-            <zeus-lobby-roster
+            <ah-lobby-roster
               [event]="e"
               [members]="members()"
               [isGm]="e.isGm"
@@ -159,7 +159,7 @@ import { LobbyRoster } from './lobby-roster';
 
           <div class="flex flex-col gap-4">
             @if (e.isGm && preGame()) {
-              <zeus-lobby-gm-controls
+              <ah-lobby-gm-controls
                 [event]="e"
                 [members]="members()"
                 (eventChange)="onEventChange($event)"
@@ -168,7 +168,7 @@ import { LobbyRoster } from './lobby-roster';
               />
             }
             @if (e.isGm && e.me && e.status !== 'completed' && e.status !== 'cancelled') {
-              <zeus-lobby-gm-play [event]="e" (memberChange)="onMemberChange($event)" />
+              <ah-lobby-gm-play [event]="e" (memberChange)="onMemberChange($event)" />
             }
 
             <section aria-labelledby="ann-list-title">
@@ -178,7 +178,7 @@ import { LobbyRoster } from './lobby-roster';
               } @else {
                 <ul class="flex flex-col gap-2" aria-live="polite">
                   @for (a of announcements(); track a.id) {
-                    <li><zeus-announcement-banner [announcement]="a" [dismissible]="false" /></li>
+                    <li><ah-announcement-banner [announcement]="a" [dismissible]="false" /></li>
                   }
                 </ul>
                 @if (annCursor()) {

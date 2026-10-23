@@ -50,7 +50,7 @@ export interface EventContext {
 }
 
 /**
- * A Game Master can also play on a team. Requests sent with `X-Zeus-View: player` (the live
+ * A Game Master can also play on a team. Requests sent with `X-AirsoftHub-View: player` (the live
  * player screens) then see the game as their team does: the context is built without GM rights.
  * Set per request by the middleware in app.ts; realtime subscriptions pass it explicitly.
  */

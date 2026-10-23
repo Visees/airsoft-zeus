@@ -160,7 +160,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
 
 /** Basic information form (wizard step 1 and the editor's Basics tab). */
 @Component({
-  selector: 'zeus-event-basics-form',
+  selector: 'ah-event-basics-form',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, SegmentedControl, SwitchRow, TacticalMap],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-6' },
@@ -294,7 +294,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
         </div>
         @if (mapOpen()) {
           <div id="bf-map" class="flex flex-col gap-1.5">
-            <zeus-tactical-map
+            <ah-tactical-map
               class="h-72 rounded-md border border-border"
               [draft]="meetingDraft()"
               [center]="mapCenter()"
@@ -332,7 +332,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
         @if (showRegistration()) {
           <div class="flex flex-col gap-1.5">
             <span hlmLabel id="bf-vis-l" i18n>Who can find this event</span>
-            <zeus-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="bf-vis-l" stacked />
+            <ah-segmented formControlName="visibility" [options]="visibilityOptions" labelledby="bf-vis-l" stacked />
             @if (f.controls.visibility.value === 'private') {
               <div class="rounded-sm border border-border bg-muted p-3 text-sm">
                 @if (joinCode(); as code) {
@@ -350,7 +350,7 @@ const MODE_OPTIONS = (Object.keys(GAME_MODE_LABELS) as GameMode[]).map((m) => ({
               </div>
             }
           </div>
-          <zeus-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits until you approve it. Off: players are approved immediately." i18n-label i18n-description />
+          <ah-switch-row formControlName="requiresApproval" label="Approve players manually" description="Each registration waits until you approve it. Off: players are approved immediately." i18n-label i18n-description />
         }
       </fieldset>
 

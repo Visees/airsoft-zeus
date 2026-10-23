@@ -48,7 +48,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
  * Map-only view (button with the map controls) hides everything but the map, the timer and GPS.
  */
 @Component({
-  selector: 'zeus-live-map',
+  selector: 'ah-live-map',
   imports: [NgIcon, HlmButton, TacticalMap, StatusChip, TeamBadge, CaptureBar, GameTimer, GpsStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block h-full' },
@@ -56,7 +56,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
     <h2 class="sr-only" i18n>Map</h2>
     <!-- isolate: marker z-indexes stay inside the map, under the panels below -->
     <div class="absolute inset-0 isolate">
-      <zeus-tactical-map
+      <ah-tactical-map
         #map
         class="h-full w-full"
         [objectives]="store.objectives()"
@@ -83,14 +83,14 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         >
           <ng-icon [name]="session.mapOnly() ? 'lucideShrink' : 'lucideFullscreen'" size="18" aria-hidden="true" />
         </button>
-      </zeus-tactical-map>
+      </ah-tactical-map>
     </div>
 
     @if (session.mapOnly()) {
       <!-- Map-only view: just the clock and GPS -->
       <div class="hud pointer-events-none absolute top-2 z-[2] flex items-center gap-3 px-2.5 py-1" [style.left]="'max(0.5rem, env(safe-area-inset-left))'">
-        <zeus-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="sm" [showCaption]="false" />
-        <zeus-gps-status [showTracking]="false" />
+        <ah-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="sm" [showCaption]="false" />
+        <ah-gps-status [showTracking]="false" />
       </div>
     }
 
@@ -167,9 +167,9 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         @if (selectedObjective(); as o) {
           <div class="pr-10">
             <div class="flex flex-wrap items-center gap-1.5">
-              <zeus-status-chip [spec]="chip(o)" />
+              <ah-status-chip [spec]="chip(o)" />
               @if (owner(o); as t) {
-                <span class="inline-flex items-center gap-1 text-xs"><span class="label-caps" i18n>Held by</span><zeus-team-badge [team]="t" size="sm" [showIcon]="false" /></span>
+                <span class="inline-flex items-center gap-1 text-xs"><span class="label-caps" i18n>Held by</span><ah-team-badge [team]="t" size="sm" [showIcon]="false" /></span>
               }
             </div>
             <h3 id="map-preview-title" tabindex="-1" class="mt-1 text-xl font-bold uppercase outline-none">{{ o.name }}</h3>
@@ -182,7 +182,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
             }
           </div>
           @if (showBar(selectedCapture())) {
-            <zeus-capture-bar class="mt-2" [status]="selectedCapture()!" [canAccrue]="canAccrue(o)" />
+            <ah-capture-bar class="mt-2" [status]="selectedCapture()!" [canAccrue]="canAccrue(o)" />
           }
           <div class="mt-2 flex items-center gap-2 text-nav">
             @if (dirTo(o); as d) {
@@ -209,19 +209,19 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         } @else if (selectedPlayer(); as p) {
           <div class="pr-10">
             <div class="flex flex-wrap items-center gap-1.5">
-              <zeus-status-chip
+              <ah-status-chip
                 [label]="kindLabel(p.kind)"
                 [glyph]="p.kind === 'enemy' ? '▲' : p.kind === 'intel' ? '◇' : '●'"
                 [tone]="p.kind === 'enemy' || p.kind === 'intel' ? 'danger' : 'primary'"
               />
-              <zeus-status-chip [spec]="posChip(p)" />
+              <ah-status-chip [spec]="posChip(p)" />
             </div>
             <h3 id="map-preview-title" tabindex="-1" class="mt-1 text-xl font-bold outline-none">{{ p.nickname || txt.unknownPlayer }}</h3>
           </div>
           <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
             @if (teamOf(p); as t) {
               <dt class="label-caps self-center" i18n>Team</dt>
-              <dd><zeus-team-badge [team]="t" size="sm" /></dd>
+              <dd><ah-team-badge [team]="t" size="sm" /></dd>
             }
             @if (p.playerRole) {
               <dt class="label-caps self-center" i18n>Role</dt>

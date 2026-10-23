@@ -40,7 +40,7 @@ export function createApp() {
   app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
     // Messages in the app's language (sent by the frontend on every call).
-    runWithLang(fromAcceptLanguage(req.get('accept-language')), () => runWithView(req.get('x-zeus-view') === 'player', next));
+    runWithLang(fromAcceptLanguage(req.get('accept-language')), () => runWithView(req.get('x-airsofthub-view') === 'player', next));
   });
 
   app.get('/api/health', async (_req, res) => {

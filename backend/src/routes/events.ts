@@ -272,7 +272,7 @@ eventsRouter.delete('/:eventId', async (req, res) => {
       ? (await many<{ user_id: string }>(`SELECT user_id FROM event_members WHERE event_id = $1 AND user_id <> $2 AND status IN ('invited','pending','approved')`, [eventId, me.id], t)).map((r) => r.user_id)
       : [];
     const files = await many<{ stored_name: string }>('SELECT stored_name FROM event_attachments WHERE event_id = $1', [eventId], t);
-    await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
+    await t.query("SELECT set_config('airsofthub.allow_purge', 'on', true)");
     await t.query('DELETE FROM events WHERE id = $1', [eventId]);
     await notify(t, members, { type: 'event_removed', title: (tr) => tr`${ctx.event.name} was removed`, body: (tr) => tr`A platform admin removed this event.`, url: '/notifications' });
     return files.map((f) => f.stored_name);
@@ -874,7 +874,7 @@ eventsRouter.delete('/:eventId/teams/:teamId', async (req, res) => {
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t, true);
     if (ctx.event.started_at) throw conflict(tr`Teams cannot be deleted once the game has started.`, 'game_started');
-    await t.query("SELECT set_config('zeus.allow_purge', 'on', true)");
+    await t.query("SELECT set_config('airsofthub.allow_purge', 'on', true)");
     const r = await t.query('DELETE FROM teams WHERE id = $1 AND event_id = $2', [teamId, eventId]);
     if (!r.rowCount) throw notFound(tr`Team not found.`);
     await audit(t, eventId, me.id, 'team.delete', { type: 'team', id: teamId });

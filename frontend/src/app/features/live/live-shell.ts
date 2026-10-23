@@ -51,7 +51,7 @@ interface SharingIndicator {
  * permission sheet, end-of-game panel. Owns the GPS tracker lifecycle for the event.
  */
 @Component({
-  selector: 'zeus-live-shell',
+  selector: 'ah-live-shell',
   imports: [
     RouterOutlet,
     RouterLink,
@@ -121,15 +121,15 @@ interface SharingIndicator {
         <div class="flex flex-1 items-center justify-center p-6 compact:col-span-2 compact:row-span-2">
           <div class="w-full max-w-md">
             <p class="label-caps mb-3" i18n>Joining the game…</p>
-            <zeus-loading-skeleton [rows]="4" />
+            <ah-loading-skeleton [rows]="4" />
           </div>
         </div>
       } @else {
         <div class="flex flex-1 items-center justify-center p-6 compact:col-span-2 compact:row-span-2">
           <div class="w-full max-w-md">
-            <zeus-error-state [error]="store.error()" title="Could not load the game" (retry)="store.reload()" i18n-title>
+            <ah-error-state [error]="store.error()" title="Could not load the game" (retry)="store.reload()" i18n-title>
               <a hlmBtn variant="ghost" class="tap" [routerLink]="['/events', eventId()]" i18n>Back to event</a>
-            </zeus-error-state>
+            </ah-error-state>
           </div>
         </div>
       }
@@ -151,20 +151,20 @@ interface SharingIndicator {
             <a [routerLink]="backLink()" class="tap -my-2 -ml-2 grid shrink-0 place-items-center rounded-sm text-muted-foreground hover:text-foreground compact:my-0 compact:size-8 compact:min-h-8 compact:min-w-8" aria-label="Back to event" i18n-aria-label>
               <ng-icon name="lucideArrowLeft" size="20" aria-hidden="true" />
             </a>
-            <zeus-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" [stacked]="true" />
+            <ah-game-timer [clock]="store.clock()" [startAt]="ev.startAt" [serverOffsetMs]="store.serverOffsetMs()" size="md" [stacked]="true" />
           </div>
           @if (store.isGm()) {
             <span class="rounded-sm bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary compact:order-3" i18n>GAME MASTER</span>
           } @else if (store.myTeam(); as team) {
             <div class="flex min-w-0 items-center gap-3 compact:order-3">
               <span class="flex min-w-0 items-center gap-1.5">
-                <zeus-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
+                <ah-team-swatch [color]="team.color" [pattern]="team.pattern" [size]="18" />
                 <span class="hidden max-w-28 truncate text-sm font-bold sm:inline">{{ team.name }}</span>
                 <span class="sr-only sm:hidden">{{ team.name }}</span>
               </span>
-              <zeus-score-display [points]="team.points" size="md" [showUnit]="false" />
+              <ah-score-display [points]="team.points" size="md" [showUnit]="false" />
               @if (team.currency !== null) {
-                <zeus-currency-display [amount]="team.currency" size="md" [showUnit]="false" />
+                <ah-currency-display [amount]="team.currency" size="md" [showUnit]="false" />
               }
             </div>
           } @else {
@@ -172,8 +172,8 @@ interface SharingIndicator {
           }
         </div>
         <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 compact:order-2 compact:mt-0 compact:min-w-0 compact:flex-1">
-          <zeus-gps-status [showTracking]="false" />
-          <zeus-connection-status [compact]="true" [showSync]="false" />
+          <ah-gps-status [showTracking]="false" />
+          <ah-connection-status [compact]="true" [showSync]="false" />
           @if (sharing(); as s) {
             <button
               type="button"
@@ -187,7 +187,7 @@ interface SharingIndicator {
             </button>
           }
           @if (status() === 'paused') {
-            <zeus-status-chip [spec]="pausedChip" />
+            <ah-status-chip [spec]="pausedChip" />
           }
         </div>
         </div>
@@ -212,7 +212,7 @@ interface SharingIndicator {
             </div>
           }
           @if (store.bannerAnnouncement(); as a) {
-            <zeus-announcement-banner class="pointer-events-auto" [announcement]="a" (dismiss)="store.dismissBanner()" />
+            <ah-announcement-banner class="pointer-events-auto" [announcement]="a" (dismiss)="store.dismissBanner()" />
           }
           @if (showGmPrompt()) {
             <section class="panel pointer-events-auto p-4 shadow-lg" aria-labelledby="gm-prompt-title">
@@ -241,7 +241,7 @@ interface SharingIndicator {
               @if (winner(); as w) {
                 <p class="mt-2 flex flex-wrap items-center gap-2">
                   <span class="label-caps" i18n>Winner</span>
-                  <zeus-team-badge [team]="w" size="lg" />
+                  <ah-team-badge [team]="w" size="lg" />
                 </p>
               }
               @if (store.myTeam(); as team) {
@@ -300,7 +300,7 @@ interface SharingIndicator {
       </nav>
 
       <!-- Consent / permission sheet -->
-      <zeus-live-sheet
+      <ah-live-sheet
         [open]="session.sheetOpen()"
         [heading]="sheetMode() === 'consent' ? txt.shareYourLocation : sheetMode() === 'denied' ? txt.locationIsBlocked : txt.gpsNotAvailable"
         eyebrow="Location sharing"
@@ -374,7 +374,7 @@ interface SharingIndicator {
             </div>
           }
         }
-      </zeus-live-sheet>
+      </ah-live-sheet>
     }
   `,
 })

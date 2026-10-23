@@ -16,7 +16,7 @@ export class ThemeService {
   private readonly systemDark = signal(false);
   private readonly liveMode = signal(false);
 
-  readonly preference = signal<ThemePreference>(safeStorage.get<ThemePreference>('zeus.theme') ?? 'system');
+  readonly preference = signal<ThemePreference>(safeStorage.get<ThemePreference>('airsofthub.theme') ?? 'system');
   readonly isDark = computed(() => {
     const pref = this.preference();
     if (pref === 'dark' || pref === 'classic') return true;
@@ -43,7 +43,7 @@ export class ThemeService {
 
   setPreference(pref: ThemePreference): void {
     this.preference.set(pref);
-    safeStorage.set('zeus.theme', pref);
+    safeStorage.set('airsofthub.theme', pref);
   }
 
   /** Dark, keeping the classic palette if that is what the user picked. */

@@ -18,11 +18,11 @@ import { NICKNAME_FORMAT_HELP, NICKNAME_PATTERN, NicknameStatusLine, createNickn
 import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
 
 @Component({
-  selector: 'zeus-sign-up-screen',
+  selector: 'ah-sign-up-screen',
   imports: [AuthLayout, ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, PasswordInput, PasswordStrength, NicknameStatusLine, LegalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout [center]="false">
+    <ah-auth-layout [center]="false">
       <a layoutAction routerLink="/auth/login" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" i18n>Log in</a>
 
       <a routerLink="/welcome" class="tap -ml-2 inline-flex items-center gap-1 self-start px-2 text-sm text-muted-foreground hover:text-foreground">
@@ -60,18 +60,18 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
           @if (err('nickname'); as e) {
             <p class="field-error" id="su-nickname-status">{{ e }}</p>
           } @else {
-            <zeus-nickname-status id="su-nickname-status" [status]="nick.status()" [reason]="nick.reason()" />
+            <ah-nickname-status id="su-nickname-status" [status]="nick.status()" [reason]="nick.reason()" />
           }
         </div>
 
         <div class="flex flex-col gap-1.5">
           <label hlmLabel for="su-password" i18n>Password</label>
-          <zeus-password-input [control]="form.controls.password" inputId="su-password" autocomplete="new-password"
+          <ah-password-input [control]="form.controls.password" inputId="su-password" autocomplete="new-password"
             [invalid]="!!err('password')" [describedBy]="err('password') ? 'su-password-err su-password-hints' : 'su-password-hints'" />
           @if (err('password'); as e) {
             <p id="su-password-err" class="field-error">{{ e }}</p>
           }
-          <zeus-password-strength [password]="passwordValue()" [avoid]="avoid()" listId="su-password-hints" />
+          <ah-password-strength [password]="passwordValue()" [avoid]="avoid()" listId="su-password-hints" />
         </div>
 
         <div class="flex flex-col gap-1.5">
@@ -97,8 +97,8 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
           Already have an account? <a routerLink="/auth/login" class="font-semibold text-primary underline-offset-2 hover:underline">Log in</a>
         </p>
       </form>
-    </zeus-auth-layout>
-    <zeus-legal-dialog />
+    </ah-auth-layout>
+    <ah-legal-dialog />
   `,
 })
 export class SignUpScreen {

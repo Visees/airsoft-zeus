@@ -11,7 +11,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * For a phone on the same Wi-Fi as a dev machine: APP_URL=http://192.168.1.20:4200 (cleartext is
  * allowed only for http URLs).
  */
-const appUrl = process.env['APP_URL'] ?? 'https://airsoftzeus.visedev.it';
+const appUrl = process.env['APP_URL'] ?? 'https://airsofthub.eu';
 
 const config: CapacitorConfig = {
   // Permanent once published in the stores.

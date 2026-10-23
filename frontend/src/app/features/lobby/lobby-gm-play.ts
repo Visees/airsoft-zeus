@@ -11,7 +11,7 @@ import { TeamBadge } from '../../shared/team-badge';
 
 /** A Game Master joins (or leaves) a team to play the game too. */
 @Component({
-  selector: 'zeus-lobby-gm-play',
+  selector: 'ah-lobby-gm-play',
   imports: [RouterLink, NgIcon, HlmButton, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -20,7 +20,7 @@ import { TeamBadge } from '../../shared/team-badge';
       <div>
         <h2 id="gm-play-title" class="label-caps" i18n>Play in a team</h2>
         @if (myTeam(); as t) {
-          <p class="mt-2 flex flex-wrap items-center gap-2 text-sm"><ng-container i18n>You play with</ng-container> <zeus-team-badge [team]="t" size="sm" /></p>
+          <p class="mt-2 flex flex-wrap items-center gap-2 text-sm"><ng-container i18n>You play with</ng-container> <ah-team-badge [team]="t" size="sm" /></p>
           <p class="mt-1 text-xs text-muted-foreground" i18n>
             The live map shows you only what your team sees. The control center still shows everything.
           </p>
@@ -45,7 +45,7 @@ import { TeamBadge } from '../../shared/team-badge';
               [attr.aria-label]="teamChoiceLabel(t, mine, full)"
               (click)="join(t)"
             >
-              <zeus-team-badge [team]="t" size="sm" />
+              <ah-team-badge [team]="t" size="sm" />
               <span class="num shrink-0 text-xs text-muted-foreground">
                 {{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }}
                 @if (mine) { <span class="text-primary">✓</span> } @else if (full) { <ng-container i18n>■ Full</ng-container> }

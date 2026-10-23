@@ -87,7 +87,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
  * areas, routes, circles and labels, move and edit them, import/export via templates.
  */
 @Component({
-  selector: 'zeus-map-editor-screen',
+  selector: 'ah-map-editor-screen',
   imports: [
     ReactiveFormsModule,
     NgTemplateOutlet,
@@ -232,7 +232,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
     @if (loading()) {
       <div class="grid flex-1 place-items-center text-sm text-muted-foreground" role="status" i18n>Loading map content…</div>
     } @else if (error()) {
-      <div class="mx-auto w-full max-w-lg p-4"><zeus-error-state [error]="error()" (retry)="load()" /></div>
+      <div class="mx-auto w-full max-w-lg p-4"><ah-error-state [error]="error()" (retry)="load()" /></div>
     } @else {
       <div class="relative flex min-h-0 flex-1 flex-col-reverse lg:flex-row">
         <!-- ======================= tools ======================= -->
@@ -284,7 +284,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             </div>
             <div class="flex-1 overflow-y-auto p-2">
               @if (totalCount() === 0) {
-                <zeus-empty-state icon="lucideMapPinned" title="The map is empty" message="Pick a tool and tap the map, or import a GeoJSON/CSV file." i18n-title i18n-message />
+                <ah-empty-state icon="lucideMapPinned" title="The map is empty" message="Pick a tool and tap the map, or import a GeoJSON/CSV file." i18n-title i18n-message />
               }
               @for (g of groups(); track g.title) {
                 @if (g.items.length) {
@@ -317,7 +317,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
 
         <!-- ======================= map ======================= -->
         <main class="relative min-h-0 min-w-0 flex-1">
-          <zeus-tactical-map
+          <ah-tactical-map
             #map
             class="absolute inset-0"
             [objectives]="mapObjectives()"
@@ -420,7 +420,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                   }
                   <div class="flex flex-col gap-1.5">
                     <span hlmLabel i18n>Colour</span>
-                    <zeus-color-field formControlName="color" label="Zone colour" i18n-label />
+                    <ah-color-field formControlName="color" label="Zone colour" i18n-label />
                   </div>
                 }
                 <p class="num text-sm text-muted-foreground">{{ draftMeasure() }}</p>
@@ -463,7 +463,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                     </button>
                   </div>
                   <div class="flex flex-wrap items-center gap-2 text-sm">
-                    <zeus-status-chip [spec]="objectiveChip(o)" />
+                    <ah-status-chip [spec]="objectiveChip(o)" />
                     <span class="text-muted-foreground">{{ o.methods.length ? o.methods.join(' · ').toUpperCase() : txt.noCaptureMethod }}</span>
                   </div>
                   <form [formGroup]="objForm" (ngSubmit)="saveObjective(o)" class="flex flex-col gap-3" novalidate>
@@ -484,7 +484,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                     </div>
                     <div class="flex flex-col gap-1.5">
                       <span hlmLabel i18n>Marker colour</span>
-                      <zeus-color-field formControlName="color" label="Marker colour" i18n-label />
+                      <ah-color-field formControlName="color" label="Marker colour" i18n-label />
                     </div>
                     <label class="flex min-h-11 cursor-pointer items-center gap-3">
                       <input type="checkbox" formControlName="enabled" class="size-5 accent-primary" /> <ng-container i18n>Enabled (players can see and capture it)</ng-container>
@@ -547,7 +547,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                     }
                     <div class="flex flex-col gap-1.5">
                       <span hlmLabel i18n>Colour</span>
-                      <zeus-color-field formControlName="color" label="POI colour" i18n-label />
+                      <ah-color-field formControlName="color" label="POI colour" i18n-label />
                     </div>
                     <div class="flex flex-col gap-1.5">
                       <label hlmLabel for="pp-desc" i18n>Description</label>
@@ -616,7 +616,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
                     }
                     <div class="flex flex-col gap-1.5">
                       <span hlmLabel i18n>Colour</span>
-                      <zeus-color-field formControlName="color" label="Zone colour" i18n-label />
+                      <ah-color-field formControlName="color" label="Zone colour" i18n-label />
                     </div>
                     @if (z.geometry === 'polygon' || z.geometry === 'circle') {
                       <div class="flex flex-col gap-1.5">
@@ -727,7 +727,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
     </ng-template>
 
     <!-- ======================= dialogs ======================= -->
-    <zeus-ops-dialog [open]="dialog() === 'import'" title="Import map elements" subtitle="Elements are added to the current map; nothing is replaced." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+    <ah-ops-dialog [open]="dialog() === 'import'" title="Import map elements" subtitle="Elements are added to the current map; nothing is replaced." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'import') {
         <form [formGroup]="importForm" (ngSubmit)="runImport()" class="flex flex-col gap-4" novalidate>
           <fieldset>
@@ -766,9 +766,9 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
           </div>
         </form>
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'saveTpl'" title="Save as map template" subtitle="Saves objectives, POIs and zones so you can reuse this field in other events." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+    <ah-ops-dialog [open]="dialog() === 'saveTpl'" title="Save as map template" subtitle="Saves objectives, POIs and zones so you can reuse this field in other events." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'saveTpl') {
         <form (submit)="$event.preventDefault(); saveTemplate()" class="flex flex-col gap-4" novalidate>
           <div class="flex flex-col gap-1.5">
@@ -784,16 +784,16 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
           </div>
         </form>
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'applyTpl'" title="Apply a map template" subtitle="The template's elements are added to this map." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+    <ah-ops-dialog [open]="dialog() === 'applyTpl'" title="Apply a map template" subtitle="The template's elements are added to this map." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'applyTpl') {
         @if (templates() === null) {
           <p class="py-6 text-center text-sm text-muted-foreground" role="status" i18n>Loading templates…</p>
         } @else if (templatesError()) {
-          <zeus-error-state [error]="templatesError()" (retry)="loadTemplates()" />
+          <ah-error-state [error]="templatesError()" (retry)="loadTemplates()" />
         } @else if (!templates()!.length) {
-          <zeus-empty-state icon="lucideLayoutTemplate" title="No map templates yet" message="Use “Save as map template” on a finished map to reuse it here." i18n-title i18n-message />
+          <ah-empty-state icon="lucideLayoutTemplate" title="No map templates yet" message="Use “Save as map template” on a finished map to reuse it here." i18n-title i18n-message />
         } @else {
           <ul class="flex flex-col gap-2">
             @for (t of templates(); track t.id) {
@@ -811,7 +811,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
           </ul>
         }
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
   `,
 })
 export class MapEditorScreen implements OnInit {

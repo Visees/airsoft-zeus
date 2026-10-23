@@ -13,7 +13,7 @@ const NOT_TEXT = new Set(['dark', 'light', 'page', 'true', 'false', 'step', 'loc
 function isUiText(v) {
   if (!/\p{L}{2,}/u.test(v)) return false;
   if (NOT_TEXT.has(v)) return false;
-  if (/^lucide|^zeus|^https?:|^\/|^#|^mailto:|^tel:/.test(v)) return false;
+  if (/^lucide|^ah-|^https?:|^\/|^#|^mailto:|^tel:/.test(v)) return false;
   if (/\b[a-z]+-[a-z0-9[]|[a-z]:[a-z]|\/\d|!$/.test(v) && !/^[A-Z]/.test(v)) return false; // tailwind classes
   if (/^[a-z0-9_.-]+$/.test(v) && !/…$/.test(v)) return false; // keys, ids
   if (!/\s/.test(v) && /[a-z][A-Z]/.test(v)) return false; // camelCase keys and form paths

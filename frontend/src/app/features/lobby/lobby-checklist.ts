@@ -27,7 +27,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
 
 /** The player's pre-game checklist: rules, permissions, tracking consent, team, ready. */
 @Component({
-  selector: 'zeus-lobby-checklist',
+  selector: 'ah-lobby-checklist',
   imports: [NgIcon, HlmButton, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -171,7 +171,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
             <div class="min-w-0 flex-1">
               <h3 class="font-semibold" i18n>Team</h3>
               @if (myTeam(); as t) {
-                <p class="mt-1 flex items-center gap-2 text-sm"><zeus-team-badge [team]="t" size="sm" /></p>
+                <p class="mt-1 flex items-center gap-2 text-sm"><ah-team-badge [team]="t" size="sm" /></p>
               } @else if (canChooseTeam()) {
                 <p class="text-sm text-muted-foreground" i18n>Pick the team you play for.</p>
               } @else if (e.teamSelection === 'auto') {
@@ -199,7 +199,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
                     [attr.aria-label]="teamChoiceLabel(t, mine, full)"
                     (click)="chooseTeam(t)"
                   >
-                    <zeus-team-badge [team]="t" size="sm" />
+                    <ah-team-badge [team]="t" size="sm" />
                     <span class="num shrink-0 text-xs text-muted-foreground">
                       {{ t.memberCount }}{{ t.capacity ? '/' + t.capacity : '' }}
                       @if (mine) { <span class="text-primary">✓</span> } @else if (full) { <ng-container i18n>■ Full</ng-container> }

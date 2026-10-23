@@ -30,11 +30,11 @@ export interface BalanceAdjusted {
  * clientTxId that is kept across retries of the same values (idempotent on the server).
  */
 @Component({
-  selector: 'zeus-adjust-balance-dialog',
+  selector: 'ah-adjust-balance-dialog',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, OpsDialog, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-ops-dialog [open]="open()" title="Adjust points or credits" subtitle="Every change is written to the ledger with your name and reason." (closed)="closed.emit()" i18n-title i18n-subtitle>
+    <ah-ops-dialog [open]="open()" title="Adjust points or credits" subtitle="Every change is written to the ledger with your name and reason." (closed)="closed.emit()" i18n-title i18n-subtitle>
       @if (open()) {
         <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4" novalidate>
           <div class="flex flex-col gap-1.5">
@@ -108,7 +108,7 @@ export interface BalanceAdjusted {
           @if (preview(); as p) {
             <div class="rounded-md border border-border bg-muted p-3 text-sm" aria-live="polite">
               <div class="flex flex-wrap items-center gap-2">
-                <zeus-team-badge [team]="p.team" size="sm" />
+                <ah-team-badge [team]="p.team" size="sm" />
                 <span class="num">{{ p.current }} → <strong>{{ p.next }}</strong> {{ p.unit }}</span>
               </div>
               @if (p.clampNote) {
@@ -125,7 +125,7 @@ export interface BalanceAdjusted {
           </div>
         </form>
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
   `,
 })
 export class AdjustBalanceDialog {

@@ -59,7 +59,7 @@ function filterOf(s: MemberStatus): StatusFilter {
 }
 
 @Component({
-  selector: 'zeus-player-management-screen',
+  selector: 'ah-player-management-screen',
   imports: [
     ReactiveFormsModule,
     NgTemplateOutlet,
@@ -83,12 +83,12 @@ function filterOf(s: MemberStatus): StatusFilter {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Players" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" [subtitle]="subtitle()" i18n-title i18n-backLabel>
-        <zeus-connection-status [compact]="true" [quietOnline]="true" />
+      <ah-page-header title="Players" [eyebrow]="event()?.name ?? null" [back]="'/gm/events/' + eventId()" backLabel="Event editor" [subtitle]="subtitle()" i18n-title i18n-backLabel>
+        <ah-connection-status [compact]="true" [quietOnline]="true" />
         <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'teams']">
           <ng-icon name="lucideUsers" size="16" aria-hidden="true" /> <ng-container i18n>Teams and squads</ng-container>
         </a>
-      </zeus-page-header>
+      </ah-page-header>
 
       <!-- Invite -->
       <form [formGroup]="inviteForm" (ngSubmit)="invite()" class="panel mb-4 flex flex-col gap-1.5 p-3" [attr.data-rev]="inviteTick()">
@@ -154,11 +154,11 @@ function filterOf(s: MemberStatus): StatusFilter {
       <div [class]="detailId() && desktop() ? 'grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]' : 'grid gap-4'">
         <div class="min-w-0">
           @if (loading() && !members()) {
-            <zeus-loading-skeleton [rows]="6" [avatar]="true" />
+            <ah-loading-skeleton [rows]="6" [avatar]="true" />
           } @else if (loadError(); as err) {
-            <zeus-error-state [error]="err" (retry)="load()" />
+            <ah-error-state [error]="err" (retry)="load()" />
           } @else if (!visible().length) {
-            <zeus-empty-state icon="lucideUsers" [title]="emptyTitle()" [message]="search() || teamFilter() ? txt.noPlayerMatchesThe : null" />
+            <ah-empty-state icon="lucideUsers" [title]="emptyTitle()" [message]="search() || teamFilter() ? txt.noPlayerMatchesThe : null" />
           } @else if (desktop()) {
             <!-- Desktop table -->
             <div class="relative panel overflow-x-auto">
@@ -205,15 +205,15 @@ function filterOf(s: MemberStatus): StatusFilter {
                           </span>
                         </button>
                       </td>
-                      <td class="px-3 py-2"><zeus-status-chip [spec]="chipOf(m)" /></td>
+                      <td class="px-3 py-2"><ah-status-chip [spec]="chipOf(m)" /></td>
                       <td class="px-3 py-2">
                         @if (m.status === 'approved') {
-                          <zeus-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
+                          <ah-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
                         } @else {
                           <span class="flex flex-wrap items-center gap-1.5">
-                            <zeus-team-badge [team]="teamOf(m)" size="sm" emptyLabel="—" />
+                            <ah-team-badge [team]="teamOf(m)" size="sm" emptyLabel="—" />
                             @if (squadOf(m); as s) {
-                              <zeus-squad-badge [squad]="s" [leader]="m.isSquadLeader" />
+                              <ah-squad-badge [squad]="s" [leader]="m.isSquadLeader" />
                             }
                           </span>
                         }
@@ -262,15 +262,15 @@ function filterOf(s: MemberStatus): StatusFilter {
                         <input type="checkbox" class="size-5 accent-primary" [checked]="selected().has(m.userId)" (change)="toggleSelect(m.userId)" ariaLabel="Select {{ m.nickname }}" i18n-ariaLabel />
                       </label>
                     }
-                    <zeus-player-list-item class="min-w-0 flex-1" [member]="m" [team]="teamOf(m)" [squad]="squadOf(m)" [showPresence]="m.status === 'approved'" [showGps]="running()">
+                    <ah-player-list-item class="min-w-0 flex-1" [member]="m" [team]="teamOf(m)" [squad]="squadOf(m)" [showPresence]="m.status === 'approved'" [showGps]="running()">
                       <button hlmBtn variant="ghost" size="icon" class="tap" type="button" (click)="openDetail(m)" ariaLabel="Details of {{ m.nickname }}" i18n-ariaLabel>
                         <ng-icon name="lucideInfo" size="18" aria-hidden="true" />
                       </button>
-                    </zeus-player-list-item>
+                    </ah-player-list-item>
                   </div>
                   <div class="flex flex-wrap items-center gap-1.5 pb-2 pl-13">
                     @if (m.status === 'approved') {
-                      <zeus-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
+                      <ah-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
                     }
                     <ng-container *ngTemplateOutlet="rowActions; context: { $implicit: m }" />
                   </div>
@@ -280,7 +280,7 @@ function filterOf(s: MemberStatus): StatusFilter {
           }
         </div>
 
-        <zeus-gm-panel [open]="!!detail()" [title]="detail()?.nickname ?? txt.player" eyebrow="Player details" (closed)="detailId.set(null)" i18n-eyebrow>
+        <ah-gm-panel [open]="!!detail()" [title]="detail()?.nickname ?? txt.player" eyebrow="Player details" (closed)="detailId.set(null)" i18n-eyebrow>
           @if (detail(); as m) {
             <div class="flex flex-col gap-4 text-sm">
               <div class="flex items-center gap-3">
@@ -290,7 +290,7 @@ function filterOf(s: MemberStatus): StatusFilter {
                   <span class="grid size-14 place-items-center rounded-full bg-muted text-lg font-bold" aria-hidden="true">{{ initialsOf(m.nickname) }}</span>
                 }
                 <div class="min-w-0">
-                  <zeus-status-chip [spec]="chipOf(m)" />
+                  <ah-status-chip [spec]="chipOf(m)" />
                   <p class="mt-1 text-muted-foreground" i18n>{{ m.playerRole ? roleLabel(m) : txt.roleNotSet }} · joined {{ dateTime(m.joinedAt) }}</p>
                   <a [routerLink]="['/players', m.userId]" class="text-xs text-primary underline-offset-4 hover:underline" i18n>Public profile</a>
                 </div>
@@ -299,9 +299,9 @@ function filterOf(s: MemberStatus): StatusFilter {
               <section aria-labelledby="d-team">
                 <h3 id="d-team" class="label-caps mb-1" i18n>Team</h3>
                 @if (m.status === 'approved') {
-                  <zeus-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
+                  <ah-member-assign [eventId]="eventId()" [member]="m" [teams]="teams()" [squads]="squads()" [running]="running()" (assigned)="onAssigned($event)" />
                 } @else {
-                  <zeus-team-badge [team]="teamOf(m)" emptyLabel="No team" i18n-emptyLabel />
+                  <ah-team-badge [team]="teamOf(m)" emptyLabel="No team" i18n-emptyLabel />
                 }
               </section>
 
@@ -338,7 +338,7 @@ function filterOf(s: MemberStatus): StatusFilter {
               </div>
             </div>
           }
-        </zeus-gm-panel>
+        </ah-gm-panel>
       </div>
     </div>
 

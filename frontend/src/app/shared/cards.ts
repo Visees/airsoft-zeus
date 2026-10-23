@@ -25,7 +25,7 @@ import { TeamBadge } from './team-badge';
 
 /** Event in lists (discover, my events, home). Whole card is a link. */
 @Component({
-  selector: 'zeus-event-card',
+  selector: 'ah-event-card',
   imports: [RouterLink, NgIcon, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   // contain:inline-size: the card takes its width from the list, never from its (truncated) text,
@@ -53,7 +53,7 @@ import { TeamBadge } from './team-badge';
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
         <div class="flex flex-wrap items-center gap-1.5">
-          <zeus-status-chip [spec]="statusChip()" />
+          <ah-status-chip [spec]="statusChip()" />
           @if (e.visibility === 'private') {
             <span class="inline-flex items-center gap-1 text-xs text-muted-foreground"><ng-icon name="lucideLock" size="12" aria-hidden="true" /> <ng-container i18n>Private</ng-container></span>
           }
@@ -106,7 +106,7 @@ export class EventCard {
 
 /** Member row: avatar, nickname, team/squad, role, online state. Project actions into it. */
 @Component({
-  selector: 'zeus-player-list-item',
+  selector: 'ah-player-list-item',
   imports: [NgIcon, TeamBadge, SquadBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center gap-3 py-2 min-h-14' },
@@ -135,10 +135,10 @@ export class EventCard {
       </div>
       <div class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         @if (team()) {
-          <zeus-team-badge [team]="team()" size="sm" [showIcon]="false" />
+          <ah-team-badge [team]="team()" size="sm" [showIcon]="false" />
         }
         @if (squad()) {
-          <zeus-squad-badge [squad]="squad()" [leader]="m.isSquadLeader" />
+          <ah-squad-badge [squad]="squad()" [leader]="m.isSquadLeader" />
         } @else if (m.isSquadLeader) {
           <span class="font-semibold text-primary" i18n>Squad leader</span>
         }
@@ -184,7 +184,7 @@ export class PlayerListItem {
 
 /** Objective card for lists. */
 @Component({
-  selector: 'zeus-objective-card',
+  selector: 'ah-objective-card',
   imports: [NgIcon, StatusChip, TeamBadge, HlmButton, CaptureBar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -197,7 +197,7 @@ export class PlayerListItem {
         </span>
         <span class="min-w-0 flex-1">
           <span class="flex flex-wrap items-center gap-1.5">
-            <zeus-status-chip [spec]="chip()" />
+            <ah-status-chip [spec]="chip()" />
             @if (o.jammedUntil) {
               <span class="rounded-sm border border-destructive/50 px-1.5 py-0.5 text-xs font-semibold text-destructive" i18n>⌁ Jammed</span>
             }
@@ -223,11 +223,11 @@ export class PlayerListItem {
         </span>
       </button>
       @if (showBar(capture())) {
-        <zeus-capture-bar [status]="capture()!" [canAccrue]="canAccrue()" />
+        <ah-capture-bar [status]="capture()!" [canAccrue]="canAccrue()" />
       }
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">
         @if (owner()) {
-          <span class="inline-flex items-center gap-1.5 text-sm"><span class="label-caps" i18n>Held by</span> <zeus-team-badge [team]="owner()" size="sm" [showIcon]="false" /></span>
+          <span class="inline-flex items-center gap-1.5 text-sm"><span class="label-caps" i18n>Held by</span> <ah-team-badge [team]="owner()" size="sm" [showIcon]="false" /></span>
         } @else if (!o.canCapture && o.blockedReason) {
           <span class="text-xs text-muted-foreground">{{ blockedLabel() }}</span>
         } @else {
@@ -290,7 +290,7 @@ export class ObjectiveCard {
 
 /** Perk card in the store. */
 @Component({
-  selector: 'zeus-perk-card',
+  selector: 'ah-perk-card',
   imports: [NgIcon, HlmButton, CurrencyDisplay],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -307,7 +307,7 @@ export class ObjectiveCard {
           }
           <h3 class="truncate font-bold uppercase">{{ p.name }}</h3>
         </div>
-        <zeus-currency-display [amount]="p.price" size="md" />
+        <ah-currency-display [amount]="p.price" size="md" />
       </div>
       <p class="text-sm text-muted-foreground">{{ p.description }}</p>
       <dl class="grid grid-cols-3 gap-2 text-xs">

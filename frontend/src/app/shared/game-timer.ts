@@ -18,7 +18,7 @@ export function nowSignal(intervalMs = 1000) {
  * Paused: frozen remaining time with a PAUSED tag. Before start: countdown to `startAt`.
  */
 @Component({
-  selector: 'zeus-game-timer',
+  selector: 'ah-game-timer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'hostClass()', role: 'timer', '[attr.aria-label]': 'ariaLabel()' },
   template: `

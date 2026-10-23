@@ -69,7 +69,7 @@ to the exact DTOs of the frontend contract.
 * **Roles:** Game Masters are `event_members.role = 'gm'` (the owner is always one). Every
   GM endpoint calls `requireGm`; player endpoints `requireMember` (approved).
 * **Secrets:** capture codes and QR tokens are compared server-side in constant time. QR
-  payload `zeus:obj:<eventId>:<objectiveId>:<token>`; regenerating replaces the token, so
+  payload `airsofthub:obj:<eventId>:<objectiveId>:<token>` (`zeus:obj:` still accepted for codes printed before the rename); regenerating replaces the token, so
   printed old codes stop working. Join codes are only returned to GMs.
 * **Idempotency:** captures, purchases and GM adjustments take a `clientTxId`; the first
   result is stored in the same transaction and returned for any retry.

@@ -12,11 +12,11 @@ import { AuthLayout } from './auth-layout';
 import { fieldError, focusFirstInvalid } from './form-utils';
 
 @Component({
-  selector: 'zeus-forgot-password-screen',
+  selector: 'ah-forgot-password-screen',
   imports: [AuthLayout, ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       @if (sentTo(); as email) {
         <div class="flex flex-col items-start gap-3" role="status">
           <span class="grid size-12 place-items-center rounded-md bg-primary/15 text-primary" aria-hidden="true">
@@ -60,7 +60,7 @@ import { fieldError, focusFirstInvalid } from './form-utils';
           </button>
         </form>
       }
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class ForgotPasswordScreen {

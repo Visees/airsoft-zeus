@@ -30,16 +30,16 @@ interface ParsedQr {
   raw: string;
 }
 
-/** `zeus:obj:<eventId>:<objectiveId>:<token>` */
+/** `airsofthub:obj:<eventId>:<objectiveId>:<token>`, or `zeus:obj:…` on codes printed before the rename */
 export function parseObjectiveQr(text: string): ParsedQr | null {
   const raw = text.trim();
-  const m = raw.match(/^zeus:obj:([^:\s]+):([^:\s]+):(\S+)$/);
+  const m = raw.match(/^(?:airsofthub|zeus):obj:([^:\s]+):([^:\s]+):(\S+)$/);
   return m ? { eventId: m[1], objectiveId: m[2], token: m[3], raw } : null;
 }
 
 /** Camera QR scanner for objective captures. */
 @Component({
-  selector: 'zeus-qr-scanner',
+  selector: 'ah-qr-scanner',
   imports: [RouterLink, NgIcon, HlmButton, CaptureFeedback],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex h-full flex-col' },
@@ -164,7 +164,7 @@ export function parseObjectiveQr(text: string): ParsedQr | null {
         <p class="rounded-sm border border-warning/60 bg-warning-surface p-2 text-sm font-semibold" role="status">◐ {{ mismatchNote() }}</p>
       }
 
-      <zeus-capture-feedback [attempt]="attempt" [objectiveName]="scannedName()" (retry)="retryCapture()" />
+      <ah-capture-feedback [attempt]="attempt" [objectiveName]="scannedName()" (retry)="retryCapture()" />
 
       <div class="flex flex-col gap-2 sm:flex-row">
         @if (canScanAgain()) {

@@ -31,7 +31,7 @@ export type SaveState = 'idle' | 'unsaved' | 'saving' | 'saved' | 'failed';
 
 /** Per-section save status. Glyph + text, never colour alone. */
 @Component({
-  selector: 'zeus-save-state',
+  selector: 'ah-save-state',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex', role: 'status', 'aria-live': 'polite' },
   template: `
@@ -71,7 +71,7 @@ export interface SegmentOption<T = string> {
  * labels, so arrow keys, Tab and screen readers behave as expected. Works with formControl.
  */
 @Component({
-  selector: 'zeus-segmented',
+  selector: 'ah-segmented',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SegmentedControl), multi: true }],
   host: { class: 'block' },
@@ -169,7 +169,7 @@ export class SegmentedControl<T = unknown> implements ControlValueAccessor {
 
 /** Label + one-line explanation + switch. Works with formControl or [checked]/(checkedChange). */
 @Component({
-  selector: 'zeus-switch-row',
+  selector: 'ah-switch-row',
   imports: [HlmSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SwitchRow), multi: true }],
@@ -248,7 +248,7 @@ export class SwitchRow implements ControlValueAccessor {
  * page layout on ≥1024px (place it in a grid column). Escape closes it in both modes.
  */
 @Component({
-  selector: 'zeus-gm-panel',
+  selector: 'ah-gm-panel',
   imports: [NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },

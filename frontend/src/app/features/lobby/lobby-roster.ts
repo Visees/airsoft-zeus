@@ -23,7 +23,7 @@ interface TeamGroup {
 
 /** Registered players grouped by team, then squad. GMs get assign/remove actions. */
 @Component({
-  selector: 'zeus-lobby-roster',
+  selector: 'ah-lobby-roster',
   imports: [NgIcon, HlmButton, PlayerListItem, TeamBadge, SquadBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -55,7 +55,7 @@ interface TeamGroup {
             <div class="panel">
               <div class="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
                 @if (g.team) {
-                  <zeus-team-badge [team]="g.team" />
+                  <ah-team-badge [team]="g.team" />
                 } @else {
                   <span class="font-semibold text-muted-foreground" i18n>No team yet</span>
                 }
@@ -65,14 +65,14 @@ interface TeamGroup {
               </div>
               @for (s of g.squads; track s.squad?.id ?? 'none') {
                 @if (s.squad) {
-                  <div class="px-3 pt-2"><zeus-squad-badge [squad]="s.squad" /></div>
+                  <div class="px-3 pt-2"><ah-squad-badge [squad]="s.squad" /></div>
                 } @else if (g.squads.length > 1) {
                   <p class="label-caps px-3 pt-2" i18n>No squad</p>
                 }
                 <ul class="divide-y divide-border px-3">
                   @for (m of s.members; track m.userId) {
                     <li>
-                      <zeus-player-list-item [member]="m" [team]="g.team" [squad]="s.squad" [isSelf]="m.userId === selfId()" [showPresence]="true">
+                      <ah-player-list-item [member]="m" [team]="g.team" [squad]="s.squad" [isSelf]="m.userId === selfId()" [showPresence]="true">
                         @if (m.role === 'gm') {
                           <!-- A Game Master playing on this team: no checklist. -->
                         } @else if (m.ready) {
@@ -88,7 +88,7 @@ interface TeamGroup {
                             <span class="hidden text-xs text-muted-foreground md:inline" title="No location consent" i18n i18n-title>◌ GPS</span>
                           }
                         }
-                      </zeus-player-list-item>
+                      </ah-player-list-item>
                       @if (isGm()) {
                         <div class="flex items-center gap-2 pb-2 pl-13">
                           <label class="sr-only" [for]="'assign-' + m.userId" i18n>Team for {{ m.nickname }}</label>

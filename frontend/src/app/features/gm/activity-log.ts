@@ -58,16 +58,16 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
 
 /** GM history: activity feed, audit log, captures (with revoke) and alerts. Route: /gm/events/:eventId/activity */
 @Component({
-  selector: 'zeus-activity-log-screen',
+  selector: 'ah-activity-log-screen',
   imports: [RouterLink, NgIcon, HlmButton, HlmInput, EmptyState, ErrorState, LoadingSkeleton, PageHeader, StatusChip, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="Activity log" [eyebrow]="event()?.name ?? txt.gameMaster" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
+      <ah-page-header title="Activity log" [eyebrow]="event()?.name ?? txt.gameMaster" [back]="'/gm/events/' + eventId()" backLabel="Event editor" i18n-title i18n-backLabel>
         <a hlmBtn variant="outline" class="h-11" [routerLink]="['/gm/events', eventId(), 'control']">
           <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
         </a>
-      </zeus-page-header>
+      </ah-page-header>
 
       <div class="mb-3 flex flex-wrap items-center gap-3">
         <div role="tablist" aria-label="Log" class="relative flex overflow-x-auto rounded-md border border-border bg-muted p-1" i18n-aria-label>
@@ -102,11 +102,11 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
         @switch (tab()) {
           @case ('activity') {
             @if (activity.loading() && !activity.items().length) {
-              <zeus-loading-skeleton [rows]="6" />
+              <ah-loading-skeleton [rows]="6" />
             } @else if (activity.error() && !activity.items().length) {
-              <zeus-error-state [error]="activity.error()" (retry)="activity.load()" />
+              <ah-error-state [error]="activity.error()" (retry)="activity.load()" />
             } @else if (!filteredActivity().length) {
-              <zeus-empty-state icon="lucideActivity" [title]="query() ? txt.noMatchingEntries : txt.noActivityYet" [message]="query() ? txt.clearTheSearchOr : txt.capturesPurchasesAndGm" />
+              <ah-empty-state icon="lucideActivity" [title]="query() ? txt.noMatchingEntries : txt.noActivityYet" [message]="query() ? txt.clearTheSearchOr : txt.capturesPurchasesAndGm" />
             } @else {
               <ol class="panel divide-y divide-border">
                 @for (a of filteredActivity(); track a.id) {
@@ -121,7 +121,7 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
                         <span class="num">{{ a.type }}</span>
                         <span>· {{ scopeLabel(a.scope) }}</span>
                         @if (a.teamId && teamById().get(a.teamId); as t) {
-                          <zeus-team-badge [team]="t" size="sm" />
+                          <ah-team-badge [team]="t" size="sm" />
                         }
                       </p>
                     </div>
@@ -140,11 +140,11 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
 
           @case ('audit') {
             @if (audit.loading() && !audit.items().length) {
-              <zeus-loading-skeleton [rows]="6" />
+              <ah-loading-skeleton [rows]="6" />
             } @else if (audit.error() && !audit.items().length) {
-              <zeus-error-state [error]="audit.error()" (retry)="audit.load()" />
+              <ah-error-state [error]="audit.error()" (retry)="audit.load()" />
             } @else if (!filteredAudit().length) {
-              <zeus-empty-state icon="lucideHistory" [title]="query() ? txt.noMatchingEntries : txt.noAuditEntriesYet" message="Every change made by a Game Master is recorded here with its reason." i18n-message />
+              <ah-empty-state icon="lucideHistory" [title]="query() ? txt.noMatchingEntries : txt.noAuditEntriesYet" message="Every change made by a Game Master is recorded here with its reason." i18n-message />
             } @else {
               <ol class="flex flex-col gap-2">
                 @for (a of filteredAudit(); track a.id) {
@@ -208,11 +208,11 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
 
           @case ('captures') {
             @if (captures.loading() && !captures.items().length) {
-              <zeus-loading-skeleton [rows]="5" />
+              <ah-loading-skeleton [rows]="5" />
             } @else if (captures.error() && !captures.items().length) {
-              <zeus-error-state [error]="captures.error()" (retry)="captures.load()" />
+              <ah-error-state [error]="captures.error()" (retry)="captures.load()" />
             } @else if (!filteredCaptures().length) {
-              <zeus-empty-state icon="lucideFlag" [title]="query() ? txt.noMatchingCaptures : txt.noCapturesYet" />
+              <ah-empty-state icon="lucideFlag" [title]="query() ? txt.noMatchingCaptures : txt.noCapturesYet" />
             } @else {
               <ol class="panel divide-y divide-border">
                 @for (c of filteredCaptures(); track c.id) {
@@ -224,14 +224,14 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
                     <div class="min-w-0 flex-1">
                       <p class="font-semibold" [class.line-through]="c.revoked">{{ c.objectiveName }}</p>
                       <p class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <zeus-team-badge [team]="teamById().get(c.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
+                        <ah-team-badge [team]="teamById().get(c.teamId)" size="sm" emptyLabel="Unknown team" i18n-emptyLabel />
                         <span>{{ c.nickname ?? (c.method === 'gm' ? txt.gameMaster : txt.unknownPlayer) }}</span>
                         <span class="num uppercase">· {{ c.method }}</span>
                         <span class="num" i18n>· +{{ n(c.points) }} pts · +{{ n(c.currency) }} cr</span>
                       </p>
                     </div>
                     @if (c.revoked) {
-                      <zeus-status-chip label="Revoked" glyph="✕" tone="danger" i18n-label />
+                      <ah-status-chip label="Revoked" glyph="✕" tone="danger" i18n-label />
                     } @else {
                       <label class="flex min-h-10 cursor-pointer items-center gap-2 text-xs">
                         <input type="checkbox" class="size-5 accent-primary" [checked]="!keepRewards().has(c.id)" (change)="setReverse(c.id, $any($event.target).checked)" />
@@ -254,16 +254,16 @@ const ALERT_TONE: Record<GmAlert['severity'], { glyph: string; tone: 'neutral' |
 
           @case ('alerts') {
             @if (alerts.loading() && !alerts.items().length) {
-              <zeus-loading-skeleton [rows]="5" />
+              <ah-loading-skeleton [rows]="5" />
             } @else if (alerts.error() && !alerts.items().length) {
-              <zeus-error-state [error]="alerts.error()" (retry)="alerts.load()" />
+              <ah-error-state [error]="alerts.error()" (retry)="alerts.load()" />
             } @else if (!filteredAlerts().length) {
-              <zeus-empty-state icon="lucideBell" [title]="query() ? txt.noMatchingAlerts : txt.noAlerts" message="GPS warnings, disconnections and purchase requests appear here." i18n-message />
+              <ah-empty-state icon="lucideBell" [title]="query() ? txt.noMatchingAlerts : txt.noAlerts" message="GPS warnings, disconnections and purchase requests appear here." i18n-message />
             } @else {
               <ol class="panel divide-y divide-border">
                 @for (a of filteredAlerts(); track a.id) {
                   <li class="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 text-sm" [class.opacity-60]="a.acknowledged">
-                    <zeus-status-chip [label]="sev(a).label" [glyph]="sev(a).glyph" [tone]="sev(a).tone" />
+                    <ah-status-chip [label]="sev(a).label" [glyph]="sev(a).glyph" [tone]="sev(a).tone" />
                     <div class="min-w-0 flex-1">
                       <p>{{ a.message }}</p>
                       <p class="text-xs text-muted-foreground">

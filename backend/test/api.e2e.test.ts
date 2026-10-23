@@ -13,14 +13,14 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 const API = process.env.E2E_API;
 const MAIL = process.env.E2E_MAIL ?? 'http://localhost:8025';
-const PASSWORD = process.env.SEED_PASSWORD ?? 'zeus-demo-2026';
+const PASSWORD = process.env.SEED_PASSWORD ?? 'airsofthub-demo-2026';
 const run = API ? describe : describe.skip;
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 class Client {
   token = '';
-  /** 'player': requests carry X-Zeus-View like the live player screens */
+  /** 'player': requests carry X-AirsoftHub-View like the live player screens */
   view: 'gm' | 'player' = 'gm';
   constructor(readonly name: string) {}
   async call(method: string, path: string, body?: unknown): Promise<{ status: number; body: Json }> {
@@ -29,7 +29,7 @@ class Client {
       headers: {
         'content-type': 'application/json',
         ...(this.token ? { authorization: `Bearer ${this.token}` } : {}),
-        ...(this.view === 'player' ? { 'x-zeus-view': 'player' } : {}),
+        ...(this.view === 'player' ? { 'x-airsofthub-view': 'player' } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -68,10 +68,10 @@ run('API end-to-end', () => {
   let gmLive: Json;
 
   beforeAll(async () => {
-    await gm.login('overwatch@airsoftzeus.test');
-    await alpha.login('kestrel@airsoftzeus.test');
-    await alpha2.login('talon@airsoftzeus.test');
-    await bravo.login('viper@airsoftzeus.test');
+    await gm.login('overwatch@airsofthub.test');
+    await alpha.login('kestrel@airsofthub.test');
+    await alpha2.login('talon@airsofthub.test');
+    await bravo.login('viper@airsofthub.test');
     const mine = await gm.get('/events/mine?filter=gm');
     eventId = mine.body.find((e: Json) => e.name === 'Operation Pinewood').id;
     gmLive = (await gm.get(`/events/${eventId}/live`)).body;
@@ -191,7 +191,7 @@ run('API end-to-end', () => {
     const sawmill = gmLive.objectives.find((o: Json) => o.name === 'Old sawmill');
     await gm.patch(`/events/${eventId}/objectives/${sawmill.id}`, { cooldownSec: 0 });
     const qr = (await gm.get(`/events/${eventId}/objectives/${sawmill.id}/qr`)).body;
-    expect(qr.payload).toMatch(/^zeus:obj:/);
+    expect(qr.payload).toMatch(/^airsofthub:obj:/);
     expect(qr.svg).toContain('<svg');
     const forged = qr.payload.replace(eventId, '00000000-0000-4000-8000-000000000000');
     expect((await alpha2.post(`/events/${eventId}/objectives/${sawmill.id}/capture`, { method: 'qr', qrPayload: forged, clientTxId: tx() })).body.error.code).toBe('wrong_event');
@@ -355,7 +355,7 @@ run('API end-to-end', () => {
 
     expect((await alpha.get('/admin/overview')).status).toBe(403);
 
-    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    // The admin part needs ADMIN_EMAILS=overwatch@airsofthub.test on the API.
     if (!(await gm.get('/me')).body.isAdmin) return;
     const overview = (await gm.get('/admin/overview')).body;
     expect(overview.tickets.open).toBeGreaterThanOrEqual(1);
@@ -389,7 +389,7 @@ run('API end-to-end', () => {
     expect((await alpha2.del(`/events/${id}`)).status).toBe(403);
     expect((await alpha.del(`/events/${id}`)).body.error.code).toBe('invalid_state');
 
-    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    // The admin part needs ADMIN_EMAILS=overwatch@airsofthub.test on the API.
     if (!(await gm.get('/me')).body.isAdmin) return;
     expect((await gm.del(`/events/${id}`)).status).toBe(200);
     expect((await alpha2.get(`/events/${id}`)).status).toBe(404);
@@ -403,14 +403,14 @@ run('API end-to-end', () => {
     expect((await bravo.get('/admin/users')).status).toBe(403);
     expect((await bravo.post('/news', {})).status).toBe(403);
 
-    // The admin part needs ADMIN_EMAILS=overwatch@airsoftzeus.test on the API.
+    // The admin part needs ADMIN_EMAILS=overwatch@airsofthub.test on the API.
     if (!(await gm.get('/me')).body.isAdmin) return;
     const list = await gm.get('/admin/users?q=viper');
     expect(list.status).toBe(200);
     const row = list.body.items.find((u: Json) => u.nickname === 'Viper');
     expect(row).toMatchObject({ isAdmin: false, customAccess: false });
     const self = (await gm.get('/admin/users?filter=admins')).body.items;
-    expect(self.some((u: Json) => u.email === 'overwatch@airsoftzeus.test')).toBe(true);
+    expect(self.some((u: Json) => u.email === 'overwatch@airsofthub.test')).toBe(true);
 
     try {
       const changed = await gm.patch(`/admin/users/${row.id}/features`, { features: { create_events: false, discover_events: false, manage_news: true } });
@@ -431,7 +431,7 @@ run('API end-to-end', () => {
       expect((await bravo.get('/me')).body.features).toMatchObject({ create_events: false, discover_events: false, manage_news: true });
 
       // Admins can't be restricted; unknown features are rejected.
-      const admin = self.find((u: Json) => u.email === 'overwatch@airsoftzeus.test');
+      const admin = self.find((u: Json) => u.email === 'overwatch@airsofthub.test');
       expect((await gm.patch(`/admin/users/${admin.id}/features`, { features: { support: false } })).status).toBe(409);
       expect((await gm.patch(`/admin/users/${row.id}/features`, { features: { fly: true } })).status).toBe(400);
     } finally {

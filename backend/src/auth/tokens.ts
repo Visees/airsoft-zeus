@@ -13,12 +13,12 @@ export interface AccessClaims {
 }
 
 export function signAccessToken(claims: AccessClaims): string {
-  return jwt.sign(claims, config.JWT_SECRET, { algorithm: 'HS256', expiresIn: config.ACCESS_TOKEN_TTL_SEC, issuer: 'zeus' });
+  return jwt.sign(claims, config.JWT_SECRET, { algorithm: 'HS256', expiresIn: config.ACCESS_TOKEN_TTL_SEC, issuer: 'airsofthub' });
 }
 
 export function verifyAccessToken(token: string): AccessClaims | null {
   try {
-    const decoded = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'], issuer: 'zeus' }) as AccessClaims;
+    const decoded = jwt.verify(token, config.JWT_SECRET, { algorithms: ['HS256'], issuer: 'airsofthub' }) as AccessClaims;
     return typeof decoded.sub === 'string' ? decoded : null;
   } catch {
     return null;

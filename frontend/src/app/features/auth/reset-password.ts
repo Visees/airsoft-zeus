@@ -13,11 +13,11 @@ import { applyServerErrors, fieldError, focusFirstInvalid, matchValidator } from
 import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
 
 @Component({
-  selector: 'zeus-reset-password-screen',
+  selector: 'ah-reset-password-screen',
   imports: [AuthLayout, ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmLabel, PasswordInput, PasswordStrength],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       @switch (state()) {
         @case ('missing') {
           <div class="flex flex-col items-start gap-3" role="alert">
@@ -53,16 +53,16 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
             }
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="rp-password" i18n>New password</label>
-              <zeus-password-input [control]="form.controls.password" inputId="rp-password" autocomplete="new-password"
+              <ah-password-input [control]="form.controls.password" inputId="rp-password" autocomplete="new-password"
                 [invalid]="!!err('password')" [describedBy]="err('password') ? 'rp-password-err rp-hints' : 'rp-hints'" />
               @if (err('password'); as e) {
                 <p id="rp-password-err" class="field-error">{{ e }}</p>
               }
-              <zeus-password-strength [password]="passwordValue()" listId="rp-hints" />
+              <ah-password-strength [password]="passwordValue()" listId="rp-hints" />
             </div>
             <div class="flex flex-col gap-1.5">
               <label hlmLabel for="rp-confirm" i18n>Repeat new password</label>
-              <zeus-password-input [control]="form.controls.confirm" inputId="rp-confirm" autocomplete="new-password"
+              <ah-password-input [control]="form.controls.confirm" inputId="rp-confirm" autocomplete="new-password"
                 [invalid]="!!confirmError()" [describedBy]="confirmError() ? 'rp-confirm-err' : null" />
               @if (confirmError(); as e) {
                 <p id="rp-confirm-err" class="field-error">{{ e }}</p>
@@ -72,7 +72,7 @@ import { PASSWORD_MIN, PasswordInput, PasswordStrength } from './password';
           </form>
         }
       }
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class ResetPasswordScreen {

@@ -30,12 +30,12 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
 
 /** My events with tabs bound to ?tab=. */
 @Component({
-  selector: 'zeus-my-events-screen',
+  selector: 'ah-my-events-screen',
   imports: [RouterLink, NgIcon, HlmButton, EventCard, EmptyState, ErrorState, LoadingSkeleton, PageHeader, ConnectionStatus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page">
-      <zeus-page-header title="My events" i18n-title>
+      <ah-page-header title="My events" i18n-title>
         @if (activeTab() === 'gm') {
           @if (auth.can('create_events')) {
             <a hlmBtn class="tap" routerLink="/gm/new"><ng-icon name="lucidePlus" size="16" aria-hidden="true" /> <ng-container i18n>Create event</ng-container></a>
@@ -43,7 +43,7 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
         } @else if (auth.can('discover_events')) {
           <a hlmBtn variant="outline" class="tap" routerLink="/events/discover"><ng-icon name="lucideSearch" size="16" aria-hidden="true" /> <ng-container i18n>Discover</ng-container></a>
         }
-      </zeus-page-header>
+      </ah-page-header>
 
       <nav aria-label="Event lists" class="relative -mx-4 mb-4 overflow-x-auto px-4" i18n-aria-label>
         <ul class="flex min-w-max gap-1 border-b border-border">
@@ -67,16 +67,16 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
       @if (offline() && items().length) {
         <div class="mb-3 flex items-center justify-between gap-2 rounded-md border border-warning/40 bg-warning-surface px-3 py-2 text-sm" role="status">
           <span i18n>Showing the last list loaded.</span>
-          <zeus-connection-status />
+          <ah-connection-status />
         </div>
       }
 
       @if (loading() && !items().length) {
-        <zeus-loading-skeleton [rows]="4" />
+        <ah-loading-skeleton [rows]="4" />
       } @else if (error() && !items().length) {
-        <zeus-error-state [error]="error()" (retry)="load(activeTab())" />
+        <ah-error-state [error]="error()" (retry)="load(activeTab())" />
       } @else if (!items().length) {
-        <zeus-empty-state [icon]="empty().icon" [title]="empty().title" [message]="empty().message">
+        <ah-empty-state [icon]="empty().icon" [title]="empty().title" [message]="empty().message">
           @switch (activeTab()) {
             @case ('gm') {
               @if (auth.can('create_events')) {
@@ -94,13 +94,13 @@ const EMPTY: Record<Tab, { icon: string; title: string; message: string }> = {
               }
             }
           }
-        </zeus-empty-state>
+        </ah-empty-state>
       } @else {
         <h2 class="label-caps mb-2">{{ tabLabel() }} · <span class="num">{{ items().length }}</span></h2>
         <ul class="grid grid-cols-1 gap-3 md:grid-cols-2" [attr.aria-busy]="loading()">
           @for (e of items(); track e.id) {
             <li class="flex flex-col gap-2">
-              <zeus-event-card [event]="e" [link]="linkFor(e)" />
+              <ah-event-card [event]="e" [link]="linkFor(e)" />
               @if (activeTab() === 'invitations' && e.myStatus === 'invited') {
                 <div class="flex gap-2">
                   <button hlmBtn class="h-11 flex-1" type="button" [disabled]="busy() === e.id" (click)="respond(e, true)">

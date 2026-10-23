@@ -6,11 +6,11 @@ import { AuthLayout } from './auth-layout';
 
 /** Landing for signed-out visitors: what the app does, then create account / log in. */
 @Component({
-  selector: 'zeus-welcome-screen',
+  selector: 'ah-welcome-screen',
   imports: [AuthLayout, RouterLink, NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout [center]="false" width="wide">
+    <ah-auth-layout [center]="false" width="wide">
       <a layoutAction routerLink="/auth/login" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" i18n>Log in</a>
 
       <section class="pt-4 sm:pt-10" aria-labelledby="welcome-title">
@@ -111,7 +111,7 @@ import { AuthLayout } from './auth-layout';
           Got a code from your Game Master? Log in or sign up, then enter it under “Join with code”.
         </p>
       </div>
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class WelcomeScreen {}

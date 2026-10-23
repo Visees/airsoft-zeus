@@ -15,23 +15,23 @@ import { supportCategoryChip, supportStatusChip } from './support-ui';
 
 /** One support conversation: messages, reply box, close/reopen. Route: /support/:ticketId */
 @Component({
-  selector: 'zeus-support-thread-screen',
+  selector: 'ah-support-thread-screen',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmLabel, HlmTextarea, PageHeader, LoadingSkeleton, ErrorState, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header [eyebrow]="staff() ? txt.admin : txt.helpFeedback" title="Conversation" [back]="staff() ? '/admin/tickets' : '/support'" [backLabel]="staff() ? txt.allTickets : txt.allMessages" i18n-title />
+      <ah-page-header [eyebrow]="staff() ? txt.admin : txt.helpFeedback" title="Conversation" [back]="staff() ? '/admin/tickets' : '/support'" [backLabel]="staff() ? txt.allTickets : txt.allMessages" i18n-title />
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (!ticket()) {
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else {
         @let t = ticket()!;
         <h2 class="mb-2 text-xl font-bold break-words">{{ t.subject }}</h2>
         <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <zeus-status-chip [spec]="categoryChip()" />
-          <zeus-status-chip [spec]="statusChip()" />
+          <ah-status-chip [spec]="categoryChip()" />
+          <ah-status-chip [spec]="statusChip()" />
           @if (staff() && t.userNickname) {
             <span i18n>· from <b class="text-foreground">{{ t.userNickname }}</b></span>
           }

@@ -29,12 +29,12 @@ type ScanState = 'off' | 'starting' | 'scanning' | 'denied' | 'no-camera' | 'uns
 
 /** Enter or scan a private event's join code, then open the event. */
 @Component({
-  selector: 'zeus-join-event-screen',
+  selector: 'ah-join-event-screen',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
-      <zeus-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." [back]="auth.can('discover_events') ? '/events/discover' : '/events/mine'" [backLabel]="auth.can('discover_events') ? txt.discover : txt.myEvents" i18n-title i18n-subtitle />
+      <ah-page-header title="Join an event" subtitle="Private events are joined with the code from the Game Master." [back]="auth.can('discover_events') ? '/events/discover' : '/events/mine'" [backLabel]="auth.can('discover_events') ? txt.discover : txt.myEvents" i18n-title i18n-subtitle />
 
       <form class="panel flex flex-col gap-4 p-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="flex flex-col gap-1.5">

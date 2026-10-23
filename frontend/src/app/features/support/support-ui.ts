@@ -35,7 +35,7 @@ export const supportStatusChip = (s: SupportStatus, admin = false): ChipSpec => 
 
 /** A support conversation in lists (/support). Whole card links to the thread. */
 @Component({
-  selector: 'zeus-support-ticket-card',
+  selector: 'ah-support-ticket-card',
   imports: [RouterLink, NgIcon, StatusChip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block [contain:inline-size]' },
@@ -47,8 +47,8 @@ export const supportStatusChip = (s: SupportStatus, admin = false): ChipSpec => 
       [class.border-primary/40!]="highlight()"
     >
       <div class="flex flex-wrap items-center gap-1.5">
-        <zeus-status-chip [spec]="category()" />
-        <zeus-status-chip [spec]="status()" />
+        <ah-status-chip [spec]="category()" />
+        <ah-status-chip [spec]="status()" />
       </div>
       <h3 class="line-clamp-2 font-bold group-hover:text-primary" [class.text-muted-foreground]="t.status === 'closed'">{{ t.subject }}</h3>
       <p class="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">

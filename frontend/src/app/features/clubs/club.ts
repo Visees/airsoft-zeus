@@ -15,46 +15,46 @@ import { Avatar } from '../profile/profile-ui';
 import { ClubForm } from './club-form';
 
 @Component({
-  selector: 'zeus-club-screen',
+  selector: 'ah-club-screen',
   imports: [RouterLink, NgIcon, HlmButton, PageHeader, LoadingSkeleton, EmptyState, ErrorState, Avatar, ClubForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (isNew()) {
       <div class="page-narrow">
-        <zeus-page-header title="Create a club" back="/profile/edit" backLabel="Edit profile"
+        <ah-page-header title="Create a club" back="/profile/edit" backLabel="Edit profile"
           subtitle="A club page groups your team mates. You become its owner and it is set as your club." i18n-title i18n-backLabel i18n-subtitle />
         <div class="panel p-4">
-          <zeus-club-form (saved)="created($event)" (cancel)="back()" />
+          <ah-club-form (saved)="created($event)" (cancel)="back()" />
         </div>
       </div>
     } @else {
       <div class="page-narrow">
         @if (loading()) {
-          <zeus-loading-skeleton [rows]="4" [avatar]="true" />
+          <ah-loading-skeleton [rows]="4" [avatar]="true" />
         } @else if (notFound()) {
-          <zeus-page-header title="Club" i18n-title />
-          <zeus-empty-state icon="lucideShield" title="Club not found" message="It may have been removed, or the link is wrong." i18n-title i18n-message>
+          <ah-page-header title="Club" i18n-title />
+          <ah-empty-state icon="lucideShield" title="Club not found" message="It may have been removed, or the link is wrong." i18n-title i18n-message>
             @if (auth.can('create_clubs')) {
               <a hlmBtn routerLink="/clubs/new" class="h-11" i18n>Create a club</a>
             }
-          </zeus-empty-state>
+          </ah-empty-state>
         } @else if (error() && !club()) {
-          <zeus-page-header title="Club" i18n-title />
-          <zeus-error-state [error]="error()" (retry)="load(clubId())" />
+          <ah-page-header title="Club" i18n-title />
+          <ah-error-state [error]="error()" (retry)="load(clubId())" />
         } @else if (club(); as c) {
           @if (editing()) {
-            <zeus-page-header title="Edit club" [subtitle]="c.name" i18n-title />
+            <ah-page-header title="Edit club" [subtitle]="c.name" i18n-title />
             <div class="panel p-4">
-              <zeus-club-form [club]="c" (saved)="updated($event)" (cancel)="editing.set(false)" />
+              <ah-club-form [club]="c" (saved)="updated($event)" (cancel)="editing.set(false)" />
             </div>
           } @else {
-            <zeus-page-header [title]="c.name" eyebrow="Club" i18n-eyebrow>
+            <ah-page-header [title]="c.name" eyebrow="Club" i18n-eyebrow>
               @if (isOwner()) {
                 <button hlmBtn variant="outline" type="button" class="h-11" (click)="editing.set(true)">
                   <ng-icon name="lucidePencil" size="16" aria-hidden="true" /> <ng-container i18n>Edit club</ng-container>
                 </button>
               }
-            </zeus-page-header>
+            </ah-page-header>
 
             <section class="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-start" aria-label="Club details" i18n-aria-label>
               <div class="grid size-24 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted">
@@ -112,7 +112,7 @@ import { ClubForm } from './club-form';
                   @for (m of members(); track m.id) {
                     <li>
                       <a [routerLink]="['/players', m.id]" class="flex min-h-14 items-center gap-3 px-3 py-2 hover:bg-muted/60">
-                        <zeus-avatar [url]="m.avatarUrl" [nickname]="m.nickname" [size]="40" />
+                        <ah-avatar [url]="m.avatarUrl" [nickname]="m.nickname" [size]="40" />
                         <span class="min-w-0 flex-1">
                           <span class="block truncate font-semibold">{{ m.nickname }}
                             @if (m.id === ownerId()) {

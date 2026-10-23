@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Squad } from '../core/api/models';
 
 @Component({
-  selector: 'zeus-squad-badge',
+  selector: 'ah-squad-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex items-center gap-1 rounded-sm border border-border bg-muted px-1.5 py-0.5 text-xs font-semibold' },
   template: `

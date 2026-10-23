@@ -9,7 +9,7 @@ import { useAnswerStale, useHoldEstimate } from './capture-bar';
  * Values come from the server's response to the last location report.
  */
 @Component({
-  selector: 'zeus-capture-progress',
+  selector: 'ah-capture-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center gap-4' },
   template: `

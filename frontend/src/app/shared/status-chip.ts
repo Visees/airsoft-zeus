@@ -20,7 +20,7 @@ const TONE_CLASSES: Record<ChipTone, string> = {
 
 /** Status label with a shape glyph — never colour alone. Use `[spec]` or label/glyph/tone. */
 @Component({
-  selector: 'zeus-status-chip',
+  selector: 'ah-status-chip',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': 'hostClass()' },
   template: `<span aria-hidden="true">{{ resolved().glyph }}</span><span class="truncate">{{ resolved().label }}</span>`,

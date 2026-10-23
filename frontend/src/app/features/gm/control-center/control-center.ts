@@ -90,7 +90,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
  * Smaller: map on top + tabs.
  */
 @Component({
-  selector: 'zeus-control-center-screen',
+  selector: 'ah-control-center-screen',
   imports: [
     NgTemplateOutlet,
     RouterLink,
@@ -127,10 +127,10 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
         <h1 class="max-w-[18rem] truncate text-base uppercase lg:text-lg">{{ store.event()?.name ?? txt.loading }}</h1>
       </div>
       @if (status(); as s) {
-        <zeus-status-chip [spec]="statusChip(s)" />
+        <ah-status-chip [spec]="statusChip(s)" />
       }
-      <zeus-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
-      <zeus-connection-status [compact]="!wide()" />
+      <ah-game-timer [clock]="store.clock()" [startAt]="store.event()?.startAt ?? null" [serverOffsetMs]="store.serverOffsetMs()" size="md" />
+      <ah-connection-status [compact]="!wide()" />
       @if (store.fromCache()) {
         <span class="text-xs text-warning" i18n>Showing cached data</span>
       }
@@ -166,9 +166,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     </header>
 
     @if (store.loading() && !store.event()) {
-      <div class="p-4"><zeus-loading-skeleton [rows]="6" /></div>
+      <div class="p-4"><ah-loading-skeleton [rows]="6" /></div>
     } @else if (store.error() && !store.event()) {
-      <div class="mx-auto w-full max-w-lg p-4"><zeus-error-state [error]="store.error()" (retry)="store.reload()" /></div>
+      <div class="mx-auto w-full max-w-lg p-4"><ah-error-state [error]="store.error()" (retry)="store.reload()" /></div>
     } @else if (wide()) {
       <!-- ======================= desktop ======================= -->
       <div class="grid min-h-0 flex-1 grid-cols-[20rem_1fr_22rem] xl:grid-cols-[23rem_1fr_25rem]">
@@ -342,12 +342,12 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             <li class="flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5">
               <span class="num w-4 text-xs text-muted-foreground">{{ i + 1 }}</span>
               <div class="min-w-0 flex-1">
-                <zeus-team-badge [team]="t" size="sm" />
+                <ah-team-badge [team]="t" size="sm" />
                 <p class="num text-xs text-muted-foreground" i18n>{{ onlineByTeam().get(t.id) ?? 0 }}/{{ t.memberCount }} online · {{ t.objectivesHeld }} held</p>
               </div>
               <div class="flex flex-col items-end">
-                <zeus-score-display [points]="t.points" size="sm" [showUnit]="false" />
-                <zeus-currency-display [amount]="t.currency" size="sm" [showUnit]="false" />
+                <ah-score-display [points]="t.points" size="sm" [showUnit]="false" />
+                <ah-currency-display [amount]="t.currency" size="sm" [showUnit]="false" />
               </div>
               <button hlmBtn type="button" variant="ghost" size="icon" class="size-10" (click)="openAdjust(t.id, null)" ariaLabel="Adjust points or credits of {{ t.name }}" i18n-ariaLabel>
                 <ng-icon name="lucideSlidersHorizontal" size="16" aria-hidden="true" />
@@ -376,7 +376,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           </div>
         </div>
         @if (!filteredObjectives().length) {
-          <zeus-empty-state icon="lucideFlag" [title]="statusFilter() ? txt.noObjectivesWithThis : txt.noObjectives" />
+          <ah-empty-state icon="lucideFlag" [title]="statusFilter() ? txt.noObjectivesWithThis : txt.noObjectives" />
         }
         <ul class="flex flex-col gap-1.5">
           @for (o of filteredObjectives(); track o.id) {
@@ -387,9 +387,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                   <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-semibold">{{ o.name }}</p>
                     <div class="flex flex-wrap items-center gap-1.5">
-                      <zeus-status-chip [spec]="objChip(o.status)" />
+                      <ah-status-chip [spec]="objChip(o.status)" />
                       @if (o.ownerTeamId && teamById().get(o.ownerTeamId); as owner) {
-                        <zeus-team-badge [team]="owner" size="sm" [showIcon]="false" />
+                        <ah-team-badge [team]="owner" size="sm" [showIcon]="false" />
                       }
                     </div>
                   </div>
@@ -460,7 +460,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           </button>
         </div>
         @if (capturesError()) {
-          <zeus-error-state [error]="capturesError()" (retry)="loadCaptures()" />
+          <ah-error-state [error]="capturesError()" (retry)="loadCaptures()" />
         } @else if (!captures().length) {
           <p class="text-sm text-muted-foreground" i18n>No captures yet.</p>
         }
@@ -471,12 +471,12 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 <div class="min-w-0 flex-1">
                   <p class="truncate font-semibold" [class.line-through]="c.revoked">{{ c.objectiveName }}</p>
                   <p class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <zeus-team-badge [team]="teamById().get(c.teamId)" size="sm" [showIcon]="false" />
+                    <ah-team-badge [team]="teamById().get(c.teamId)" size="sm" [showIcon]="false" />
                     {{ c.nickname ?? (c.method === 'gm' ? txt.gm : '—') }} · <span class="num uppercase">{{ c.method }}</span> · <time [attr.datetime]="c.createdAt" [title]="abs(c.createdAt)">{{ rel(c.createdAt) }}</time>
                   </p>
                 </div>
                 @if (c.revoked) {
-                  <zeus-status-chip label="Revoked" glyph="✕" tone="danger" i18n-label />
+                  <ah-status-chip label="Revoked" glyph="✕" tone="danger" i18n-label />
                 }
               </div>
               @if (!c.revoked) {
@@ -504,7 +504,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           }
         </h2>
         @if (!filteredPlayers().length) {
-          <zeus-empty-state icon="lucideUsers" [title]="players().length ? txt.noPlayersMatchThe : txt.noApprovedPlayers" />
+          <ah-empty-state icon="lucideUsers" [title]="players().length ? txt.noPlayersMatchThe : txt.noApprovedPlayers" />
         }
         <ul class="flex flex-col">
           @for (p of filteredPlayers(); track p.member.userId) {
@@ -517,7 +517,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 (click)="selectPlayer(p.member.userId, true)"
               >
                 @if (p.team) {
-                  <zeus-team-swatch [color]="p.team.color" [pattern]="p.team.pattern" />
+                  <ah-team-swatch [color]="p.team.color" [pattern]="p.team.pattern" />
                 } @else {
                   <span class="inline-block size-3.5 rounded-xs border border-dashed border-border" aria-hidden="true"></span>
                 }
@@ -545,9 +545,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           <div class="min-w-0">
             <p class="truncate text-base font-bold">{{ p.member.nickname }}</p>
             <div class="flex flex-wrap items-center gap-1.5">
-              <zeus-team-badge [team]="p.team" size="sm" />
+              <ah-team-badge [team]="p.team" size="sm" />
               @if (p.squad) {
-                <zeus-squad-badge [squad]="p.squad" [leader]="p.member.isSquadLeader" />
+                <ah-squad-badge [squad]="p.squad" [leader]="p.member.isSquadLeader" />
               }
               @if (p.member.playerRole) {
                 <span class="text-xs text-muted-foreground">{{ roleLabels[p.member.playerRole] }}</span>
@@ -600,7 +600,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
 
     <!-- ---------- map ---------- -->
     <ng-template #mapTpl>
-      <zeus-tactical-map
+      <ah-tactical-map
         #map
         class="absolute inset-0"
         [objectives]="filteredObjectives()"
@@ -651,7 +651,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 [attr.aria-pressed]="teamFilter().has(t.id)"
                 (click)="toggleSet(teamFilter, t.id, !teamFilter().has(t.id))"
               >
-                <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" /> {{ t.name }}
+                <ah-team-swatch [color]="t.color" [pattern]="t.pattern" /> {{ t.name }}
               </button>
             }
             @if (squads().length) {
@@ -694,7 +694,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           <h2 id="h-alerts" class="label-caps mr-auto" i18n>Alerts</h2>
           @for (s of severities; track s) {
             @if (alertCounts()[s]) {
-              <zeus-status-chip [label]="alertCounts()[s] + ' ' + sevSpec(s).label.toLowerCase()" [glyph]="sevSpec(s).glyph" [tone]="sevSpec(s).tone" />
+              <ah-status-chip [label]="alertCounts()[s] + ' ' + sevSpec(s).label.toLowerCase()" [glyph]="sevSpec(s).glyph" [tone]="sevSpec(s).tone" />
             }
           }
         </div>
@@ -705,7 +705,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           @for (a of sortedAlerts(); track a.id) {
             <li class="rounded-md border bg-card p-2 text-sm" [class]="a.acknowledged ? 'border-border opacity-60' : a.severity === 'critical' ? 'border-destructive/60' : a.severity === 'warning' ? 'border-warning/50' : 'border-border'">
               <div class="flex items-start gap-2">
-                <zeus-status-chip [label]="sevSpec(a.severity).label" [glyph]="sevSpec(a.severity).glyph" [tone]="sevSpec(a.severity).tone" />
+                <ah-status-chip [label]="sevSpec(a.severity).label" [glyph]="sevSpec(a.severity).glyph" [tone]="sevSpec(a.severity).tone" />
                 <div class="min-w-0 flex-1">
                   <p>{{ a.message }}</p>
                   <p class="text-xs text-muted-foreground">{{ a.nickname ? a.nickname + ' · ' : '' }}<time [attr.datetime]="a.createdAt" [title]="abs(a.createdAt)">{{ rel(a.createdAt) }}</time></p>
@@ -739,7 +739,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
             <li class="rounded-md border border-warning/50 bg-card p-2 text-sm">
               <p class="font-semibold">{{ p.perkName }} <span class="text-xs font-normal text-muted-foreground">· {{ perkTypeLabels[p.perkType] }}</span></p>
               <p class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                <zeus-team-badge [team]="teamById().get(p.teamId)" size="sm" [showIcon]="false" />
+                <ah-team-badge [team]="teamById().get(p.teamId)" size="sm" [showIcon]="false" />
                 {{ p.buyerNickname ?? '' }} · <span class="num" i18n>{{ n(p.price) }} cr</span> · {{ rel(p.createdAt) }}
                 @if (p.targetTeamId) {
                   <ng-container i18n>· target {{ teamById().get(p.targetTeamId)?.name }}</ng-container>
@@ -769,7 +769,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                 <div class="min-w-0 flex-1">
                   <p class="font-semibold">{{ p.perkName }}</p>
                   <p class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <zeus-team-badge [team]="teamById().get(p.teamId)" size="sm" [showIcon]="false" />
+                    <ah-team-badge [team]="teamById().get(p.teamId)" size="sm" [showIcon]="false" />
                     @if (p.targetTeamId) {
                       → {{ teamById().get(p.targetTeamId)?.name }}
                     }
@@ -778,7 +778,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                     }
                   </p>
                 </div>
-                <zeus-status-chip [spec]="purchaseChip(p)" />
+                <ah-status-chip [spec]="purchaseChip(p)" />
               </div>
               <div class="mt-1.5 flex items-center justify-between gap-2">
                 <label class="flex min-h-10 cursor-pointer items-center gap-2 text-xs">
@@ -795,7 +795,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           <ul class="flex flex-col gap-1 text-xs">
             @for (e of otherEffects(); track e.id) {
               <li class="flex items-center gap-2">
-                <zeus-team-badge [team]="teamById().get(e.teamId)" size="sm" [showIcon]="false" />
+                <ah-team-badge [team]="teamById().get(e.teamId)" size="sm" [showIcon]="false" />
                 <span class="flex-1">{{ e.label }}</span>
                 <span class="num text-muted-foreground">{{ remaining(e.expiresAt) }}</span>
               </li>
@@ -876,9 +876,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     </ng-template>
 
     <!-- ======================= dialogs ======================= -->
-    <zeus-ops-dialog [open]="dialog() === 'announce'" title="Send announcement" (closed)="dialog.set(null)" i18n-title>
+    <ah-ops-dialog [open]="dialog() === 'announce'" title="Send announcement" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'announce') {
-        <zeus-announce-form
+        <ah-announce-form
           [eventId]="eventId()"
           [teams]="teams()"
           [members]="store.members()"
@@ -889,15 +889,15 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           (cancel)="dialog.set(null)"
         />
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'emergency'" title="Emergency alert" (closed)="dialog.set(null)" i18n-title>
+    <ah-ops-dialog [open]="dialog() === 'emergency'" title="Emergency alert" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'emergency') {
-        <zeus-announce-form [eventId]="eventId()" [teams]="teams()" [members]="store.members()" [emergency]="true" (sent)="dialog.set(null)" (cancel)="dialog.set(null)" />
+        <ah-announce-form [eventId]="eventId()" [teams]="teams()" [members]="store.members()" [emergency]="true" (sent)="dialog.set(null)" (cancel)="dialog.set(null)" />
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
 
-    <zeus-ops-dialog [open]="dialog() === 'extend'" title="Extend game time" [subtitle]="endsAtLabel()" (closed)="dialog.set(null)" i18n-title>
+    <ah-ops-dialog [open]="dialog() === 'extend'" title="Extend game time" [subtitle]="endsAtLabel()" (closed)="dialog.set(null)" i18n-title>
       @if (dialog() === 'extend') {
         <div class="flex flex-col gap-4">
           <div class="grid grid-cols-3 gap-2">
@@ -914,9 +914,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
           </form>
         </div>
       }
-    </zeus-ops-dialog>
+    </ah-ops-dialog>
 
-    <zeus-adjust-balance-dialog
+    <ah-adjust-balance-dialog
       [eventId]="eventId()"
       [teams]="teams()"
       [members]="store.members()"

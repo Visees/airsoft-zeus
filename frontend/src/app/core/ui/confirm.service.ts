@@ -36,7 +36,7 @@ export interface ConfirmRequest extends ConfirmOptions {
 }
 
 /**
- * Promise-based confirmation dialog. The <zeus-confirm-host> in App renders it.
+ * Promise-based confirmation dialog. The <ah-confirm-host> in App renders it.
  *
  *   if (await confirm.ask({ title: 'End game?', destructive: true })) { ... }
  *   const reason = await confirm.askReason({ title: 'Remove player', reason: { label: 'Reason', required: true } });

@@ -28,7 +28,7 @@ import { nowSignal } from '../game-timer';
 import { bounds, distanceM } from '../../core/util/geo';
 
 const SELF_GLIDE_MS = 800;
-const BASE_LAYER_KEY = 'zeus.mapBase';
+const BASE_LAYER_KEY = 'airsofthub.mapBase';
 
 export interface SelfFix {
   lat: number;
@@ -102,7 +102,7 @@ interface ShapeProps {
  * decides visibility.
  */
 @Component({
-  selector: 'zeus-tactical-map',
+  selector: 'ah-tactical-map',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   // The host takes the consumer's sizing/positioning classes (e.g. "absolute inset-0" or "h-56");
@@ -130,12 +130,12 @@ interface ShapeProps {
       >
         <svg class="absolute inset-0 size-full" aria-hidden="true">
           <defs>
-            <pattern id="zeus-grid" [attr.width]="gridPx()" [attr.height]="gridPx()" patternUnits="userSpaceOnUse"
+            <pattern id="ah-grid" [attr.width]="gridPx()" [attr.height]="gridPx()" patternUnits="userSpaceOnUse"
               [attr.x]="gridOffset().x" [attr.y]="gridOffset().y">
               <path [attr.d]="'M ' + gridPx() + ' 0 L 0 0 0 ' + gridPx()" fill="none" stroke="var(--border)" stroke-width="1" />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#zeus-grid)" />
+          <rect width="100%" height="100%" fill="url(#ah-grid)" />
           @for (z of schematicZones(); track z.id) {
             @if (z.kind === 'circle') {
               <circle [attr.cx]="z.cx" [attr.cy]="z.cy" [attr.r]="z.r" [attr.fill]="z.color" [attr.fill-opacity]="z.fillOpacity"
@@ -643,29 +643,29 @@ export class TacticalMap {
   /** Game shapes draw above the base map and its labels, below the markers (DOM). */
   private addGameLayers(): void {
     const map = this.map!;
-    map.addSource('zeus-shapes', { type: 'geojson', data: this.shapeData });
-    map.addSource('zeus-self', { type: 'geojson', data: this.selfData });
+    map.addSource('ah-shapes', { type: 'geojson', data: this.shapeData });
+    map.addSource('ah-self', { type: 'geojson', data: this.selfData });
     map.addLayer({
-      id: 'zeus-fill',
+      id: 'ah-fill',
       type: 'fill',
-      source: 'zeus-shapes',
+      source: 'ah-shapes',
       filter: ['==', ['get', 'fill'], true],
       paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['get', 'fillOpacity'] },
     });
     // A halo under every game line, so olive or green zones still read over woods and fields.
     map.addLayer({
-      id: 'zeus-casing',
+      id: 'ah-casing',
       type: 'line',
-      source: 'zeus-shapes',
+      source: 'ah-shapes',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': this.applied?.dark ? '#000000' : '#ffffff', 'line-opacity': 0.7, 'line-width': ['+', ['get', 'width'], 3] },
     });
     for (const dash of Object.keys(DASHES) as Dash[]) {
       const pattern = DASHES[dash];
       map.addLayer({
-        id: `zeus-line-${dash}`,
+        id: `ah-line-${dash}`,
         type: 'line',
-        source: 'zeus-shapes',
+        source: 'ah-shapes',
         filter: ['==', ['get', 'dash'], dash],
         layout: { 'line-join': 'round', 'line-cap': dash === 'dot' ? 'round' : 'butt' },
         paint: {
@@ -677,16 +677,16 @@ export class TacticalMap {
       });
     }
     const nav = cssVar('--nav');
-    map.addLayer({ id: 'zeus-self-fill', type: 'fill', source: 'zeus-self', paint: { 'fill-color': nav, 'fill-opacity': 0.1 } });
-    map.addLayer({ id: 'zeus-self-line', type: 'line', source: 'zeus-self', paint: { 'line-color': nav, 'line-opacity': 0.6, 'line-width': 1 } });
+    map.addLayer({ id: 'ah-self-fill', type: 'fill', source: 'ah-self', paint: { 'fill-color': nav, 'fill-opacity': 0.1 } });
+    map.addLayer({ id: 'ah-self-line', type: 'line', source: 'ah-self', paint: { 'line-color': nav, 'line-opacity': 0.6, 'line-width': 1 } });
   }
 
   private pushShapes(): void {
-    if (this.styleReady) (this.map?.getSource('zeus-shapes') as GeoJSONSource | undefined)?.setData(this.shapeData);
+    if (this.styleReady) (this.map?.getSource('ah-shapes') as GeoJSONSource | undefined)?.setData(this.shapeData);
   }
 
   private pushSelf(): void {
-    if (this.styleReady) (this.map?.getSource('zeus-self') as GeoJSONSource | undefined)?.setData(this.selfData);
+    if (this.styleReady) (this.map?.getSource('ah-self') as GeoJSONSource | undefined)?.setData(this.selfData);
   }
 
   /**
@@ -1151,7 +1151,7 @@ export class TacticalMap {
   }
 }
 
-const SHAPE_LAYERS = ['zeus-fill', ...Object.keys(DASHES).map((d) => `zeus-line-${d}`)];
+const SHAPE_LAYERS = ['ah-fill', ...Object.keys(DASHES).map((d) => `ah-line-${d}`)];
 
 function readBaseLayer(): BaseLayer {
   try {

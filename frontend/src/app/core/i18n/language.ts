@@ -13,7 +13,7 @@ export const UI_LANGUAGES: { code: UiLanguage; name: string }[] = [
   { code: 'it', name: 'Italiano' },
 ];
 
-const STORAGE_KEY = 'zeus.lang';
+const STORAGE_KEY = 'airsofthub.lang';
 
 let active: UiLanguage = 'en';
 

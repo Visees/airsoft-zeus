@@ -12,10 +12,10 @@ CREATE OR REPLACE FUNCTION forbid_mutation() RETURNS trigger AS $$
 BEGIN
   -- Account deletion is allowed to detach personal references (set user_id to NULL)
   -- but never to change amounts, types or timestamps.
-  IF TG_OP = 'UPDATE' AND current_setting('zeus.allow_anonymize', true) = 'on' THEN
+  IF TG_OP = 'UPDATE' AND current_setting('airsofthub.allow_anonymize', true) = 'on' THEN
     RETURN NEW;
   END IF;
-  IF TG_OP = 'DELETE' AND current_setting('zeus.allow_purge', true) = 'on' THEN
+  IF TG_OP = 'DELETE' AND current_setting('airsofthub.allow_purge', true) = 'on' THEN
     RETURN OLD;
   END IF;
   RAISE EXCEPTION '% on % is not allowed: table is append-only', TG_OP, TG_TABLE_NAME;

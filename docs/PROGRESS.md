@@ -68,7 +68,7 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   `core/util/members.ts`. Playing GMs capture, buy perks, share GPS, score and get stats;
   they don't take a player place (max players, ready counts) and can't be removed as players.
 * Fair player view: the live shell marks its event in `PlayerViewService`; requests to
-  `/api/events/<id>/…` then carry `X-Zeus-View: player` and the socket subscribes with
+  `/api/events/<id>/…` then carry `X-AirsoftHub-View: player` and the socket subscribes with
   `{ view: 'player' }`. For a GM on a team the server builds the context with `isGm = false`
   (request-scoped via AsyncLocalStorage, `runWithView` in app.ts), so they see what the team
   sees. The control center (no header) keeps the full GM view. System work (tick) and socket
@@ -126,7 +126,7 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   ring say "No answer from the server" when the last answer is older than 2.5 intervals instead
   of freezing on "Holding". `location-tracker.service.spec.ts` covers rhythm, timeouts, pause,
   error recovery and event switches (each test fails if its fix is undone).
-* Audit 2026-10-22 on an isolated fresh stack (`docker compose -p zeus-audit`, other ports, own
+* Audit 2026-10-22 on an isolated fresh stack (`docker compose -p airsofthub-audit`, other ports, own
   volume): E2E suite 16/16 passing (run it ≥ 60 s after seeding, see the ledger-test note).
   Load: 120 and 400 players reporting every 10 s (half holding zones) — all 200, p99 11–13 ms,
   max 50 ms, no server errors, on a dev machine. The service worker doesn't touch location
@@ -167,11 +167,13 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * Every user-visible "Airsoft Zeus" / "Zeus" is now "AirsoftHub" (UI, page titles, PWA manifest,
   emails, PDF report, legal text, share texts, data export file `airsofthub-data.json`); the logo
   mark is "AH". `airsofthub` is a reserved nickname (`zeus` stays reserved).
-* Kept on purpose (internal, renaming breaks existing data or devices): QR payload prefix
-  `zeus:obj:` (printed codes keep working), `zeus_rt` / `zeus_session` cookies (no forced
-  logout), `zeus.*` localStorage keys, `X-Zeus-View` header, `zeus.allow_purge` /
-  `zeus.allow_anonymize` DB settings, JWT issuer, Postgres db/user `zeus`, `zeus-` component
-  selectors, demo accounts `@airsoftzeus.test` and their password, repo/folder name.
+* Internal names too (2026-10-23, with the move to https://airsofthub.eu): `ah-` component
+  selectors, `airsofthub.*` localStorage keys, `airsofthub_rt` / `airsofthub_session` cookies,
+  `X-AirsoftHub-View` header, JWT issuer `airsofthub`, `airsofthub.allow_purge` /
+  `airsofthub.allow_anonymize` DB settings and demo accounts `@airsofthub.test` (migration
+  0009), demo password `airsofthub-demo-2026`, QR payload `airsofthub:obj:`.
+* Still `zeus` on purpose: Postgres db/user (renaming needs work on the live server), QR
+  parsing also accepts `zeus:obj:` (codes printed before), reserved nickname, repo/folder name.
 * AirsoftHub icon and splash (2026-10-22) for Android, iOS, PWA icons and favicon; sources in
   `frontend/assets/` (see README, native apps).
 
@@ -212,7 +214,7 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   computed in the browser from the AWS open elevation tiles (`maplibre-contour`). A real dark
   "tactical night" style follows the theme (and live mode). Everything is free, no key.
 * Map type button on every map: Topographic / Satellite / Schematic; topo vs satellite is
-  remembered per device (`zeus.mapBase`). Satellite (Esri World Imagery) appears only when
+  remembered per device (`airsofthub.mapBase`). Satellite (Esri World Imagery) appears only when
   `ESRI_API_KEY` is set (free ArcGIS Location Platform account); `/api/config` sends it as
   `esriApiKey`. Not tried with a real key yet.
 * Place search (map editor, event form address) uses Photon (free OpenStreetMap search),
@@ -245,7 +247,7 @@ activity feed and the PDF report. Rules for new code: docs/FRONTEND_GUIDE.md ("T
 and the notes below.
 
 * Frontend: `@angular/localize` with runtime translations, one build. `main.ts` picks the language
-  (`zeus.lang` in localStorage → browser → English), loads `src/locale/messages.it.json`, then
+  (`airsofthub.lang` in localStorage → browser → English), loads `src/locale/messages.it.json`, then
   imports the app. Switching stores the choice and reloads (Settings → Appearance → Language, Edit
   profile, the "English / Italiano" link on signed-out screens). Signed in, the profile language
   wins: on app start or after login a different profile language is stored and the page reloads
@@ -294,7 +296,7 @@ and the notes below.
   loaders in `native-app.ts` resolve to `{ plugin }` and `NativeLocation` calls the methods.
   Found on a Galaxy S10e (GPS stuck on "Starting GPS"); unit tests use plain fakes and can't catch it.
 * `ApiService.reportLocation` in the app uses native HTTP and adds what the interceptors would:
-  bearer token, Accept-Language, `X-Zeus-View`, one refresh + retry on 401. The token refresh
+  bearer token, Accept-Language, `X-AirsoftHub-View`, one refresh + retry on 401. The token refresh
   also goes over native HTTP in the app (cookies are shared with the WebView, rotation works).
 * Screen off (measured on a Galaxy S10e, Android 12, 2026-10-23 via a debug build and
   `chrome://inspect`-style CDP): about a minute after locking, the WebView stops running its own
@@ -307,7 +309,7 @@ and the notes below.
   go out about every 16 s. A report with nothing queued sends the newest watch fix instead of
   calling `getCurrentPosition`.
 * `downloadBlob` opens the share sheet in the app (attachments, exports, QR PNG).
-* `APP_URL` defaults to the production site https://airsoftzeus.visedev.it. The app runs the
+* `APP_URL` defaults to the production site https://airsofthub.eu. The app runs the
   deployed frontend, so the native code works only once this frontend is deployed. App id
   `app.airsofthub` (not final until published). Icons/splash are Capacitor defaults.
 * Not done: QR print window in the app, Italian Info.plist texts. Not yet built or run on a

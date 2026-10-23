@@ -26,21 +26,21 @@ const CSV_KINDS: { kind: ExportKind; label: string; description: string; gmOnly?
 
 /** Downloads (PDF, CSV) and the shareable results page. */
 @Component({
-  selector: 'zeus-export-results-screen',
+  selector: 'ah-export-results-screen',
   imports: [RouterLink, NgIcon, HlmButton, ConnectionStatus, ErrorState, LoadingSkeleton, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page-narrow">
       @if (loading() && !event()) {
         <div class="mb-4 h-10 w-2/3 animate-pulse rounded-sm bg-muted" aria-hidden="true"></div>
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (error() && !event()) {
-        <zeus-page-header title="Export results" [back]="'/events/' + eventId() + '/results'" backLabel="Results" i18n-title i18n-backLabel />
-        <zeus-error-state [error]="error()" (retry)="load()" />
+        <ah-page-header title="Export results" [back]="'/events/' + eventId() + '/results'" backLabel="Results" i18n-title i18n-backLabel />
+        <ah-error-state [error]="error()" (retry)="load()" />
       } @else if (event(); as e) {
-        <zeus-page-header title="Export results" [eyebrow]="e.name" [back]="'/events/' + e.id + '/results'" backLabel="Results" i18n-title i18n-backLabel>
-          <zeus-connection-status [compact]="true" [quietOnline]="true" />
-        </zeus-page-header>
+        <ah-page-header title="Export results" [eyebrow]="e.name" [back]="'/events/' + e.id + '/results'" backLabel="Results" i18n-title i18n-backLabel>
+          <ah-connection-status [compact]="true" [quietOnline]="true" />
+        </ah-page-header>
 
         @if (!canExport()) {
           <div class="mb-4 rounded-md border border-border bg-muted p-4 text-sm" role="status" i18n>

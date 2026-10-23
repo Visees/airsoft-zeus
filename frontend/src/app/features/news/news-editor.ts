@@ -23,20 +23,20 @@ type PublishMode = 'draft' | 'now' | 'schedule';
 
 /** News editor (platform admins). Route: /news/:newsId/edit ('new' allowed). */
 @Component({
-  selector: 'zeus-news-editor-screen',
+  selector: 'ah-news-editor-screen',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, PageHeader, LoadingSkeleton, ErrorState, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
   template: `
     <div class="page-narrow">
-      <zeus-page-header eyebrow="News" [title]="isNew() ? txt.writeNews : txt.editNews" [back]="backUrl()" i18n-eyebrow />
+      <ah-page-header eyebrow="News" [title]="isNew() ? txt.writeNews : txt.editNews" [back]="backUrl()" i18n-eyebrow />
 
       @if (!isEditor()) {
-        <zeus-empty-state icon="lucideLock" title="News editors only" message="Only the AirsoftHub team and the News editors can write News." i18n-title i18n-message />
+        <ah-empty-state icon="lucideLock" title="News editors only" message="Only the AirsoftHub team and the News editors can write News." i18n-title i18n-message />
       } @else if (loading()) {
-        <zeus-loading-skeleton [rows]="6" />
+        <ah-loading-skeleton [rows]="6" />
       } @else if (loadError()) {
-        <zeus-error-state [error]="loadError()" (retry)="load()" />
+        <ah-error-state [error]="loadError()" (retry)="load()" />
       } @else {
         <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-6" novalidate>
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-news-content">

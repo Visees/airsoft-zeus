@@ -19,11 +19,11 @@ type State = 'starting' | 'verifying' | 'verified' | 'failed' | 'inbox' | 'alrea
  * Works signed in or signed out.
  */
 @Component({
-  selector: 'zeus-verify-email-screen',
+  selector: 'ah-verify-email-screen',
   imports: [AuthLayout, RouterLink, NgIcon, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout>
+    <ah-auth-layout>
       @switch (state()) {
         @case ('starting') {
           <div class="flex flex-col items-center gap-3 py-10" role="status">
@@ -112,7 +112,7 @@ type State = 'starting' | 'verifying' | 'verified' | 'failed' | 'inbox' | 'alrea
           </div>
         }
       }
-    </zeus-auth-layout>
+    </ah-auth-layout>
   `,
 })
 export class VerifyEmailScreen implements OnInit {

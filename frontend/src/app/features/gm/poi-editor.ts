@@ -26,18 +26,18 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
 
 /** POI editor (GM). Route: /gm/events/:eventId/pois/:poiId ('new' allowed, ?lat=&lng= prefill). */
 @Component({
-  selector: 'zeus-poi-editor-screen',
+  selector: 'ah-poi-editor-screen',
   imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, TacticalMap, LoadingSkeleton, ErrorState, PageHeader, TeamSwatch, ColorField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
   template: `
     <div class="page-narrow">
-      <zeus-page-header [title]="isNew() ? txt.newPointOfInterest : (poi()?.name ?? txt.pointOfInterest)" [eyebrow]="event()?.name ?? txt.poiEditor" [back]="backUrl()" />
+      <ah-page-header [title]="isNew() ? txt.newPointOfInterest : (poi()?.name ?? txt.pointOfInterest)" [eyebrow]="event()?.name ?? txt.poiEditor" [back]="backUrl()" />
 
       @if (loading()) {
-        <zeus-loading-skeleton [rows]="5" />
+        <ah-loading-skeleton [rows]="5" />
       } @else if (loadError()) {
-        <zeus-error-state [error]="loadError()" (retry)="load()" />
+        <ah-error-state [error]="loadError()" (retry)="load()" />
       } @else {
         <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-6" novalidate>
           <section class="panel flex flex-col gap-4 p-4" aria-labelledby="h-poi-basics">
@@ -75,7 +75,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
             </div>
             <div class="flex flex-col gap-1.5">
               <span hlmLabel i18n>Colour</span>
-              <zeus-color-field formControlName="color" label="POI colour" i18n-label />
+              <ah-color-field formControlName="color" label="POI colour" i18n-label />
             </div>
             <fieldset>
               <legend class="mb-1.5 text-sm font-medium" i18n>Icon</legend>
@@ -127,7 +127,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                 <ng-icon name="lucideLocateFixed" size="16" aria-hidden="true" /> <ng-container i18n>Use my position</ng-container>
               </button>
             </div>
-            <zeus-tactical-map
+            <ah-tactical-map
               class="h-64 rounded-md border border-border"
               [objectives]="objectives()"
               [pois]="mapPois()"
@@ -159,7 +159,7 @@ const STATUS_PHASES = ['lobby', 'live', 'paused', 'completed'] as const;
                   @for (t of event()?.teams ?? []; track t.id) {
                     <label class="flex min-h-11 cursor-pointer items-center gap-2">
                       <input type="checkbox" class="size-5 accent-primary" [checked]="value().teamIds?.includes(t.id)" (change)="toggle(form.controls.teamIds, t.id, $event)" />
-                      <zeus-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
+                      <ah-team-swatch [color]="t.color" [pattern]="t.pattern" />{{ t.name }}
                     </label>
                   }
                 </div>

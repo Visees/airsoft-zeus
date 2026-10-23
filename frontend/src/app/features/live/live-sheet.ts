@@ -8,7 +8,7 @@ let nextId = 0;
  * like the confirm dialog. Centred card on wider screens.
  */
 @Component({
-  selector: 'zeus-live-sheet',
+  selector: 'ah-live-sheet',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

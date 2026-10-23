@@ -10,7 +10,7 @@ import { ConfirmService } from '../core/ui/confirm.service';
  * Bottom sheet on phones, centred on wider screens. Mounted once in App.
  */
 @Component({
-  selector: 'zeus-confirm-host',
+  selector: 'ah-confirm-host',
   imports: [FormsModule, HlmButton, HlmInput, HlmLabel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

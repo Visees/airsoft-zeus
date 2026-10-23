@@ -1,11 +1,11 @@
 /**
  * Demo data for previews and screenshots. Everything is flagged is_test_data = true and the
- * demo accounts use the @airsoftzeus.test domain, so it never mixes with real data.
+ * demo accounts use the @airsofthub.test domain, so it never mixes with real data.
  *
  *   SEED_DEMO_DATA=true          seed on API start when there are no events
  *   npm run seed                 seed now (refuses if demo data exists)
  *
- * Demo password for every account: SEED_PASSWORD (default "zeus-demo-2026").
+ * Demo password for every account: SEED_PASSWORD (default "airsofthub-demo-2026").
  */
 import { hashPassword } from '../auth/password.js';
 import { one, pool, tx } from '../db.js';
@@ -40,18 +40,18 @@ export async function seedIfEmpty(): Promise<void> {
 }
 
 export async function seed(): Promise<void> {
-  const exists = await one(`SELECT 1 FROM users WHERE email LIKE '%@airsoftzeus.test' LIMIT 1`);
+  const exists = await one(`SELECT 1 FROM users WHERE email LIKE '%@airsofthub.test' LIMIT 1`);
   if (exists) {
     logger.info('demo data already present, skipping');
     return;
   }
-  const hash = await hashPassword(process.env.SEED_PASSWORD || 'zeus-demo-2026');
+  const hash = await hashPassword(process.env.SEED_PASSWORD || 'airsofthub-demo-2026');
   const user = async (nickname: string, role: string, extra: Record<string, unknown> = {}) => {
     const u = await one<{ id: string }>(
       `INSERT INTO users (email, password_hash, email_verified_at, nickname, first_name, last_name, country, player_role, club_name, bio, onboarding_done,
                           terms_version, privacy_version, terms_accepted_at, is_test_data)
        VALUES ($1,$2,now(),$3,$4,$5,'Italy',$6,$7,$8,true,'2026-10','2026-10',now(),true) RETURNING id`,
-      [`${nickname.toLowerCase()}@airsoftzeus.test`, hash, nickname, extra.first ?? 'Demo', extra.last ?? nickname, role, extra.club ?? 'ASD Lupi del Ticino', extra.bio ?? null],
+      [`${nickname.toLowerCase()}@airsofthub.test`, hash, nickname, extra.first ?? 'Demo', extra.last ?? nickname, role, extra.club ?? 'ASD Lupi del Ticino', extra.bio ?? null],
     );
     return u!.id;
   };
@@ -63,7 +63,7 @@ export async function seed(): Promise<void> {
     `INSERT INTO clubs (name, country, city, description, owner_id) VALUES ('ASD Lupi del Ticino','Italy','Varese','Weekend skirmish and milsim club.', $1) RETURNING id`,
     [gmId],
   );
-  await pool.query(`UPDATE users SET club_id = $1 WHERE email LIKE '%@airsoftzeus.test'`, [club!.id]);
+  await pool.query(`UPDATE users SET club_id = $1 WHERE email LIKE '%@airsofthub.test'`, [club!.id]);
 
   const now = Date.now();
   const live = await createEvent(gmId, {
@@ -152,7 +152,7 @@ export async function seed(): Promise<void> {
     `INSERT INTO announcements (event_id, scope, title, body, priority, author_id) VALUES ($1,'all','Safe zone moved','The safe zone is now by the car park. Barrel bags on before leaving it.','high',$2)`,
     [live.id, gmId],
   );
-  logger.info({ live: live.id, upcoming: upcoming.id, past: past.id }, 'demo data seeded (password: SEED_PASSWORD or zeus-demo-2026)');
+  logger.info({ live: live.id, upcoming: upcoming.id, past: past.id }, 'demo data seeded (password: SEED_PASSWORD or airsofthub-demo-2026)');
 }
 
 async function createEvent(gmId: string, o: { name: string; status: string; start: Date; end: Date; mode: string }) {

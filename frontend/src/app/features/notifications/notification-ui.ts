@@ -63,7 +63,7 @@ const TYPE_ICONS: Partial<Record<NotificationType, string>> = {
  * ▲ (high, amber) with a text label for screen readers.
  */
 @Component({
-  selector: 'zeus-notification-row',
+  selector: 'ah-notification-row',
   imports: [NgIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

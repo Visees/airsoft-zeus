@@ -15,11 +15,11 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
 
 /** Accept the current Terms and Privacy versions (new users or after an update). */
 @Component({
-  selector: 'zeus-consent-screen',
+  selector: 'ah-consent-screen',
   imports: [AuthLayout, FormsModule, NgIcon, HlmButton, LegalDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <zeus-auth-layout [center]="false" width="wide">
+    <ah-auth-layout [center]="false" width="wide">
       <button layoutAction type="button" class="tap inline-flex items-center px-2 text-sm font-semibold text-muted-foreground hover:text-foreground" (click)="auth.logout()" i18n>
         Log out
       </button>
@@ -75,8 +75,8 @@ import { LegalDoc, PRIVACY, TERMS } from './legal-text';
           }
         </div>
       </form>
-    </zeus-auth-layout>
-    <zeus-legal-dialog />
+    </ah-auth-layout>
+    <ah-legal-dialog />
   `,
 })
 export class ConsentScreen {

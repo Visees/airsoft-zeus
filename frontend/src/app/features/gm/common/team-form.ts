@@ -147,7 +147,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
 
 /** Team identity fields with a live badge preview. */
 @Component({
-  selector: 'zeus-team-fields',
+  selector: 'ah-team-fields',
   imports: [ReactiveFormsModule, NgIcon, HlmInput, HlmLabel, TeamBadge, TeamSwatch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -156,7 +156,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
     <div [formGroup]="f" class="flex flex-col gap-4" [attr.data-rev]="tick()">
       <div class="flex items-center gap-2 rounded-sm border border-border bg-muted px-3 py-2" aria-live="polite">
         <span class="label-caps" i18n>Preview</span>
-        <zeus-team-badge [team]="preview()" size="lg" />
+        <ah-team-badge [team]="preview()" size="lg" />
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
@@ -212,7 +212,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
               <label class="flex h-11 cursor-pointer items-center gap-1.5 rounded-sm border px-2 text-xs capitalize has-focus-visible:ring-2 has-focus-visible:ring-ring"
                 [class]="f.controls.pattern.value === p ? 'border-primary bg-primary/10 font-semibold' : 'border-border'">
                 <input type="radio" class="sr-only" [name]="id + '-pattern'" [checked]="f.controls.pattern.value === p" (change)="setPattern(p)" />
-                <zeus-team-swatch [color]="f.controls.color.value" [pattern]="p" [size]="18" />
+                <ah-team-swatch [color]="f.controls.color.value" [pattern]="p" [size]="18" />
                 {{ patternLabels[p] }}
               </label>
             }

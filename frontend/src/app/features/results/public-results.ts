@@ -19,7 +19,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
  * and the HTTP transfer cache hands the response to the browser during hydration.
  */
 @Component({
-  selector: 'zeus-public-results-screen',
+  selector: 'ah-public-results-screen',
   imports: [RouterLink, NgIcon, HlmButton, ErrorState, ResultsLeaderboard, ResultsTimeline, ResultsTopPlayers, ResultsWinner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-dvh flex-col bg-background' },
@@ -52,7 +52,7 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
           </div>
         }
         @case ('error') {
-          <zeus-error-state [error]="error()" title="Could not load these results" (retry)="retry()" i18n-title />
+          <ah-error-state [error]="error()" title="Could not load these results" (retry)="retry()" i18n-title />
         }
         @case ('ready') {
           @if (results(); as r) {
@@ -66,12 +66,12 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
               <div class="flex min-w-0 flex-col gap-6">
-                <zeus-results-winner [results]="r" />
-                <zeus-results-leaderboard [results]="r" />
-                <zeus-results-timeline [results]="r" [limit]="20" />
+                <ah-results-winner [results]="r" />
+                <ah-results-leaderboard [results]="r" />
+                <ah-results-timeline [results]="r" [limit]="20" />
               </div>
               <aside class="flex flex-col gap-6">
-                <zeus-results-top-players [results]="r" [limit]="10" />
+                <ah-results-top-players [results]="r" [limit]="10" />
                 <section class="panel p-4" aria-labelledby="cta-title">
                   <h2 id="cta-title" class="font-bold uppercase" i18n>Run your own game</h2>
                   <p class="mt-1 text-sm text-muted-foreground" i18n>Objectives, live map, team scores and a results page like this one for your next airsoft event.</p>

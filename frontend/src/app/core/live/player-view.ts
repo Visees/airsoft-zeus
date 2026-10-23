@@ -5,7 +5,7 @@ import { Uuid } from '../api/models';
 
 /**
  * Events whose player screens are open. A Game Master who plays on a team sees those screens
- * as their team does: `/api/events/<id>/…` requests carry `X-Zeus-View: player` and the socket
+ * as their team does: `/api/events/<id>/…` requests carry `X-AirsoftHub-View: player` and the socket
  * subscribes with `{ view: 'player' }`. The server ignores both for everyone else, so the
  * live shell can always ask for it.
  */
@@ -35,5 +35,5 @@ const EVENT_URL = /^\/api\/events\/([0-9a-f-]{36})(?:[/?]|$)/i;
 export const playerViewInterceptor: HttpInterceptorFn = (req, next) => {
   const id = EVENT_URL.exec(req.url)?.[1];
   if (!id || !inject(PlayerViewService).has(id)) return next(req);
-  return next(req.clone({ setHeaders: { 'X-Zeus-View': 'player' } }));
+  return next(req.clone({ setHeaders: { 'X-AirsoftHub-View': 'player' } }));
 };

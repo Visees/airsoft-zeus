@@ -14,7 +14,7 @@
 @source '../libs/ui';
 
 /* Capture fill of an objective diamond on the map (core/maps/markers.ts); registered so it can animate. */
-@property --zeus-fill {
+@property --ah-fill {
   syntax: '<percentage>';
   inherits: false;
   initial-value: 0%;

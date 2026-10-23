@@ -19,7 +19,7 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
 
 /** GM tools in the lobby: status, registration, pending requests, announcements. */
 @Component({
-  selector: 'zeus-lobby-gm-controls',
+  selector: 'ah-lobby-gm-controls',
   imports: [ReactiveFormsModule, RouterLink, NgIcon, HlmButton, HlmInput, HlmLabel, HlmTextarea, PlayerListItem],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-4' },
@@ -93,14 +93,14 @@ type Busy = 'lobby' | 'start' | 'delay' | 'cancel' | 'lock' | 'announce' | null;
         <ul class="divide-y divide-border">
           @for (m of pending(); track m.userId) {
             <li>
-              <zeus-player-list-item [member]="m" [showPresence]="false">
+              <ah-player-list-item [member]="m" [showPresence]="false">
                 <button hlmBtn size="icon-lg" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, true)" ariaLabel="Approve {{ m.nickname }}" i18n-ariaLabel>
                   <ng-icon name="lucideCheck" size="18" aria-hidden="true" />
                 </button>
                 <button hlmBtn size="icon-lg" variant="outline" type="button" class="tap" [disabled]="reviewing() === m.userId" (click)="review(m, false)" ariaLabel="Reject {{ m.nickname }}" i18n-ariaLabel>
                   <ng-icon name="lucideX" size="18" aria-hidden="true" />
                 </button>
-              </zeus-player-list-item>
+              </ah-player-list-item>
             </li>
           }
         </ul>

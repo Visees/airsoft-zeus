@@ -46,7 +46,7 @@ export class AuthService {
       return Promise.resolve();
     }
     // No session hint cookie → nothing to restore (avoids a guaranteed 401).
-    const hasSession = typeof document !== 'undefined' && /(?:^|;\s*)zeus_session=1/.test(document.cookie);
+    const hasSession = typeof document !== 'undefined' && /(?:^|;\s*)airsofthub_session=1/.test(document.cookie);
     this.initPromise ??= (hasSession ? this.refresh() : Promise.resolve(false)).then(() => {
       const user = this._user();
       // Opening the app: switch to the profile language straight away.

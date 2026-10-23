@@ -75,7 +75,7 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
 
 /** Location tracking settings, grouped and explained. */
 @Component({
-  selector: 'zeus-tracking-form',
+  selector: 'ah-tracking-form',
   imports: [ReactiveFormsModule, NgIcon, HlmInput, HlmLabel, SwitchRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -119,8 +119,8 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
           </div>
         </div>
         <div class="divide-y divide-border">
-          <zeus-switch-row formControlName="highAccuracy" label="High accuracy GPS" description="Uses satellite GPS instead of Wi-Fi/cell estimates. Needed for capture zones; costs battery." i18n-label i18n-description />
-          <zeus-switch-row formControlName="batterySaver" label="Battery saver" description="Phones report less often when standing still and when the battery is low." i18n-label i18n-description />
+          <ah-switch-row formControlName="highAccuracy" label="High accuracy GPS" description="Uses satellite GPS instead of Wi-Fi/cell estimates. Needed for capture zones; costs battery." i18n-label i18n-description />
+          <ah-switch-row formControlName="batterySaver" label="Battery saver" description="Phones report less often when standing still and when the battery is low." i18n-label i18n-description />
         </div>
       </section>
 
@@ -134,8 +134,8 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
           </p>
         </div>
         <div class="divide-y divide-border">
-          <zeus-switch-row formControlName="background" label="Background tracking" description="Keep reporting with the screen locked (AirsoftHub app only)." i18n-label i18n-description />
-          <zeus-switch-row formControlName="stopWhenPaused" label="Stop tracking while paused" description="No positions are collected while the game is paused." i18n-label i18n-description />
+          <ah-switch-row formControlName="background" label="Background tracking" description="Keep reporting with the screen locked (AirsoftHub app only)." i18n-label i18n-description />
+          <ah-switch-row formControlName="stopWhenPaused" label="Stop tracking while paused" description="No positions are collected while the game is paused." i18n-label i18n-description />
         </div>
       </section>
 
@@ -163,7 +163,7 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
             }
           </div>
         </div>
-        <zeus-switch-row formControlName="showLastKnown" label="Show last known position" description="Between stale and hidden, keep the last fix on the map, greyed out." i18n-label i18n-description />
+        <ah-switch-row formControlName="showLastKnown" label="Show last known position" description="Between stale and hidden, keep the last fix on the map, greyed out." i18n-label i18n-description />
       </section>
 
       <section class="flex flex-col gap-3" aria-labelledby="tr-g4">
@@ -190,7 +190,7 @@ export function trackingValue(form: TrackingForm): TrackingSettings {
             <p id="tr-ret-h" class="text-xs text-muted-foreground" i18n>0 = delete positions when the event ends. A player's own shorter setting wins.</p>
           }
         </div>
-        <zeus-switch-row formControlName="keepHistory" label="Keep movement history" description="Store every fix for post-game replays. Off: only the latest position is kept." i18n-label i18n-description />
+        <ah-switch-row formControlName="keepHistory" label="Keep movement history" description="Store every fix for post-game replays. Off: only the latest position is kept." i18n-label i18n-description />
       </section>
     </fieldset>
   `,
