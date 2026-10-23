@@ -1,6 +1,7 @@
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -69,6 +70,19 @@ app.use((_req, res, next) => {
     ].join('; '),
   );
   next();
+});
+
+// A service worker keeps the CSP of the response it was installed from until its script bytes
+// change, and ngsw-worker.js is identical across builds: a worker installed under an older
+// policy kept blocking the map tiles. The page's CSP already checks every request the worker
+// proxies, so the worker is served without one; the stamp makes installed workers update once.
+const swPath = join(browserDistFolder, 'ngsw-worker.js');
+const swScript = existsSync(swPath) ? `${readFileSync(swPath, 'utf8')}\n// served without CSP (2026-10-23)\n` : null;
+app.get('/ngsw-worker.js', (_req, res, next) => {
+  if (!swScript) return next();
+  res.removeHeader('Content-Security-Policy');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.type('application/javascript').send(swScript);
 });
 
 app.use(

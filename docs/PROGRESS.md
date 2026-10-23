@@ -224,6 +224,8 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   game is the next step (OpenFreeMap allows up to 3,000 tiles / 50 MB per download).
 * CSP (`frontend/src/server.ts`) allows tiles.openfreemap.org, s3.amazonaws.com,
   ibasemaps-api.arcgis.com, photon.komoot.io; all Google hosts removed.
+* `ngsw-worker.js` is served without CSP (plus a stamp comment): installed service workers kept
+  the old Google-only policy and blocked every tile, leaving a blank map.
 
 ## Known limits / next ideas
 
