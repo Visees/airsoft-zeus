@@ -9,11 +9,10 @@ import { AppUpdates } from './core/push/app-updates.service';
 import { PushService } from './core/push/push.service';
 import { ThemeService } from './core/theme/theme.service';
 import { ConfirmHost } from './shared/confirm-host';
-import { Logo } from './shared/logo';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HlmToaster, ConfirmHost, Logo],
+  imports: [RouterOutlet, HlmToaster, ConfirmHost],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <router-outlet />
@@ -21,7 +20,7 @@ import { Logo } from './shared/logo';
       <!-- Splash: shown while the session is restored -->
       <div class="fixed inset-0 z-50 grid place-items-center bg-background" role="status" aria-label="Starting AirsoftHub" i18n-aria-label>
         <div class="flex flex-col items-center gap-4">
-          <zeus-logo class="h-10" />
+          <span class="grid size-14 place-items-center rounded-md bg-primary font-mono text-2xl font-bold text-primary-foreground" aria-hidden="true">AH</span>
           <span class="label-caps" i18n>AirsoftHub · connecting</span>
           <span class="h-0.5 w-32 overflow-hidden bg-muted"><span class="block h-full w-1/3 animate-pulse bg-primary"></span></span>
         </div>

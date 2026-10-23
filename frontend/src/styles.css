@@ -60,11 +60,6 @@
   --ring: #4a5a1f;
   --hud: rgb(255 255 255 / 0.92);
 
-  /* Logo artwork colours (app icon, splash); dark themes tint "hub" with the theme accent.
-   * Only the <zeus-logo> wordmark uses them. */
-  --logo-ink: #353e41;
-  --logo-accent: #ba1d21;
-
   --chart-1: #4a5a1f;
   --chart-2: #0b7a90;
   --chart-3: #8f5d09;
@@ -113,9 +108,6 @@
   --input: #3a413b;
   --ring: #a4b465;
   --hud: rgb(14 16 15 / 0.9);
-
-  --logo-ink: #f0f2f3;
-  --logo-accent: var(--primary);
 
   --chart-1: #a4b465;
   --chart-2: #4fc7dd;

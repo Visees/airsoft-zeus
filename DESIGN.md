@@ -75,10 +75,8 @@ Capture progress ring animates; nothing loops decoratively. All motion is disabl
 
 ## Rules
 
-* Red means danger or enemy. Never use it for decoration or brand. The exceptions are the
-  logo and the classic dark theme, whose primary is red. Always render the logo with
-  `<zeus-logo>` (`shared/logo.ts`, traced from the app icon artwork, colours `--logo-ink` /
-  `--logo-accent`; in dark themes "hub" takes the theme primary), never as styled text.
+* Red means danger or enemy. Never use it for decoration or brand. The one exception is the
+  classic dark theme, whose primary (and so the "AH" brand tile) is red.
 * Cyan means *you* / navigation. Never use it for buttons.
 * No camouflage, stencil fonts, neon, glows, gradients, or skull/weapon iconography.
 * Map first on live screens; panels are bottom sheets on phones, side panels on ≥1024px.

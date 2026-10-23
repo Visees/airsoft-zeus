@@ -7,7 +7,6 @@ import { ApiError } from '../../core/api/api-error';
 import { ApiService } from '../../core/api/api.service';
 import { EventResults } from '../../core/api/models';
 import { GAME_MODE_LABELS, formatDate, formatDuration, formatList } from '../../core/util/format';
-import { Logo } from '../../shared/logo';
 import { ErrorState } from '../../shared/states';
 import { ResultsLeaderboard, ResultsTimeline, ResultsTopPlayers, ResultsWinner } from './results-parts';
 import { leaders } from './results-utils';
@@ -21,14 +20,15 @@ type State = 'loading' | 'ready' | 'not-found' | 'error';
  */
 @Component({
   selector: 'zeus-public-results-screen',
-  imports: [RouterLink, NgIcon, HlmButton, ErrorState, Logo, ResultsLeaderboard, ResultsTimeline, ResultsTopPlayers, ResultsWinner],
+  imports: [RouterLink, NgIcon, HlmButton, ErrorState, ResultsLeaderboard, ResultsTimeline, ResultsTopPlayers, ResultsWinner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-dvh flex-col bg-background' },
   template: `
     <header class="border-b border-border bg-card">
       <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <a routerLink="/welcome" class="hit flex items-center gap-2" aria-label="AirsoftHub home" i18n-aria-label>
-          <zeus-logo class="h-6" />
+          <span class="grid size-9 place-items-center rounded-md bg-primary font-mono text-lg font-bold text-primary-foreground" aria-hidden="true">AH</span>
+          <span class="text-sm font-bold tracking-wide uppercase" style="font-stretch: 80%">AirsoftHub</span>
         </a>
         <a hlmBtn variant="outline" class="tap" routerLink="/welcome" i18n>Create your own event</a>
       </div>

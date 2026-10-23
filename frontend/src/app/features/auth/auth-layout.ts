@@ -1,21 +1,21 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UI_LANGUAGES, UiLanguage, activeLanguage, switchLanguage } from '../../core/i18n/language';
-import { Logo } from '../../shared/logo';
 
 /**
  * Minimal full-height layout for screens outside the app shell (auth, system pages):
- * logo, a centred narrow column, safe-area padding.
+ * logo mark, a centred narrow column, safe-area padding.
  */
 @Component({
   selector: 'zeus-auth-layout',
-  imports: [RouterLink, Logo],
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-dvh flex-col bg-background text-foreground' },
   template: `
     <header class="flex items-center justify-between gap-3 px-4 sm:px-6" style="padding-top: calc(0.75rem + var(--safe-top))">
-      <a routerLink="/" class="tap -ml-1 flex items-center px-1" aria-label="AirsoftHub, start" i18n-aria-label>
-        <zeus-logo class="h-6" />
+      <a routerLink="/" class="tap -ml-1 flex items-center gap-2 px-1" aria-label="AirsoftHub, start" i18n-aria-label>
+        <span class="grid size-8 place-items-center rounded-sm bg-primary font-mono text-sm font-bold text-primary-foreground" aria-hidden="true">AH</span>
+        <span class="text-lg font-bold uppercase tracking-wider" style="font-stretch: 80%" aria-hidden="true">AirsoftHub</span>
       </a>
       <div class="flex items-center gap-2">
         <ng-content select="[layoutAction]" />
