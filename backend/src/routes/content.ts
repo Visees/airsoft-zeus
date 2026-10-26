@@ -12,7 +12,7 @@ import { body, clientTxId, hexColor, idParam, isoDate, lat, lng, playerRole, que
 import { hub } from '../realtime/hub.js';
 import { eventContext, FINISHED, playsIn, requireGm, requireMember, type EventContext } from '../domain/context.js';
 import { copyMapContent, insertObjective } from '../domain/copy.js';
-import { mapOverlaySchema, parseImport } from '../domain/map-import.js';
+import { mapLayerSchema, mapOverlaySchema, mergeLayers, parseImport, type MapLayer } from '../domain/map-import.js';
 import { geofenceSchema, merge, rewardsSchema, DEFAULT_GEOFENCE, DEFAULT_REWARDS } from '../domain/defaults.js';
 import { alert, audit } from '../domain/journal.js';
 import { loadObjectives, objectiveDto, objectiveDtos, OBJECTIVE_SELECT, performCapture, statusOf, type ObjRow } from '../domain/objectives.js';
@@ -608,14 +608,14 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
     z.object({
       format: z.enum(['geojson', 'csv']),
       content: z.string().max(2_000_000),
-      // a venue map package: the optional layers chosen, and what the package brings besides its shapes
-      layers: z.array(shortText(40)).max(20).optional(),
+      // a venue map package: its layers (add-ons, all imported, shown at first or not) and what it brings besides its shapes
+      mapLayers: z.array(mapLayerSchema).max(20).optional(),
       replace: z.boolean().optional(),
       overlay: mapOverlaySchema.optional(),
       area: z.object({ lat, lng, zoom: z.number().min(1).max(22) }).optional(),
     }),
   );
-  const parsed = parseImport(b.format, b.content, { layers: b.layers });
+  const parsed = parseImport(b.format, b.content);
   if (!parsed.objectives.length && !parsed.pois.length && !parsed.zones.length) throw badRequest(tr`Nothing to import: no valid coordinates found.`, 'invalid_import');
   let removed = 0;
   await tx(async (t) => {
@@ -626,6 +626,12 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
       removed += (await t.query('DELETE FROM zones WHERE event_id = $1', [eventId])).rowCount ?? 0;
       removed += (await t.query('DELETE FROM pois WHERE event_id = $1', [eventId])).rowCount ?? 0;
     }
+    const used = new Set(parsed.zones.map((z) => z.layer).filter(Boolean));
+    const added = (b.mapLayers ?? []).filter((l) => used.has(l.id));
+    if (added.length || b.replace) {
+      const layers = mergeLayers(b.replace ? [] : ((ctx.event.map_layers as MapLayer[] | null) ?? []), added);
+      await t.query('UPDATE events SET map_layers = $2, updated_at = now() WHERE id = $1', [eventId, JSON.stringify(layers)]);
+    }
     if (b.overlay) await t.query('UPDATE events SET map_overlay = $2, updated_at = now() WHERE id = $1', [eventId, JSON.stringify(b.overlay)]);
     if (b.area) await t.query('UPDATE events SET area_lat = $2, area_lng = $3, area_zoom = $4, updated_at = now() WHERE id = $1', [eventId, b.area.lat, b.area.lng, b.area.zoom]);
     for (const o of parsed.objectives) {
@@ -634,10 +640,10 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
     }
     await copyMapContent(t, eventId, { pois: parsed.pois, zones: parsed.zones });
     await audit(t, eventId, me.id, 'map.import', {
-      after: { objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, layers: b.layers ?? [], removed, overlay: !!b.overlay, area: !!b.area },
+      after: { objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, layers: (b.mapLayers ?? []).map((l) => l.id), removed, overlay: !!b.overlay, area: !!b.area },
     });
   });
-  hub.invalidate(eventId, b.overlay || b.area ? ['objectives', 'pois', 'zones', 'event'] : ['objectives', 'pois', 'zones']);
+  hub.invalidate(eventId, ['objectives', 'pois', 'zones', 'event']);
   res.json({ objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, removed });
 });
 
@@ -675,7 +681,8 @@ contentRouter.post('/:eventId/map/save-template', async (req, res) => {
   const data = {
     area: await one('SELECT area_lat AS lat, area_lng AS lng, area_zoom AS zoom FROM events WHERE id = $1', [eventId]),
     overlay: (await one('SELECT map_overlay FROM events WHERE id = $1', [eventId]))?.map_overlay ?? null,
-    zones: await many('SELECT kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon FROM zones WHERE event_id = $1', [eventId]),
+    layers: (await one('SELECT map_layers FROM events WHERE id = $1', [eventId]))?.map_layers ?? [],
+    zones: await many('SELECT kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, layer FROM zones WHERE event_id = $1', [eventId]),
     pois: await many('SELECT name, type, description, lat, lng, icon, color, image_url FROM pois WHERE event_id = $1', [eventId]),
     objectives: await many(
       'SELECT name, description, instructions, lat, lng, icon, color, type, methods, require_geofence, geofence, rewards, cooldown_sec, max_captures FROM objectives WHERE event_id = $1',
@@ -692,7 +699,7 @@ contentRouter.post('/:eventId/map/apply-template', async (req, res) => {
   const b = body(req, z.object({ templateId: uuid }));
   const tpl = await one('SELECT data FROM map_templates WHERE id = $1 AND owner_id = $2', [b.templateId, me.id]);
   if (!tpl) throw notFound(tr`Template not found.`);
-  const data = tpl.data as { area?: { lat: number; lng: number; zoom: number }; overlay?: unknown; zones: never[]; pois: never[]; objectives: Record<string, unknown>[] };
+  const data = tpl.data as { area?: { lat: number; lng: number; zoom: number }; overlay?: unknown; layers?: unknown; zones: never[]; pois: never[]; objectives: Record<string, unknown>[] };
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
     if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
@@ -707,6 +714,10 @@ contentRouter.post('/:eventId/map/apply-template', async (req, res) => {
     // Like the area: the template's venue map only fills an empty slot, it never replaces the event's own.
     const overlay = mapOverlaySchema.safeParse(data.overlay);
     if (overlay.success && !ctx.event.map_overlay) await t.query('UPDATE events SET map_overlay = $2 WHERE id = $1', [eventId, JSON.stringify(overlay.data)]);
+    const layers = z.array(mapLayerSchema).max(20).safeParse(data.layers ?? []);
+    if (layers.success && layers.data.length) {
+      await t.query('UPDATE events SET map_layers = $2 WHERE id = $1', [eventId, JSON.stringify(mergeLayers((ctx.event.map_layers as MapLayer[] | null) ?? [], layers.data))]);
+    }
     await audit(t, eventId, me.id, 'map.apply_template', { type: 'map_template', id: b.templateId });
   });
   hub.invalidate(eventId, ['objectives', 'pois', 'zones', 'event']);

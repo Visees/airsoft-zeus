@@ -19,7 +19,7 @@ export interface EventSnapshot {
 const EVENT_FIELDS = [
   'name', 'cover_url', 'description', 'game_mode', 'custom_mode_name', 'custom_mode_rules', 'start_at', 'end_at', 'meeting_address', 'meeting_lat',
   'meeting_lng', 'min_players', 'max_players', 'visibility', 'requires_approval', 'rules', 'safety_rules', 'required_equipment', 'chrono_info',
-  'team_selection', 'area_lat', 'area_lng', 'area_zoom', 'tracking', 'visibility_rules', 'scoring', 'store_enabled', 'auto_end', 'map_overlay',
+  'team_selection', 'area_lat', 'area_lng', 'area_zoom', 'tracking', 'visibility_rules', 'scoring', 'store_enabled', 'auto_end', 'map_overlay', 'map_layers',
 ];
 const OBJECTIVE_FIELDS = [
   'id', 'name', 'description', 'instructions', 'sort_order', 'lat', 'lng', 'icon', 'color', 'type', 'image_url', 'document_url', 'methods',
@@ -38,7 +38,7 @@ export async function snapshotEvent(eventId: string, q: Queryable): Promise<Even
     objectives: (await many('SELECT * FROM objectives WHERE event_id = $1 ORDER BY sort_order', [eventId], q)).map((o) => pick(o, OBJECTIVE_FIELDS)),
     pois: await many('SELECT name, type, description, lat, lng, icon, color, image_url, team_id, visibility FROM pois WHERE event_id = $1', [eventId], q),
     zones: await many(
-      'SELECT kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, team_id, visibility FROM zones WHERE event_id = $1',
+      'SELECT kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, team_id, visibility, layer FROM zones WHERE event_id = $1',
       [eventId],
       q,
     ),
@@ -66,14 +66,14 @@ export async function materialize(t: Tx, ownerId: string, snap: EventSnapshot, o
   const ev = await one<{ id: string }>(
     `INSERT INTO events (owner_id, name, cover_url, description, game_mode, custom_mode_name, custom_mode_rules, start_at, end_at, meeting_address,
                          meeting_lat, meeting_lng, min_players, max_players, visibility, requires_approval, rules, safety_rules, required_equipment,
-                         chrono_info, team_selection, area_lat, area_lng, area_zoom, tracking, visibility_rules, scoring, store_enabled, auto_end, join_code, map_overlay)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31) RETURNING id`,
+                         chrono_info, team_selection, area_lat, area_lng, area_zoom, tracking, visibility_rules, scoring, store_enabled, auto_end, join_code, map_overlay, map_layers)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32) RETURNING id`,
     [
       ownerId, overrides.name ?? e.name, e.cover_url, e.description, e.game_mode, e.custom_mode_name, e.custom_mode_rules,
       overrides.startAt ?? e.start_at, overrides.endAt ?? e.end_at, e.meeting_address, e.meeting_lat, e.meeting_lng, e.min_players, e.max_players,
       e.visibility, e.requires_approval, e.rules, e.safety_rules, e.required_equipment, e.chrono_info, e.team_selection, e.area_lat, e.area_lng,
       e.area_zoom, JSON.stringify(e.tracking ?? {}), JSON.stringify(e.visibility_rules ?? {}), JSON.stringify(e.scoring ?? {}), e.store_enabled ?? true,
-      e.auto_end ?? true, readableCode(8), e.map_overlay ? JSON.stringify(e.map_overlay) : null,
+      e.auto_end ?? true, readableCode(8), e.map_overlay ? JSON.stringify(e.map_overlay) : null, JSON.stringify(e.map_layers ?? []),
     ],
     t,
   );
@@ -146,11 +146,11 @@ export async function copyMapContent(t: Tx, eventId: string, content: { pois: Ro
   }
   for (const z of content.zones) {
     await t.query(
-      `INSERT INTO zones (event_id, kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, team_id, visibility)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      `INSERT INTO zones (event_id, kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon, team_id, visibility, layer)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
       [eventId, z.kind, z.geometry, JSON.stringify(z.points ?? []), z.radius_m ?? null, z.label ?? '', z.description ?? '', z.color ?? '#9DAE5C',
         z.fill_opacity ?? 0.15, z.stroke_width ?? 2, z.icon ?? null, z.team_id ? (map.get(z.team_id) ?? null) : null,
-        JSON.stringify(remapIds(z.visibility ?? { mode: 'all' }, map))],
+        JSON.stringify(remapIds(z.visibility ?? { mode: 'all' }, map)), z.layer ?? null],
     );
   }
 }

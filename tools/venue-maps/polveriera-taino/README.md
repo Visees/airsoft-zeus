@@ -52,7 +52,8 @@ They are kept to show where the data came from: to fix a label or a shape, edit 
 ## Load it into an event
 
 In the event's map editor, menu ⋮ → **Import GeoJSON or CSV** → `polveriera-taino.geojson`. The
-dialog shows what the package holds: tick the add-ons wanted (grid, entrances), keep or untick the
+dialog shows what the package holds: the add-ons (grid, entrances) are always imported; tick the
+ones that should show at first (anyone switches them on and off later from the map's layers button), keep or untick the
 venue map image and "Set as event area", and tick "Remove the current areas, lines, labels and points
 first" when the event already has an older version of the field (objectives stay). Then **Save as
 map template** to reuse the field in other events.

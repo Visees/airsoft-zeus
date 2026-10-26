@@ -355,6 +355,8 @@ export interface EventDetail extends EventSummary {
   area: { lat: number; lng: number; zoom: number } | null;
   /** The field's own printed map, placed on the map under the shapes. */
   mapOverlay: MapOverlay | null;
+  /** Optional layers (add-ons of a venue map package) that maps can show and hide. */
+  mapLayers: MapLayer[];
   tracking: TrackingSettings;
   visibilityRules: VisibilityRules;
   scoring: ScoringSettings;
@@ -725,15 +727,25 @@ export interface Zone {
   icon: string | null;
   teamId: Uuid | null;
   visibility: ContentVisibility;
+  /** the map layer (add-on) it belongs to; null for the map itself */
+  layer: string | null;
 }
 
-export type ZoneInput = Partial<Omit<Zone, 'id'>>;
+export type ZoneInput = Partial<Omit<Zone, 'id' | 'layer'>>;
 
 /** A venue map image placed by its corners: top-left, top-right, bottom-right, bottom-left. */
 export interface MapOverlay {
   url: string;
   corners: [LatLng, LatLng, LatLng, LatLng];
   opacity: number;
+}
+
+export interface MapLayer {
+  id: string;
+  name: string;
+  description: string;
+  /** shown at first; each viewer can switch it on and off (remembered per device) */
+  shown: boolean;
 }
 
 export interface MapTemplate {
@@ -756,8 +768,8 @@ export interface MapImportRequest {
   format: 'geojson' | 'csv';
   /** GeoJSON FeatureCollection, or CSV with header: type,name,lat,lng[,description] (type = objective|poi|<zone kind>) */
   content: string;
-  /** a venue map package: the optional layers chosen (others are skipped) */
-  layers?: string[];
+  /** a venue map package: its layers; zones tagged with them become switchable add-ons */
+  mapLayers?: MapLayer[];
   /** remove the event's zones and POIs first (objectives stay) */
   replace?: boolean;
   /** the package's venue map image, already uploaded */

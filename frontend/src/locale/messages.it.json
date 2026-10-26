@@ -3401,6 +3401,7 @@
     "821765212410234409": "Rimuovi prima le aree, le linee, le etichette e i punti attuali",
     "8737752371052517420": "{VAR_PLURAL, plural, =1 {Sulla mappa ora ce n'è 1.} other {Sulla mappa ora ce ne sono {INTERPOLATION}.}}",
     "6428817420200023642": "{$ICU} Gli obiettivi restano.",
-    "4392174301559706159": "{$removed} forme e punti vecchi rimossi."
+    "4392174301559706159": "{$removed} forme e punti vecchi rimossi.",
+    "862092866708165455": "Vengono importati tutti. Quelli spuntati si vedono subito; chiunque può accenderli e spegnerli dopo con il pulsante dei livelli della mappa."
   }
 }

@@ -364,6 +364,7 @@ export function zone(z: Row) {
     icon: z.icon,
     teamId: z.team_id,
     visibility: z.visibility ?? { mode: 'all' },
+    layer: z.layer ?? null,
   };
 }
 

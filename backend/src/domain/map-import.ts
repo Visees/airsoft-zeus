@@ -19,6 +19,8 @@ export interface ParsedZone {
   color?: string;
   fill_opacity?: number;
   stroke_width?: number;
+  /** the package layer (add-on) the zone belongs to */
+  layer?: string;
 }
 
 export interface ParsedImport {
@@ -54,16 +56,31 @@ export function styleOf(p: Record<string, unknown>): { color?: string; fill_opac
 
 /**
  * A venue map package is a GeoJSON FeatureCollection with an `airsofthub` member that lists optional
- * layers (add-ons such as a grid); features tagged `properties.layer` with one of those ids are
- * imported only when that layer is chosen. Untagged features, and tags the package does not list,
- * are always imported, so a plain file with its own `layer` property loses nothing.
+ * layers (add-ons such as a grid). Zones from features tagged `properties.layer` with one of those
+ * ids keep the layer, so maps can show and hide it. Tags the package does not list are ignored, so a
+ * plain file with its own `layer` property imports as before.
  */
 export function packageLayers(gj: unknown): string[] {
   const layers = (gj as { airsofthub?: { layers?: { id?: unknown }[] } })?.airsofthub?.layers;
-  return Array.isArray(layers) ? layers.map((l) => l?.id).filter((id): id is string => typeof id === 'string') : [];
+  return Array.isArray(layers) ? layers.map((l) => l?.id).filter((id): id is string => typeof id === 'string' && id.length <= 40) : [];
 }
 
-export function parseImport(format: 'geojson' | 'csv', content: string, opts: { layers?: string[] } = {}): ParsedImport {
+/** A map layer as an event keeps it (`events.map_layers`). */
+export const mapLayerSchema = z.object({
+  id: z.string().min(1).max(40),
+  name: z.string().trim().min(1).max(80),
+  description: z.string().max(300).default(''),
+  shown: z.boolean(),
+});
+export type MapLayer = z.infer<typeof mapLayerSchema>;
+
+/** The event's layers after adding some: a layer with the same id is replaced. */
+export function mergeLayers(current: MapLayer[], added: MapLayer[]): MapLayer[] {
+  const ids = new Set(added.map((l) => l.id));
+  return [...current.filter((l) => !ids.has(l.id)), ...added];
+}
+
+export function parseImport(format: 'geojson' | 'csv', content: string): ParsedImport {
   const out: ParsedImport = { objectives: [], pois: [], zones: [] };
   let count = 0;
   const add = (
@@ -74,6 +91,7 @@ export function parseImport(format: 'geojson' | 'csv', content: string, opts: { 
     coords: { lat: number; lng: number }[],
     radius: number | null,
     style: ReturnType<typeof styleOf> = {},
+    layer?: string,
   ) => {
     if (count >= MAX_FEATURES || !coords.length || coords.length > MAX_POINTS || !coords.every((c) => validLatLng(c.lat, c.lng))) return;
     count++;
@@ -90,6 +108,7 @@ export function parseImport(format: 'geojson' | 'csv', content: string, opts: { 
         description: desc,
         radius_m: radius,
         ...style,
+        ...(layer ? { layer } : {}),
       });
   };
 
@@ -102,10 +121,9 @@ export function parseImport(format: 'geojson' | 'csv', content: string, opts: { 
     }
     const features = gj.type === 'FeatureCollection' ? (gj.features ?? []) : gj.type === 'Feature' ? [gj as never] : [];
     const optional = new Set(packageLayers(gj));
-    const chosen = new Set(opts.layers ?? []);
     for (const f of features) {
       const p = f.properties ?? {};
-      if (typeof p.layer === 'string' && optional.has(p.layer) && !chosen.has(p.layer)) continue;
+      const layer = typeof p.layer === 'string' && optional.has(p.layer) ? p.layer : undefined;
       const name = String(p.name ?? p.title ?? tr`Imported`).slice(0, 120);
       const desc = String(p.description ?? '').slice(0, 2000);
       const type = String(p.type ?? p.kind ?? '');
@@ -124,7 +142,7 @@ export function parseImport(format: 'geojson' | 'csv', content: string, opts: { 
       else if (g.type === 'Polygon') parts.push({ geom: 'polygon', coords: ring((g.coordinates as unknown[])[0]) });
       else if (g.type === 'MultiPolygon') for (const poly of g.coordinates as unknown[][]) parts.push({ geom: 'polygon', coords: ring(poly[0]) });
       const fallback = (geom: string) => (geom === 'polyline' ? 'route' : geom === 'polygon' ? 'playable' : 'poi');
-      for (const part of parts) add(type || fallback(part.geom), name, desc, part.geom, part.coords, part.geom === 'circle' ? radius : null, style);
+      for (const part of parts) add(type || fallback(part.geom), name, desc, part.geom, part.coords, part.geom === 'circle' ? radius : null, style, layer);
     }
   } else {
     const lines = content.split(/\r?\n/).filter((l) => l.trim());

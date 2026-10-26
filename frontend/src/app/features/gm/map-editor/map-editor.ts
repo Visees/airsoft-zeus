@@ -345,6 +345,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             (zoneClick)="onZoneClick($event)"
             (markerMoved)="onMarkerMoved($event)"
             [overlay]="event()?.mapOverlay ?? null"
+            [mapLayers]="event()?.mapLayers ?? []"
             [overlayEditable]="overlayEditing()"
             (overlayCornersChange)="saveOverlayCorners($event)"
           />
@@ -757,6 +758,7 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             @if (pkg.layers.length) {
               <fieldset class="flex flex-col">
                 <legend class="mb-1 text-sm font-medium" i18n>Add-ons</legend>
+                <p class="mb-1 text-sm text-muted-foreground" i18n>All are imported. Ticked ones show at first; anyone can switch them on and off later from the map's layers button.</p>
                 @for (l of pkg.layers; track l.id) {
                   <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1.5">
                     <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" [checked]="pkgLayers().has(l.id)" (change)="togglePkgLayer(l.id, $any($event.target).checked)" />
@@ -2083,7 +2085,7 @@ export class MapEditorScreen implements OnInit {
       const res = await this.api.importMap(this.eventId(), {
         format: 'geojson',
         content: pkg.content,
-        layers: [...this.pkgLayers()],
+        mapLayers: pkg.layers.map((l) => ({ id: l.id, name: l.name, description: l.description, shown: this.pkgLayers().has(l.id) })),
         replace: this.importReplace() || undefined,
         overlay,
         area: (this.pkgArea() && pkg.area) || undefined,

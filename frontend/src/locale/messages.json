@@ -1427,6 +1427,7 @@
     "4804229447105348625": "Venue map package · {$ICU}",
     "4879780959352465714": "{VAR_PLURAL, plural, =1 {1 element} other {{INTERPOLATION} elements}}",
     "5419181313753274837": "Add-ons",
+    "862092866708165455": "All are imported. Ticked ones show at first; anyone can switch them on and off later from the map's layers button.",
     "372878964037475163": "Also from the package",
     "7676647719072125677": "Replaces the venue map this event has now.",
     "4715193168849033291": "Set as event area (players' maps open on this field)",

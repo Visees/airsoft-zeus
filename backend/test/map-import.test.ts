@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapOverlaySchema, parseImport, styleOf } from '../src/domain/map-import.js';
+import { mapOverlaySchema, mergeLayers, parseImport, styleOf } from '../src/domain/map-import.js';
 
 const fc = (features: unknown[]) => JSON.stringify({ type: 'FeatureCollection', features });
 const square = [
@@ -44,18 +44,26 @@ describe('map import', () => {
     expect(out.zones.map((z) => `${z.kind}:${z.geometry}`)).toEqual(['restricted:polygon', 'restricted:polygon', 'line:polyline', 'line:polyline']);
   });
 
-  it('imports the optional layers of a venue map package only when chosen', () => {
+  it('keeps the layer of a venue map package add-on on its zones', () => {
     const tagged = (name: string, layer?: string) => ({ type: 'Feature', properties: { type: 'line', name, ...(layer ? { layer } : {}) }, geometry: { type: 'LineString', coordinates: square.slice(0, 2) } });
     const pkg = JSON.stringify({
       type: 'FeatureCollection',
       airsofthub: { version: 1, layers: [{ id: 'grid' }, { id: 'entrances' }] },
       features: [tagged('base'), tagged('grid line', 'grid'), tagged('entrance', 'entrances'), tagged('own layer', 'roads')],
     });
-    const names = (layers?: string[]) => parseImport('geojson', pkg, { layers }).zones.map((z) => z.label);
-    expect(names()).toEqual(['base', 'own layer']);
-    expect(names(['grid'])).toEqual(['base', 'grid line', 'own layer']);
-    // a plain file keeps every feature, whatever its layer property says
-    expect(parseImport('geojson', fc([tagged('a', 'grid'), tagged('b')])).zones).toHaveLength(2);
+    expect(parseImport('geojson', pkg).zones.map((z) => [z.label, z.layer])).toEqual([
+      ['base', undefined],
+      ['grid line', 'grid'],
+      ['entrance', 'entrances'],
+      ['own layer', undefined],
+    ]);
+    // a plain file has no layers: its own layer property means nothing here
+    expect(parseImport('geojson', fc([tagged('a', 'grid')])).zones[0].layer).toBeUndefined();
+  });
+
+  it('replaces a layer of the same id when an event gets layers again', () => {
+    const l = (id: string, shown: boolean) => ({ id, name: id, description: '', shown });
+    expect(mergeLayers([l('grid', false), l('roads', true)], [l('grid', true)])).toEqual([l('roads', true), l('grid', true)]);
   });
 
   it('accepts a venue map image only from our own uploads, placed at field scale', () => {

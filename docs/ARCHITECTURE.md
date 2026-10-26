@@ -48,7 +48,9 @@ Schema: `backend/schema.sql`. Main tables:
   per-event counters, opt-in emergency contact copy for GMs), `teams` (points, currency),
   `squads`. `events.map_overlay` (JSONB, nullable): the venue map image (`/api/files/map_overlay-…`)
   with its four corners and opacity, drawn under the zones on every map; copied by duplicate and
-  map templates.
+  map templates. `events.map_layers` (JSONB array of `{id, name, description, shown}`): optional map
+  layers, the add-ons of a venue map package; a zone with `zones.layer` set belongs to one and shows
+  only while that layer is on (each viewer switches it, per device; `shown` is the start state).
 * `objectives` (config + runtime; secret `capture_code` and `qr_token` columns are never
   serialized for players), `capture_states` (geofence JSON), `objective_captures`,
   `capture_attempts`, `pois`, `zones`.

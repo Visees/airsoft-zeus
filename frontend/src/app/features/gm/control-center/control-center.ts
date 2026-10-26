@@ -607,6 +607,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
         [pois]="store.pois()"
         [zones]="store.zones()"
         [overlay]="store.event()?.mapOverlay ?? null"
+        [mapLayers]="store.event()?.mapLayers ?? []"
         [positions]="mapPositions()"
         [teams]="teams()"
         [selectedId]="selectedPlayerId() ?? focusObjectiveId()"

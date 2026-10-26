@@ -12,8 +12,10 @@ import { parseOverlayPosition } from './overlay-position';
  *     "area": { "lat": …, "lng": …, "zoom": 17 }
  *   }
  *
- * Features tagged `properties.layer` with a listed id are add-ons, imported only when chosen; the
- * overlay also accepts `corners` (top-left, top-right, bottom-right, bottom-left) like a position file.
+ * Features tagged `properties.layer` with a listed id are add-ons: all are imported as zones of that
+ * layer, which every map can switch on and off (`default` = shown at first, the GM can change it in
+ * the import dialog). The overlay also accepts `corners` (top-left, top-right, bottom-right,
+ * bottom-left) like a position file.
  */
 export interface MapPackageLayer {
   id: string;

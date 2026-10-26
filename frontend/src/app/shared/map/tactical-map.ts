@@ -18,7 +18,7 @@ import {
 import { NgIcon } from '@ng-icons/core';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, ImageSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';
-import { LatLng, MapOverlay, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
+import { LatLng, MapLayer, MapOverlay, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
 import { MapEngine, MapEngineService } from '../../core/maps/map-engine.service';
 import type { BaseLayer } from '../../core/maps/map-style';
 import { LiveStore } from '../../core/live/live-store';
@@ -30,6 +30,8 @@ import { bounds, distanceM } from '../../core/util/geo';
 const SELF_GLIDE_MS = 800;
 const BASE_LAYER_KEY = 'airsofthub.mapBase';
 const OVERLAY_KEY = 'airsofthub.mapOverlay';
+/** Map layers (add-ons) switched on or off on this device: { [layer id]: shown } */
+const LAYERS_KEY = 'airsofthub.mapLayers';
 /** Past this many zone labels the small ones wait for a closer zoom, so a dense field map stays readable. */
 const DENSE_LABELS = 40;
 const SMALL_LABEL_ZOOM = 18;
@@ -224,6 +226,22 @@ interface ShapeProps {
                   }
                 </button>
               }
+              @if (layerSwitches().length) {
+                @if (!overlay()) {
+                  <div class="my-1 border-t border-border" role="separator"></div>
+                }
+                @for (l of layerSwitches(); track l.id) {
+                  <button type="button" role="menuitemcheckbox" [attr.aria-checked]="l.on"
+                    class="flex min-h-11 items-center gap-2 rounded-sm px-2 text-left text-sm hover:bg-muted"
+                    [class.font-semibold]="l.on" (click)="toggleMapLayer(l.id, !l.on)">
+                    <ng-icon name="lucideLayers" size="16" aria-hidden="true" />
+                    <span class="max-w-56 flex-1">{{ l.name }}</span>
+                    @if (l.on) {
+                      <ng-icon name="lucideCheck" size="16" class="text-nav" aria-hidden="true" />
+                    }
+                  </button>
+                }
+              }
             </div>
           }
         </div>
@@ -272,6 +290,8 @@ export class TacticalMap {
   readonly gestureHandling = input<'greedy' | 'cooperative'>('greedy');
   /** The field's own printed map, drawn under the shapes (anyone can hide it from the layers menu). */
   readonly overlay = input<MapOverlay | null>(null);
+  /** Optional layers (add-ons such as a grid): their zones show only while the layer is on. */
+  readonly mapLayers = input<MapLayer[]>([]);
   /** Editor: the overlay's corners get handles that can be dragged. */
   readonly overlayEditable = input(false);
 
@@ -289,6 +309,21 @@ export class TacticalMap {
   protected readonly layersOpen = signal(false);
   /** Venue map shown or hidden, remembered on this device. */
   protected readonly overlayShown = signal(readOverlayShown());
+  /** Layers switched on or off on this device; a layer not listed follows its `shown`. */
+  private readonly layerChoice = signal<Record<string, boolean>>(readLayerChoice());
+  /** The layers that have zones on this map, with whether they show. */
+  protected readonly layerSwitches = computed(() => {
+    const used = new Set(this.zones().map((z) => z.layer).filter(Boolean));
+    const choice = this.layerChoice();
+    return this.mapLayers()
+      .filter((l) => used.has(l.id))
+      .map((l) => ({ id: l.id, name: l.name, on: choice[l.id] ?? l.shown }));
+  });
+  /** The zones drawn: those of hidden layers are left out. */
+  private readonly shownZones = computed(() => {
+    const off = new Set(this.layerSwitches().filter((l) => !l.on).map((l) => l.id));
+    return off.size ? this.zones().filter((z) => !z.layer || !off.has(z.layer)) : this.zones();
+  });
   /** Topo or satellite, remembered on this device. */
   private readonly baseLayer = signal<BaseLayer>(readBaseLayer());
   private readonly effectiveBase = computed<BaseLayer>(() => (this.baseLayer() === 'satellite' && this.engines.satelliteAvailable() ? 'satellite' : 'topo'));
@@ -352,7 +387,7 @@ export class TacticalMap {
       const data = {
         objectives: this.objectives(),
         pois: this.pois(),
-        zones: this.zones(),
+        zones: this.shownZones(),
         positions: this.positions(),
         teams: this.teams(),
         self: this.self(),
@@ -399,7 +434,7 @@ export class TacticalMap {
       this.objectives();
       this.pois();
       this.positions();
-      this.zones();
+      this.shownZones();
       this.self();
       this.selectedId();
       this.showLabels();
@@ -746,6 +781,16 @@ export class TacticalMap {
 
   private pushSelf(): void {
     if (this.styleReady) (this.map?.getSource('ah-self') as GeoJSONSource | undefined)?.setData(this.selfData);
+  }
+
+  protected toggleMapLayer(id: string, on: boolean): void {
+    const next = { ...this.layerChoice(), [id]: on };
+    this.layerChoice.set(next);
+    try {
+      localStorage.setItem(LAYERS_KEY, JSON.stringify(next));
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
   }
 
   protected toggleOverlay(): void {
@@ -1104,7 +1149,7 @@ export class TacticalMap {
       dash: string | null;
     }[] = [];
     const pts = (arr: LatLng[]) => arr.map((p) => this.toScreen(p)).map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    for (const z of this.zones()) {
+    for (const z of this.shownZones()) {
       const fillOpacity = z.kind === 'playable' ? Math.min(z.fillOpacity, 0.08) : z.fillOpacity;
       const dash = z.kind === 'restricted' || z.kind === 'line' ? '6 4' : z.kind === 'route' ? '2 4' : null;
       if (z.geometry === 'polygon' && z.points.length >= 3) {
@@ -1176,7 +1221,7 @@ export class TacticalMap {
     };
     const teamById = new Map(this.teams().map((t) => [t.id, t]));
     const labels = this.showLabels();
-    for (const z of this.zones()) {
+    for (const z of this.shownZones()) {
       if ((z.geometry === 'point' || z.kind === 'label' || (labels && z.label)) && z.points[0]) {
         const node = zoneLabel(z.label || z.kind, z.color);
         node.addEventListener('click', () => this.zoneClick.emit(z));
@@ -1301,6 +1346,15 @@ export class TacticalMap {
 }
 
 const SHAPE_LAYERS = ['ah-fill', ...Object.keys(DASHES).map((d) => `ah-line-${d}`)];
+
+function readLayerChoice(): Record<string, boolean> {
+  try {
+    const v = JSON.parse(localStorage.getItem(LAYERS_KEY) ?? '{}');
+    return v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).filter(([, on]) => typeof on === 'boolean')) as Record<string, boolean> : {};
+  } catch {
+    return {};
+  }
+}
 
 function readOverlayShown(): boolean {
   try {

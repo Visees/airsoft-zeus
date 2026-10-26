@@ -245,9 +245,13 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   warped sheet as WebP + position file, a report, and a review page with flags.
 * Venue map packages (2026-10-26): one GeoJSON file with an `airsofthub` member carries a whole
   field: base shapes, optional add-ons (features tagged `properties.layer`, e.g. a grid), the venue
-  map image (embedded as a data URL) and the event area (`map-editor/map-package.ts`). The import
-  dialog lists the add-ons and the image as checkboxes; the image is uploaded on its own, then one
-  `POST /map/import` (`layers`, `overlay`, `area`) brings in everything in one transaction. Any
+  map image (embedded as a data URL) and the event area (`map-editor/map-package.ts`). The image is
+  uploaded on its own, then one `POST /map/import` (`mapLayers`, `overlay`, `area`) brings in
+  everything in one transaction.
+* Map layers (migration 0012): add-on zones keep their layer (`zones.layer`); the event lists its
+  layers (`events.map_layers`: id, name, description, shown). Every map's layers button switches
+  each one on and off (remembered per device, `airsofthub.mapLayers`); `shown` is the start state,
+  set per add-on in the import dialog. Kept by duplicate and map templates. Any
   import can also replace the event's zones and POIs first (`replace`; objectives stay, refused once
   the event is over). The Polveriera tool writes its map as such a package.
 * The Polveriera building outlines are traced by eye on the sheet (`data/traced.json`); the field
