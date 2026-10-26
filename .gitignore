@@ -12,4 +12,5 @@ backend/uploads/
 # venue map tools: generated output and local virtualenvs
 tools/venue-maps/*/out/
 tools/venue-maps/*/.venv/
+tools/venue-maps/*/*.pt
 __pycache__/
