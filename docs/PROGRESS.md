@@ -251,7 +251,10 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * Map layers (migration 0012): add-on zones keep their layer (`zones.layer`); the event lists its
   layers (`events.map_layers`: id, name, description, shown). Every map's layers button switches
   each one on and off (remembered per device, `airsofthub.mapLayers`); `shown` is the start state,
-  set per add-on in the import dialog. Kept by duplicate and map templates. Any
+  set per add-on in the import dialog. Kept by duplicate and map templates.
+* Map editor ⋮ → Clear map…: removes, as ticked, the zones (and the event's layers), POIs,
+  objectives (only before the game starts) and the venue map image (`POST /map/clear`); the event
+  area, teams and settings stay. Any
   import can also replace the event's zones and POIs first (`replace`; objectives stay, refused once
   the event is over). The Polveriera tool writes its map as such a package.
 * The Polveriera building outlines are traced by eye on the sheet (`data/traced.json`); the field

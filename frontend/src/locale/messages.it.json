@@ -3402,6 +3402,15 @@
     "8737752371052517420": "{VAR_PLURAL, plural, =1 {Sulla mappa ora ce n'è 1.} other {Sulla mappa ora ce ne sono {INTERPOLATION}.}}",
     "6428817420200023642": "{$ICU} Gli obiettivi restano.",
     "4392174301559706159": "{$removed} forme e punti vecchi rimossi.",
-    "862092866708165455": "Vengono importati tutti. Quelli spuntati si vedono subito; chiunque può accenderli e spegnerli dopo con il pulsante dei livelli della mappa."
+    "862092866708165455": "Vengono importati tutti. Quelli spuntati si vedono subito; chiunque può accenderli e spegnerli dopo con il pulsante dei livelli della mappa.",
+    "2786510984131397690": "Svuota la mappa…",
+    "6304991020021339133": "Svuota la mappa",
+    "4078370189291713157": "Rimuovi dalla mappa di questo evento quello che spunti, per caricare di nuovo il campo. Non si può annullare.",
+    "3067491069484487612": "Cosa rimuovere",
+    "3068642233659069275": "Aree, linee ed etichette",
+    "7680343102211007685": "La partita è iniziata: gli obiettivi restano (disattivali invece).",
+    "8361985486251351852": "L'area dell'evento, le squadre e le impostazioni restano.",
+    "5273361412819960201": "Mappa svuotata",
+    "1634698264010181778": "Rimossi {$zones} zone, {$pois} POI e {$objectives} obiettivi."
   }
 }

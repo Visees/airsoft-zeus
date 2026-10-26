@@ -647,6 +647,28 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
   res.json({ objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, removed });
 });
 
+// Clear the map: what the GM ticks goes, in one go (to load a field again without a new event).
+contentRouter.post('/:eventId/map/clear', async (req, res) => {
+  const me = currentUser(req);
+  const eventId = idParam(req, 'eventId');
+  const b = body(req, z.object({ zones: z.boolean(), pois: z.boolean(), objectives: z.boolean(), overlay: z.boolean() }));
+  const removed = { zones: 0, pois: 0, objectives: 0 };
+  await tx(async (t) => {
+    const ctx = await requireGm(eventId, me.id, t, true);
+    if (b.objectives && ctx.event.started_at) throw conflict(tr`Objectives cannot be deleted after the game started. Disable it instead.`, 'game_started');
+    if (b.zones) {
+      removed.zones = (await t.query('DELETE FROM zones WHERE event_id = $1', [eventId])).rowCount ?? 0;
+      await t.query(`UPDATE events SET map_layers = '[]', updated_at = now() WHERE id = $1`, [eventId]);
+    }
+    if (b.pois) removed.pois = (await t.query('DELETE FROM pois WHERE event_id = $1', [eventId])).rowCount ?? 0;
+    if (b.objectives) removed.objectives = (await t.query('DELETE FROM objectives WHERE event_id = $1', [eventId])).rowCount ?? 0;
+    if (b.overlay) await t.query('UPDATE events SET map_overlay = NULL, updated_at = now() WHERE id = $1', [eventId]);
+    await audit(t, eventId, me.id, 'map.clear', { after: { ...removed, overlay: b.overlay } });
+  });
+  hub.invalidate(eventId, ['objectives', 'pois', 'zones', 'event']);
+  res.json(removed);
+});
+
 // The venue map image: the field's own printed map, placed by its four corners under the shapes.
 contentRouter.put('/:eventId/map/overlay', async (req, res) => {
   const me = currentUser(req);

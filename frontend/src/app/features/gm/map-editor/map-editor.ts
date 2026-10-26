@@ -195,6 +195,9 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             <button type="button" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-left text-sm hover:bg-muted" (click)="openDialog('applyTpl')">
               <ng-icon name="lucideLayoutTemplate" size="16" aria-hidden="true" /> <ng-container i18n>Apply a map template</ng-container>
             </button>
+            <button type="button" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-left text-sm text-destructive hover:bg-muted" (click)="openDialog('clear')">
+              <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Clear map…</ng-container>
+            </button>
             <hr class="my-1 border-border" />
             <a [routerLink]="['/gm/events', eventId(), 'control']" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-sm hover:bg-muted">
               <ng-icon name="lucideLayoutDashboard" size="16" aria-hidden="true" /> <ng-container i18n>Control center</ng-container>
@@ -893,6 +896,45 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
       }
     </ah-ops-dialog>
 
+    <ah-ops-dialog [open]="dialog() === 'clear'" title="Clear map" subtitle="Remove what you tick from this event's map, to load the field again. This cannot be undone." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+      @if (dialog() === 'clear') {
+        <div class="flex flex-col gap-4">
+          <fieldset class="flex flex-col">
+            <legend class="sr-only" i18n>What to remove</legend>
+            <label class="flex min-h-11 cursor-pointer items-center gap-3">
+              <input type="checkbox" class="size-5 shrink-0 accent-primary" [checked]="clearPick().zones" [disabled]="!zones().length" (change)="pickClear('zones', $any($event.target).checked)" />
+              <span class="flex-1" i18n>Areas, lines and labels</span><span class="num text-sm text-muted-foreground">{{ zones().length }}</span>
+            </label>
+            <label class="flex min-h-11 cursor-pointer items-center gap-3">
+              <input type="checkbox" class="size-5 shrink-0 accent-primary" [checked]="clearPick().pois" [disabled]="!pois().length" (change)="pickClear('pois', $any($event.target).checked)" />
+              <span class="flex-1" i18n>Points of interest</span><span class="num text-sm text-muted-foreground">{{ pois().length }}</span>
+            </label>
+            <label class="flex min-h-11 cursor-pointer items-center gap-3">
+              <input type="checkbox" class="size-5 shrink-0 accent-primary" [checked]="clearPick().objectives" [disabled]="!objectives().length || !!event()?.clock?.startedAt" (change)="pickClear('objectives', $any($event.target).checked)" />
+              <span class="flex flex-1 flex-col">
+                <ng-container i18n>Objectives</ng-container>
+                @if (event()?.clock?.startedAt) {
+                  <span class="text-sm text-muted-foreground" i18n>The game has started: objectives stay (disable them instead).</span>
+                }
+              </span>
+              <span class="num text-sm text-muted-foreground">{{ objectives().length }}</span>
+            </label>
+            <label class="flex min-h-11 cursor-pointer items-center gap-3">
+              <input type="checkbox" class="size-5 shrink-0 accent-primary" [checked]="clearPick().overlay" [disabled]="!event()?.mapOverlay" (change)="pickClear('overlay', $any($event.target).checked)" />
+              <span class="flex-1" i18n>Venue map image</span>
+            </label>
+          </fieldset>
+          <p class="text-sm text-muted-foreground" i18n>The event area, teams and settings stay.</p>
+          <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button hlmBtn type="button" variant="outline" class="h-11" (click)="dialog.set(null)" i18n>Cancel</button>
+            <button hlmBtn type="button" variant="destructive" class="h-11" (click)="clearMap()" [disabled]="busy() || !clearCount()">
+              <ng-icon name="lucideTrash2" size="16" aria-hidden="true" /> <ng-container i18n>Clear</ng-container>
+            </button>
+          </div>
+        </div>
+      }
+    </ah-ops-dialog>
+
     <ah-ops-dialog [open]="dialog() === 'saveTpl'" title="Save as map template" subtitle="Saves objectives, POIs and zones so you can reuse this field in other events." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'saveTpl') {
         <form (submit)="$event.preventDefault(); saveTemplate()" class="flex flex-col gap-4" novalidate>
@@ -1008,7 +1050,19 @@ export class MapEditorScreen implements OnInit {
   protected readonly menu = signal<'layers' | 'more' | null>(null);
   protected readonly mobileSearch = signal(false);
   protected readonly searchText = signal('');
-  protected readonly dialog = signal<'import' | 'saveTpl' | 'applyTpl' | 'overlay' | null>(null);
+  protected readonly dialog = signal<'import' | 'saveTpl' | 'applyTpl' | 'overlay' | 'clear' | null>(null);
+  /** Clear map dialog: what goes */
+  protected readonly clearPick = signal({ zones: true, pois: true, objectives: false, overlay: true });
+  /** how many things the ticked boxes remove (the image counts as one) */
+  protected readonly clearCount = computed(() => {
+    const p = this.clearPick();
+    return (
+      (p.zones ? this.zones().length : 0) +
+      (p.pois ? this.pois().length : 0) +
+      (p.objectives && !this.event()?.clock?.startedAt ? this.objectives().length : 0) +
+      (p.overlay && this.event()?.mapOverlay ? 1 : 0)
+    );
+  });
   /** The venue map's corner handles are on the map. */
   protected readonly overlayEditing = signal(false);
   protected readonly overlayError = signal<string | null>(null);
@@ -1361,7 +1415,7 @@ export class MapEditorScreen implements OnInit {
     this.menu.update((cur) => (cur === m ? null : m));
   }
 
-  protected openDialog(d: 'import' | 'saveTpl' | 'applyTpl' | 'overlay'): void {
+  protected openDialog(d: 'import' | 'saveTpl' | 'applyTpl' | 'overlay' | 'clear'): void {
     this.menu.set(null);
     this.importError.set(null);
     if (d === 'overlay') {
@@ -1377,6 +1431,7 @@ export class MapEditorScreen implements OnInit {
       this.setImportPkg(null);
       this.importReplace.set(false);
     }
+    if (d === 'clear') this.clearPick.set({ zones: true, pois: true, objectives: false, overlay: true });
     if (d === 'saveTpl') this.templateName.reset(this.event()?.name ?? '');
     if (d === 'applyTpl') void this.loadTemplates();
     this.dialog.set(d);
@@ -2109,6 +2164,32 @@ export class MapEditorScreen implements OnInit {
   private showImportError(e: unknown): void {
     const err = ApiError.from(e);
     this.importError.set([err.message, ...Object.values(err.fields)].join(' '));
+  }
+
+  protected pickClear(key: 'zones' | 'pois' | 'objectives' | 'overlay', on: boolean): void {
+    this.clearPick.update((p) => ({ ...p, [key]: on }));
+  }
+
+  protected async clearMap(): Promise<void> {
+    const p = this.clearPick();
+    const started = !!this.event()?.clock?.startedAt;
+    this.busy.set(true);
+    try {
+      const res = await this.api.clearMap(this.eventId(), {
+        zones: p.zones && this.zones().length > 0,
+        pois: p.pois && this.pois().length > 0,
+        objectives: p.objectives && !started && this.objectives().length > 0,
+        overlay: p.overlay && !!this.event()?.mapOverlay,
+      });
+      this.selection.set(null);
+      this.dialog.set(null);
+      this.toast.success($localize`Map cleared`, $localize`${res.zones}:zones: zones, ${res.pois}:pois: POIs and ${res.objectives}:objectives: objectives removed.`);
+      await this.load();
+    } catch (e) {
+      this.toast.error(e);
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   protected onOverlayImage(e: Event): void {

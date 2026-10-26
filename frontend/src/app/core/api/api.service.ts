@@ -466,6 +466,9 @@ export class ApiService {
   mapTemplates() {
     return this.get<MapTemplate[]>('/templates/maps');
   }
+  clearMap(eventId: Uuid, body: { zones: boolean; pois: boolean; objectives: boolean; overlay: boolean }) {
+    return this.post<{ zones: number; pois: number; objectives: number }>(this.ev(eventId, '/map/clear'), body);
+  }
   setMapOverlay(eventId: Uuid, body: MapOverlay) {
     return this.put<MapOverlay>(this.ev(eventId, '/map/overlay'), body);
   }
