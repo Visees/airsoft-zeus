@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { HlmToaster } from '@spartan-ng/helm/sonner';
 import { ConfigService } from './core/api/config.service';
 import { AuthService } from './core/auth/auth.service';
+import { DeepLinks } from './core/native/deep-links';
 import { NotificationCenter } from './core/notifications/notification-center.service';
 import { AppUpdates } from './core/push/app-updates.service';
 import { PushService } from './core/push/push.service';
@@ -41,6 +42,7 @@ export class App {
   constructor() {
     inject(NotificationCenter);
     inject(AppUpdates).start();
+    inject(DeepLinks).start();
     void inject(ConfigService).load();
     void this.auth.init().then(() => {
       if (this.auth.isLoggedIn()) void this.push.ensureSubscribed();

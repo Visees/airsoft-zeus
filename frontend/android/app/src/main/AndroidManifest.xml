@@ -22,6 +22,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- App Links: links to the site open the app (verified by
+                 https://airsofthub.eu/.well-known/assetlinks.json, served by src/server.ts; keep the
+                 paths in step with APP_LINK_PATHS there). The web code routes them (DeepLinks). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="airsofthub.eu" />
+                <data android:pathPrefix="/gm" />
+                <data android:pathPrefix="/events" />
+                <data android:pathPrefix="/r" />
+                <data android:pathPrefix="/auth" />
+                <data android:pathPrefix="/home" />
+                <data android:pathPrefix="/notifications" />
+                <data android:pathPrefix="/profile" />
+                <data android:pathPrefix="/players" />
+                <data android:pathPrefix="/clubs" />
+                <data android:pathPrefix="/news" />
+                <data android:pathPrefix="/objectives" />
+                <data android:pathPrefix="/scan" />
+                <data android:pathPrefix="/store" />
+                <data android:pathPrefix="/team" />
+                <data android:pathPrefix="/support" />
+                <data android:pathPrefix="/settings" />
+                <data android:pathPrefix="/more" />
+            </intent-filter>
+
         </activity>
 
         <provider

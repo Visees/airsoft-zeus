@@ -254,6 +254,10 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   set per add-on in the import dialog. Kept by duplicate and map templates.
 * With the venue map hidden, every topographic map paints the field (playable areas) with the page background
   at 88%, under the base map's roads and buildings, so woods and fields do not show inside it.
+* App links (Android 1.0.5, versionCode 6): site links open the installed app on that page
+  (`.well-known/assetlinks.json` from `server.ts`, App Links filter in the manifest,
+  `core/native/deep-links.ts`). iOS prepared (`APPLE_TEAM_ID` → apple-app-site-association), needs
+  the Associated Domains capability in Xcode.
 * Map editor ⋮ → Clear map…: removes, as ticked, the zones (and the event's layers), POIs,
   objectives (only before the game starts) and the venue map image (`POST /map/clear`); the event
   area, teams and settings stay. Any

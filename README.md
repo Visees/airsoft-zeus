@@ -150,6 +150,17 @@ Android channels (created by the app; users can tune them in the phone's setting
 `emergency` (GM emergencies), `alerts` (game start/pause, objectives, perks), `general`.
 As on the web, the API pushes only to users without an open socket, except emergencies.
 
+Links open the app (from 1.0.5): links to `https://airsofthub.eu/gm/…`, `/events/…`, `/r/…`,
+`/auth/…` and the other app pages (list in `APP_LINK_PATHS`, `frontend/src/server.ts`, and in the
+manifest's App Links filter) open the installed app on that page (`core/native/deep-links.ts`, plugin
+`@capacitor/app`). Android checks `https://airsofthub.eu/.well-known/assetlinks.json`, served by the
+frontend server with the release key's SHA-256; if the app is ever published with Play app signing,
+add Play's key in Coolify as `ANDROID_CERT_SHA256` (comma-separated, replaces the default). Android
+verifies at install: after the first deploy with the file, reinstall or run
+`adb shell pm verify-app-links --re-verify app.airsofthub`. iOS (later, on a Mac): set
+`APPLE_TEAM_ID` in Coolify (the server then serves `apple-app-site-association`) and add the
+Associated Domains capability `applinks:airsofthub.eu` in Xcode.
+
 Not in the app yet: printing QR codes from the objective editor (GMs use the website).
 
 Build (from `frontend/`):

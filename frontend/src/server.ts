@@ -37,6 +37,34 @@ app.get('/sitemap.xml', (_req, res) => {
     );
 });
 
+// App links: links to this site open the installed app (Android App Links, iOS Universal Links).
+// Android checks the signing certificate of the APK: the release key's SHA-256 by default; set
+// ANDROID_CERT_SHA256 (comma-separated) to add or replace, e.g. the Play app signing key.
+// iOS needs APPLE_TEAM_ID (and the Associated Domains capability in the app); without it, no file.
+const APP_ID = 'app.airsofthub';
+const ANDROID_CERTS = (process.env['ANDROID_CERT_SHA256'] || 'E1:58:24:6F:15:74:C5:46:E5:47:E5:86:E0:F8:18:AF:73:57:03:FB:42:3B:1D:97:F3:B1:5F:6E:42:D6:38:38')
+  .split(',')
+  .map((c) => c.trim().toUpperCase())
+  .filter(Boolean);
+const APPLE_TEAM_ID = (process.env['APPLE_TEAM_ID'] || '').trim();
+/** Paths the apps open; everything else (API, files, the welcome page) stays in the browser. */
+const APP_LINK_PATHS = ['/gm', '/events', '/r', '/auth', '/home', '/notifications', '/profile', '/players', '/clubs', '/news', '/objectives', '/scan', '/store', '/team', '/support', '/settings', '/more'];
+
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600').json([
+    { relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: APP_ID, sha256_cert_fingerprints: ANDROID_CERTS } },
+  ]);
+});
+app.get('/.well-known/apple-app-site-association', (_req, res) => {
+  if (!APPLE_TEAM_ID) {
+    res.status(404).end();
+    return;
+  }
+  res.set('Cache-Control', 'public, max-age=3600').json({
+    applinks: { details: [{ appIDs: [`${APPLE_TEAM_ID}.${APP_ID}`], components: APP_LINK_PATHS.flatMap((p) => [{ '/': p }, { '/': `${p}/*` }]) }] },
+  });
+});
+
 // API + realtime proxy. `ws: true` forwards the websocket upgrade.
 const apiProxy = createProxyMiddleware({
   target: API_URL,
