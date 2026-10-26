@@ -19,7 +19,7 @@ export interface EventSnapshot {
 const EVENT_FIELDS = [
   'name', 'cover_url', 'description', 'game_mode', 'custom_mode_name', 'custom_mode_rules', 'start_at', 'end_at', 'meeting_address', 'meeting_lat',
   'meeting_lng', 'min_players', 'max_players', 'visibility', 'requires_approval', 'rules', 'safety_rules', 'required_equipment', 'chrono_info',
-  'team_selection', 'area_lat', 'area_lng', 'area_zoom', 'tracking', 'visibility_rules', 'scoring', 'store_enabled', 'auto_end',
+  'team_selection', 'area_lat', 'area_lng', 'area_zoom', 'tracking', 'visibility_rules', 'scoring', 'store_enabled', 'auto_end', 'map_overlay',
 ];
 const OBJECTIVE_FIELDS = [
   'id', 'name', 'description', 'instructions', 'sort_order', 'lat', 'lng', 'icon', 'color', 'type', 'image_url', 'document_url', 'methods',
@@ -66,14 +66,14 @@ export async function materialize(t: Tx, ownerId: string, snap: EventSnapshot, o
   const ev = await one<{ id: string }>(
     `INSERT INTO events (owner_id, name, cover_url, description, game_mode, custom_mode_name, custom_mode_rules, start_at, end_at, meeting_address,
                          meeting_lat, meeting_lng, min_players, max_players, visibility, requires_approval, rules, safety_rules, required_equipment,
-                         chrono_info, team_selection, area_lat, area_lng, area_zoom, tracking, visibility_rules, scoring, store_enabled, auto_end, join_code)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30) RETURNING id`,
+                         chrono_info, team_selection, area_lat, area_lng, area_zoom, tracking, visibility_rules, scoring, store_enabled, auto_end, join_code, map_overlay)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31) RETURNING id`,
     [
       ownerId, overrides.name ?? e.name, e.cover_url, e.description, e.game_mode, e.custom_mode_name, e.custom_mode_rules,
       overrides.startAt ?? e.start_at, overrides.endAt ?? e.end_at, e.meeting_address, e.meeting_lat, e.meeting_lng, e.min_players, e.max_players,
       e.visibility, e.requires_approval, e.rules, e.safety_rules, e.required_equipment, e.chrono_info, e.team_selection, e.area_lat, e.area_lng,
       e.area_zoom, JSON.stringify(e.tracking ?? {}), JSON.stringify(e.visibility_rules ?? {}), JSON.stringify(e.scoring ?? {}), e.store_enabled ?? true,
-      e.auto_end ?? true, readableCode(8),
+      e.auto_end ?? true, readableCode(8), e.map_overlay ? JSON.stringify(e.map_overlay) : null,
     ],
     t,
   );

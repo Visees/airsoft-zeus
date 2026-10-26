@@ -402,6 +402,9 @@ export const it: Record<string, string> = {
   "Unknown upload purpose.": "Tipo di caricamento sconosciuto.",
   "Upload a JPEG, PNG, WebP or PDF file.": "Carica un file JPEG, PNG, WebP o PDF.",
   "Upload a JPEG, PNG or WebP image.": "Carica un'immagine JPEG, PNG o WebP.",
+  "Upload the image first": "Prima carica l'immagine",
+  "The image is placed too large (over 20 km)": "L'immagine è posizionata troppo grande (oltre 20 km)",
+  "The image is placed too small": "L'immagine è posizionata troppo piccola",
 
   // --- accounts, profile, clubs
   "This nickname is reserved.": "Questo nickname è riservato.",

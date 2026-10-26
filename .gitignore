@@ -8,3 +8,8 @@ backend/uploads/
 .DS_Store
 .nx/
 .playwright-mcp/
+
+# venue map tools: generated output and local virtualenvs
+tools/venue-maps/*/out/
+tools/venue-maps/*/.venv/
+__pycache__/

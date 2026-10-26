@@ -39,6 +39,8 @@ const schema = z.object({
   MAX_UPLOAD_BYTES: z.coerce.number().int().default(5 * 1024 * 1024),
   /** Event attachments (game books, briefings) are often larger than images. */
   MAX_ATTACHMENT_BYTES: z.coerce.number().int().default(25 * 1024 * 1024),
+  /** Venue map images are large: a whole field at a size where building numbers stay readable. */
+  MAX_OVERLAY_BYTES: z.coerce.number().int().default(20 * 1024 * 1024),
 
   TERMS_VERSION: z.string().default('2026-10'),
   PRIVACY_VERSION: z.string().default('2026-10'),

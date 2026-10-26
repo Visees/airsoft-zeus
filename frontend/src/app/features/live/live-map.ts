@@ -62,6 +62,7 @@ const sameLatLng = (a: LatLng | null, b: LatLng | null) => a === b || (!!a && !!
         [objectives]="store.objectives()"
         [pois]="store.pois()"
         [zones]="store.zones()"
+        [overlay]="store.event()?.mapOverlay ?? null"
         [positions]="store.positions()"
         [teams]="store.teams()"
         [self]="self()"

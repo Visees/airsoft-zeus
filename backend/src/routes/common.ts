@@ -8,7 +8,7 @@ import { currentUser, requireVerified } from '../auth/middleware.js';
 import { config } from '../config.js';
 import { fcmEnabled } from '../fcm.js';
 import { many, one } from '../db.js';
-import { badRequest, forbidden, notFound } from '../errors.js';
+import { badRequest, forbidden, HttpError, notFound } from '../errors.js';
 import { randomToken } from '../lib/ids.js';
 import { consume } from '../lib/rate-limit.js';
 import { body, idParam, queryOf, shortText, uuid } from '../lib/validate.js';
@@ -107,7 +107,8 @@ commonRouter.patch('/clubs/:clubId', requireVerified, async (req, res) => {
 
 // ---------------------------------------------------------------- uploads
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: config.MAX_UPLOAD_BYTES, files: 1 } });
+// Sized for the largest purpose (venue map images); every other purpose is held to MAX_UPLOAD_BYTES below.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: Math.max(config.MAX_UPLOAD_BYTES, config.MAX_OVERLAY_BYTES), files: 1 } });
 
 /** Detect the real type from the file's first bytes; the client's MIME type is not trusted. */
 export function sniff(buf: Buffer): { ext: string; mime: string } | null {
@@ -118,7 +119,7 @@ export function sniff(buf: Buffer): { ext: string; mime: string } | null {
   return null;
 }
 
-const PURPOSES = ['avatar', 'cover', 'team_icon', 'objective_image', 'objective_document', 'poi_image', 'club_logo', 'news_image'] as const;
+const PURPOSES = ['avatar', 'cover', 'team_icon', 'objective_image', 'objective_document', 'poi_image', 'club_logo', 'news_image', 'map_overlay'] as const;
 
 commonRouter.post('/uploads', requireVerified, upload.single('file'), async (req, res) => {
   const me = currentUser(req);
@@ -127,6 +128,7 @@ commonRouter.post('/uploads', requireVerified, upload.single('file'), async (req
   if (!purpose.success) throw badRequest(tr`Unknown upload purpose.`);
   const file = req.file;
   if (!file) throw badRequest(tr`Choose a file to upload.`, 'no_file');
+  if (purpose.data !== 'map_overlay' && file.size > config.MAX_UPLOAD_BYTES) throw new HttpError(413, 'too_large', tr`The upload is too large.`);
   const kind = sniff(file.buffer);
   const allowPdf = purpose.data === 'objective_document';
   if (!kind || (kind.ext === 'pdf' && !allowPdf)) {

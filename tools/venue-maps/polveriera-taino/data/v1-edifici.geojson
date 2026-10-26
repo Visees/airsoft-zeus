@@ -1,0 +1,4249 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6080223,
+       45.7559052
+      ],
+      [
+       8.6083098,
+       45.7558364
+      ],
+      [
+       8.6083379,
+       45.7558939
+      ],
+      [
+       8.6080504,
+       45.7559627
+      ],
+      [
+       8.6080223,
+       45.7559052
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6077531,
+       45.7566299
+      ],
+      [
+       8.607731,
+       45.7565856
+      ],
+      [
+       8.6085725,
+       45.7563807
+      ],
+      [
+       8.6085946,
+       45.756425
+      ],
+      [
+       8.6077531,
+       45.7566299
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6076031,
+       45.7563765
+      ],
+      [
+       8.6075616,
+       45.756292
+      ],
+      [
+       8.6084227,
+       45.7560853
+      ],
+      [
+       8.6084642,
+       45.7561698
+      ],
+      [
+       8.6076031,
+       45.7563765
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.608231,
+       45.756734
+      ],
+      [
+       8.6081802,
+       45.7567462
+      ],
+      [
+       8.6081694,
+       45.7567243
+      ],
+      [
+       8.6082202,
+       45.7567121
+      ],
+      [
+       8.608231,
+       45.756734
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6077339,
+       45.7559779
+      ],
+      [
+       8.6077554,
+       45.7560217
+      ],
+      [
+       8.6075161,
+       45.7560792
+      ],
+      [
+       8.6074946,
+       45.7560354
+      ],
+      [
+       8.6077339,
+       45.7559779
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6078919,
+       45.7567988
+      ],
+      [
+       8.607924,
+       45.7567913
+      ],
+      [
+       8.607933,
+       45.7568102
+      ],
+      [
+       8.607901,
+       45.7568176
+      ],
+      [
+       8.6078919,
+       45.7567988
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6074031,
+       45.7565026
+      ],
+      [
+       8.6074626,
+       45.7564879
+      ],
+      [
+       8.6074727,
+       45.7565079
+      ],
+      [
+       8.6074132,
+       45.7565226
+      ],
+      [
+       8.6074031,
+       45.7565026
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6074579,
+       45.7569008
+      ],
+      [
+       8.6075015,
+       45.7568903
+      ],
+      [
+       8.6075114,
+       45.7569105
+      ],
+      [
+       8.6074678,
+       45.756921
+      ],
+      [
+       8.6074579,
+       45.7569008
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6072828,
+       45.7570665
+      ],
+      [
+       8.6072454,
+       45.7569936
+      ],
+      [
+       8.6075881,
+       45.756908
+      ],
+      [
+       8.6076254,
+       45.7569809
+      ],
+      [
+       8.6072828,
+       45.7570665
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6074322,
+       45.7566618
+      ],
+      [
+       8.6074542,
+       45.7567041
+      ],
+      [
+       8.6071553,
+       45.7567797
+      ],
+      [
+       8.6071333,
+       45.7567374
+      ],
+      [
+       8.6074322,
+       45.7566618
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - precario)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6071118,
+       45.7569172
+      ],
+      [
+       8.6070986,
+       45.7568905
+      ],
+      [
+       8.6072203,
+       45.7568611
+      ],
+      [
+       8.6072335,
+       45.7568879
+      ],
+      [
+       8.6071118,
+       45.7569172
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6066041,
+       45.7562067
+      ],
+      [
+       8.6065374,
+       45.7562247
+      ],
+      [
+       8.6065246,
+       45.7562017
+      ],
+      [
+       8.6065913,
+       45.7561836
+      ],
+      [
+       8.6066041,
+       45.7562067
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile; edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6066265,
+       45.7570171
+      ],
+      [
+       8.606776,
+       45.7571547
+      ],
+      [
+       8.6065627,
+       45.7572707
+      ],
+      [
+       8.6060218,
+       45.7567828
+      ],
+      [
+       8.6058152,
+       45.7568942
+      ],
+      [
+       8.6056768,
+       45.7567706
+      ],
+      [
+       8.6060969,
+       45.756544
+      ],
+      [
+       8.6062313,
+       45.7566641
+      ],
+      [
+       8.6062594,
+       45.756649
+      ],
+      [
+       8.6066531,
+       45.7570028
+      ],
+      [
+       8.6066265,
+       45.7570171
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.606096,
+       45.756318
+      ],
+      [
+       8.6061701,
+       45.7563003
+      ],
+      [
+       8.6061795,
+       45.7563194
+      ],
+      [
+       8.6061054,
+       45.7563372
+      ],
+      [
+       8.606096,
+       45.756318
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6060974,
+       45.7571558
+      ],
+      [
+       8.6061691,
+       45.7571176
+      ],
+      [
+       8.6062872,
+       45.7572243
+      ],
+      [
+       8.6062155,
+       45.7572625
+      ],
+      [
+       8.6060974,
+       45.7571558
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6060933,
+       45.7570488
+      ],
+      [
+       8.6060184,
+       45.7570906
+      ],
+      [
+       8.6059502,
+       45.7570319
+      ],
+      [
+       8.6060251,
+       45.7569901
+      ],
+      [
+       8.6060933,
+       45.7570488
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.605908,
+       45.7564386
+      ],
+      [
+       8.6055346,
+       45.7566345
+      ],
+      [
+       8.6052352,
+       45.7563596
+      ],
+      [
+       8.6056086,
+       45.7561637
+      ],
+      [
+       8.605908,
+       45.7564386
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.604753,
+       45.7561177
+      ],
+      [
+       8.6061093,
+       45.7573579
+      ],
+      [
+       8.6060266,
+       45.7574033
+      ],
+      [
+       8.6047203,
+       45.7562061
+      ],
+      [
+       8.604795,
+       45.7561827
+      ],
+      [
+       8.604753,
+       45.7561177
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6093462,
+       45.7544516
+      ],
+      [
+       8.6093312,
+       45.7544209
+      ],
+      [
+       8.6094642,
+       45.7543865
+      ],
+      [
+       8.609485,
+       45.7544279
+      ],
+      [
+       8.6094018,
+       45.7544483
+      ],
+      [
+       8.6093973,
+       45.7544394
+      ],
+      [
+       8.6093462,
+       45.7544516
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6094019,
+       45.7546677
+      ],
+      [
+       8.6094123,
+       45.7546889
+      ],
+      [
+       8.6093528,
+       45.7547032
+      ],
+      [
+       8.6093424,
+       45.754682
+      ],
+      [
+       8.6094019,
+       45.7546677
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6092243,
+       45.7544798
+      ],
+      [
+       8.6092952,
+       45.7544608
+      ],
+      [
+       8.6093054,
+       45.7544793
+      ],
+      [
+       8.6092344,
+       45.7544983
+      ],
+      [
+       8.6092243,
+       45.7544798
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6091078,
+       45.7544712
+      ],
+      [
+       8.6091667,
+       45.754458
+      ],
+      [
+       8.609188,
+       45.7545045
+      ],
+      [
+       8.609129,
+       45.7545177
+      ],
+      [
+       8.6091078,
+       45.7544712
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.609265,
+       45.7546732
+      ],
+      [
+       8.6092851,
+       45.7547088
+      ],
+      [
+       8.6092162,
+       45.7547277
+      ],
+      [
+       8.6091961,
+       45.7546921
+      ],
+      [
+       8.609265,
+       45.7546732
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6090034,
+       45.7545027
+      ],
+      [
+       8.6090502,
+       45.7544911
+      ],
+      [
+       8.6090732,
+       45.7545366
+      ],
+      [
+       8.6090264,
+       45.7545482
+      ],
+      [
+       8.6090034,
+       45.7545027
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6089265,
+       45.7545174
+      ],
+      [
+       8.608944,
+       45.7545507
+      ],
+      [
+       8.6088477,
+       45.7545754
+      ],
+      [
+       8.6088302,
+       45.7545421
+      ],
+      [
+       8.6089265,
+       45.7545174
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6087438,
+       45.7546414
+      ],
+      [
+       8.6087985,
+       45.7546282
+      ],
+      [
+       8.6088561,
+       45.7547453
+      ],
+      [
+       8.6088014,
+       45.7547585
+      ],
+      [
+       8.6087438,
+       45.7546414
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6084494,
+       45.7554183
+      ],
+      [
+       8.6083921,
+       45.7552937
+      ],
+      [
+       8.6084846,
+       45.7552729
+      ],
+      [
+       8.608542,
+       45.7553974
+      ],
+      [
+       8.6084494,
+       45.7554183
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - precario)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6084013,
+       45.7555732
+      ],
+      [
+       8.6083752,
+       45.7555797
+      ],
+      [
+       8.608354,
+       45.7555384
+      ],
+      [
+       8.6083802,
+       45.7555319
+      ],
+      [
+       8.6084013,
+       45.7555732
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6080871,
+       45.755396
+      ],
+      [
+       8.6081132,
+       45.7554503
+      ],
+      [
+       8.6078225,
+       45.7555186
+      ],
+      [
+       8.6077964,
+       45.7554644
+      ],
+      [
+       8.6080871,
+       45.755396
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6080461,
+       45.755135
+      ],
+      [
+       8.6080806,
+       45.7552064
+      ],
+      [
+       8.6071202,
+       45.7554329
+      ],
+      [
+       8.6070857,
+       45.7553615
+      ],
+      [
+       8.6080461,
+       45.755135
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6071834,
+       45.7548654
+      ],
+      [
+       8.6072782,
+       45.7548427
+      ],
+      [
+       8.6073024,
+       45.7548921
+      ],
+      [
+       8.6072076,
+       45.7549148
+      ],
+      [
+       8.6071834,
+       45.7548654
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6072481,
+       45.755659
+      ],
+      [
+       8.6072252,
+       45.7556121
+      ],
+      [
+       8.6075481,
+       45.7555349
+      ],
+      [
+       8.607571,
+       45.7555818
+      ],
+      [
+       8.6072481,
+       45.755659
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6067457,
+       45.7551391
+      ],
+      [
+       8.6068142,
+       45.7551225
+      ],
+      [
+       8.6068352,
+       45.7551649
+      ],
+      [
+       8.6067669,
+       45.7551815
+      ],
+      [
+       8.6067457,
+       45.7551391
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068734,
+       45.7557293
+      ],
+      [
+       8.6069832,
+       45.7557025
+      ],
+      [
+       8.6070109,
+       45.7557582
+      ],
+      [
+       8.6069012,
+       45.7557849
+      ],
+      [
+       8.6068734,
+       45.7557293
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6070109,
+       45.7558703
+      ],
+      [
+       8.6070496,
+       45.7558606
+      ],
+      [
+       8.6070817,
+       45.7559327
+      ],
+      [
+       8.6069882,
+       45.7559532
+      ],
+      [
+       8.6069658,
+       45.7559031
+      ],
+      [
+       8.60694,
+       45.7559088
+      ],
+      [
+       8.606918,
+       45.7558605
+      ],
+      [
+       8.6069982,
+       45.7558417
+      ],
+      [
+       8.6070109,
+       45.7558703
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6062847,
+       45.7560092
+      ],
+      [
+       8.6063418,
+       45.7559952
+      ],
+      [
+       8.6063602,
+       45.7560295
+      ],
+      [
+       8.6063021,
+       45.7560459
+      ],
+      [
+       8.6062847,
+       45.7560092
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6048637,
+       45.755745
+      ],
+      [
+       8.6048063,
+       45.7556303
+      ],
+      [
+       8.604972,
+       45.7555898
+      ],
+      [
+       8.6050294,
+       45.7557046
+      ],
+      [
+       8.6048637,
+       45.755745
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.605184,
+       45.7561652
+      ],
+      [
+       8.6050792,
+       45.7562192
+      ],
+      [
+       8.604951,
+       45.7560994
+      ],
+      [
+       8.6050559,
+       45.7560454
+      ],
+      [
+       8.605184,
+       45.7561652
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6087284,
+       45.7542382
+      ],
+      [
+       8.6087994,
+       45.7542231
+      ],
+      [
+       8.6088432,
+       45.7543242
+      ],
+      [
+       8.6087722,
+       45.7543393
+      ],
+      [
+       8.6087284,
+       45.7542382
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6075463,
+       45.7543465
+      ],
+      [
+       8.6076112,
+       45.7543301
+      ],
+      [
+       8.6077935,
+       45.7547032
+      ],
+      [
+       8.6077283,
+       45.7547167
+      ],
+      [
+       8.6075463,
+       45.7543465
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6075091,
+       45.7541462
+      ],
+      [
+       8.6074457,
+       45.7541604
+      ],
+      [
+       8.6073795,
+       45.7540163
+      ],
+      [
+       8.607443,
+       45.754002
+      ],
+      [
+       8.6075091,
+       45.7541462
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6067733,
+       45.7536613
+      ],
+      [
+       8.6068731,
+       45.7536351
+      ],
+      [
+       8.6069761,
+       45.7538264
+      ],
+      [
+       8.6068762,
+       45.7538526
+      ],
+      [
+       8.6067733,
+       45.7536613
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068706,
+       45.7549444
+      ],
+      [
+       8.6068367,
+       45.7548792
+      ],
+      [
+       8.6070538,
+       45.7548241
+      ],
+      [
+       8.6070878,
+       45.7548893
+      ],
+      [
+       8.6068706,
+       45.7549444
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6060691,
+       45.753256
+      ],
+      [
+       8.6061077,
+       45.753247
+      ],
+      [
+       8.6061264,
+       45.7532865
+      ],
+      [
+       8.6060879,
+       45.7532955
+      ],
+      [
+       8.6060691,
+       45.753256
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6062043,
+       45.7540639
+      ],
+      [
+       8.6063328,
+       45.7540766
+      ],
+      [
+       8.6063103,
+       45.7541515
+      ],
+      [
+       8.6061824,
+       45.75414
+      ],
+      [
+       8.6062043,
+       45.7540639
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6065989,
+       45.7549507
+      ],
+      [
+       8.6065375,
+       45.754964
+      ],
+      [
+       8.6065125,
+       45.754907
+      ],
+      [
+       8.6065739,
+       45.7548938
+      ],
+      [
+       8.6065989,
+       45.7549507
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6062996,
+       45.7546114
+      ],
+      [
+       8.6061879,
+       45.7546332
+      ],
+      [
+       8.6061174,
+       45.7544587
+      ],
+      [
+       8.6062314,
+       45.7544364
+      ],
+      [
+       8.6062996,
+       45.7546114
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6057445,
+       45.7544443
+      ],
+      [
+       8.6058122,
+       45.754428
+      ],
+      [
+       8.6058467,
+       45.7544982
+      ],
+      [
+       8.6057789,
+       45.7545145
+      ],
+      [
+       8.6057445,
+       45.7544443
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6046598,
+       45.7542066
+      ],
+      [
+       8.6046322,
+       45.7541491
+      ],
+      [
+       8.6047721,
+       45.7541164
+      ],
+      [
+       8.6047996,
+       45.7541738
+      ],
+      [
+       8.6046598,
+       45.7542066
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6047227,
+       45.7547837
+      ],
+      [
+       8.6046203,
+       45.7548079
+      ],
+      [
+       8.6044543,
+       45.7544645
+      ],
+      [
+       8.6045567,
+       45.7544403
+      ],
+      [
+       8.6047227,
+       45.7547837
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6048347,
+       45.7551636
+      ],
+      [
+       8.6046012,
+       45.7552256
+      ],
+      [
+       8.6045807,
+       45.7551884
+      ],
+      [
+       8.604759,
+       45.7551424
+      ],
+      [
+       8.6047432,
+       45.7551094
+      ],
+      [
+       8.6048012,
+       45.755095
+      ],
+      [
+       8.6048347,
+       45.7551636
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6043621,
+       45.754847
+      ],
+      [
+       8.6042465,
+       45.754876
+      ],
+      [
+       8.6040796,
+       45.7545516
+      ],
+      [
+       8.6041952,
+       45.7545226
+      ],
+      [
+       8.6043621,
+       45.754847
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6037982,
+       45.7548833
+      ],
+      [
+       8.6039116,
+       45.7548575
+      ],
+      [
+       8.6039539,
+       45.7549486
+      ],
+      [
+       8.6038405,
+       45.7549744
+      ],
+      [
+       8.6037982,
+       45.7548833
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6036637,
+       45.7546167
+      ],
+      [
+       8.6037725,
+       45.7545884
+      ],
+      [
+       8.6038249,
+       45.7546864
+      ],
+      [
+       8.6037161,
+       45.7547148
+      ],
+      [
+       8.6036637,
+       45.7546167
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6034825,
+       45.754287
+      ],
+      [
+       8.6035673,
+       45.7542679
+      ],
+      [
+       8.6036215,
+       45.7543851
+      ],
+      [
+       8.6035366,
+       45.7544042
+      ],
+      [
+       8.6034825,
+       45.754287
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "sector",
+    "name": "",
+    "description": "Edificio. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6021041,
+       45.7546307
+      ],
+      [
+       8.602163,
+       45.7546049
+      ],
+      [
+       8.6022361,
+       45.7546858
+      ],
+      [
+       8.6021772,
+       45.7547115
+      ],
+      [
+       8.6021041,
+       45.7546307
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.609388,
+       45.7582186
+      ],
+      [
+       8.6094771,
+       45.7581594
+      ],
+      [
+       8.6095232,
+       45.7581904
+      ],
+      [
+       8.6094315,
+       45.7582495
+      ],
+      [
+       8.609388,
+       45.7582186
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6079691,
+       45.7557191
+      ],
+      [
+       8.607952,
+       45.7556835
+      ],
+      [
+       8.6082034,
+       45.7556242
+      ],
+      [
+       8.6082205,
+       45.7556597
+      ],
+      [
+       8.6079691,
+       45.7557191
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.608794,
+       45.7574841
+      ],
+      [
+       8.6088683,
+       45.7574664
+      ],
+      [
+       8.608935,
+       45.7576035
+      ],
+      [
+       8.6088607,
+       45.7576212
+      ],
+      [
+       8.608794,
+       45.7574841
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6090889,
+       45.7579097
+      ],
+      [
+       8.6089781,
+       45.7579367
+      ],
+      [
+       8.6089099,
+       45.7577996
+      ],
+      [
+       8.6090207,
+       45.7577727
+      ],
+      [
+       8.6090889,
+       45.7579097
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6091191,
+       45.7584065
+      ],
+      [
+       8.6090565,
+       45.7584214
+      ],
+      [
+       8.6089401,
+       45.7581824
+      ],
+      [
+       8.6090027,
+       45.7581675
+      ],
+      [
+       8.6091191,
+       45.7584065
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.608463,
+       45.7570778
+      ],
+      [
+       8.6080346,
+       45.7571803
+      ],
+      [
+       8.6079954,
+       45.7570991
+      ],
+      [
+       8.6084236,
+       45.7569974
+      ],
+      [
+       8.608463,
+       45.7570778
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.608165,
+       45.757439
+      ],
+      [
+       8.608124,
+       45.7573571
+      ],
+      [
+       8.6087082,
+       45.7572143
+      ],
+      [
+       8.6087492,
+       45.7572962
+      ],
+      [
+       8.608165,
+       45.757439
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6078991,
+       45.7569082
+      ],
+      [
+       8.6078687,
+       45.7568453
+      ],
+      [
+       8.6082918,
+       45.7567454
+      ],
+      [
+       8.6083221,
+       45.7568083
+      ],
+      [
+       8.6078991,
+       45.7569082
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6086612,
+       45.7578329
+      ],
+      [
+       8.6085328,
+       45.7578646
+      ],
+      [
+       8.6083906,
+       45.7575829
+      ],
+      [
+       8.608519,
+       45.7575513
+      ],
+      [
+       8.6086612,
+       45.7578329
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6076214,
+       45.7557612
+      ],
+      [
+       8.6076388,
+       45.755796
+      ],
+      [
+       8.6073563,
+       45.7558649
+      ],
+      [
+       8.6073389,
+       45.7558301
+      ],
+      [
+       8.6076214,
+       45.7557612
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6078554,
+       45.7571372
+      ],
+      [
+       8.607895,
+       45.7572166
+      ],
+      [
+       8.607667,
+       45.7572722
+      ],
+      [
+       8.6076274,
+       45.7571928
+      ],
+      [
+       8.6078554,
+       45.7571372
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6077978,
+       45.757529
+      ],
+      [
+       8.6077559,
+       45.7574477
+      ],
+      [
+       8.6079516,
+       45.7573985
+      ],
+      [
+       8.6079935,
+       45.7574799
+      ],
+      [
+       8.6077978,
+       45.757529
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.607129,
+       45.7561787
+      ],
+      [
+       8.607088,
+       45.7561881
+      ],
+      [
+       8.6070548,
+       45.7561171
+      ],
+      [
+       8.6070903,
+       45.756109
+      ],
+      [
+       8.6070968,
+       45.756123
+      ],
+      [
+       8.6072198,
+       45.7560947
+      ],
+      [
+       8.6072508,
+       45.7561609
+      ],
+      [
+       8.6071333,
+       45.7561878
+      ],
+      [
+       8.607129,
+       45.7561787
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6072767,
+       45.7563733
+      ],
+      [
+       8.6073091,
+       45.7564414
+      ],
+      [
+       8.6070219,
+       45.7565082
+      ],
+      [
+       8.6069895,
+       45.7564401
+      ],
+      [
+       8.6072767,
+       45.7563733
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068767,
+       45.7566845
+      ],
+      [
+       8.6068138,
+       45.7567
+      ],
+      [
+       8.6067752,
+       45.7566233
+      ],
+      [
+       8.6068381,
+       45.7566078
+      ],
+      [
+       8.6068767,
+       45.7566845
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6071114,
+       45.7576679
+      ],
+      [
+       8.6072086,
+       45.7577562
+      ],
+      [
+       8.6069831,
+       45.7578758
+      ],
+      [
+       8.606886,
+       45.7577876
+      ],
+      [
+       8.6071114,
+       45.7576679
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6057199,
+       45.7559155
+      ],
+      [
+       8.6061858,
+       45.7558009
+      ],
+      [
+       8.6062564,
+       45.7559495
+      ],
+      [
+       8.6063154,
+       45.7559353
+      ],
+      [
+       8.6062966,
+       45.755897
+      ],
+      [
+       8.6064354,
+       45.7558638
+      ],
+      [
+       8.6065086,
+       45.7560057
+      ],
+      [
+       8.6063698,
+       45.7560414
+      ],
+      [
+       8.6063408,
+       45.7559864
+      ],
+      [
+       8.6062808,
+       45.7560008
+      ],
+      [
+       8.6063482,
+       45.7561428
+      ],
+      [
+       8.6065588,
+       45.7560887
+      ],
+      [
+       8.6066011,
+       45.7561742
+      ],
+      [
+       8.6060911,
+       45.7563032
+      ],
+      [
+       8.6057637,
+       45.7560029
+      ],
+      [
+       8.6057199,
+       45.7559155
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068455,
+       45.7576976
+      ],
+      [
+       8.6067602,
+       45.7577432
+      ],
+      [
+       8.6064984,
+       45.757507
+      ],
+      [
+       8.6065836,
+       45.7574615
+      ],
+      [
+       8.6068455,
+       45.7576976
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.606378,
+       45.7572866
+      ],
+      [
+       8.606437,
+       45.7573366
+      ],
+      [
+       8.6063524,
+       45.7573847
+      ],
+      [
+       8.6062934,
+       45.7573346
+      ],
+      [
+       8.606378,
+       45.7572866
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6066515,
+       45.7580554
+      ],
+      [
+       8.6065605,
+       45.7579744
+      ],
+      [
+       8.6066999,
+       45.757899
+      ],
+      [
+       8.6067909,
+       45.75798
+      ],
+      [
+       8.6066515,
+       45.7580554
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6061635,
+       45.7574052
+      ],
+      [
+       8.6062145,
+       45.7574498
+      ],
+      [
+       8.6061122,
+       45.7575062
+      ],
+      [
+       8.6060611,
+       45.7574616
+      ],
+      [
+       8.6061635,
+       45.7574052
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6106837,
+       45.7544637
+      ],
+      [
+       8.6106386,
+       45.7545094
+      ],
+      [
+       8.610533,
+       45.7544599
+      ],
+      [
+       8.6105781,
+       45.7544141
+      ],
+      [
+       8.6106837,
+       45.7544637
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6103045,
+       45.7541106
+      ],
+      [
+       8.6102647,
+       45.7541267
+      ],
+      [
+       8.610243,
+       45.7541008
+      ],
+      [
+       8.6102828,
+       45.7540847
+      ],
+      [
+       8.6103045,
+       45.7541106
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6101129,
+       45.7540244
+      ],
+      [
+       8.6101389,
+       45.7539996
+      ],
+      [
+       8.6101759,
+       45.7540178
+      ],
+      [
+       8.6101499,
+       45.7540426
+      ],
+      [
+       8.6101129,
+       45.7540244
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6099804,
+       45.754786
+      ],
+      [
+       8.6099053,
+       45.754804
+      ],
+      [
+       8.6098649,
+       45.7547215
+      ],
+      [
+       8.60994,
+       45.7547035
+      ],
+      [
+       8.6099804,
+       45.754786
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.608566,
+       45.7544614
+      ],
+      [
+       8.6086089,
+       45.7544504
+      ],
+      [
+       8.6086617,
+       45.7545507
+      ],
+      [
+       8.6086189,
+       45.7545617
+      ],
+      [
+       8.608566,
+       45.7544614
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6074489,
+       45.7547823
+      ],
+      [
+       8.6073582,
+       45.7548035
+      ],
+      [
+       8.6073216,
+       45.7547268
+      ],
+      [
+       8.6074123,
+       45.7547057
+      ],
+      [
+       8.6074489,
+       45.7547823
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.607013,
+       45.7551653
+      ],
+      [
+       8.6069792,
+       45.7550976
+      ],
+      [
+       8.6079085,
+       45.7548716
+      ],
+      [
+       8.6079422,
+       45.7549393
+      ],
+      [
+       8.607013,
+       45.7551653
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6071012,
+       45.7544761
+      ],
+      [
+       8.6071308,
+       45.7545389
+      ],
+      [
+       8.6065721,
+       45.7546676
+      ],
+      [
+       8.6065425,
+       45.7546048
+      ],
+      [
+       8.6071012,
+       45.7544761
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068935,
+       45.7554881
+      ],
+      [
+       8.6067949,
+       45.755516
+      ],
+      [
+       8.606724,
+       45.7553944
+      ],
+      [
+       8.6068226,
+       45.7553665
+      ],
+      [
+       8.6068935,
+       45.7554881
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6062922,
+       45.755607
+      ],
+      [
+       8.6061743,
+       45.7556357
+      ],
+      [
+       8.6060017,
+       45.7552888
+      ],
+      [
+       8.6061195,
+       45.7552602
+      ],
+      [
+       8.6062922,
+       45.755607
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6058175,
+       45.7553314
+      ],
+      [
+       8.605946,
+       45.7552994
+      ],
+      [
+       8.6061227,
+       45.7556457
+      ],
+      [
+       8.6059942,
+       45.7556777
+      ],
+      [
+       8.6058175,
+       45.7553314
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6057229,
+       45.7552945
+      ],
+      [
+       8.6056125,
+       45.7553219
+      ],
+      [
+       8.6054876,
+       45.7550768
+      ],
+      [
+       8.605598,
+       45.7550494
+      ],
+      [
+       8.6057229,
+       45.7552945
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6055593,
+       45.7556052
+      ],
+      [
+       8.6058473,
+       45.755534
+      ],
+      [
+       8.6059179,
+       45.755696
+      ],
+      [
+       8.6056413,
+       45.7557654
+      ],
+      [
+       8.6055593,
+       45.7556052
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6053131,
+       45.7551194
+      ],
+      [
+       8.6054233,
+       45.7550916
+      ],
+      [
+       8.6055495,
+       45.7553358
+      ],
+      [
+       8.6054392,
+       45.7553636
+      ],
+      [
+       8.6053131,
+       45.7551194
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6050037,
+       45.7551966
+      ],
+      [
+       8.6051837,
+       45.7551509
+      ],
+      [
+       8.6053091,
+       45.7553995
+      ],
+      [
+       8.6051324,
+       45.7554438
+      ],
+      [
+       8.6050037,
+       45.7551966
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6054164,
+       45.7558412
+      ],
+      [
+       8.6055642,
+       45.7559725
+      ],
+      [
+       8.6053003,
+       45.7561156
+      ],
+      [
+       8.6051525,
+       45.7559843
+      ],
+      [
+       8.6054164,
+       45.7558412
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6046393,
+       45.7552886
+      ],
+      [
+       8.6048665,
+       45.755232
+      ],
+      [
+       8.6049976,
+       45.7554893
+      ],
+      [
+       8.6047704,
+       45.7555458
+      ],
+      [
+       8.6046393,
+       45.7552886
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6046264,
+       45.7558022
+      ],
+      [
+       8.6044611,
+       45.7558427
+      ],
+      [
+       8.6043197,
+       45.755561
+      ],
+      [
+       8.604485,
+       45.7555205
+      ],
+      [
+       8.6046264,
+       45.7558022
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.604795,
+       45.7561827
+      ],
+      [
+       8.604678,
+       45.7562194
+      ],
+      [
+       8.6044983,
+       45.7559413
+      ],
+      [
+       8.6046153,
+       45.7559046
+      ],
+      [
+       8.604795,
+       45.7561827
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6070016,
+       45.753194
+      ],
+      [
+       8.6071018,
+       45.7531702
+      ],
+      [
+       8.6071844,
+       45.7533404
+      ],
+      [
+       8.6070842,
+       45.7533641
+      ],
+      [
+       8.6070016,
+       45.753194
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6071809,
+       45.7545185
+      ],
+      [
+       8.6071555,
+       45.7545246
+      ],
+      [
+       8.6071297,
+       45.754472
+      ],
+      [
+       8.6071551,
+       45.7544659
+      ],
+      [
+       8.6071809,
+       45.7545185
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6062405,
+       45.7532811
+      ],
+      [
+       8.6063463,
+       45.7532557
+      ],
+      [
+       8.6063843,
+       45.7533332
+      ],
+      [
+       8.6062785,
+       45.7533586
+      ],
+      [
+       8.6062405,
+       45.7532811
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6068042,
+       45.7540246
+      ],
+      [
+       8.606834,
+       45.7540603
+      ],
+      [
+       8.6068418,
+       45.7541012
+      ],
+      [
+       8.6068263,
+       45.7541412
+      ],
+      [
+       8.60679,
+       45.7541742
+      ],
+      [
+       8.6067383,
+       45.7541951
+      ],
+      [
+       8.6066791,
+       45.7542008
+      ],
+      [
+       8.6066214,
+       45.7541903
+      ],
+      [
+       8.6065741,
+       45.7541654
+      ],
+      [
+       8.6065443,
+       45.7541297
+      ],
+      [
+       8.6065365,
+       45.7540887
+      ],
+      [
+       8.606552,
+       45.7540487
+      ],
+      [
+       8.6065883,
+       45.7540158
+      ],
+      [
+       8.60664,
+       45.7539949
+      ],
+      [
+       8.6066992,
+       45.7539892
+      ],
+      [
+       8.6067569,
+       45.7539997
+      ],
+      [
+       8.6068042,
+       45.7540246
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6065883,
+       45.7542998
+      ],
+      [
+       8.606619,
+       45.7543624
+      ],
+      [
+       8.6065081,
+       45.7543889
+      ],
+      [
+       8.6064774,
+       45.7543264
+      ],
+      [
+       8.6065883,
+       45.7542998
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6058773,
+       45.754136
+      ],
+      [
+       8.6058024,
+       45.7541998
+      ],
+      [
+       8.6057059,
+       45.7541456
+      ],
+      [
+       8.6057808,
+       45.7540818
+      ],
+      [
+       8.6058773,
+       45.754136
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6057237,
+       45.754041
+      ],
+      [
+       8.6056623,
+       45.7540889
+      ],
+      [
+       8.6056346,
+       45.7540759
+      ],
+      [
+       8.6056232,
+       45.7540862
+      ],
+      [
+       8.6056112,
+       45.7540811
+      ],
+      [
+       8.6056889,
+       45.7540183
+      ],
+      [
+       8.6057237,
+       45.754041
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6054539,
+       45.7542325
+      ],
+      [
+       8.6054829,
+       45.7542916
+      ],
+      [
+       8.6054153,
+       45.7543078
+      ],
+      [
+       8.6053863,
+       45.7542487
+      ],
+      [
+       8.6054539,
+       45.7542325
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.605467,
+       45.7545556
+      ],
+      [
+       8.6053607,
+       45.7545803
+      ],
+      [
+       8.6052189,
+       45.7542825
+      ],
+      [
+       8.6053251,
+       45.7542577
+      ],
+      [
+       8.605467,
+       45.7545556
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6056159,
+       45.7549016
+      ],
+      [
+       8.6055354,
+       45.7549209
+      ],
+      [
+       8.605445,
+       45.7547367
+      ],
+      [
+       8.6055255,
+       45.7547174
+      ],
+      [
+       8.6056159,
+       45.7549016
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6048798,
+       45.7531302
+      ],
+      [
+       8.6049259,
+       45.7532246
+      ],
+      [
+       8.6045225,
+       45.7533207
+      ],
+      [
+       8.6044765,
+       45.7532264
+      ],
+      [
+       8.6048798,
+       45.7531302
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6048533,
+       45.7534297
+      ],
+      [
+       8.6049165,
+       45.7535617
+      ],
+      [
+       8.6046098,
+       45.7536334
+      ],
+      [
+       8.6045466,
+       45.7535014
+      ],
+      [
+       8.6048533,
+       45.7534297
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6047972,
+       45.7543804
+      ],
+      [
+       8.6049484,
+       45.7543441
+      ],
+      [
+       8.6051034,
+       45.7546597
+      ],
+      [
+       8.6049522,
+       45.7546959
+      ],
+      [
+       8.6047972,
+       45.7543804
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6044754,
+       45.7536842
+      ],
+      [
+       8.6045279,
+       45.7536754
+      ],
+      [
+       8.6045572,
+       45.7537395
+      ],
+      [
+       8.6045054,
+       45.7537507
+      ],
+      [
+       8.6044754,
+       45.7536842
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.604361,
+       45.7542299
+      ],
+      [
+       8.6043889,
+       45.7542837
+      ],
+      [
+       8.6040943,
+       45.7543583
+      ],
+      [
+       8.6040663,
+       45.7543045
+      ],
+      [
+       8.604361,
+       45.7542299
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio minore - stabile)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6037128,
+       45.7552187
+      ],
+      [
+       8.6038089,
+       45.7551964
+      ],
+      [
+       8.6038464,
+       45.7552751
+      ],
+      [
+       8.6037503,
+       45.7552975
+      ],
+      [
+       8.6037128,
+       45.7552187
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6034397,
+       45.7547781
+      ],
+      [
+       8.6033866,
+       45.7547895
+      ],
+      [
+       8.6033451,
+       45.7546949
+      ],
+      [
+       8.6033981,
+       45.7546834
+      ],
+      [
+       8.6034397,
+       45.7547781
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6030237,
+       45.754508
+      ],
+      [
+       8.6029786,
+       45.7544762
+      ],
+      [
+       8.603062,
+       45.7544193
+      ],
+      [
+       8.6031072,
+       45.7544511
+      ],
+      [
+       8.6030237,
+       45.754508
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6028533,
+       45.754216
+      ],
+      [
+       8.6029133,
+       45.7541969
+      ],
+      [
+       8.6029481,
+       45.7542499
+      ],
+      [
+       8.6028881,
+       45.754269
+      ],
+      [
+       8.6028533,
+       45.754216
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "restricted",
+    "name": "",
+    "description": "Edificio non giocabile: divieto di accesso e transito. (edificio, residenziale)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.6027157,
+       45.7544513
+      ],
+      [
+       8.6026313,
+       45.7544787
+      ],
+      [
+       8.6025954,
+       45.7544197
+      ],
+      [
+       8.6026467,
+       45.7544037
+      ],
+      [
+       8.6026679,
+       45.7544338
+      ],
+      [
+       8.6026977,
+       45.754427
+      ],
+      [
+       8.6027157,
+       45.7544513
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

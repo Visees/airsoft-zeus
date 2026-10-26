@@ -36,6 +36,7 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
     teamsLocked: e.teams_locked,
     registrationLocked: e.registration_locked,
     area: e.area_lat !== null && e.area_lng !== null ? { lat: e.area_lat, lng: e.area_lng, zoom: e.area_zoom ?? 16 } : null,
+    mapOverlay: e.map_overlay ?? null,
     tracking: ctx.tracking,
     visibilityRules: ctx.rules,
     scoring: ctx.scoring,

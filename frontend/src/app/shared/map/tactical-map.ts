@@ -17,8 +17,8 @@ import {
 } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
-import type { GeoJSONSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';
-import { LatLng, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
+import type { GeoJSONSource, ImageSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';
+import { LatLng, MapOverlay, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
 import { MapEngine, MapEngineService } from '../../core/maps/map-engine.service';
 import type { BaseLayer } from '../../core/maps/map-style';
 import { LiveStore } from '../../core/live/live-store';
@@ -29,6 +29,10 @@ import { bounds, distanceM } from '../../core/util/geo';
 
 const SELF_GLIDE_MS = 800;
 const BASE_LAYER_KEY = 'airsofthub.mapBase';
+const OVERLAY_KEY = 'airsofthub.mapOverlay';
+/** Past this many zone labels the small ones wait for a closer zoom, so a dense field map stays readable. */
+const DENSE_LABELS = 40;
+const SMALL_LABEL_ZOOM = 18;
 
 export interface SelfFix {
   lat: number;
@@ -115,7 +119,8 @@ interface ShapeProps {
   },
   template: `
     <div class="relative size-full min-h-40">
-    <div #mapHost class="absolute inset-0" [class.invisible]="renderer() !== 'map'"></div>
+    <!-- isolate: marker z-indexes stay inside the map, under the map buttons and menus -->
+    <div #mapHost class="absolute inset-0 isolate" [class.invisible]="renderer() !== 'map'"></div>
 
     @if (renderer() === 'schematic') {
       <div
@@ -136,6 +141,9 @@ interface ShapeProps {
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#ah-grid)" />
+          @if (schematicImage(); as im) {
+            <image [attr.href]="im.url" [attr.x]="im.x" [attr.y]="im.y" [attr.width]="im.w" [attr.height]="im.h" [attr.opacity]="im.opacity" preserveAspectRatio="none" />
+          }
           @for (z of schematicZones(); track z.id) {
             @if (z.kind === 'circle') {
               <circle [attr.cx]="z.cx" [attr.cy]="z.cy" [attr.r]="z.r" [attr.fill]="z.color" [attr.fill-opacity]="z.fillOpacity"
@@ -204,6 +212,18 @@ interface ShapeProps {
                   }
                 </button>
               }
+              @if (overlay()) {
+                <div class="my-1 border-t border-border" role="separator"></div>
+                <button type="button" role="menuitemcheckbox" [attr.aria-checked]="overlayShown()"
+                  class="flex min-h-11 items-center gap-2 rounded-sm px-2 text-left text-sm hover:bg-muted"
+                  [class.font-semibold]="overlayShown()" (click)="toggleOverlay()">
+                  <ng-icon name="lucideImage" size="16" aria-hidden="true" />
+                  <span class="flex-1" i18n>Venue map</span>
+                  @if (overlayShown()) {
+                    <ng-icon name="lucideCheck" size="16" class="text-nav" aria-hidden="true" />
+                  }
+                </button>
+              }
             </div>
           }
         </div>
@@ -250,6 +270,10 @@ export class TacticalMap {
   readonly shapesClickable = input(true);
   /** 'cooperative' for small embedded previews so one-finger scrolling scrolls the page. */
   readonly gestureHandling = input<'greedy' | 'cooperative'>('greedy');
+  /** The field's own printed map, drawn under the shapes (anyone can hide it from the layers menu). */
+  readonly overlay = input<MapOverlay | null>(null);
+  /** Editor: the overlay's corners get handles that can be dragged. */
+  readonly overlayEditable = input(false);
 
   readonly objectiveClick = output<Objective>();
   readonly poiClick = output<Poi>();
@@ -257,11 +281,14 @@ export class TacticalMap {
   readonly zoneClick = output<Zone>();
   readonly mapClick = output<LatLng>();
   readonly markerMoved = output<MarkerMove>();
+  readonly overlayCornersChange = output<MapOverlay['corners']>();
 
   /** Which renderer is showing: 'map' (MapLibre), 'schematic' or 'loading'. */
   readonly renderer = signal<Renderer>('loading');
   protected readonly mapsState = this.engines.state;
   protected readonly layersOpen = signal(false);
+  /** Venue map shown or hidden, remembered on this device. */
+  protected readonly overlayShown = signal(readOverlayShown());
   /** Topo or satellite, remembered on this device. */
   private readonly baseLayer = signal<BaseLayer>(readBaseLayer());
   private readonly effectiveBase = computed<BaseLayer>(() => (this.baseLayer() === 'satellite' && this.engines.satelliteAvailable() ? 'satellite' : 'topo'));
@@ -294,6 +321,11 @@ export class TacticalMap {
   private readonly selfDrawn = signal<SelfFix | null>(null);
   private selfAnim = 0;
   private selfNode: HTMLElement | null = null;
+  /** Overlay corners while a handle is dragged (the input changes only after the editor saves). */
+  private overlayCorners: MapOverlay['corners'] | null = null;
+  private overlayHandles: MlMarker[] = [];
+  /** Zone label markers that wait for a closer zoom on dense maps. */
+  private readonly labelMinZoom = new Map<string, number>();
 
   // schematic view state: origin (lat/lng of projection), scale px/m, pan offset px
   private readonly origin = signal<LatLng>({ lat: 45.0, lng: 9.0 });
@@ -342,6 +374,18 @@ export class TacticalMap {
       const s = this.selfDrawn();
       const r = this.renderer();
       if (s) untracked(() => this.moveSelf(s, r));
+    });
+    // Venue map image and its corner handles
+    effect(() => {
+      const o = this.overlay();
+      const shown = this.overlayShown();
+      const editable = this.overlayEditable();
+      if (this.renderer() !== 'map') return;
+      untracked(() => {
+        this.overlayCorners = o ? ([...o.corners] as MapOverlay['corners']) : null;
+        this.syncOverlay(o, shown || editable);
+        this.syncOverlayHandles(o && editable ? o : null);
+      });
     });
     // Light/dark theme and topo/satellite switch the map style
     effect(() => {
@@ -429,6 +473,19 @@ export class TacticalMap {
   }
 
   /** Centre and zoom of the visible map, or null when the schematic view is showing. */
+  /** The area on screen, or null while the map has no size yet. */
+  viewBounds(): { north: number; south: number; east: number; west: number } | null {
+    if (this.renderer() === 'map' && this.map) {
+      const b = this.map.getBounds();
+      return { north: b.getNorth(), south: b.getSouth(), east: b.getEast(), west: b.getWest() };
+    }
+    const { w, h } = this.size();
+    if (this.renderer() !== 'schematic' || !w || !h) return null;
+    const nw = this.unproject(0, 0);
+    const se = this.unproject(w, h);
+    return { north: nw.lat, south: se.lat, east: se.lng, west: nw.lng };
+  }
+
   viewState(): { lat: number; lng: number; zoom: number } | null {
     if (this.renderer() !== 'map' || !this.map) return null;
     const c = this.map.getCenter();
@@ -615,7 +672,9 @@ export class TacticalMap {
       this.styleReady = true;
       this.pushShapes();
       this.pushSelf();
+      this.syncOverlay(this.overlay(), this.overlayShown() || this.overlayEditable());
     });
+    map.on('zoomend', () => this.declutterLabels());
     // Tiles that fail offline are expected; the markers and shapes keep working.
     map.on('error', () => undefined);
     map.on('click', (e) => {
@@ -687,6 +746,77 @@ export class TacticalMap {
 
   private pushSelf(): void {
     if (this.styleReady) (this.map?.getSource('ah-self') as GeoJSONSource | undefined)?.setData(this.selfData);
+  }
+
+  protected toggleOverlay(): void {
+    const next = !this.overlayShown();
+    this.overlayShown.set(next);
+    try {
+      localStorage.setItem(OVERLAY_KEY, next ? 'on' : 'off');
+    } catch {
+      /* private mode: the choice lasts for this page only */
+    }
+  }
+
+  /** The venue map is a raster layer right under the game shapes, so zones stay readable on top of it. */
+  private syncOverlay(o: MapOverlay | null, shown: boolean): void {
+    const map = this.map;
+    if (!map || !this.styleReady) return;
+    const src = map.getSource('ah-overlay') as ImageSource | undefined;
+    if (!o || !shown) {
+      if (map.getLayer('ah-overlay')) map.removeLayer('ah-overlay');
+      if (src) map.removeSource('ah-overlay');
+      return;
+    }
+    const corners = (this.overlayCorners ?? o.corners).map((c) => [c.lng, c.lat]) as [[number, number], [number, number], [number, number], [number, number]];
+    if (src && src.url === o.url) {
+      src.setCoordinates(corners);
+      map.setPaintProperty('ah-overlay', 'raster-opacity', o.opacity);
+      return;
+    }
+    if (src) {
+      map.removeLayer('ah-overlay');
+      map.removeSource('ah-overlay');
+    }
+    map.addSource('ah-overlay', { type: 'image', url: o.url, coordinates: corners });
+    map.addLayer({ id: 'ah-overlay', type: 'raster', source: 'ah-overlay', paint: { 'raster-opacity': o.opacity, 'raster-fade-duration': 0 } }, 'ah-fill');
+  }
+
+  /** Four draggable corner handles; the image follows while dragging, the editor saves on release. */
+  private syncOverlayHandles(o: MapOverlay | null): void {
+    this.overlayHandles.forEach((m) => m.remove());
+    this.overlayHandles = [];
+    if (!o || !this.map || !this.engine) return;
+    const ml = this.engine.maplibregl;
+    const names = [$localize`Top-left corner`, $localize`Top-right corner`, $localize`Bottom-right corner`, $localize`Bottom-left corner`];
+    o.corners.forEach((c, i) => {
+      const el = cornerHandle();
+      el.setAttribute('aria-label', names[i]);
+      const marker = new ml.Marker({ element: el, draggable: true }).setLngLat([c.lng, c.lat]).addTo(this.map!);
+      const update = () => {
+        const p = marker.getLngLat();
+        const next = [...(this.overlayCorners ?? o.corners)] as MapOverlay['corners'];
+        next[i] = { lat: p.lat, lng: p.lng };
+        this.overlayCorners = next;
+        (this.map?.getSource('ah-overlay') as ImageSource | undefined)?.setCoordinates(next.map((q) => [q.lng, q.lat]) as never);
+      };
+      marker.on('drag', update);
+      marker.on('dragend', () => {
+        update();
+        this.suppressClickUntil = Date.now() + 300;
+        this.overlayCornersChange.emit(this.overlayCorners!);
+      });
+      this.overlayHandles.push(marker);
+    });
+  }
+
+  /** On dense maps, labels of small zones and free text labels appear only from SMALL_LABEL_ZOOM. */
+  private declutterLabels(): void {
+    const z = this.map ? fromMl(this.map.getZoom()) : Infinity;
+    for (const [key, min] of this.labelMinZoom) {
+      const m = this.markers.get(key);
+      if (m) m.el.style.display = z >= min ? '' : 'none';
+    }
   }
 
   /**
@@ -795,6 +925,8 @@ export class TacticalMap {
       });
 
     // zones
+    this.labelMinZoom.clear();
+    const dense = d.zones.filter((z) => z.label || z.kind === 'label').length > DENSE_LABELS;
     for (const z of d.zones) {
       const fillOpacity = z.kind === 'playable' ? Math.min(z.fillOpacity, 0.08) : z.fillOpacity;
       const dash: Dash = z.kind === 'restricted' || z.kind === 'line' ? 'dash' : z.kind === 'route' ? 'dot' : 'solid';
@@ -811,6 +943,7 @@ export class TacticalMap {
       if ((labelAt || (d.labels && z.label)) && z.points[0]) {
         const at = labelAt ?? centroidOf(z.points);
         upsertMarker(`zl:${z.id}`, at, `${z.label}|${z.color}`, () => zoneLabel(z.label || z.kind, z.color), { z: 10, onClick: click ?? (() => this.zoneClick.emit(z)) });
+        if (dense && (labelAt || spanM(z.points) < 80)) this.labelMinZoom.set(`zl:${z.id}`, SMALL_LABEL_ZOOM);
       }
     }
 
@@ -894,6 +1027,7 @@ export class TacticalMap {
     this.shapeData = { type: 'FeatureCollection', features: shapes };
     this.pushShapes();
     this.pushSelf();
+    this.declutterLabels();
   }
 
   // ------------------------------------------------------------------ schematic renderer
@@ -935,6 +1069,21 @@ export class TacticalMap {
     const g = this.gridPx();
     const pan = this.pan();
     return { x: ((pan.x % g) + g) % g, y: ((pan.y % g) + g) % g };
+  });
+
+  /** The venue map in the schematic view: only for images placed north-up (as the field tools make them). */
+  protected readonly schematicImage = computed(() => {
+    const o = this.overlay();
+    if (!o || !this.overlayShown()) return null;
+    this.scale();
+    this.pan();
+    this.origin();
+    const [tl, tr, br, bl] = o.corners;
+    const eps = 1e-6;
+    if (Math.abs(tl.lat - tr.lat) > eps || Math.abs(bl.lat - br.lat) > eps || Math.abs(tl.lng - bl.lng) > eps || Math.abs(tr.lng - br.lng) > eps) return null;
+    const a = this.toScreen(tl);
+    const b = this.toScreen(br);
+    return { url: o.url, x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y, opacity: o.opacity };
   });
 
   protected readonly schematicZones = computed(() => {
@@ -1152,6 +1301,35 @@ export class TacticalMap {
 }
 
 const SHAPE_LAYERS = ['ah-fill', ...Object.keys(DASHES).map((d) => `ah-line-${d}`)];
+
+function readOverlayShown(): boolean {
+  try {
+    return typeof localStorage === 'undefined' || localStorage.getItem(OVERLAY_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+/** Largest extent of a shape, in metres (bounding box diagonal). */
+function spanM(points: LatLng[]): number {
+  if (points.length < 2) return 0;
+  const b = bounds(points)!;
+  return distanceM({ lat: b.south, lng: b.west }, { lat: b.north, lng: b.east });
+}
+
+function cornerHandle(): HTMLElement {
+  const d = document.createElement('div');
+  Object.assign(d.style, {
+    width: '22px',
+    height: '22px',
+    borderRadius: '4px',
+    background: 'rgba(255,255,255,0.9)',
+    border: '3px solid #E6B04F',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
+    cursor: 'move',
+  });
+  return d;
+}
 
 function readBaseLayer(): BaseLayer {
   try {

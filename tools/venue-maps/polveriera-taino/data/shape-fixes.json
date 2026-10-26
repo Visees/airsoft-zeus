@@ -1,0 +1,23 @@
+{
+  "_note": "Checked by eye on the review flags. Numbered buildings take the outline traced from the sheet in the first version (data/v1-edifici.geojson) when that outline holds just their number. from_sheet: outline cut from the sheet raster (where the first version merged neighbours). squares: a first-version outline holding several drawn buildings is cut into one per number, centred on its tag, as long as the given multiple of the outline's width (measured on the sheet). carve: keep the real (DBTR) outline of the key minus the listed numbers. absorb: unnamed pieces within 2 m join that building. manual: outline drawn by hand on the sheet (sheet pixels), for odd shapes.",
+  "from_sheet": [
+    2,
+    80,
+    82,
+    83,
+    89
+  ],
+  "carve": {
+    "63": [
+      84
+    ]
+  },
+  "absorb": [
+    39,
+    43
+  ],
+  "squares": {
+    "23": 1.0,
+    "24": 1.48
+  }
+}

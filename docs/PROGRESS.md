@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-23 — Push notifications in the native apps (FCM).
+Last update: 2026-10-25 — Venue map image, styled map import, Polveriera Taino field map.
 
 ## Stack (decided)
 
@@ -228,6 +228,24 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   ibasemaps-api.arcgis.com, photon.komoot.io; all Google hosts removed.
 * `ngsw-worker.js` is served without CSP (plus a stamp comment): installed service workers kept
   the old Google-only policy and blocked every tile, leaving a blank map.
+
+## Venue map image and field maps (2026-10-25)
+
+* Events can carry the field's own printed map (`events.map_overlay`, migration 0011): uploaded
+  in the map editor (⋯ → Venue map image), placed by a position file (four corners or
+  north/south/east/west), by centring it on the view, or by dragging its corner handles. Every map
+  draws it under the zones; anyone can hide it from the map type menu (remembered per device).
+  The schematic view shows it when it is placed north-up. Kept by duplicate and map templates.
+* GeoJSON import keeps `color`/`fillOpacity`/`strokeWidth` (and simplestyle `stroke`, `fill-opacity`,
+  `stroke-width`) and splits MultiPolygon/MultiLineString/MultiPoint; holes are still dropped
+  (`domain/map-import.ts`, unit-tested).
+* Dense maps (over 40 zone labels): labels of small zones and free text labels appear from zoom 18.
+* `tools/venue-maps/polveriera-taino/`: builds the Ex polveriera Montedison (Taino) map from the
+  venue sheet + the Lombardy DBTR building footprints (see its README). Output: GeoJSON, the
+  warped sheet as WebP + position file, a report, and a review page with flags.
+* Not merged: branch `feature/field-map-overlay` (24 Oct) has another take on the same feature
+  (pin-based alignment, image only for members). Its migration was also named 0010-map-overlay.sql,
+  hence 0011 here.
 
 ## Known limits / next ideas
 

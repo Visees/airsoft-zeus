@@ -12,6 +12,7 @@ import { body, clientTxId, hexColor, idParam, isoDate, lat, lng, playerRole, que
 import { hub } from '../realtime/hub.js';
 import { eventContext, FINISHED, playsIn, requireGm, requireMember, type EventContext } from '../domain/context.js';
 import { copyMapContent, insertObjective } from '../domain/copy.js';
+import { mapOverlaySchema, parseImport } from '../domain/map-import.js';
 import { geofenceSchema, merge, rewardsSchema, DEFAULT_GEOFENCE, DEFAULT_REWARDS } from '../domain/defaults.js';
 import { alert, audit } from '../domain/journal.js';
 import { loadObjectives, objectiveDto, objectiveDtos, OBJECTIVE_SELECT, performCapture, statusOf, type ObjRow } from '../domain/objectives.js';
@@ -599,64 +600,6 @@ contentRouter.delete('/:eventId/zones/:zoneId', async (req, res) => {
 
 // ------------------------------------------------------------------ import & map templates
 
-const ZONE_KINDS = new Set(['playable', 'restricted', 'safe', 'spawn', 'respawn', 'base', 'extraction', 'route', 'line', 'sector', 'label']);
-const POI_TYPES = new Set(['ammo', 'medic', 'respawn', 'safe_zone', 'team_base', 'vehicle', 'supply', 'extraction', 'restricted', 'custom']);
-
-interface Parsed {
-  objectives: { name: string; lat: number; lng: number; description: string }[];
-  pois: { name: string; type: string; lat: number; lng: number; description: string }[];
-  zones: { kind: string; geometry: string; points: { lat: number; lng: number }[]; label: string; description: string; radius_m: number | null }[];
-}
-
-function validLatLng(lat: number, lng: number) {
-  return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-}
-
-function parseImport(format: 'geojson' | 'csv', content: string): Parsed {
-  const out: Parsed = { objectives: [], pois: [], zones: [] };
-  const add = (type: string, name: string, desc: string, geom: string, coords: { lat: number; lng: number }[], radius: number | null) => {
-    if (!coords.length || !coords.every((c) => validLatLng(c.lat, c.lng))) return;
-    const t = type.toLowerCase().trim();
-    if (geom === 'point' && t === 'objective') out.objectives.push({ name, lat: coords[0].lat, lng: coords[0].lng, description: desc });
-    else if (geom === 'point' && (POI_TYPES.has(t) || t === 'poi' || !ZONE_KINDS.has(t)))
-      out.pois.push({ name, type: POI_TYPES.has(t) ? t : 'custom', lat: coords[0].lat, lng: coords[0].lng, description: desc });
-    else out.zones.push({ kind: ZONE_KINDS.has(t) ? t : geom === 'polyline' ? 'route' : geom === 'point' ? 'label' : 'playable', geometry: geom, points: coords, label: name, description: desc, radius_m: radius });
-  };
-  if (format === 'geojson') {
-    let gj: { type?: string; features?: { geometry?: { type: string; coordinates: unknown }; properties?: Record<string, unknown> }[] };
-    try {
-      gj = JSON.parse(content);
-    } catch {
-      throw badRequest(tr`This is not valid GeoJSON.`, 'invalid_import');
-    }
-    const features = gj.type === 'FeatureCollection' ? (gj.features ?? []) : gj.type === 'Feature' ? [gj as never] : [];
-    for (const f of features.slice(0, 1000)) {
-      const p = f.properties ?? {};
-      const name = String(p.name ?? p.title ?? tr`Imported`).slice(0, 120);
-      const desc = String(p.description ?? '').slice(0, 2000);
-      const type = String(p.type ?? p.kind ?? '');
-      const g = f.geometry;
-      if (!g) continue;
-      const pt = (c: unknown) => ({ lat: Number((c as number[])[1]), lng: Number((c as number[])[0]) });
-      if (g.type === 'Point') add(type || 'poi', name, desc, p.radius ? 'circle' : 'point', [pt(g.coordinates)], p.radius ? Number(p.radius) : null);
-      else if (g.type === 'LineString') add(type || 'route', name, desc, 'polyline', (g.coordinates as unknown[]).map(pt), null);
-      else if (g.type === 'Polygon') add(type || 'playable', name, desc, 'polygon', ((g.coordinates as unknown[][])[0] ?? []).slice(0, -1).map(pt), null);
-    }
-  } else {
-    const lines = content.split(/\r?\n/).filter((l) => l.trim());
-    const header = lines[0]?.toLowerCase().split(/[;,]/).map((h) => h.trim()) ?? [];
-    const idx = (n: string) => header.indexOf(n);
-    if (idx('lat') < 0 || idx('lng') < 0) throw badRequest(tr`The CSV needs a header with type,name,lat,lng[,description].`, 'invalid_import');
-    for (const line of lines.slice(1, 1001)) {
-      const cells = line.split(/[;,](?=(?:[^"]*"[^"]*")*[^"]*$)/).map((c) => c.trim().replace(/^"|"$/g, ''));
-      add(cells[idx('type')] ?? 'poi', (cells[idx('name')] ?? tr`Imported`).slice(0, 120), (cells[idx('description')] ?? '').slice(0, 2000), 'point', [
-        { lat: Number(cells[idx('lat')]), lng: Number(cells[idx('lng')]) },
-      ], null);
-    }
-  }
-  return out;
-}
-
 contentRouter.post('/:eventId/map/import', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
@@ -676,6 +619,32 @@ contentRouter.post('/:eventId/map/import', async (req, res) => {
   res.json({ objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length });
 });
 
+// The venue map image: the field's own printed map, placed by its four corners under the shapes.
+contentRouter.put('/:eventId/map/overlay', async (req, res) => {
+  const me = currentUser(req);
+  const eventId = idParam(req, 'eventId');
+  const b = body(req, mapOverlaySchema);
+  await tx(async (t) => {
+    await requireGm(eventId, me.id, t);
+    await t.query('UPDATE events SET map_overlay = $2, updated_at = now() WHERE id = $1', [eventId, JSON.stringify(b)]);
+    await audit(t, eventId, me.id, 'map.overlay', { after: { url: b.url } });
+  });
+  hub.invalidate(eventId, ['event']);
+  res.json(b);
+});
+
+contentRouter.delete('/:eventId/map/overlay', async (req, res) => {
+  const me = currentUser(req);
+  const eventId = idParam(req, 'eventId');
+  await tx(async (t) => {
+    await requireGm(eventId, me.id, t);
+    await t.query('UPDATE events SET map_overlay = NULL, updated_at = now() WHERE id = $1', [eventId]);
+    await audit(t, eventId, me.id, 'map.overlay_remove', {});
+  });
+  hub.invalidate(eventId, ['event']);
+  res.json({ ok: true });
+});
+
 contentRouter.post('/:eventId/map/save-template', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
@@ -683,6 +652,7 @@ contentRouter.post('/:eventId/map/save-template', async (req, res) => {
   await requireGm(eventId, me.id);
   const data = {
     area: await one('SELECT area_lat AS lat, area_lng AS lng, area_zoom AS zoom FROM events WHERE id = $1', [eventId]),
+    overlay: (await one('SELECT map_overlay FROM events WHERE id = $1', [eventId]))?.map_overlay ?? null,
     zones: await many('SELECT kind, geometry, points, radius_m, label, description, color, fill_opacity, stroke_width, icon FROM zones WHERE event_id = $1', [eventId]),
     pois: await many('SELECT name, type, description, lat, lng, icon, color, image_url FROM pois WHERE event_id = $1', [eventId]),
     objectives: await many(
@@ -700,7 +670,7 @@ contentRouter.post('/:eventId/map/apply-template', async (req, res) => {
   const b = body(req, z.object({ templateId: uuid }));
   const tpl = await one('SELECT data FROM map_templates WHERE id = $1 AND owner_id = $2', [b.templateId, me.id]);
   if (!tpl) throw notFound(tr`Template not found.`);
-  const data = tpl.data as { area?: { lat: number; lng: number; zoom: number }; zones: never[]; pois: never[]; objectives: Record<string, unknown>[] };
+  const data = tpl.data as { area?: { lat: number; lng: number; zoom: number }; overlay?: unknown; zones: never[]; pois: never[]; objectives: Record<string, unknown>[] };
   await tx(async (t) => {
     const ctx = await requireGm(eventId, me.id, t);
     if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
@@ -712,6 +682,9 @@ contentRouter.post('/:eventId/map/apply-template', async (req, res) => {
     if (data.area?.lat !== null && data.area?.lat !== undefined && ctx.event.area_lat === null) {
       await t.query('UPDATE events SET area_lat = $2, area_lng = $3, area_zoom = $4 WHERE id = $1', [eventId, data.area.lat, data.area.lng, data.area.zoom]);
     }
+    // Like the area: the template's venue map only fills an empty slot, it never replaces the event's own.
+    const overlay = mapOverlaySchema.safeParse(data.overlay);
+    if (overlay.success && !ctx.event.map_overlay) await t.query('UPDATE events SET map_overlay = $2 WHERE id = $1', [eventId, JSON.stringify(overlay.data)]);
     await audit(t, eventId, me.id, 'map.apply_template', { type: 'map_template', id: b.templateId });
   });
   hub.invalidate(eventId, ['objectives', 'pois', 'zones', 'event']);

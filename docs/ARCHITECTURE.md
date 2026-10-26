@@ -46,7 +46,9 @@ Schema: `backend/schema.sql`. Main tables:
 * `events` (settings as JSONB: `tracking`, `visibility_rules`, `scoring`; clock columns;
   `join_code`), `event_members` (role gm/player, status, team, squad, consent, readiness,
   per-event counters, opt-in emergency contact copy for GMs), `teams` (points, currency),
-  `squads`.
+  `squads`. `events.map_overlay` (JSONB, nullable): the venue map image (`/api/files/map_overlay-…`)
+  with its four corners and opacity, drawn under the zones on every map; copied by duplicate and
+  map templates.
 * `objectives` (config + runtime; secret `capture_code` and `qr_token` columns are never
   serialized for players), `capture_states` (geofence JSON), `objective_captures`,
   `capture_attempts`, `pois`, `zones`.

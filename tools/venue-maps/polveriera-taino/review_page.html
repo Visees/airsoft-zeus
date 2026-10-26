@@ -1,0 +1,316 @@
+<title>Polveriera Taino map review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Field console: map fills the screen, a hairline-bordered side panel holds the selection and the flags. */
+:root {
+  --bg: #F2F2EC; --card: #FFFFFF; --muted: #E8E8E0; --fg: #151813; --fg2: #565C51; --line: #CFD2C5;
+  --olive: #4A5A1F; --on-olive: #FFFFFF; --amber: #8F5D09; --red: #C42B2F; --cyan: #0B7A90;
+  --map-bg: #DADBD2; --sel: #0B7A90;
+  --ui: 'Archivo', 'Helvetica Neue', Arial, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E100F; --card: #161917; --muted: #1F2420; --fg: #E9ECE6; --fg2: #A2AA9F; --line: #2C322D;
+  --olive: #A4B465; --on-olive: #121509; --amber: #E6B04F; --red: #F0595C; --cyan: #4FC7DD; --map-bg: #1B1F1C; --sel: #4FC7DD; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E100F; --card: #161917; --muted: #1F2420; --fg: #E9ECE6; --fg2: #A2AA9F; --line: #2C322D;
+  --olive: #A4B465; --on-olive: #121509; --amber: #E6B04F; --red: #F0595C; --cyan: #4FC7DD; --map-bg: #1B1F1C; --sel: #4FC7DD; color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 14px; display: flex; flex-direction: column; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); background: var(--card); }
+h1 { margin: 0; font-size: 1.125rem; font-stretch: 80%; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; text-wrap: balance; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--fg2); font-size: .8125rem; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; }
+@media (max-width: 820px) { main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 58vh auto; } aside { border-left: 0 !important; border-top: 1px solid var(--line); } }
+#mapwrap { position: relative; overflow: hidden; background: var(--map-bg); touch-action: none; min-height: 300px; }
+#map { width: 100%; height: 100%; display: block; cursor: grab; user-select: none; }
+#map.dragging { cursor: grabbing; }
+.tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.tools > * { pointer-events: auto; }
+.hud { background: color-mix(in srgb, var(--card) 92%, transparent); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.zoom { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; }
+.zoom button { width: 44px; height: 44px; border: 0; background: transparent; color: var(--fg); font: 600 18px var(--mono); cursor: pointer; }
+.zoom button + button { border-top: 1px solid var(--line); }
+.fade { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--fg2); }
+.fade input { width: 140px; accent-color: var(--olive); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; }
+.chip { min-height: 32px; padding: 0 10px; border-radius: 4px; border: 1px solid var(--line); background: transparent; color: var(--fg2); font: 600 .75rem var(--ui); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--muted); color: var(--fg); border-color: var(--fg2); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--sel); outline-offset: 2px; }
+aside { border-left: 1px solid var(--line); background: var(--card); overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+section { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+h2 { margin: 0; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--fg2); font-weight: 600; }
+.sel-name { font-size: 1.375rem; font-stretch: 80%; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.sel-desc { color: var(--fg2); line-height: 1.45; overflow-wrap: anywhere; }
+.kind { align-self: flex-start; font: 600 .6875rem var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--muted); color: var(--fg); text-transform: uppercase; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { min-height: 44px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--muted); color: var(--fg); font: 600 .875rem var(--ui); cursor: pointer; }
+.btn.ok[aria-pressed="true"] { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
+.btn.bad[aria-pressed="true"] { background: var(--red); color: #fff; border-color: var(--red); }
+.btn.primary { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
+.btn:disabled { opacity: .5; cursor: default; }
+textarea { width: 100%; box-sizing: border-box; min-height: 72px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: 16px/1.4 var(--ui); padding: 8px; resize: vertical; }
+.hint { color: var(--fg2); font-size: .8125rem; line-height: 1.45; }
+.status { font-size: .8125rem; color: var(--fg2); min-height: 1.2em; }
+ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+ul.list li button { width: 100%; text-align: left; min-height: 40px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--fg); font: .8125rem/1.4 var(--ui); cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+ul.list li:last-child button { border-bottom: 0; }
+.glyph { font-family: var(--mono); flex: none; width: 1.2em; }
+.glyph.bad { color: var(--red); } .glyph.ok { color: var(--olive); } .glyph.todo { color: var(--amber); }
+.legend { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; font-size: .8125rem; color: var(--fg2); }
+.sw { width: 14px; height: 14px; border-radius: 3px; align-self: center; }
+@media (prefers-reduced-motion: no-preference) { #view { transition: none; } }
+</style>
+
+<header>
+  <h1>Polveriera Taino · map review</h1>
+  <div class="stats" id="stats"></div>
+</header>
+<main>
+  <div id="mapwrap">
+    <svg id="map" role="img" aria-label="Field map: satellite, venue sheet and the built shapes">
+      <g id="view">
+        <image id="sat" preserveAspectRatio="none"></image>
+        <image id="sheet" preserveAspectRatio="none"></image>
+        <g id="shapes"></g>
+        <g id="labels"></g>
+      </g>
+    </svg>
+    <div class="tools">
+      <div class="hud fade"><label for="fade">Satellite</label><input id="fade" type="range" min="0" max="1" step="0.05" value="0.55"><span>Sheet</span></div>
+      <div class="hud chips" role="group" aria-label="Show">
+        <button class="chip" type="button" data-layer="building" aria-pressed="true">Buildings</button>
+        <button class="chip" type="button" data-layer="area" aria-pressed="true">Areas</button>
+        <button class="chip" type="button" data-layer="label" aria-pressed="true">Labels</button>
+        <button class="chip" type="button" data-layer="left_out" aria-pressed="true">Left out</button>
+      </div>
+    </div>
+    <div class="hud zoom"><button type="button" id="zin" aria-label="Zoom in">+</button><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit" aria-label="Show the whole field">⤢</button></div>
+  </div>
+  <aside>
+    <section id="selbox">
+      <h2>Selected</h2>
+      <p class="hint" id="selempty">Click a building, area or label on the map. Mark it correct, or wrong with a note saying what is off: Claude reads the flags and fixes those shapes.</p>
+      <div id="seldetail" hidden>
+        <span class="kind" id="selkind"></span>
+        <div class="sel-name" id="selname"></div>
+        <div class="sel-desc" id="seldesc"></div>
+        <div class="row" role="group" aria-label="Verdict">
+          <button class="btn ok" type="button" id="vok" aria-pressed="false">✓ Correct</button>
+          <button class="btn bad" type="button" id="vbad" aria-pressed="false">✕ Wrong</button>
+        </div>
+        <label for="note" class="hint">What is wrong (optional)</label>
+        <textarea id="note" placeholder="e.g. this is building 37, not 36; or: this part is playable"></textarea>
+        <div class="row"><button class="btn primary" type="button" id="save">Save flag</button><button class="btn" type="button" id="clear">Remove flag</button></div>
+        <div class="status" id="savestatus" role="status"></div>
+      </div>
+    </section>
+    <section>
+      <h2>Flags <span class="num" id="flagcount">0</span></h2>
+      <p class="hint" id="flagsempty">No flags yet. They appear here for everyone who opens this page.</p>
+      <ul class="list" id="flags"></ul>
+    </section>
+    <section>
+      <h2>To check <span class="num" id="checkcount"></span></h2>
+      <ul class="list" id="checks"></ul>
+    </section>
+    <section>
+      <h2>Legend</h2>
+      <div class="legend">
+        <span class="sw" style="background:#A7ADA2"></span><span>Playable building (outline traced from the sheet)</span>
+        <span class="sw" style="background:#F0595C"></span><span>No-go building or area</span>
+        <span class="sw" style="background:#E6B04F"></span><span>Explosives allowed</span>
+        <span class="sw" style="background:#8F7AC2"></span><span>Car park</span>
+        <span class="sw" style="border:2px dashed #4FC7DD"></span><span>Real building the sheet does not draw (left out)</span>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script>
+const D = /*__DATA__*/null;
+const $ = (id) => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const KIND = { building: 'Playable building', building_nogo: 'No-go building', area: 'Area', road: 'Road name', place: 'Place', number: 'Free number', left_out: 'Left out' };
+const layerOf = (k) => (k.startsWith('building') ? 'building' : k === 'area' ? 'area' : k === 'left_out' ? 'left_out' : 'label');
+
+$('stats').innerHTML = `<span><span class="num">${D.stats.buildings}</span> buildings</span><span><span class="num">${D.stats.features}</span> shapes in the import</span><span>sheet placed on <span class="num">${D.stats.matched}</span> buildings, error <span class="num">${D.stats.loo} m</span> median, <span class="num">${D.stats.p95} m</span> p95</span>`;
+
+const svg = $('map'), view = $('view');
+for (const [id, href, box] of [['sat', D.sat, [0, 0, D.w, D.h]], ['sheet', D.sheet, D.sheetBox]]) {
+  const im = $(id);
+  im.setAttribute('href', href);
+  im.setAttribute('x', box[0]); im.setAttribute('y', box[1]); im.setAttribute('width', box[2]); im.setAttribute('height', box[3]);
+}
+const fade = $('fade');
+const applyFade = () => { $('sheet').style.opacity = fade.value; };
+fade.addEventListener('input', applyFade); applyFade();
+
+// shapes
+const byKey = new Map();
+const shapesG = $('shapes'), labelsG = $('labels');
+for (const f of D.feats) {
+  let el;
+  if (f.g === 'P' || f.g === 'L') {
+    el = document.createElementNS(NS, f.g === 'P' ? 'polygon' : 'polyline');
+    el.setAttribute('points', f.pts.map((p) => p.join(',')).join(' '));
+    const isBld = f.kind.startsWith('building');
+    el.setAttribute('fill', f.g === 'P' ? f.color : 'none');
+    el.setAttribute('fill-opacity', isBld ? '0.55' : f.kind === 'left_out' ? '0.12' : '0.12');
+    el.setAttribute('stroke', f.color);
+    el.setAttribute('stroke-width', f.kind === 'area' ? 2.5 : 1.5);
+    if (f.kind === 'left_out') el.setAttribute('stroke-dasharray', '5 3');
+    el.setAttribute('vector-effect', 'non-scaling-stroke');
+    shapesG.appendChild(el);
+  } else {
+    el = document.createElementNS(NS, 'text');
+    el.setAttribute('x', f.pts[0][0]); el.setAttribute('y', f.pts[0][1]);
+    el.setAttribute('text-anchor', 'middle'); el.setAttribute('dominant-baseline', 'middle');
+    el.setAttribute('fill', f.color);
+    el.setAttribute('class', 'lbl');
+    el.textContent = f.name;
+    labelsG.appendChild(el);
+  }
+  el.dataset.key = f.k;
+  el.dataset.layer = layerOf(f.kind);
+  el.style.cursor = 'pointer';
+  byKey.set(f.k, { f, el });
+  // building numbers on their shapes
+  if (f.g === 'P' && f.name && f.kind.startsWith('building')) {
+    const c = centroid(f.pts);
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', c[0]); t.setAttribute('y', c[1]); t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'middle');
+    t.setAttribute('class', 'lbl bnum'); t.setAttribute('fill', '#FFFFFF'); t.textContent = f.name; t.dataset.key = f.k; t.dataset.layer = 'building';
+    labelsG.appendChild(t);
+  }
+}
+function centroid(pts) { let x = 0, y = 0; for (const p of pts) { x += p[0]; y += p[1]; } return [x / pts.length, y / pts.length]; }
+function bbox(pts) { const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; }
+
+// pan and zoom
+let s = 1, tx = 0, ty = 0;
+function apply() {
+  view.setAttribute('transform', `translate(${tx} ${ty}) scale(${s})`);
+  const fs = 11 / s;
+  for (const t of labelsG.children) { t.setAttribute('font-size', t.classList.contains('bnum') ? fs * 0.95 : fs); t.setAttribute('stroke-width', 2.6 / s); }
+}
+function fit(b = [0, 0, D.w, D.h], pad = 30) {
+  const r = svg.getBoundingClientRect();
+  s = Math.min((r.width - pad * 2) / (b[2] - b[0]), (r.height - pad * 2) / (b[3] - b[1]));
+  s = Math.min(Math.max(s, 0.2), 12);
+  tx = r.width / 2 - ((b[0] + b[2]) / 2) * s; ty = r.height / 2 - ((b[1] + b[3]) / 2) * s; apply();
+}
+function zoomAt(f, cx, cy) { const ns = Math.min(Math.max(s * f, 0.2), 12); tx = cx - (cx - tx) * (ns / s); ty = cy - (cy - ty) * (ns / s); s = ns; apply(); }
+svg.addEventListener('wheel', (e) => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.2 : 1 / 1.2, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+const ptrs = new Map(); let drag = null, pinch = null;
+svg.addEventListener('pointerdown', (e) => { ptrs.set(e.pointerId, [e.clientX, e.clientY]); if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, tx, ty, moved: false, target: e.target }; else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s }; drag = null; } });
+svg.addEventListener('pointermove', (e) => {
+  if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pinch && ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const r = svg.getBoundingClientRect(); zoomAt((pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d) / s, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top); return; }
+  if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; svg.classList.add('dragging'); svg.setPointerCapture(e.pointerId); }
+  if (drag.moved) { tx = drag.tx + dx; ty = drag.ty + dy; apply(); }
+});
+const up = (e) => { if (drag && !drag.moved && e.type === 'pointerup') { const k = drag.target?.dataset?.key; if (k) select(k); } ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; drag = null; svg.classList.remove('dragging'); };
+svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+$('zin').onclick = () => { const r = svg.getBoundingClientRect(); zoomAt(1.4, r.width / 2, r.height / 2); };
+$('zout').onclick = () => { const r = svg.getBoundingClientRect(); zoomAt(1 / 1.4, r.width / 2, r.height / 2); };
+$('zfit').onclick = () => fit(bbox(D.feats.find((f) => f.kind === 'area').pts));
+new ResizeObserver(() => apply()).observe(svg);
+
+// layers
+for (const c of document.querySelectorAll('.chip')) c.addEventListener('click', () => {
+  const on = c.getAttribute('aria-pressed') !== 'true'; c.setAttribute('aria-pressed', on);
+  for (const el of document.querySelectorAll(`[data-layer="${c.dataset.layer}"]`)) el.style.display = on ? '' : 'none';
+});
+
+// selection and flags
+let selected = null, verdict = null;
+const flags = new Map();
+const docId = (k) => k.replace(/[^A-Za-z0-9_.~:@+-]/g, '_').slice(0, 190);
+function paint() {
+  for (const { f, el } of byKey.values()) {
+    const fl = flags.get(f.k);
+    const isSel = selected === f.k;
+    if (el.tagName === 'text') { el.setAttribute('stroke', isSel ? 'var(--sel)' : fl?.status === 'wrong' ? '#F0595C' : '#000'); el.setAttribute('paint-order', 'stroke'); continue; }
+    el.setAttribute('stroke', isSel ? 'var(--sel)' : fl?.status === 'wrong' ? '#FF3B3B' : fl?.status === 'ok' ? '#A4B465' : f.color);
+    el.setAttribute('stroke-width', isSel ? 4 : fl ? 3 : f.kind === 'area' ? 2.5 : 1.5);
+  }
+}
+function select(k) {
+  const item = byKey.get(k); if (!item) return;
+  selected = k; const f = item.f, fl = flags.get(k);
+  $('selempty').hidden = true; $('seldetail').hidden = false;
+  $('selkind').textContent = KIND[f.kind] || f.kind;
+  $('selname').textContent = f.name || (f.kind.startsWith('building') ? 'Building without number' : KIND[f.kind]);
+  $('seldesc').textContent = f.desc;
+  verdict = fl?.status ?? null; $('note').value = fl?.note ?? '';
+  $('vok').setAttribute('aria-pressed', verdict === 'ok'); $('vbad').setAttribute('aria-pressed', verdict === 'wrong');
+  $('savestatus').textContent = fl ? `Flagged ${fl.status === 'ok' ? 'correct' : 'wrong'}.` : '';
+  paint();
+}
+function zoomTo(k) { const it = byKey.get(k); if (!it) return; const b = bbox(it.f.pts); const pad = 60; fit([b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], 40); select(k); }
+$('vok').onclick = () => { verdict = 'ok'; $('vok').setAttribute('aria-pressed', 'true'); $('vbad').setAttribute('aria-pressed', 'false'); };
+$('vbad').onclick = () => { verdict = 'wrong'; $('vbad').setAttribute('aria-pressed', 'true'); $('vok').setAttribute('aria-pressed', 'false'); };
+
+function renderFlags() {
+  const list = $('flags'); list.replaceChildren();
+  const open = (f) => f.status === 'wrong' && !f.fixed;
+  // flags on shapes since redrawn drop out
+  const items = [...flags.values()].filter((f) => byKey.has(f.key)).sort((a, b) => (open(a) === open(b) ? 0 : open(a) ? -1 : 1));
+  $('flagcount').textContent = items.length; $('flagsempty').hidden = items.length > 0;
+  for (const fl of items) {
+    const li = document.createElement('li'), b = document.createElement('button');
+    const g = document.createElement('span'); g.className = 'glyph ' + (fl.fixed || fl.status !== 'wrong' ? 'ok' : 'bad'); g.textContent = fl.fixed ? '✓' : fl.status === 'wrong' ? '✕' : '✓';
+    const t = document.createElement('span'); t.textContent = `${fl.name || KIND[fl.kind] || 'Shape'}${fl.note ? ': ' + fl.note : ''}${fl.fixed ? ' · fixed: ' + fl.fixed : ''}`;
+    b.append(g, t); b.onclick = () => zoomTo(fl.key); li.append(b); list.append(li);
+  }
+  paint();
+}
+const checks = $('checks'); $('checkcount').textContent = D.checks.length;
+for (const c of D.checks) {
+  const li = document.createElement('li'), b = document.createElement('button');
+  const g = document.createElement('span'); g.className = 'glyph todo'; g.textContent = '◐';
+  const t = document.createElement('span'); t.textContent = c.what;
+  b.append(g, t);
+  b.onclick = () => { const hit = D.feats.find((f) => f.k === c.find || f.name === c.find); if (hit) zoomTo(hit.k); };
+  li.append(b); checks.append(li);
+}
+
+// shared store (absent when signed out or not granted: the page still works for looking)
+let db = null, me = null;
+(async () => {
+  try {
+    db = await window.claude?.use?.('db');
+    const user = await window.claude?.use?.('user');
+    me = user ? await user.id() : null;
+  } catch { db = null; }
+  if (!db) { for (const id of ['save', 'clear', 'vok', 'vbad', 'note']) $(id).disabled = true; $('flagsempty').textContent = 'Flags need you to be signed in to claude.ai on this page.'; return; }
+  db.collection('flags').onSnapshot((snap) => {
+    flags.clear();
+    for (const d of snap.docs) { const v = d.data(); if (v?.key) flags.set(v.key, v); }
+    renderFlags();
+    if (selected) { const fl = flags.get(selected); $('savestatus').textContent = fl ? `Flagged ${fl.status === 'ok' ? 'correct' : 'wrong'}.` : ''; }
+  }, () => { $('flagsempty').textContent = 'Flags could not be loaded. Reload the page to try again.'; });
+})();
+$('save').onclick = async () => {
+  if (!db || !selected) return;
+  if (!verdict) { $('savestatus').textContent = 'Choose Correct or Wrong first.'; return; }
+  const f = byKey.get(selected).f;
+  $('save').disabled = true; $('savestatus').textContent = 'Saving…';
+  try {
+    await db.collection('flags').doc(docId(f.k)).set({ key: f.k, kind: f.kind, name: f.name, status: verdict, note: $('note').value.trim().slice(0, 1000), by: me, at: new Date().toISOString() });
+    $('savestatus').textContent = 'Saved.';
+  } catch (e) { $('savestatus').textContent = e?.code === 'not_granted' ? 'You can look but not flag on this page.' : 'Not saved. Try again.'; }
+  finally { $('save').disabled = false; }
+};
+$('clear').onclick = async () => {
+  if (!db || !selected) return;
+  try { await db.collection('flags').doc(docId(selected)).delete(); verdict = null; $('vok').setAttribute('aria-pressed', 'false'); $('vbad').setAttribute('aria-pressed', 'false'); $('note').value = ''; $('savestatus').textContent = 'Flag removed.'; }
+  catch { $('savestatus').textContent = 'Not removed. Try again.'; }
+};
+
+requestAnimationFrame(() => { fit(bbox(D.feats.find((f) => f.kind === 'area').pts)); paint(); });
+</script>
+<style>.lbl { font-family: var(--mono); font-weight: 600; stroke: #000; paint-order: stroke; pointer-events: auto; }</style>

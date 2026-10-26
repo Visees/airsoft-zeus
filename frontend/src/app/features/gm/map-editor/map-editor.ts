@@ -16,6 +16,7 @@ import {
   ContentVisibility,
   EventDetail,
   LatLng,
+  MapOverlay,
   MapTemplate,
   Objective,
   ObjectiveType,
@@ -47,6 +48,7 @@ import {
   zoneSizeLabel,
 } from '../ops/map-defaults';
 import { OpsDialog } from '../ops/ops-dialog';
+import { fitToView, parseOverlayPosition } from './overlay-position';
 
 type Tool = 'select' | 'objective' | 'poi' | 'area' | 'line' | 'circle' | 'label';
 type SelKind = 'objective' | 'poi' | 'zone';
@@ -182,6 +184,9 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             </button>
             <button type="button" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-left text-sm hover:bg-muted" (click)="openDialog('import')">
               <ng-icon name="lucideFileUp" size="16" aria-hidden="true" /> <ng-container i18n>Import GeoJSON or CSV</ng-container>
+            </button>
+            <button type="button" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-left text-sm hover:bg-muted" (click)="openDialog('overlay')">
+              <ng-icon name="lucideImage" size="16" aria-hidden="true" /> <ng-container i18n>Venue map image</ng-container>
             </button>
             <button type="button" role="menuitem" class="flex min-h-11 items-center gap-3 rounded-sm px-3 text-left text-sm hover:bg-muted" (click)="openDialog('saveTpl')">
               <ng-icon name="lucideSave" size="16" aria-hidden="true" /> <ng-container i18n>Save as map template</ng-container>
@@ -338,7 +343,16 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             (poiClick)="onPoiClick($event)"
             (zoneClick)="onZoneClick($event)"
             (markerMoved)="onMarkerMoved($event)"
+            [overlay]="event()?.mapOverlay ?? null"
+            [overlayEditable]="overlayEditing()"
+            (overlayCornersChange)="saveOverlayCorners($event)"
           />
+          @if (overlayEditing()) {
+            <div class="hud absolute inset-x-2 top-2 z-[2] mr-14 flex flex-wrap items-center gap-2 p-2 sm:right-auto sm:max-w-md" role="status">
+              <p class="min-w-0 flex-1 text-sm" i18n>Drag the four corners until the venue map lines up with the map. Each change is saved.</p>
+              <button hlmBtn type="button" class="h-10" (click)="overlayEditing.set(false)" i18n>Done</button>
+            </div>
+          }
 
           @if (hint(); as h) {
             <div class="hud absolute left-2 right-16 top-2 z-10 mx-auto flex max-w-xl flex-wrap items-center gap-2 px-3 py-2 text-sm" role="status" aria-live="polite">
@@ -768,6 +782,60 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
       }
     </ah-ops-dialog>
 
+    <ah-ops-dialog [open]="dialog() === 'overlay'" title="Venue map image" subtitle="Your field's own map, shown under the shapes. Players can hide it from the map type button." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+      @if (dialog() === 'overlay') {
+        <form [formGroup]="overlayForm" (ngSubmit)="saveOverlay()" class="flex flex-col gap-4" novalidate>
+          @if (event()?.mapOverlay; as cur) {
+            <div class="panel flex flex-wrap items-center gap-3 p-3">
+              <img [src]="cur.url" alt="" class="size-16 shrink-0 rounded-sm border border-border object-cover" />
+              <p class="min-w-0 flex-1 text-sm" i18n>This event has a venue map.</p>
+              <button hlmBtn type="button" variant="outline" class="h-10" (click)="startOverlayEditing()" i18n>Adjust corners on the map</button>
+              <button hlmBtn type="button" variant="ghost" class="h-10 text-destructive" (click)="removeOverlay()" [disabled]="busy()" i18n>Remove</button>
+            </div>
+          }
+          <div class="flex flex-col gap-1.5">
+            <label hlmLabel for="ov-file">{{ event()?.mapOverlay ? txt.replaceImage : txt.image }}</label>
+            <input id="ov-file" type="file" accept="image/jpeg,image/png,image/webp" class="text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-border file:bg-muted file:px-3" (change)="onOverlayImage($event)" />
+            <p class="text-sm text-muted-foreground" i18n>JPEG, PNG or WebP, up to 20 MB. A north-up image cut to the field works best.</p>
+          </div>
+          <fieldset>
+            <legend class="mb-1.5 text-sm font-medium" i18n>Position</legend>
+            <div class="flex flex-col gap-2">
+              @if (event()?.mapOverlay) {
+                <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
+                  <input type="radio" formControlName="placement" value="keep" class="size-4 accent-primary" /> <ng-container i18n>Keep the current position</ng-container>
+                </label>
+              }
+              <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
+                <input type="radio" formControlName="placement" value="view" class="size-4 accent-primary" /> <ng-container i18n>Centre it on the current view, then drag its corners</ng-container>
+              </label>
+              <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-border px-3 has-checked:border-primary has-checked:bg-primary/10">
+                <input type="radio" formControlName="placement" value="file" class="size-4 accent-primary" /> <ng-container i18n>From a position file</ng-container>
+              </label>
+            </div>
+            @if (overlayForm.value.placement === 'file') {
+              <div class="mt-2 flex flex-col gap-1.5">
+                <label hlmLabel for="ov-pos" class="sr-only" i18n>Position file</label>
+                <input id="ov-pos" type="file" accept=".geojson,.json,application/json,application/geo+json" class="text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-border file:bg-muted file:px-3" (change)="onOverlayPosition($event)" />
+                <p class="text-sm text-muted-foreground" i18n>GeoJSON with the four corners (top-left, top-right, bottom-right, bottom-left), or north, south, east and west.</p>
+              </div>
+            }
+          </fieldset>
+          <div class="flex flex-col gap-1.5">
+            <label hlmLabel for="ov-opacity" i18n>Opacity <span class="num text-muted-foreground">{{ overlayOpacityPct() }}%</span></label>
+            <input id="ov-opacity" type="range" min="0.1" max="1" step="0.05" formControlName="opacity" class="h-11 accent-primary" />
+          </div>
+          @if (overlayError()) {
+            <p class="field-error" role="alert">{{ overlayError() }}</p>
+          }
+          <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button hlmBtn type="button" variant="outline" class="h-11" (click)="dialog.set(null)" i18n>Cancel</button>
+            <button hlmBtn type="submit" class="h-11" [disabled]="busy()">{{ busy() ? txt.saving : txt.saveVenueMap }}</button>
+          </div>
+        </form>
+      }
+    </ah-ops-dialog>
+
     <ah-ops-dialog [open]="dialog() === 'saveTpl'" title="Save as map template" subtitle="Saves objectives, POIs and zones so you can reuse this field in other events." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'saveTpl') {
         <form (submit)="$event.preventDefault(); saveTemplate()" class="flex flex-col gap-4" novalidate>
@@ -831,6 +899,9 @@ export class MapEditorScreen implements OnInit {
     importing: $localize`Importing…`,
     import: $localize`Import`,
     saveTemplate: $localize`Save template`,
+    image: $localize`Image`,
+    replaceImage: $localize`Replace the image (optional)`,
+    saveVenueMap: $localize`Save venue map`,
   };
 
   private readonly api = inject(ApiService);
@@ -880,7 +951,12 @@ export class MapEditorScreen implements OnInit {
   protected readonly menu = signal<'layers' | 'more' | null>(null);
   protected readonly mobileSearch = signal(false);
   protected readonly searchText = signal('');
-  protected readonly dialog = signal<'import' | 'saveTpl' | 'applyTpl' | null>(null);
+  protected readonly dialog = signal<'import' | 'saveTpl' | 'applyTpl' | 'overlay' | null>(null);
+  /** The venue map's corner handles are on the map. */
+  protected readonly overlayEditing = signal(false);
+  protected readonly overlayError = signal<string | null>(null);
+  private overlayImage: File | null = null;
+  private overlayFileCorners: MapOverlay['corners'] | null = null;
   protected readonly importError = signal<string | null>(null);
   protected readonly templates = signal<MapTemplate[] | null>(null);
   protected readonly templatesError = signal<unknown>(null);
@@ -937,6 +1013,12 @@ export class MapEditorScreen implements OnInit {
     content: new FormControl('', { nonNullable: true }),
   });
   protected readonly templateName = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] });
+  protected readonly overlayForm = new FormGroup({
+    placement: new FormControl<'keep' | 'view' | 'file'>('view', { nonNullable: true }),
+    opacity: new FormControl(0.85, { nonNullable: true }),
+  });
+  private readonly overlayValue = toSignal(this.overlayForm.valueChanges, { initialValue: this.overlayForm.getRawValue() });
+  protected readonly overlayOpacityPct = computed(() => Math.round((this.overlayValue().opacity ?? 0.85) * 100));
 
   protected readonly zoneValue = toSignal(this.zoneForm.valueChanges, { initialValue: this.zoneForm.getRawValue() });
   protected readonly poiValue = toSignal(this.poiForm.valueChanges, { initialValue: this.poiForm.getRawValue() });
@@ -1215,9 +1297,17 @@ export class MapEditorScreen implements OnInit {
     this.menu.update((cur) => (cur === m ? null : m));
   }
 
-  protected openDialog(d: 'import' | 'saveTpl' | 'applyTpl'): void {
+  protected openDialog(d: 'import' | 'saveTpl' | 'applyTpl' | 'overlay'): void {
     this.menu.set(null);
     this.importError.set(null);
+    if (d === 'overlay') {
+      const cur = this.event()?.mapOverlay;
+      this.overlayForm.reset({ placement: cur ? 'keep' : 'view', opacity: cur?.opacity ?? 0.85 });
+      this.overlayImage = null;
+      this.overlayFileCorners = null;
+      this.overlayError.set(null);
+      this.overlayEditing.set(false);
+    }
     if (d === 'import') this.importForm.reset({ format: 'geojson', content: '' });
     if (d === 'saveTpl') this.templateName.reset(this.event()?.name ?? '');
     if (d === 'applyTpl') void this.loadTemplates();
@@ -1889,6 +1979,93 @@ export class MapEditorScreen implements OnInit {
     }
   }
 
+  protected onOverlayImage(e: Event): void {
+    this.overlayImage = (e.target as HTMLInputElement).files?.[0] ?? null;
+    this.overlayError.set(null);
+  }
+
+  protected onOverlayPosition(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    this.overlayFileCorners = null;
+    if (!file) return;
+    void file.text().then((text) => {
+      this.overlayFileCorners = parseOverlayPosition(text);
+      this.overlayError.set(this.overlayFileCorners ? null : $localize`This file has no position for the image. It needs the four corners or north, south, east and west.`);
+    });
+  }
+
+  protected async saveOverlay(): Promise<void> {
+    const v = this.overlayForm.getRawValue();
+    const cur = this.event()?.mapOverlay ?? null;
+    if (!this.overlayImage && !cur) {
+      this.overlayError.set($localize`Choose the image of your venue map.`);
+      return;
+    }
+    let corners: MapOverlay['corners'] | null = null;
+    if (v.placement === 'keep') corners = cur?.corners ?? null;
+    else if (v.placement === 'file') corners = this.overlayFileCorners;
+    else {
+      const view = this.mapRef()?.viewBounds();
+      if (view) corners = fitToView(view, this.overlayImage ? await imageAspect(this.overlayImage) : aspectOf(cur!.corners));
+    }
+    if (!corners) {
+      this.overlayError.set(v.placement === 'file' ? $localize`Choose a position file.` : $localize`The map is not ready yet. Try again in a moment.`);
+      return;
+    }
+    this.busy.set(true);
+    this.overlayError.set(null);
+    try {
+      const url = this.overlayImage ? (await this.api.upload(this.overlayImage, 'map_overlay')).url : cur!.url;
+      const saved = await this.api.setMapOverlay(this.eventId(), { url, corners, opacity: v.opacity });
+      this.event.update((ev) => (ev ? { ...ev, mapOverlay: saved } : ev));
+      this.dialog.set(null);
+      this.toast.success($localize`Venue map saved`);
+      if (v.placement === 'view') this.overlayEditing.set(true);
+    } catch (e) {
+      const err = ApiError.from(e);
+      this.overlayError.set([err.message, ...Object.values(err.fields)].join(' '));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected startOverlayEditing(): void {
+    this.dialog.set(null);
+    this.overlayEditing.set(true);
+  }
+
+  protected async saveOverlayCorners(corners: MapOverlay['corners']): Promise<void> {
+    const cur = this.event()?.mapOverlay;
+    if (!cur) return;
+    try {
+      const saved = await this.api.setMapOverlay(this.eventId(), { ...cur, corners });
+      this.event.update((ev) => (ev ? { ...ev, mapOverlay: saved } : ev));
+    } catch (e) {
+      this.toast.error(e);
+    }
+  }
+
+  protected async removeOverlay(): Promise<void> {
+    const ok = await this.confirm.ask({
+      title: $localize`Remove the venue map?`,
+      message: $localize`The image disappears from every map of this event. Zones and points stay.`,
+      confirmLabel: $localize`Remove`,
+      destructive: true,
+    });
+    if (!ok) return;
+    this.busy.set(true);
+    try {
+      await this.api.removeMapOverlay(this.eventId());
+      this.event.update((ev) => (ev ? { ...ev, mapOverlay: null } : ev));
+      this.overlayEditing.set(false);
+      this.dialog.set(null);
+    } catch (e) {
+      this.toast.error(e);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   protected async saveTemplate(): Promise<void> {
     this.templateName.markAsTouched();
     if (this.templateName.invalid || !this.templateName.value.trim()) {
@@ -2009,4 +2186,24 @@ function outlineZone(z: Zone): Zone {
   if (z.geometry === 'polygon' && z.points.length >= 3) return { ...z, geometry: 'polyline', points: [...z.points, z.points[0]] };
   if (z.geometry === 'circle' && z.points[0] && z.radiusM) return { ...z, geometry: 'polyline', points: circlePath(z.points[0], z.radiusM) };
   return z;
+}
+
+/** Width / height of an image file, to place it without stretching. */
+async function imageAspect(file: File): Promise<number> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const a = bmp.width / bmp.height;
+    bmp.close();
+    return a;
+  } catch {
+    return 1;
+  }
+}
+
+/** Width / height of a placed image, in metres on the ground. */
+function aspectOf(c: MapOverlay['corners']): number {
+  const k = Math.cos((c[0].lat * Math.PI) / 180);
+  const w = Math.hypot((c[1].lng - c[0].lng) * k, c[1].lat - c[0].lat);
+  const h = Math.hypot((c[3].lng - c[0].lng) * k, c[3].lat - c[0].lat);
+  return h > 0 ? w / h : 1;
 }

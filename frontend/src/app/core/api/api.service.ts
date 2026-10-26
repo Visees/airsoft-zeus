@@ -37,6 +37,7 @@ import {
   LocationReportRequest,
   LocationReportResponse,
   MapImportRequest,
+  MapOverlay,
   MapTemplate,
   Member,
   MeUser,
@@ -95,6 +96,9 @@ export class ApiService {
   }
   private patch<T>(path: string, body: unknown): Promise<T> {
     return firstValueFrom(this.http.patch<T>(this.base + path, body));
+  }
+  private put<T>(path: string, body: unknown): Promise<T> {
+    return firstValueFrom(this.http.put<T>(this.base + path, body));
   }
   private delete<T>(path: string, body?: unknown): Promise<T> {
     return firstValueFrom(this.http.delete<T>(this.base + path, { body }));
@@ -201,7 +205,7 @@ export class ApiService {
   updateClub(id: Uuid, body: Partial<Club>) {
     return this.patch<Club>(`/clubs/${id}`, body);
   }
-  upload(file: File, purpose: 'avatar' | 'cover' | 'team_icon' | 'objective_image' | 'objective_document' | 'poi_image' | 'club_logo' | 'news_image') {
+  upload(file: File, purpose: 'avatar' | 'cover' | 'team_icon' | 'objective_image' | 'objective_document' | 'poi_image' | 'club_logo' | 'news_image' | 'map_overlay') {
     const form = new FormData();
     form.append('file', file);
     form.append('purpose', purpose);
@@ -461,6 +465,12 @@ export class ApiService {
   }
   mapTemplates() {
     return this.get<MapTemplate[]>('/templates/maps');
+  }
+  setMapOverlay(eventId: Uuid, body: MapOverlay) {
+    return this.put<MapOverlay>(this.ev(eventId, '/map/overlay'), body);
+  }
+  removeMapOverlay(eventId: Uuid) {
+    return this.delete<{ ok: true }>(this.ev(eventId, '/map/overlay'));
   }
   saveMapTemplate(eventId: Uuid, name: string) {
     return this.post<MapTemplate>(this.ev(eventId, '/map/save-template'), { name });

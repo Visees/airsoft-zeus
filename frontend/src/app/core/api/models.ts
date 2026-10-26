@@ -353,6 +353,8 @@ export interface EventDetail extends EventSummary {
   teamsLocked: boolean;
   registrationLocked: boolean;
   area: { lat: number; lng: number; zoom: number } | null;
+  /** The field's own printed map, placed on the map under the shapes. */
+  mapOverlay: MapOverlay | null;
   tracking: TrackingSettings;
   visibilityRules: VisibilityRules;
   scoring: ScoringSettings;
@@ -726,6 +728,13 @@ export interface Zone {
 }
 
 export type ZoneInput = Partial<Omit<Zone, 'id'>>;
+
+/** A venue map image placed by its corners: top-left, top-right, bottom-right, bottom-left. */
+export interface MapOverlay {
+  url: string;
+  corners: [LatLng, LatLng, LatLng, LatLng];
+  opacity: number;
+}
 
 export interface MapTemplate {
   id: Uuid;
