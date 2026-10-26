@@ -3390,6 +3390,17 @@
     "1130662737972995668": "Angolo in alto a sinistra",
     "3400264127778359717": "Angolo in alto a destra",
     "8524242011610467605": "Angolo in basso a destra",
-    "7805469512473228252": "Angolo in basso a sinistra"
+    "7805469512473228252": "Angolo in basso a sinistra",
+    "485991935818839775": "Da un file GeoJSON o CSV, oppure da un pacchetto della mappa del campo con i suoi extra e l'immagine della mappa.",
+    "4804229447105348625": "Pacchetto della mappa del campo · {$ICU}",
+    "4879780959352465714": "{VAR_PLURAL, plural, =1 {1 elemento} other {{INTERPOLATION} elementi}}",
+    "5419181313753274837": "Extra",
+    "372878964037475163": "Dal pacchetto, inoltre",
+    "7676647719072125677": "Sostituisce la mappa del campo che l'evento ha adesso.",
+    "4715193168849033291": "Imposta come area dell'evento (le mappe dei giocatori si aprono su questo campo)",
+    "821765212410234409": "Rimuovi prima le aree, le linee, le etichette e i punti attuali",
+    "8737752371052517420": "{VAR_PLURAL, plural, =1 {Sulla mappa ora ce n'è 1.} other {Sulla mappa ora ce ne sono {INTERPOLATION}.}}",
+    "6428817420200023642": "{$ICU} Gli obiettivi restano.",
+    "4392174301559706159": "{$removed} forme e punti vecchi rimossi."
   }
 }

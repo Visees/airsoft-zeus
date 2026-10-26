@@ -461,7 +461,7 @@ export class ApiService {
     return this.delete<{ ok: true }>(this.ev(eventId, `/zones/${zoneId}`));
   }
   importMap(eventId: Uuid, body: MapImportRequest) {
-    return this.post<{ objectives: number; pois: number; zones: number }>(this.ev(eventId, '/map/import'), body);
+    return this.post<{ objectives: number; pois: number; zones: number; removed: number }>(this.ev(eventId, '/map/import'), body);
   }
   mapTemplates() {
     return this.get<MapTemplate[]>('/templates/maps');

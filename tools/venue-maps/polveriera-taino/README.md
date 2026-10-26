@@ -44,20 +44,21 @@ They are kept to show where the data came from: to fix a label or a shape, edit 
 
 | File | What |
 | --- | --- |
-| `polveriera-taino.geojson` | boundary, areas, buildings with numbers, road and place names (styles included) |
-| `polveriera-taino-griglia.geojson` | optional: the sheet's grid (31 m squares and halves) with row and column names |
-| `polveriera-taino-ingressi.geojson` | optional: entrances of the "case matte" (red rings on the sheet) |
-| `pianta-campo.webp` + `pianta-campo.position.json` | the venue map image and where it goes |
+| `polveriera-taino.geojson` | **the one file for the app** (a venue map package): boundary, areas, buildings with numbers, road and place names (styles included), the add-ons (the sheet's grid, the entrances of the "case matte"), the venue map image and where players' maps open |
+| `pianta-campo.webp` + `pianta-campo.position.json` | the venue map image and where it goes (also inside the package; kept for the review tools) |
 | `report.json` | registration error, buildings left out, free numbers, buildings with several numbers |
 | `review/` | images to check the result by eye |
 
 ## Load it into an event
 
-In the event's map editor (menu ⋯):
-1. **Import GeoJSON or CSV** → `polveriera-taino.geojson` (then the optional files if wanted).
-2. **Venue map image** → image `pianta-campo.webp`, position "From a position file" →
-   `pianta-campo.position.json`.
-3. **Set as event area**, then **Save as map template** to reuse the field in other events.
+In the event's map editor, menu ⋮ → **Import GeoJSON or CSV** → `polveriera-taino.geojson`. The
+dialog shows what the package holds: tick the add-ons wanted (grid, entrances), keep or untick the
+venue map image and "Set as event area", and tick "Remove the current areas, lines, labels and points
+first" when the event already has an older version of the field (objectives stay). Then **Save as
+map template** to reuse the field in other events.
+
+The package format (an `airsofthub` member next to `features`, add-on features tagged
+`properties.layer`) is described in `frontend/src/app/features/gm/map-editor/map-package.ts`.
 
 ## Tracing by eye (current method, 2026-10-26)
 

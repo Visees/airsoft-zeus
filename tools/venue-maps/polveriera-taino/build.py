@@ -13,6 +13,7 @@ One source per thing:
     python register.py   # once, or after changing the matching
     python build.py       # writes out/
 """
+import base64
 import json
 import math
 import re
@@ -640,15 +641,35 @@ def main():
         out.append(feature(Point(*AFF.to_local(t['x'], t['y'])), {'type': 'label', 'name': t['text'], 'description': 'Nome della strada sulla pianta.', **STYLE['road']}))
 
     OUT.mkdir(parents=True, exist_ok=True)
-    save_json(OUT / 'polveriera-taino.geojson', {'type': 'FeatureCollection', 'features': out})
-    save_json(OUT / 'polveriera-taino-griglia.geojson', {'type': 'FeatureCollection', 'features': grid_features(boundary_fixed)})
-    entrances = case_matte_entrances(boundary_fixed)
-    save_json(OUT / 'polveriera-taino-ingressi.geojson', {'type': 'FeatureCollection', 'features': [
-        feature(p, {'type': 'sector', 'name': '', 'description': 'Ingresso "case matte".', 'radius': 1.5, **STYLE['case_matte']}) for p in entrances]})
-
     img, bounds = overlay(boundary_fixed)
     img.save(OUT / 'pianta-campo.webp', 'WEBP', quality=80, method=6)
     save_json(OUT / 'pianta-campo.position.json', bounds, indent=1)
+
+    # One file for the app (a venue map package, see frontend map-package.ts): the map, the add-ons the
+    # GM can choose in the import dialog (features tagged with their layer), the venue map image and
+    # where players' maps open. Still plain GeoJSON for any other tool.
+    grid = grid_features(boundary_fixed)
+    entrances = case_matte_entrances(boundary_fixed)
+    addons = [{**f, 'properties': {**f['properties'], 'layer': 'grid'}} for f in grid] + [
+        feature(p, {'type': 'sector', 'name': '', 'description': 'Ingresso "case matte".', 'radius': 1.5, 'layer': 'entrances', **STYLE['case_matte']})
+        for p in entrances]
+    clon, clat = to_lonlat(*boundary_fixed.centroid.coords[0])
+    image = 'data:image/webp;base64,' + base64.b64encode((OUT / 'pianta-campo.webp').read_bytes()).decode()
+    save_json(OUT / 'polveriera-taino.geojson', {
+        'type': 'FeatureCollection',
+        'airsofthub': {
+            'version': 1,
+            'name': 'Ex polveriera Montedison, Taino',
+            'layers': [
+                {'id': 'grid', 'name': 'Griglia della pianta',
+                 'description': 'Quadrati da 31 m e mezzi quadrati, con i nomi di righe e colonne come sulla pianta stampata.', 'default': False},
+                {'id': 'entrances', 'name': 'Ingressi delle case matte', 'description': 'Gli anelli rossi della pianta.', 'default': False},
+            ],
+            'overlay': {'image': image, **bounds, 'opacity': 0.85},
+            'area': {'lat': round(float(clat), 6), 'lng': round(float(clon), 6), 'zoom': 17},
+        },
+        'features': out + addons,
+    })
 
     # report
     numbers_on_buildings = {n for e in report for n in e['numbers']} | {n for v in sheet_numbers.values() for n in v}

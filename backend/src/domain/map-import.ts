@@ -52,7 +52,18 @@ export function styleOf(p: Record<string, unknown>): { color?: string; fill_opac
   return out;
 }
 
-export function parseImport(format: 'geojson' | 'csv', content: string): ParsedImport {
+/**
+ * A venue map package is a GeoJSON FeatureCollection with an `airsofthub` member that lists optional
+ * layers (add-ons such as a grid); features tagged `properties.layer` with one of those ids are
+ * imported only when that layer is chosen. Untagged features, and tags the package does not list,
+ * are always imported, so a plain file with its own `layer` property loses nothing.
+ */
+export function packageLayers(gj: unknown): string[] {
+  const layers = (gj as { airsofthub?: { layers?: { id?: unknown }[] } })?.airsofthub?.layers;
+  return Array.isArray(layers) ? layers.map((l) => l?.id).filter((id): id is string => typeof id === 'string') : [];
+}
+
+export function parseImport(format: 'geojson' | 'csv', content: string, opts: { layers?: string[] } = {}): ParsedImport {
   const out: ParsedImport = { objectives: [], pois: [], zones: [] };
   let count = 0;
   const add = (
@@ -90,8 +101,11 @@ export function parseImport(format: 'geojson' | 'csv', content: string): ParsedI
       throw badRequest(tr`This is not valid GeoJSON.`, 'invalid_import');
     }
     const features = gj.type === 'FeatureCollection' ? (gj.features ?? []) : gj.type === 'Feature' ? [gj as never] : [];
+    const optional = new Set(packageLayers(gj));
+    const chosen = new Set(opts.layers ?? []);
     for (const f of features) {
       const p = f.properties ?? {};
+      if (typeof p.layer === 'string' && optional.has(p.layer) && !chosen.has(p.layer)) continue;
       const name = String(p.name ?? p.title ?? tr`Imported`).slice(0, 120);
       const desc = String(p.description ?? '').slice(0, 2000);
       const type = String(p.type ?? p.kind ?? '');

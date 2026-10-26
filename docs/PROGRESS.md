@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-25 — Venue map image, styled map import, Polveriera Taino field map.
+Last update: 2026-10-26 — Venue map packages (one file: map, add-ons, image, area), Polveriera outlines traced by eye.
 
 ## Stack (decided)
 
@@ -243,6 +243,15 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
 * `tools/venue-maps/polveriera-taino/`: builds the Ex polveriera Montedison (Taino) map from the
   venue sheet + the Lombardy DBTR building footprints (see its README). Output: GeoJSON, the
   warped sheet as WebP + position file, a report, and a review page with flags.
+* Venue map packages (2026-10-26): one GeoJSON file with an `airsofthub` member carries a whole
+  field: base shapes, optional add-ons (features tagged `properties.layer`, e.g. a grid), the venue
+  map image (embedded as a data URL) and the event area (`map-editor/map-package.ts`). The import
+  dialog lists the add-ons and the image as checkboxes; the image is uploaded on its own, then one
+  `POST /map/import` (`layers`, `overlay`, `area`) brings in everything in one transaction. Any
+  import can also replace the event's zones and POIs first (`replace`; objectives stay, refused once
+  the event is over). The Polveriera tool writes its map as such a package.
+* The Polveriera building outlines are traced by eye on the sheet (`data/traced.json`); the field
+  boundary, no-go areas, explosives area, covered path and entrance are still the first version's.
 * Not merged: branch `feature/field-map-overlay` (24 Oct) has another take on the same feature
   (pin-based alignment, image only for members). Its migration was also named 0010-map-overlay.sql,
   hence 0011 here.

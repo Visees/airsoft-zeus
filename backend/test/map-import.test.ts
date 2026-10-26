@@ -44,6 +44,20 @@ describe('map import', () => {
     expect(out.zones.map((z) => `${z.kind}:${z.geometry}`)).toEqual(['restricted:polygon', 'restricted:polygon', 'line:polyline', 'line:polyline']);
   });
 
+  it('imports the optional layers of a venue map package only when chosen', () => {
+    const tagged = (name: string, layer?: string) => ({ type: 'Feature', properties: { type: 'line', name, ...(layer ? { layer } : {}) }, geometry: { type: 'LineString', coordinates: square.slice(0, 2) } });
+    const pkg = JSON.stringify({
+      type: 'FeatureCollection',
+      airsofthub: { version: 1, layers: [{ id: 'grid' }, { id: 'entrances' }] },
+      features: [tagged('base'), tagged('grid line', 'grid'), tagged('entrance', 'entrances'), tagged('own layer', 'roads')],
+    });
+    const names = (layers?: string[]) => parseImport('geojson', pkg, { layers }).zones.map((z) => z.label);
+    expect(names()).toEqual(['base', 'own layer']);
+    expect(names(['grid'])).toEqual(['base', 'grid line', 'own layer']);
+    // a plain file keeps every feature, whatever its layer property says
+    expect(parseImport('geojson', fc([tagged('a', 'grid'), tagged('b')])).zones).toHaveLength(2);
+  });
+
   it('accepts a venue map image only from our own uploads, placed at field scale', () => {
     const corners = [
       { lat: 45.76, lng: 8.6 },

@@ -756,6 +756,14 @@ export interface MapImportRequest {
   format: 'geojson' | 'csv';
   /** GeoJSON FeatureCollection, or CSV with header: type,name,lat,lng[,description] (type = objective|poi|<zone kind>) */
   content: string;
+  /** a venue map package: the optional layers chosen (others are skipped) */
+  layers?: string[];
+  /** remove the event's zones and POIs first (objectives stay) */
+  replace?: boolean;
+  /** the package's venue map image, already uploaded */
+  overlay?: MapOverlay;
+  /** where players' maps open */
+  area?: LatLng & { zoom: number };
 }
 
 // ---------------------------------------------------------------------------

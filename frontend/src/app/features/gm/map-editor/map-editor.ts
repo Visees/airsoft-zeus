@@ -30,7 +30,7 @@ import {
 import { PlaceResult, PlaceSearchService } from '../../../core/maps/place-search.service';
 import { ConfirmService } from '../../../core/ui/confirm.service';
 import { ToastService } from '../../../core/ui/toast.service';
-import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_TYPE_LABELS, POI_TYPE_LABELS, ZONE_KIND_LABELS, formatDateTime, formatDecimal } from '../../../core/util/format';
+import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_TYPE_LABELS, POI_TYPE_LABELS, ZONE_KIND_LABELS, formatBytes, formatDateTime, formatDecimal } from '../../../core/util/format';
 import { centroid, formatLatLng, offset, parseLatLng, pathLengthM, polygonAreaM2 } from '../../../core/util/geo';
 import { DraftShape, MarkerMove, TacticalMap } from '../../../shared/map/tactical-map';
 import { EmptyState, ErrorState } from '../../../shared/states';
@@ -48,6 +48,7 @@ import {
   zoneSizeLabel,
 } from '../ops/map-defaults';
 import { OpsDialog } from '../ops/ops-dialog';
+import { readMapPackage, type MapPackage } from './map-package';
 import { fitToView, parseOverlayPosition } from './overlay-position';
 
 type Tool = 'select' | 'objective' | 'poi' | 'area' | 'line' | 'circle' | 'label';
@@ -741,9 +742,57 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
     </ng-template>
 
     <!-- ======================= dialogs ======================= -->
-    <ah-ops-dialog [open]="dialog() === 'import'" title="Import map elements" subtitle="Elements are added to the current map; nothing is replaced." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
+    <ah-ops-dialog [open]="dialog() === 'import'" title="Import map elements" subtitle="From a GeoJSON or CSV file, or a venue map package with its add-ons and venue map image." (closed)="dialog.set(null)" i18n-title i18n-subtitle>
       @if (dialog() === 'import') {
         <form [formGroup]="importForm" (ngSubmit)="runImport()" class="flex flex-col gap-4" novalidate>
+          <div class="flex flex-col gap-1.5">
+            <label hlmLabel for="imp-file" i18n>File</label>
+            <input id="imp-file" type="file" accept=".geojson,.json,.csv,text/csv,application/json,application/geo+json" class="text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-border file:bg-muted file:px-3" (change)="onImportFile($event)" />
+          </div>
+          @if (importPkg(); as pkg) {
+            <div class="flex flex-col gap-0.5 rounded-md border border-border bg-muted/40 px-3 py-2.5">
+              <p class="font-medium">{{ pkg.name || importFileName() }}</p>
+              <p class="text-sm text-muted-foreground" i18n>Venue map package · {pkg.baseCount, plural, =1 {1 element} other {{{ pkg.baseCount }} elements}}</p>
+            </div>
+            @if (pkg.layers.length) {
+              <fieldset class="flex flex-col">
+                <legend class="mb-1 text-sm font-medium" i18n>Add-ons</legend>
+                @for (l of pkg.layers; track l.id) {
+                  <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1.5">
+                    <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" [checked]="pkgLayers().has(l.id)" (change)="togglePkgLayer(l.id, $any($event.target).checked)" />
+                    <span class="flex min-w-0 flex-col">
+                      <span>{{ l.name }} <span class="num text-sm text-muted-foreground">· {{ l.count }}</span></span>
+                      @if (l.description) {
+                        <span class="text-sm text-muted-foreground">{{ l.description }}</span>
+                      }
+                    </span>
+                  </label>
+                }
+              </fieldset>
+            }
+            @if (pkg.overlay || pkg.area) {
+              <fieldset class="flex flex-col">
+                <legend class="mb-1 text-sm font-medium" i18n>Also from the package</legend>
+                @if (pkg.overlay; as ov) {
+                  <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1.5">
+                    <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" [checked]="pkgOverlay()" (change)="pkgOverlay.set($any($event.target).checked)" />
+                    <span class="flex min-w-0 flex-col">
+                      <span><ng-container i18n>Venue map image</ng-container> <span class="num text-sm text-muted-foreground">· {{ bytesLabel(ov.image.size) }}</span></span>
+                      @if (event()?.mapOverlay) {
+                        <span class="text-sm text-muted-foreground" i18n>Replaces the venue map this event has now.</span>
+                      }
+                    </span>
+                  </label>
+                }
+                @if (pkg.area) {
+                  <label class="flex min-h-11 cursor-pointer items-center gap-3 py-1.5">
+                    <input type="checkbox" class="size-5 shrink-0 accent-primary" [checked]="pkgArea()" (change)="pkgArea.set($any($event.target).checked)" />
+                    <ng-container i18n>Set as event area (players' maps open on this field)</ng-container>
+                  </label>
+                }
+              </fieldset>
+            }
+          } @else {
           <fieldset>
             <legend class="mb-1.5 text-sm font-medium" i18n>Format</legend>
             <div class="grid grid-cols-2 gap-2">
@@ -756,10 +805,6 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             </div>
           </fieldset>
           <div class="flex flex-col gap-1.5">
-            <label hlmLabel for="imp-file" i18n>File</label>
-            <input id="imp-file" type="file" accept=".geojson,.json,.csv,text/csv,application/json,application/geo+json" class="text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-border file:bg-muted file:px-3" (change)="onImportFile($event)" />
-          </div>
-          <div class="flex flex-col gap-1.5">
             <label hlmLabel for="imp-content" i18n>Or paste the content</label>
             <textarea hlmTextarea id="imp-content" formControlName="content" rows="7" class="num text-xs" spellcheck="false"></textarea>
             @if (importForm.value.format === 'csv') {
@@ -770,10 +815,20 @@ const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent 
             } @else {
               <p class="text-sm text-muted-foreground" i18n>A FeatureCollection: points become objectives or POIs, polygons areas, lines routes (use a <span class="num">type</span> property to choose).</p>
             }
-            @if (importError()) {
-              <p class="field-error" role="alert">{{ importError() }}</p>
-            }
           </div>
+          }
+          @if (zones().length + pois().length; as onMap) {
+            <label class="flex min-h-11 cursor-pointer items-start gap-3 py-1.5">
+              <input type="checkbox" class="mt-0.5 size-5 shrink-0 accent-primary" [checked]="importReplace()" (change)="importReplace.set($any($event.target).checked)" />
+              <span class="flex min-w-0 flex-col">
+                <ng-container i18n>Remove the current areas, lines, labels and points first</ng-container>
+                <span class="text-sm text-muted-foreground" i18n>{onMap, plural, =1 {1 is on the map now.} other {{{ onMap }} are on the map now.}} Objectives stay.</span>
+              </span>
+            </label>
+          }
+          @if (importError()) {
+            <p class="field-error" role="alert">{{ importError() }}</p>
+          }
           <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button hlmBtn type="button" variant="outline" class="h-11" (click)="dialog.set(null)" i18n>Cancel</button>
             <button hlmBtn type="submit" class="h-11" [disabled]="busy()">{{ busy() ? txt.importing : txt.import }}</button>
@@ -958,6 +1013,13 @@ export class MapEditorScreen implements OnInit {
   private overlayImage: File | null = null;
   private overlayFileCorners: MapOverlay['corners'] | null = null;
   protected readonly importError = signal<string | null>(null);
+  /** the chosen file when it is a venue map package, with what the GM picks from it */
+  protected readonly importPkg = signal<MapPackage | null>(null);
+  protected readonly importFileName = signal('');
+  protected readonly pkgLayers = signal<ReadonlySet<string>>(new Set());
+  protected readonly pkgOverlay = signal(true);
+  protected readonly pkgArea = signal(true);
+  protected readonly importReplace = signal(false);
   protected readonly templates = signal<MapTemplate[] | null>(null);
   protected readonly templatesError = signal<unknown>(null);
 
@@ -1308,7 +1370,11 @@ export class MapEditorScreen implements OnInit {
       this.overlayError.set(null);
       this.overlayEditing.set(false);
     }
-    if (d === 'import') this.importForm.reset({ format: 'geojson', content: '' });
+    if (d === 'import') {
+      this.importForm.reset({ format: 'geojson', content: '' });
+      this.setImportPkg(null);
+      this.importReplace.set(false);
+    }
     if (d === 'saveTpl') this.templateName.reset(this.event()?.name ?? '');
     if (d === 'applyTpl') void this.loadTemplates();
     this.dialog.set(d);
@@ -1939,19 +2005,52 @@ export class MapEditorScreen implements OnInit {
 
   protected onImportFile(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
+    this.setImportPkg(null);
     if (!file) return;
     const isCsv = /\.csv$/i.test(file.name) || file.type === 'text/csv';
     void file.text().then((text) => {
-      this.importForm.patchValue({ content: text, format: isCsv ? 'csv' : 'geojson' });
       this.importError.set(null);
+      this.importFileName.set(file.name);
+      const pkg = isCsv ? null : readMapPackage(text);
+      // a package (several MB with its image) stays out of the text box
+      this.importForm.patchValue({ content: pkg ? '' : text, format: isCsv ? 'csv' : 'geojson' });
+      this.setImportPkg(pkg);
     });
   }
 
+  private setImportPkg(pkg: MapPackage | null): void {
+    this.importPkg.set(pkg);
+    this.pkgLayers.set(new Set(pkg?.layers.filter((l) => l.default).map((l) => l.id)));
+    this.pkgOverlay.set(true);
+    this.pkgArea.set(true);
+  }
+
+  protected togglePkgLayer(id: string, on: boolean): void {
+    this.pkgLayers.update((s) => {
+      const next = new Set(s);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  protected bytesLabel(bytes: number): string {
+    return formatBytes(bytes);
+  }
+
   protected async runImport(): Promise<void> {
+    if (this.importPkg()) return this.runPackageImport(this.importPkg()!);
     const v = this.importForm.getRawValue();
     const content = v.content.trim();
     if (!content) {
       this.importError.set($localize`Choose a file or paste the content.`);
+      return;
+    }
+    const pasted = v.format === 'geojson' ? readMapPackage(content) : null;
+    if (pasted) {
+      // pasted a package: show its add-ons first
+      this.importForm.patchValue({ content: '' });
+      this.setImportPkg(pasted);
       return;
     }
     if (v.format === 'geojson') {
@@ -1965,18 +2064,49 @@ export class MapEditorScreen implements OnInit {
     this.busy.set(true);
     this.importError.set(null);
     try {
-      const res = await this.api.importMap(this.eventId(), { format: v.format, content });
-      this.toast.success($localize`Map imported`, $localize`${res.objectives}:objectives: objectives, ${res.pois}:pois: POIs, ${res.zones}:zones: zones added.`);
-      this.dialog.set(null);
-      await this.load();
-      this.fitKey.update((k) => k + 1);
+      const res = await this.api.importMap(this.eventId(), { format: v.format, content, replace: this.importReplace() || undefined });
+      await this.afterImport(res);
     } catch (e) {
-      const err = ApiError.from(e);
-      const details = Object.values(err.fields);
-      this.importError.set([err.message, ...details].join(' '));
+      this.showImportError(e);
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /** A venue map package: upload its image if wanted, then one call imports the shapes, the image and the area. */
+  private async runPackageImport(pkg: MapPackage): Promise<void> {
+    this.busy.set(true);
+    this.importError.set(null);
+    try {
+      const ov = this.pkgOverlay() ? pkg.overlay : null;
+      const overlay = ov ? { url: (await this.api.upload(ov.image, 'map_overlay')).url, corners: ov.corners, opacity: ov.opacity } : undefined;
+      const res = await this.api.importMap(this.eventId(), {
+        format: 'geojson',
+        content: pkg.content,
+        layers: [...this.pkgLayers()],
+        replace: this.importReplace() || undefined,
+        overlay,
+        area: (this.pkgArea() && pkg.area) || undefined,
+      });
+      await this.afterImport(res);
+    } catch (e) {
+      this.showImportError(e);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  private async afterImport(res: { objectives: number; pois: number; zones: number; removed: number }): Promise<void> {
+    const added = $localize`${res.objectives}:objectives: objectives, ${res.pois}:pois: POIs, ${res.zones}:zones: zones added.`;
+    this.toast.success($localize`Map imported`, res.removed ? `${added} ${$localize`${res.removed}:removed: old shapes and points removed.`}` : added);
+    this.dialog.set(null);
+    await this.load();
+    this.fitKey.update((k) => k + 1);
+  }
+
+  private showImportError(e: unknown): void {
+    const err = ApiError.from(e);
+    this.importError.set([err.message, ...Object.values(err.fields)].join(' '));
   }
 
   protected onOverlayImage(e: Event): void {

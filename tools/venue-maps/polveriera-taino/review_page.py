@@ -61,6 +61,8 @@ def kind_of(p):
 feats = []
 for f in load_json(OUT / 'polveriera-taino.geojson')['features']:
     g, p = f['geometry'], f['properties']
+    if p.get('layer'):
+        continue  # add-ons of the package (grid, entrances): not reviewed here
     if g['type'] == 'Polygon':
         coords, pts = g['coordinates'][0], [px(*c) for c in g['coordinates'][0]]
     elif g['type'] == 'LineString':

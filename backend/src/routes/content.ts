@@ -603,20 +603,42 @@ contentRouter.delete('/:eventId/zones/:zoneId', async (req, res) => {
 contentRouter.post('/:eventId/map/import', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
-  const b = body(req, z.object({ format: z.enum(['geojson', 'csv']), content: z.string().max(2_000_000) }));
-  const parsed = parseImport(b.format, b.content);
+  const b = body(
+    req,
+    z.object({
+      format: z.enum(['geojson', 'csv']),
+      content: z.string().max(2_000_000),
+      // a venue map package: the optional layers chosen, and what the package brings besides its shapes
+      layers: z.array(shortText(40)).max(20).optional(),
+      replace: z.boolean().optional(),
+      overlay: mapOverlaySchema.optional(),
+      area: z.object({ lat, lng, zoom: z.number().min(1).max(22) }).optional(),
+    }),
+  );
+  const parsed = parseImport(b.format, b.content, { layers: b.layers });
   if (!parsed.objectives.length && !parsed.pois.length && !parsed.zones.length) throw badRequest(tr`Nothing to import: no valid coordinates found.`, 'invalid_import');
+  let removed = 0;
   await tx(async (t) => {
-    await requireGm(eventId, me.id, t);
+    const ctx = await requireGm(eventId, me.id, t);
+    if (b.replace) {
+      // replacing the venue map: its shapes and points go, objectives stay (they hold captures and scores)
+      if (FINISHED.includes(ctx.event.status)) throw conflict(tr`This event is over.`, 'event_finished');
+      removed += (await t.query('DELETE FROM zones WHERE event_id = $1', [eventId])).rowCount ?? 0;
+      removed += (await t.query('DELETE FROM pois WHERE event_id = $1', [eventId])).rowCount ?? 0;
+    }
+    if (b.overlay) await t.query('UPDATE events SET map_overlay = $2, updated_at = now() WHERE id = $1', [eventId, JSON.stringify(b.overlay)]);
+    if (b.area) await t.query('UPDATE events SET area_lat = $2, area_lng = $3, area_zoom = $4, updated_at = now() WHERE id = $1', [eventId, b.area.lat, b.area.lng, b.area.zoom]);
     for (const o of parsed.objectives) {
       const id = await insertObjective(t, eventId, { ...o, methods: ['code'], rewards: DEFAULT_REWARDS, geofence: DEFAULT_GEOFENCE });
       await t.query('UPDATE objectives SET capture_code = $2 WHERE id = $1', [id, readableCode(6)]);
     }
     await copyMapContent(t, eventId, { pois: parsed.pois, zones: parsed.zones });
-    await audit(t, eventId, me.id, 'map.import', { after: { objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length } });
+    await audit(t, eventId, me.id, 'map.import', {
+      after: { objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, layers: b.layers ?? [], removed, overlay: !!b.overlay, area: !!b.area },
+    });
   });
-  hub.invalidate(eventId, ['objectives', 'pois', 'zones']);
-  res.json({ objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length });
+  hub.invalidate(eventId, b.overlay || b.area ? ['objectives', 'pois', 'zones', 'event'] : ['objectives', 'pois', 'zones']);
+  res.json({ objectives: parsed.objectives.length, pois: parsed.pois.length, zones: parsed.zones.length, removed });
 });
 
 // The venue map image: the field's own printed map, placed by its four corners under the shapes.
