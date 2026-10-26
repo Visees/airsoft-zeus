@@ -252,6 +252,8 @@ are in (map sizing in the control center, aria-invalid, copy, session restore, P
   layers (`events.map_layers`: id, name, description, shown). Every map's layers button switches
   each one on and off (remembered per device, `airsofthub.mapLayers`); `shown` is the start state,
   set per add-on in the import dialog. Kept by duplicate and map templates.
+* With the venue map hidden, every topographic map paints the field (playable areas) with the page background
+  at 88%, under the base map's roads and buildings, so woods and fields do not show inside it.
 * Map editor ⋮ → Clear map…: removes, as ticked, the zones (and the event's layers), POIs,
   objectives (only before the game starts) and the venue map image (`POST /map/clear`); the event
   area, teams and settings stay. Any

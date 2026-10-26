@@ -348,6 +348,8 @@ export class TacticalMap {
   /** Game shapes (zones, rings, draft) and the own accuracy circle, re-added after a style change. */
   private shapeData: FeatureCollection<Geometry, ShapeProps> = { type: 'FeatureCollection', features: [] };
   private selfData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  /** The field (playable areas) painted with the page background while the venue map is hidden. */
+  private maskData: FeatureCollection = { type: 'FeatureCollection', features: [] };
   private styleReady = false;
   private applied: { base: BaseLayer; dark: boolean } | null = null;
   /** A marker drag ends with a click on the marker; it must not count as a tap. */
@@ -421,6 +423,15 @@ export class TacticalMap {
         this.syncOverlay(o, shown || editable);
         this.syncOverlayHandles(o && editable ? o : null);
       });
+    });
+    // With the venue map hidden, the field gets a plain background instead of the topo map's woods
+    // (never on satellite: there the imagery is the point)
+    effect(() => {
+      const on = !!this.overlay() && !this.overlayShown() && !this.overlayEditable() && this.effectiveBase() === 'topo';
+      const field = on ? this.shownZones().filter((z) => z.kind === 'playable' && z.geometry === 'polygon' && z.points.length >= 3) : [];
+      if (this.renderer() !== 'map') return;
+      this.maskData = { type: 'FeatureCollection', features: field.map((z) => ({ type: 'Feature', properties: {}, geometry: polygon(z.points) })) };
+      untracked(() => this.pushMask());
     });
     // Light/dark theme and topo/satellite switch the map style
     effect(() => {
@@ -707,6 +718,7 @@ export class TacticalMap {
       this.styleReady = true;
       this.pushShapes();
       this.pushSelf();
+      this.pushMask();
       this.syncOverlay(this.overlay(), this.overlayShown() || this.overlayEditable());
     });
     map.on('zoomend', () => this.declutterLabels());
@@ -739,6 +751,10 @@ export class TacticalMap {
     const map = this.map!;
     map.addSource('ah-shapes', { type: 'geojson', data: this.shapeData });
     map.addSource('ah-self', { type: 'geojson', data: this.selfData });
+    map.addSource('ah-mask', { type: 'geojson', data: this.maskData });
+    // under the base map's roads and buildings: it hides woods, fields and terrain patterns, not the paths
+    const above = map.getStyle().layers.find((l) => ['waterway', 'transportation', 'building', 'aeroway'].includes((l as { 'source-layer'?: string })['source-layer'] ?? ''));
+    map.addLayer({ id: 'ah-mask', type: 'fill', source: 'ah-mask', paint: { 'fill-color': cssVar('--background'), 'fill-opacity': 0.88 } }, above?.id);
     map.addLayer({
       id: 'ah-fill',
       type: 'fill',
@@ -777,6 +793,10 @@ export class TacticalMap {
 
   private pushShapes(): void {
     if (this.styleReady) (this.map?.getSource('ah-shapes') as GeoJSONSource | undefined)?.setData(this.shapeData);
+  }
+
+  private pushMask(): void {
+    if (this.styleReady) (this.map?.getSource('ah-mask') as GeoJSONSource | undefined)?.setData(this.maskData);
   }
 
   private pushSelf(): void {
