@@ -3411,6 +3411,8 @@
     "7680343102211007685": "La partita è iniziata: gli obiettivi restano (disattivali invece).",
     "8361985486251351852": "L'area dell'evento, le squadre e le impostazioni restano.",
     "5273361412819960201": "Mappa svuotata",
-    "1634698264010181778": "Rimossi {$zones} zone, {$pois} POI e {$objectives} obiettivi."
+    "1634698264010181778": "Rimossi {$zones} zone, {$pois} POI e {$objectives} obiettivi.",
+    "5811383472218800350": "Sulla mappa si leggono meglio loghi semplici e ad alto contrasto.",
+    "2122517249393888654": "Logo caricato"
   }
 }

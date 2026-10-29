@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { NgIcon } from '@ng-icons/core';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { Team, TeamInput, TeamPattern } from '../../../core/api/models';
 import { formatLatLng, parseLatLng } from '../../../core/util/geo';
 import { TEAM_COLORS, TEAM_ICONS, TEAM_PATTERNS, TEAM_PATTERN_LABELS, TeamBadge } from '../../../shared/team-badge';
+import { TeamIconPicker } from '../../../shared/team-icon-picker';
 import { TeamSwatch } from '../../../shared/team-swatch';
 import { nextId } from './controls';
 import { controlError, formTick, integerValidator } from './form-utils';
@@ -148,7 +148,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
 /** Team identity fields with a live badge preview. */
 @Component({
   selector: 'ah-team-fields',
-  imports: [ReactiveFormsModule, NgIcon, HlmInput, HlmLabel, TeamBadge, TeamSwatch],
+  imports: [ReactiveFormsModule, HlmInput, HlmLabel, TeamBadge, TeamSwatch, TeamIconPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -220,15 +220,7 @@ export function teamFormToInput(form: TeamForm, advanced: boolean): TeamInput {
         </div>
         <div class="flex flex-col gap-1.5">
           <span hlmLabel [id]="id + '-icon-l'" i18n>Icon</span>
-          <div role="radiogroup" [attr.aria-labelledby]="id + '-icon-l'" class="flex flex-wrap gap-1.5">
-            @for (i of icons; track i.value) {
-              <label class="grid size-11 cursor-pointer place-items-center rounded-sm border has-focus-visible:ring-2 has-focus-visible:ring-ring"
-                [class]="f.controls.icon.value === i.value ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'">
-                <input type="radio" class="sr-only" [name]="id + '-icon'" [checked]="f.controls.icon.value === i.value" (change)="setIcon(i.value)" [attr.aria-label]="i.label" />
-                <ng-icon [name]="i.icon" size="18" aria-hidden="true" />
-              </label>
-            }
-          </div>
+          <ah-team-icon-picker [value]="f.controls.icon.value" [name]="id + '-icon'" [labelledBy]="id + '-icon-l'" (picked)="setIcon($event)" />
         </div>
       </div>
 
@@ -267,7 +259,6 @@ export class TeamFieldsComponent {
   protected readonly colors = TEAM_COLORS;
   protected readonly patterns = TEAM_PATTERNS;
   protected readonly patternLabels = TEAM_PATTERN_LABELS;
-  protected readonly icons = TEAM_ICONS;
 
   private readonly value = computed(() => {
     this.tick();

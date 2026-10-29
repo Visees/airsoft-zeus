@@ -29,6 +29,17 @@
   ],
   "dataGroups": [
     {
+      "name": "uploads",
+      "urls": [
+        "/api/files/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 300,
+        "maxAge": "30d"
+      }
+    },
+    {
       "name": "map-tilejson",
       "urls": [
         "https://tiles.openfreemap.org/planet"

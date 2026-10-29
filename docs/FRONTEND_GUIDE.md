@@ -53,6 +53,7 @@ How screens in `frontend/` are built. Read this before adding or changing a scre
 | `ah-objective-card` | `objective, distanceM, teams, now` (`open, navigate`) |
 | `ah-perk-card` | `perk` (`buy`) — uses `perk.availability` |
 | `ah-team-badge` / `ah-team-swatch` | `team` (`name,color,pattern,icon`), `size` — colour **+ pattern + icon**. `TEAM_ICONS`, `TEAM_PATTERNS`, `TEAM_COLORS` exported from `team-badge.ts` |
+| `ah-team-icon-picker` | `value`, `name`, `allowNone` → `(picked)`. Built-in icon or an uploaded logo (`team_icon` upload; `icon` then holds its `/api/files/…` URL, see `isUploadedIcon`). Used for teams and squads |
 | `ah-squad-badge` | `squad, leader` |
 | `ah-status-chip` | `[spec]="eventStatusChip(s)"` / `objectiveStatusChip` / `purchaseStatusChip`, or `label, glyph, tone` |
 | `ah-score-display` / `ah-currency-display` | `points` / `amount` (null = hidden), `label, size` |

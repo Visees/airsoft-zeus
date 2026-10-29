@@ -780,10 +780,13 @@ eventsRouter.delete('/:eventId/game-masters/:userId', async (req, res) => {
 
 // ------------------------------------------------------------------ teams & squads
 
+/** A built-in icon name, or an image uploaded for it (POST /uploads with purpose team_icon). */
+const teamIcon = shortText(80).refine((v) => /^[a-z0-9-]{0,40}$/.test(v) || /^\/api\/files\/team_icon-[A-Za-z0-9_-]{24}\.(jpg|png|webp)$/.test(v), 'Choose an icon or upload an image');
+
 const teamInput = z.object({
   name: shortText(60).min(1, 'Name the team'),
   color: hexColor,
-  icon: shortText(40),
+  icon: teamIcon,
   pattern: z.enum(['solid', 'stripes', 'dots', 'chevron', 'cross', 'grid']),
   capacity: z.number().int().min(0).max(2000),
   sortOrder: z.number().int().min(0).max(1000),
@@ -884,7 +887,7 @@ eventsRouter.delete('/:eventId/teams/:teamId', async (req, res) => {
   res.json({ ok: true });
 });
 
-const squadInput = z.object({ teamId: uuid, name: shortText(60).min(1), callsign: shortText(30).nullable(), icon: shortText(40).nullable(), leaderId: uuid.nullable() });
+const squadInput = z.object({ teamId: uuid, name: shortText(60).min(1), callsign: shortText(30).nullable(), icon: teamIcon.nullable(), leaderId: uuid.nullable() });
 
 eventsRouter.post('/:eventId/squads', async (req, res) => {
   const me = currentUser(req);

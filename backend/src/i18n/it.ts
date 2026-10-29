@@ -139,6 +139,7 @@ export const it: Record<string, string> = {
   "You are a Game Master of {0}": "Sei un Game Master di {0}",
   "The owner is always a Game Master.": "Il proprietario è sempre un Game Master.",
   "Name the team": "Dai un nome alla squadra",
+  "Choose an icon or upload an image": "Scegli un'icona o carica un'immagine",
   "An event can have at most 16 teams.": "Un evento può avere al massimo 16 squadre.",
   "Team not found.": "Squadra non trovata.",
   "Teams cannot be deleted once the game has started.": "Le squadre non si possono eliminare dopo l'inizio della partita.",

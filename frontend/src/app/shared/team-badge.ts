@@ -37,6 +37,11 @@ export const TEAM_PATTERN_LABELS: Record<TeamPattern, string> = {
 /** Colour-blind friendly defaults (Okabe–Ito inspired, tuned for dark and light). */
 export const TEAM_COLORS = ['#3B82C4', '#D9822B', '#9DAE5C', '#C75B9B', '#E0C341', '#5BB8B0', '#8E7CC3', '#B0B5A8'];
 
+/** An image uploaded as the icon (POST /uploads, purpose team_icon) rather than a built-in icon name. */
+export function isUploadedIcon(icon: string | null | undefined): icon is string {
+  return !!icon && icon.startsWith('/api/files/');
+}
+
 export function teamIconName(icon: string | null | undefined): string {
   return TEAM_ICONS.find((i) => i.value === icon)?.icon ?? 'lucideShield';
 }
@@ -50,7 +55,9 @@ export function teamIconName(icon: string | null | undefined): string {
   template: `
     @if (team(); as t) {
       <ah-team-swatch [color]="t.color" [pattern]="t.pattern" [size]="size() === 'lg' ? 20 : 14" />
-      @if (showIcon() && t.icon) {
+      @if (showIcon() && isUploaded(t.icon)) {
+        <img [src]="t.icon" alt="" class="shrink-0 rounded-[3px] object-cover" [class]="size() === 'lg' ? 'size-5' : 'size-4'" loading="lazy" />
+      } @else if (showIcon() && t.icon) {
         <ng-icon [name]="iconName(t.icon)" [size]="size() === 'lg' ? '18' : '14'" class="shrink-0 text-muted-foreground" aria-hidden="true" />
       }
       <span class="truncate font-semibold" [class.text-lg]="size() === 'lg'" [class.text-sm]="size() === 'sm'">{{ t.name }}</span>
@@ -64,6 +71,8 @@ export class TeamBadge {
   readonly size = input<'sm' | 'md' | 'lg'>('md');
   readonly showIcon = input(true);
   readonly emptyLabel = input($localize`No team`);
+
+  protected readonly isUploaded = isUploadedIcon;
 
   protected iconName(icon: string): string {
     return teamIconName(icon);

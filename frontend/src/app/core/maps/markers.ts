@@ -1,4 +1,5 @@
-import { Objective, ObjectiveCapture, Poi, PoiType, Team, VisiblePosition } from '../api/models';
+import { lucideAward, lucideCompass, lucideFlag, lucideGlobe, lucideHexagon, lucideRadar, lucideShield, lucideStar, lucideTarget, lucideZap } from '@ng-icons/lucide';
+import { Objective, ObjectiveCapture, Poi, PoiType, Squad, Team, VisiblePosition } from '../api/models';
 import { OBJECTIVE_STATUS_GLYPHS, OBJECTIVE_STATUS_LABELS, PLAYER_ROLE_TAGS, initials } from '../util/format';
 
 /**
@@ -18,6 +19,20 @@ export const POI_TAGS: Record<PoiType, string> = {
   extraction: 'EX',
   restricted: '⛔',
   custom: '•',
+};
+
+/** SVG of each team/squad icon value (the same set as TEAM_ICONS), drawn inside player markers. */
+const MARKER_ICONS: Record<string, string> = {
+  shield: lucideShield,
+  star: lucideStar,
+  flag: lucideFlag,
+  target: lucideTarget,
+  hexagon: lucideHexagon,
+  compass: lucideCompass,
+  radar: lucideRadar,
+  zap: lucideZap,
+  award: lucideAward,
+  globe: lucideGlobe,
 };
 
 function el(tag: string, style: Partial<CSSStyleDeclaration>, text?: string): HTMLElement {
@@ -153,38 +168,84 @@ export function poiMarker(p: Poi, selected: boolean, showLabel = true): HTMLElem
   return wrap(parts, `${p.name}`);
 }
 
-export function playerMarker(pos: VisiblePosition, team: Team | null, opts: { selected?: boolean; showLabel?: boolean } = {}): HTMLElement {
+function svgIcon(svg: string): HTMLElement {
+  const icon = el('span', { display: 'block', width: '16px', height: '16px' });
+  icon.innerHTML = svg;
+  (icon.firstElementChild as SVGElement | null)?.setAttribute('style', 'width:100%;height:100%;stroke-width:2.5');
+  return icon;
+}
+
+/**
+ * Another player: a square tile in the team colour carrying the squad's icon or logo, or the team's
+ * when the squad has none. Only the own position is a round dot (selfMarker), so the two never get confused.
+ */
+export function playerMarker(pos: VisiblePosition, team: Team | null, squad: Squad | null, opts: { selected?: boolean; showLabel?: boolean } = {}): HTMLElement {
   const color = team?.color ?? '#888';
   const hostile = pos.kind === 'enemy' || pos.kind === 'intel';
   const stale = pos.status !== 'online';
-  const tag = pos.playerRole ? PLAYER_ROLE_TAGS[pos.playerRole] : initials(pos.nickname);
-  const dot = el(
-    'div',
-    {
-      width: pos.kind === 'intel' ? '24px' : '28px',
-      height: pos.kind === 'intel' ? '24px' : '28px',
-      display: 'grid',
-      placeItems: 'center',
-      borderRadius: pos.kind === 'intel' ? '3px' : '50%',
-      transform: pos.kind === 'intel' ? 'rotate(45deg)' : 'none',
-      background: color,
-      color: textOn(color),
-      font: '700 10px/1 var(--font-mono)',
-      border: hostile ? '3px solid var(--destructive)' : '2px solid var(--background)',
-      outline: hostile ? 'none' : '1px solid rgba(0,0,0,.35)',
-      opacity: stale ? '0.5' : '1',
-      borderStyle: stale ? 'dashed' : 'solid',
-      boxShadow: opts.selected ? '0 0 0 3px var(--nav)' : '0 1px 4px rgba(0,0,0,.45)',
-    },
-  );
-  const inner = el('span', { transform: pos.kind === 'intel' ? 'rotate(-45deg)' : 'none' }, pos.kind === 'intel' ? '?' : tag);
-  dot.appendChild(inner);
-  const parts = [dot];
+  const intel = pos.kind === 'intel';
+  const mark = squad?.icon || team?.icon;
+  // an uploaded logo (team_icon file); the built-in icon stands in if it fails to load
+  const logo = team && mark?.startsWith('/api/files/') ? mark : null;
+  const svg = team ? (MARKER_ICONS[mark ?? ''] ?? MARKER_ICONS[team.icon] ?? MARKER_ICONS['shield']) : null;
+  const tile = el('div', {
+    position: 'relative',
+    width: intel ? '24px' : '28px',
+    height: intel ? '24px' : '28px',
+    display: 'grid',
+    placeItems: 'center',
+    borderRadius: intel ? '3px' : '6px',
+    transform: intel ? 'rotate(45deg)' : 'none',
+    background: color,
+    color: textOn(color),
+    font: '700 10px/1 var(--font-mono)',
+    border: hostile ? '3px solid var(--destructive)' : '2px solid var(--background)',
+    outline: hostile ? 'none' : '1px solid rgba(0,0,0,.35)',
+    opacity: stale ? '0.5' : '1',
+    borderStyle: stale ? 'dashed' : 'solid',
+    boxShadow: opts.selected ? '0 0 0 3px var(--nav)' : '0 1px 4px rgba(0,0,0,.45)',
+  });
+  if (intel) {
+    tile.appendChild(el('span', { transform: 'rotate(-45deg)' }, '?'));
+  } else if (logo) {
+    // 20px inside the 24px tile: a ring of team colour stays around the logo
+    const img = el('img', { display: 'block', width: '20px', height: '20px', borderRadius: '4px', objectFit: 'cover' }) as HTMLImageElement;
+    img.alt = '';
+    img.draggable = false;
+    img.addEventListener('error', () => img.replaceWith(svgIcon(svg!)), { once: true });
+    img.src = logo;
+    tile.appendChild(img);
+  } else if (svg) {
+    tile.appendChild(svgIcon(svg));
+  } else {
+    tile.appendChild(el('span', {}, initials(pos.nickname)));
+  }
+  // the role rides on the top-right corner, so the icon stays the team's mark
+  if (!intel && svg && pos.playerRole) {
+    tile.appendChild(
+      el(
+        'span',
+        {
+          position: 'absolute',
+          top: '-7px',
+          right: '-9px',
+          padding: '0 2px',
+          borderRadius: '3px',
+          background: 'var(--hud)',
+          color: 'var(--foreground)',
+          border: '1px solid var(--border)',
+          font: '700 8px/11px var(--font-mono)',
+        },
+        PLAYER_ROLE_TAGS[pos.playerRole],
+      ),
+    );
+  }
+  const parts = [tile];
   if (opts.showLabel !== false && pos.nickname) {
     parts.push(el('div', { ...LABEL_STYLE, color: hostile ? 'var(--destructive)' : 'var(--foreground)' }, (stale ? '◐ ' : '') + pos.nickname));
   }
   const who = pos.nickname ?? (hostile ? $localize`Enemy` : $localize`Teammate`);
-  return wrap(parts, `${hostile ? 'Enemy ' : ''}${who}${team ? ', ' + team.name : ''}${stale ? ', last known position' : ''}`);
+  return wrap(parts, `${hostile ? 'Enemy ' : ''}${who}${team ? ', ' + team.name : ''}${squad ? ', ' + squad.name : ''}${stale ? ', last known position' : ''}`);
 }
 
 export function selfMarker(heading: number | null): HTMLElement {

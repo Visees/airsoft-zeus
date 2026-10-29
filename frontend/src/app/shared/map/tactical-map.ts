@@ -18,7 +18,7 @@ import {
 import { NgIcon } from '@ng-icons/core';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, ImageSource, Map as MlMap, Marker as MlMarker } from 'maplibre-gl';
-import { LatLng, MapLayer, MapOverlay, Objective, Poi, Team, VisiblePosition, Zone } from '../../core/api/models';
+import { LatLng, MapLayer, MapOverlay, Objective, Poi, Squad, Team, VisiblePosition, Zone } from '../../core/api/models';
 import { MapEngine, MapEngineService } from '../../core/maps/map-engine.service';
 import type { BaseLayer } from '../../core/maps/map-style';
 import { LiveStore } from '../../core/live/live-store';
@@ -270,6 +270,8 @@ export class TacticalMap {
   readonly zones = input<Zone[]>([]);
   readonly positions = input<VisiblePosition[]>([]);
   readonly teams = input<Team[]>([]);
+  /** Players carry their squad's icon when it has one, otherwise their team's. */
+  readonly squads = input<Squad[]>([]);
   readonly self = input<SelfFix | null>(null);
   readonly selectedId = input<string | null>(null);
   readonly center = input<LatLng | null>(null);
@@ -392,6 +394,7 @@ export class TacticalMap {
         zones: this.shownZones(),
         positions: this.positions(),
         teams: this.teams(),
+        squads: this.squads(),
         self: this.self(),
         selected: this.selectedId(),
         geof: this.showGeofences(),
@@ -924,6 +927,7 @@ export class TacticalMap {
     zones: Zone[];
     positions: VisiblePosition[];
     teams: Team[];
+    squads: Squad[];
     self: SelfFix | null;
     selected: string | null;
     geof: boolean;
@@ -935,6 +939,7 @@ export class TacticalMap {
     const map = this.map!;
     const ml = this.engine!.maplibregl;
     const teamById = new Map(d.teams.map((t) => [t.id, t]));
+    const squadById = new Map(d.squads.map((s) => [s.id, s]));
     const seenM = new Set<string>();
     const shapes: Feature<Geometry, ShapeProps>[] = [];
 
@@ -1047,9 +1052,10 @@ export class TacticalMap {
       if (pos.kind === 'self') continue; // the live GPS fix is drawn separately
       const key = `u:${pos.userId}:${pos.kind}`;
       const team = pos.teamId ? (teamById.get(pos.teamId) ?? null) : null;
+      const squad = pos.squadId ? (squadById.get(pos.squadId) ?? null) : null;
       const selected = d.selected === pos.userId;
-      const sig = JSON.stringify([pos.status, pos.kind, pos.nickname, pos.playerRole, team?.color, selected, d.labels]);
-      upsertMarker(key, { lat: pos.lat, lng: pos.lng }, sig, () => playerMarker(pos, team, { selected, showLabel: d.labels }), {
+      const sig = JSON.stringify([pos.status, pos.kind, pos.nickname, pos.playerRole, team?.color, team?.icon, squad?.icon, squad?.name, selected, d.labels]);
+      upsertMarker(key, { lat: pos.lat, lng: pos.lng }, sig, () => playerMarker(pos, team, squad, { selected, showLabel: d.labels }), {
         z: pos.kind === 'ally' ? 500 : 450,
         onClick: () => this.playerClick.emit(this.positions().find((x) => x.userId === pos.userId && x.kind === pos.kind) ?? pos),
         glide: true,
@@ -1266,10 +1272,12 @@ export class TacticalMap {
       });
       place(node, o, 30);
     }
+    const squadById = new Map(this.squads().map((s) => [s.id, s]));
     for (const pos of this.positions()) {
       if (pos.kind === 'self') continue;
       const team = pos.teamId ? (teamById.get(pos.teamId) ?? null) : null;
-      const node = playerMarker(pos, team, { selected: this.selectedId() === pos.userId, showLabel: labels });
+      const squad = pos.squadId ? (squadById.get(pos.squadId) ?? null) : null;
+      const node = playerMarker(pos, team, squad, { selected: this.selectedId() === pos.userId, showLabel: labels });
       node.addEventListener('click', (e) => {
         e.stopPropagation();
         this.playerClick.emit(pos);

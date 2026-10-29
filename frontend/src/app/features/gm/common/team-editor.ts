@@ -11,7 +11,8 @@ import { Member, Squad, Team } from '../../../core/api/models';
 import { ConfirmService } from '../../../core/ui/confirm.service';
 import { ToastService } from '../../../core/ui/toast.service';
 import { formatPlayerCount } from '../../../core/util/format';
-import { TEAM_ICONS, TeamBadge } from '../../../shared/team-badge';
+import { TeamBadge } from '../../../shared/team-badge';
+import { TeamIconPicker } from '../../../shared/team-icon-picker';
 import { SaveState, SaveStateIndicator, nextId } from './controls';
 import { applyServerErrors, controlError, formTick } from './form-utils';
 import { injectAssign } from './member-assign';
@@ -20,7 +21,7 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
 /** One squad: name, callsign, (icon, leader). Saves each field when it is committed. */
 @Component({
   selector: 'ah-squad-row',
-  imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, SaveStateIndicator],
+  imports: [ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmLabel, SaveStateIndicator, TeamIconPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -38,14 +39,9 @@ import { TeamFieldsComponent, TeamForm, createTeamForm, patchTeamForm, teamFormT
         <input hlmInput [id]="id + '-c'" class="h-11 uppercase" formControlName="callsign" placeholder="VIPER" (change)="save('callsign')" />
       </div>
       @if (advanced()) {
-        <div class="flex flex-col gap-1">
-          <label hlmLabel class="text-xs" [for]="id + '-i'" i18n>Icon</label>
-          <select [id]="id + '-i'" class="h-11 rounded-md border border-input bg-background px-2 text-sm dark:bg-input/30" formControlName="icon" (change)="save('icon')">
-            <option value="" i18n>None</option>
-            @for (i of icons; track i.value) {
-              <option [value]="i.value">{{ i.label }}</option>
-            }
-          </select>
+        <div class="col-span-2 flex flex-col gap-1">
+          <span hlmLabel class="text-xs" [id]="id + '-i'" i18n>Icon</span>
+          <ah-team-icon-picker [value]="form.controls.icon.value" [name]="id + '-icon'" [labelledBy]="id + '-i'" allowNone (picked)="setIcon($event)" />
         </div>
         <div class="flex flex-col gap-1">
           <label hlmLabel class="text-xs" [for]="id + '-l'" i18n>Squad leader</label>
@@ -87,7 +83,6 @@ export class SquadRow {
   readonly changed = output<void>();
 
   protected readonly id = nextId('squad');
-  protected readonly icons = TEAM_ICONS;
   protected readonly state = signal<SaveState>('idle');
   protected readonly busy = signal(false);
   protected readonly form = new FormGroup({
@@ -132,6 +127,12 @@ export class SquadRow {
       applyServerErrors(this.form, err);
       this.toast.error(err);
     }
+  }
+
+  protected setIcon(icon: string): void {
+    this.form.controls.icon.setValue(icon);
+    this.form.controls.icon.markAsDirty();
+    void this.save('icon');
   }
 
   protected async setLeader(sel: HTMLSelectElement): Promise<void> {

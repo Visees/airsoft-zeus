@@ -376,3 +376,13 @@ and the notes below.
 * To do: build an APK and test on a phone (notification with the app closed and with the screen
   off during a game, tap navigation, channel sounds); set `FCM_SERVICE_ACCOUNT` in Coolify; iOS
   (APNs key, capability, `GoogleService-Info.plist`).
+
+## Team and squad markers on the map (2026-10-29)
+
+* Other players are square tiles in the team colour carrying the squad's icon, or the team's
+  when the squad has none; the role is a corner tag. Only the own position is a round dot.
+  Players never receive enemy squads, so enemies always show the team icon.
+* Teams and squads can upload a logo instead of a built-in icon (`ah-team-icon-picker`). The
+  API accepts in `icon` a built-in name or a `/api/files/team_icon-….(jpg|png|webp)` URL only.
+  Logos show in team badges and inside map markers (team colour ring; the built-in icon stands
+  in if the image fails). The service worker caches `/api/files/**` for weak connections.

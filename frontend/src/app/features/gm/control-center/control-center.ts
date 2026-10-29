@@ -610,6 +610,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
         [mapLayers]="store.event()?.mapLayers ?? []"
         [positions]="mapPositions()"
         [teams]="teams()"
+        [squads]="squads()"
         [selectedId]="selectedPlayerId() ?? focusObjectiveId()"
         [center]="areaCenter()"
         [zoom]="store.event()?.area?.zoom ?? 16"
