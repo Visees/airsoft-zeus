@@ -35,7 +35,7 @@ export async function activity(t: Tx, eventId: string, a: ActivityInput): Promis
 }
 
 export interface AlertInput {
-  type: 'gps_suspicious' | 'disconnected' | 'capture' | 'purchase_request' | 'perk_fulfil' | 'emergency' | 'capture_failed';
+  type: 'gps_suspicious' | 'disconnected' | 'capture' | 'purchase_request' | 'perk_fulfil' | 'emergency' | 'capture_failed' | 'objective_timer';
   severity?: 'info' | 'warning' | 'critical';
   userId?: string | null;
   message: Msg;

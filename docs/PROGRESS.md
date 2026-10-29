@@ -1,6 +1,6 @@
 # Build progress / handoff
 
-Last update: 2026-10-26 — Venue map packages (one file: map, add-ons, image, area), Polveriera outlines traced by eye.
+Last update: 2026-10-29 — Objective timers and objective referees.
 
 ## Stack (decided)
 
@@ -395,3 +395,30 @@ and the notes below.
 * The lobby checklist lets the player change squad within their team or leave it
   (`POST /choose-team` takes an optional `squadId`); a squad leader is asked to confirm first.
 * Rejoining an event clears the old squad and squad leadership.
+
+## Objective timers and referees (2026-10-29)
+
+* An objective can have a time limit per team (`objectives.timer_sec`, 0 = off; editor section
+  "Timer and referees", in minutes). The GM (control center, objective panel) or one of the
+  objective's referees starts, pauses, resumes, stops and resets each team's countdown:
+  `POST /events/:id/objectives/:objectiveId/timers { teamId, action }` (migration 0013,
+  `objective_timers`, one row per objective and team; `domain/timers.ts`, pure part `timer-clock.ts`).
+* Referees (`objectives.referee_ids`): approved members chosen by the GM per objective, players or
+  GMs. They see that objective even when hidden, with every team's timer and the controls, on the
+  live objective screen (list group "You referee"); no other GM rights. Removing them or their
+  membership takes the rights away.
+* Timers count game time (`now - paused_total_ms`, frozen at `paused_at` / `ended_at`): a paused
+  game freezes them without touching the rows. Players see only their team's timer (card chip and
+  objective screen).
+* Start: activity + push to the team. Past the limit the timer goes negative (-mm:ss, red,
+  "Objective failed") and keeps counting until a referee or the GM stops it. The engine tick sends,
+  once per run, "Objective failed" to the team and the referees (push) and a GM alert
+  (`objective_timer`). In the live app (`features/live/objective-failed.ts`, mounted in the shell)
+  the team and the referees get an "Objective failed" popup the second it happens (computed on the
+  phone, with vibration); closing it only hides it, once per timer run (remembered per device). Stop logs the time used (and the overrun) in the team feed; every action is audited.
+* No automatic points yet (asked: timer only for now). GMs give or take points with the existing
+  balance adjustment. Next step if wanted: referees adjust points for their objective, or
+  bonus/penalty rules on the timer.
+* Checked: backend typecheck + unit tests (`test/timers.test.ts`), an API scenario on the local
+  stack (permissions, pause, game pause, overrun notifications, Italian errors, referee removal),
+  browser at 375 px (referee screen, overrun state, editor section). E2E suite not rerun.

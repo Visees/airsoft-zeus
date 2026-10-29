@@ -87,6 +87,7 @@ export class ObjectiveListScreen {
     const geo = new Map(this.tracker.geofence().map((g) => [g.objectiveId, g]));
     const byId = this.store.objectiveById();
     const buckets: Record<string, Group> = {
+      referee: { key: 'referee', label: $localize`You referee`, hint: $localize`Open one to run the team timers`, items: [] },
       progress: { key: 'progress', label: $localize`Active`, hint: $localize`Contested or being captured right now`, items: [] },
       available: { key: 'available', label: $localize`Available`, hint: null, items: [] },
       captured: { key: 'captured', label: $localize`Captured`, hint: null, items: [] },
@@ -99,7 +100,8 @@ export class ObjectiveListScreen {
       const g = geo.get(o.id);
       const inProgress = o.status === 'contested' || o.contested || (!!g && !g.captured && (g.inside || g.progressSec > 0));
       let key: string;
-      if (o.status === 'disabled') key = 'disabled';
+      if (o.isReferee) key = 'referee';
+      else if (o.status === 'disabled') key = 'disabled';
       else if (o.status === 'completed') key = 'completed';
       else if (inProgress) key = 'progress';
       else if (o.status === 'active') key = 'available';
@@ -115,7 +117,7 @@ export class ObjectiveListScreen {
       buckets[key].items.push({ o, distance: distanceFrom(fix, o), note, capture: g ?? null });
     }
 
-    const order = ['available', 'progress', 'captured', 'locked', 'completed', 'disabled'];
+    const order = ['referee', 'available', 'progress', 'captured', 'locked', 'completed', 'disabled'];
     return order
       .map((k) => buckets[k])
       .filter((g) => g.items.length)

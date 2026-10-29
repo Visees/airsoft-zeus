@@ -61,6 +61,8 @@ export interface ObjectiveRow {
   methods: string[];
   require_geofence: boolean;
   visibility: { mode: 'all' | 'teams' | 'after_prerequisites' | 'gm_only'; teamIds?: string[] };
+  /** members who run this objective (timers); they always see it */
+  referee_ids?: string[];
 }
 
 /** Status precedence: disabled > completed > locked > inactive > contested > captured > active. */
@@ -121,6 +123,7 @@ export function captureBlock(
 export function objectiveVisible(o: ObjectiveRow, status: ObjectiveStatus, viewer: Viewer, ev: EventLike): boolean {
   if (viewer.isGm) return true;
   if (!viewer.approved) return false;
+  if (o.referee_ids?.includes(viewer.userId)) return true;
   const started = ev.status === 'live' || ev.status === 'paused' || ev.status === 'completed';
   if (!started && !ev.rules.revealObjectivesBeforeStart) return false;
   const vis = o.visibility ?? { mode: 'all' };

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import QRCode from 'qrcode';
 import { z } from 'zod';
 import { currentUser, requireVerified } from '../auth/middleware.js';
-import { many, one, pool, tx } from '../db.js';
+import { many, one, pool, tx, type Tx } from '../db.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
 import { idempotent } from '../lib/idempotency.js';
 import { normalizeCode, randomToken, readableCode, safeEqual } from '../lib/ids.js';
@@ -51,6 +51,8 @@ const objectiveInput = z.object({
   nextObjectiveId: uuid.nullable(),
   enabled: z.boolean(),
   captureCode: z.string().trim().max(32).nullable(),
+  timerSec: z.number().int().min(0).max(86_400),
+  refereeIds: z.array(uuid).max(20),
 });
 
 const OBJ_COLS: Record<string, string> = {
@@ -75,6 +77,8 @@ const OBJ_COLS: Record<string, string> = {
   prerequisiteIds: 'prerequisite_ids',
   nextObjectiveId: 'next_objective_id',
   enabled: 'enabled',
+  timerSec: 'timer_sec',
+  refereeIds: 'referee_ids',
 };
 
 function checkCode(code: string | null | undefined): string | null {
@@ -82,6 +86,13 @@ function checkCode(code: string | null | undefined): string | null {
   const c = normalizeCode(code);
   if (!/^[A-Z0-9]{4,32}$/.test(c)) throw badRequest(tr`Codes use 4–32 letters and digits.`, 'invalid_argument', { captureCode: tr`4–32 letters and digits` });
   return c;
+}
+
+/** Referees must be approved members of the event (players or Game Masters). */
+async function checkReferees(t: Tx, eventId: string, ids: string[] | undefined): Promise<void> {
+  if (!ids?.length) return;
+  const ok = await one<{ n: number }>(`SELECT count(*)::int AS n FROM event_members WHERE event_id = $1 AND status = 'approved' AND user_id = ANY($2::uuid[])`, [eventId, [...new Set(ids)]], t);
+  if ((ok?.n ?? 0) !== new Set(ids).size) throw badRequest(tr`Referees must be approved members of the event.`, 'invalid_argument', { refereeIds: tr`Choose approved members` });
 }
 
 async function gmObjective(ctx: EventContext, objectiveId: string) {
@@ -117,6 +128,7 @@ contentRouter.post('/:eventId/objectives', async (req, res) => {
     const n = await one<{ n: number }>('SELECT count(*)::int AS n FROM objectives WHERE event_id = $1', [eventId], t);
     if ((n?.n ?? 0) >= 500) throw conflict(tr`An event can have at most 500 objectives.`, 'too_many');
     const code = checkCode(b.captureCode);
+    await checkReferees(t, eventId, b.refereeIds);
     const objId = await insertObjective(t, eventId, {
       name: b.name,
       description: b.description,
@@ -140,11 +152,12 @@ contentRouter.post('/:eventId/objectives', async (req, res) => {
       allowed_team_ids: [],
       visibility: b.visibility ?? { mode: 'all', teamIds: [] },
       enabled: b.enabled,
+      timer_sec: b.timerSec,
     });
     await t.query(
       `UPDATE objectives SET allowed_team_ids = $2, prerequisite_ids = $3, next_objective_id = $4,
-              capture_code = COALESCE($5, capture_code) WHERE id = $1`,
-      [objId, b.allowedTeamIds ?? [], b.prerequisiteIds ?? [], b.nextObjectiveId ?? null, code ?? ((b.methods ?? ['code']).includes('code') ? readableCode(6) : null)],
+              capture_code = COALESCE($5, capture_code), referee_ids = $6 WHERE id = $1`,
+      [objId, b.allowedTeamIds ?? [], b.prerequisiteIds ?? [], b.nextObjectiveId ?? null, code ?? ((b.methods ?? ['code']).includes('code') ? readableCode(6) : null), [...new Set(b.refereeIds ?? [])]],
     );
     await audit(t, eventId, me.id, 'objective.create', { type: 'objective', id: objId, after: { ...b, captureCode: b.captureCode ? '***' : undefined } });
     return objId;
@@ -173,6 +186,8 @@ contentRouter.patch('/:eventId/objectives/:objectiveId', async (req, res) => {
     if (b.prerequisiteIds?.includes(objectiveId) || b.nextObjectiveId === objectiveId) {
       throw badRequest(tr`An objective cannot depend on itself.`, 'invalid_argument', { prerequisiteIds: tr`Remove this objective` });
     }
+    await checkReferees(t, eventId, b.refereeIds);
+    if (b.refereeIds) b.refereeIds = [...new Set(b.refereeIds)];
     const sets: string[] = [];
     const params: unknown[] = [objectiveId];
     for (const [k, col] of Object.entries(OBJ_COLS)) {
@@ -231,11 +246,12 @@ contentRouter.post('/:eventId/objectives/:objectiveId/duplicate', async (req, re
     const o = await one('SELECT * FROM objectives WHERE id = $1 AND event_id = $2', [objectiveId, eventId], t);
     if (!o) throw notFound(tr`Objective not found.`);
     const newId = await insertObjective(t, eventId, { ...o, id: null, name: tr`${o.name} (copy)`.slice(0, 120), lat: o.lat + 0.00013, lng: o.lng + 0.00013 });
-    await t.query('UPDATE objectives SET allowed_team_ids = $2, prerequisite_ids = $3, capture_code = $4 WHERE id = $1', [
+    await t.query('UPDATE objectives SET allowed_team_ids = $2, prerequisite_ids = $3, capture_code = $4, referee_ids = $5 WHERE id = $1', [
       newId,
       o.allowed_team_ids,
       o.prerequisite_ids,
       o.methods.includes('code') ? readableCode(6) : null,
+      o.referee_ids,
     ]);
     return newId;
   });

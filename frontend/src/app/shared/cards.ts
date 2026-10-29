@@ -8,6 +8,7 @@ import {
   GAME_MODE_LABELS,
   PERK_TYPE_LABELS,
   PLAYER_ROLE_LABELS,
+  formatClock,
   formatDate,
   formatDistance,
   formatDuration,
@@ -204,6 +205,12 @@ export class PlayerListItem {
             @if (o.shieldedUntil) {
               <span class="rounded-sm border border-nav/50 px-1.5 py-0.5 text-xs font-semibold text-nav" i18n>⛉ Shielded</span>
             }
+            @if (o.isReferee) {
+              <span class="rounded-sm border border-nav/50 px-1.5 py-0.5 text-xs font-semibold text-nav" i18n>Referee</span>
+            }
+            @if (timerChip(); as t) {
+              <span class="num rounded-sm border px-1.5 py-0.5 text-xs font-semibold" [class]="t.tone">{{ t.text }}</span>
+            }
           </span>
           <span class="mt-1 block truncate font-bold uppercase">{{ o.name }}</span>
           <span class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -270,6 +277,24 @@ export class ObjectiveCard {
       .methods.map((m) => (m === 'code' ? $localize`Code` : m === 'qr' ? $localize`QR` : $localize`Hold zone`))
       .join(' / '),
   );
+  /** Time limit: the own team's countdown (players) or how many team timers are going (referees). */
+  protected readonly timerChip = computed(() => {
+    const o = this.objective();
+    if (!o.timerSec) return null;
+    const limitMs = o.timerSec * 1000;
+    const idle = { text: `⏱ ${formatClock(limitMs)}`, tone: 'border-border text-muted-foreground' };
+    if (o.isReferee) {
+      const n = o.timers.filter((t) => t.state !== 'stopped').length;
+      if (!n) return idle;
+      return { text: n === 1 ? $localize`⏱ 1 timer going` : $localize`⏱ ${n}:count: timers going`, tone: 'border-primary/50 text-primary' };
+    }
+    const t = o.timers[0];
+    if (!t || t.state === 'stopped') return idle;
+    const left = limitMs - t.elapsedMs - (t.ticking ? Math.max(0, this.now() - Date.parse(t.at)) : 0);
+    return left >= 0
+      ? { text: `⏱ ${formatClock(Math.ceil(left / 1000) * 1000)}`, tone: 'border-warning/60 text-warning' }
+      : { text: `⏱ -${formatClock(-left)}`, tone: 'border-destructive/60 text-destructive' };
+  });
   protected readonly timeLeft = computed(() => {
     const o = this.objective();
     const now = this.now();

@@ -50,6 +50,7 @@ import {
   News,
   NewsInput,
   Objective,
+  ObjectiveTimerAction,
   ObjectiveInput,
   SupportStatus,
   SupportTicket,
@@ -596,6 +597,10 @@ export class ApiService {
   }
   gmObjectiveAction(eventId: Uuid, objectiveId: Uuid, action: GmObjectiveAction, reason: string, teamId?: Uuid | null) {
     return this.post<Objective>(this.ev(eventId, `/gm/objectives/${objectiveId}`), { action, reason, teamId });
+  }
+  /** GMs and the objective's referees. */
+  objectiveTimer(eventId: Uuid, objectiveId: Uuid, teamId: Uuid, action: ObjectiveTimerAction) {
+    return this.post<Objective | null>(this.ev(eventId, `/objectives/${objectiveId}/timers`), { teamId, action });
   }
   revokeCapture(eventId: Uuid, captureId: Uuid, reverseRewards: boolean, reason: string) {
     return this.post<{ ok: true }>(this.ev(eventId, `/gm/captures/${captureId}/revoke`), { reverseRewards, reason });

@@ -12,11 +12,11 @@ import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiService } from '../../core/api/api.service';
 import { ApiError } from '../../core/api/api-error';
-import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Objective, ObjectiveInput, ObjectiveQr, ObjectiveType, ObjectiveVisibility } from '../../core/api/models';
+import { CaptureMethod, EventDetail, GeofenceConfig, LatLng, Member, Objective, ObjectiveInput, ObjectiveQr, ObjectiveType, ObjectiveVisibility } from '../../core/api/models';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { activeLanguage } from '../../core/i18n/language';
-import { OBJECTIVE_TYPE_LABELS, downloadBlob, formatTime, fromLocalInput, toLocalInput } from '../../core/util/format';
+import { OBJECTIVE_TYPE_LABELS, downloadBlob, formatClock, formatTime, fromLocalInput, toLocalInput } from '../../core/util/format';
 import { formatLatLng } from '../../core/util/geo';
 import { TacticalMap } from '../../shared/map/tactical-map';
 import { ErrorState, LoadingSkeleton, PageHeader } from '../../shared/states';
@@ -35,11 +35,12 @@ const SECTIONS = [
   { id: 'obj-geofence', label: $localize`Geofence` },
   { id: 'obj-rewards', label: $localize`Rewards` },
   { id: 'obj-availability', label: $localize`Availability` },
+  { id: 'obj-timer', label: $localize`Timer` },
   { id: 'obj-visibility', label: $localize`Visibility` },
   { id: 'obj-chain', label: $localize`Chain` },
 ];
 /** Sections that start folded on phones (Basics stays open). */
-const FOLDED_AT_START = ['obj-position', 'obj-methods', 'obj-qr', 'obj-geofence', 'obj-rewards', 'obj-availability', 'obj-visibility', 'obj-chain'];
+const FOLDED_AT_START = ['obj-position', 'obj-methods', 'obj-qr', 'obj-geofence', 'obj-rewards', 'obj-availability', 'obj-timer', 'obj-visibility', 'obj-chain'];
 
 const SELECT_CLASS = 'h-11 w-full rounded-md border border-input bg-transparent px-2 dark:bg-input/30';
 
@@ -467,6 +468,48 @@ function teamOverrideGroup(points = 0, currency = 0, override = false) {
               </fieldset>
             </section>
 
+            <!-- ============ Timer and referees ============ -->
+            <section id="obj-timer" [class.folded]="isFolded('obj-timer')" class="panel relative flex scroll-mt-20 flex-col gap-4 p-4" aria-labelledby="h-timer">
+              <h2 id="h-timer" class="label-caps" i18n>Timer and referees</h2>
+              <ng-container [ngTemplateOutlet]="foldTpl" [ngTemplateOutletContext]="{ id: 'obj-timer', head: 'h-timer' }" />
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ng-container [ngTemplateOutlet]="numField" [ngTemplateOutletContext]="{ $implicit: form.controls.timerMin, id: 'o-timer', label: txt.timeLimitMin, min: 0, step: 0.5, path: 'timerMin', hint: txt.timerHint }" />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label hlmLabel for="o-ref" i18n>Referees</label>
+                <p class="text-sm text-muted-foreground" i18n>
+                  Members who run this objective's team timers from the app (start, pause, stop). They get no other Game Master rights and see every team's timer of this objective only.
+                </p>
+                @if (value().refereeIds?.length) {
+                  <ul class="flex flex-wrap gap-2">
+                    @for (id of value().refereeIds; track id) {
+                      <li class="flex items-center gap-1 rounded-md border border-border pl-3">
+                        <span class="text-sm font-semibold">{{ memberName(id) }}</span>
+                        <button hlmBtn variant="ghost" size="icon" type="button" class="size-10" (click)="removeReferee(id)" ariaLabel="Remove {{ memberName(id) }}" i18n-ariaLabel>
+                          <ng-icon name="lucideX" size="16" aria-hidden="true" />
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+                <select id="o-ref" [class]="selectClass" (change)="addReferee($event)" [disabled]="!refereeChoices().length">
+                  <option value="" i18n>Add a referee…</option>
+                  @for (m of refereeChoices(); track m.userId) {
+                    <option [value]="m.userId">{{ m.label }}</option>
+                  }
+                </select>
+                @if (!members().length) {
+                  <p class="text-xs text-muted-foreground" i18n>Approved members of the event appear here.</p>
+                }
+                @if (e('refereeIds', txt.referees); as m) {
+                  <p class="field-error">{{ m }}</p>
+                }
+                @if (value().refereeIds?.length && !(value().timerMin! > 0)) {
+                  <p class="text-sm text-warning" i18n>Referees run the timer: set a time limit, otherwise they have nothing to do.</p>
+                }
+              </div>
+            </section>
+
             <!-- ============ Visibility ============ -->
             <section id="obj-visibility" [class.folded]="isFolded('obj-visibility')" class="panel relative flex scroll-mt-20 flex-col gap-3 p-4" aria-labelledby="h-vis" formGroupName="visibility">
               <h2 id="h-vis" class="label-caps" i18n>Visibility</h2>
@@ -637,6 +680,9 @@ export class ObjectiveEditorScreen {
     cooldownAfterACapture: $localize`Cooldown after a capture (s)`,
     maximumCaptures: $localize`Maximum captures`,
     n0Unlimited: $localize`0 = unlimited`,
+    timeLimitMin: $localize`Time limit per team (min)`,
+    timerHint: $localize`0 = no timer. 1.5 = 1 min 30 s. Started for each team by a referee or the Game Master.`,
+    referees: $localize`Referees`,
   };
 
   private readonly api = inject(ApiService);
@@ -669,6 +715,8 @@ export class ObjectiveEditorScreen {
   protected readonly event = signal<EventDetail | null>(null);
   protected readonly objective = signal<Objective | null>(null);
   protected readonly allObjectives = signal<Objective[]>([]);
+  /** Approved members: referee candidates. */
+  protected readonly members = signal<Member[]>([]);
   protected readonly zones = signal<import('../../core/api/models').Zone[]>([]);
   protected readonly mapCenter = signal<LatLng | null>(null);
   protected readonly saveState = signal<SaveState>('clean');
@@ -733,6 +781,8 @@ export class ObjectiveEditorScreen {
     prerequisiteIds: new FormControl<string[]>([], { nonNullable: true }),
     nextObjectiveId: new FormControl('', { nonNullable: true }),
     enabled: new FormControl(true, { nonNullable: true }),
+    timerMin: new FormControl<number>(0, { nonNullable: true, validators: [Validators.min(0), Validators.max(1440)] }),
+    refereeIds: new FormControl<string[]>([], { nonNullable: true }),
   });
   protected readonly g = this.form.controls.geofence.controls;
   protected readonly r = this.form.controls.rewards.controls;
@@ -779,6 +829,10 @@ export class ObjectiveEditorScreen {
       'obj-geofence': this.geofenceUsed() ? `${g.radiusM} m · ${g.durationSec} s` : '',
       'obj-rewards': [`+${r.points} pt`, `+${r.currency} cr`, r.recurringPointsPerMinute ? `+${r.recurringPointsPerMinute} pt/min` : ''].filter(Boolean).join(' · '),
       'obj-availability': when.length ? when.join(' · ') : $localize`Always available`,
+      'obj-timer': [
+        v.timerMin ? $localize`${formatClock(Math.round(num(v.timerMin) * 60) * 1000)}:limit: per team` : $localize`No timer`,
+        v.refereeIds?.length ? (v.refereeIds.length === 1 ? $localize`1 referee` : $localize`${v.refereeIds.length}:count: referees`) : '',
+      ].filter(Boolean).join(' · '),
       'obj-visibility': this.visibilityModes.find((x) => x.value === v.visibility?.mode)?.label ?? '',
       'obj-chain': chain.length ? chain.join(' · ') : $localize`Not in a chain`,
     };
@@ -788,6 +842,35 @@ export class ObjectiveEditorScreen {
     // Server-generated SVG for this objective only; nothing user-provided is inserted.
     return q ? this.sanitizer.bypassSecurityTrustHtml(q.svg) : null;
   });
+
+  protected readonly refereeChoices = computed(() => {
+    const chosen = new Set(this.value().refereeIds ?? []);
+    const teams = new Map((this.event()?.teams ?? []).map((t) => [t.id, t.name]));
+    return this.members()
+      .filter((m) => !chosen.has(m.userId))
+      .map((m) => ({
+        userId: m.userId,
+        label: [m.nickname, m.role === 'gm' ? $localize`Game Master` : '', m.teamId ? (teams.get(m.teamId) ?? '') : ''].filter(Boolean).join(' · '),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  });
+
+  protected memberName(userId: string): string {
+    return this.members().find((m) => m.userId === userId)?.nickname ?? $localize`Former member`;
+  }
+
+  protected addReferee(ev: Event): void {
+    const select = ev.target as HTMLSelectElement;
+    const id = select.value;
+    select.value = '';
+    const ctrl = this.form.controls.refereeIds;
+    if (id && !ctrl.value.includes(id)) ctrl.setValue([...ctrl.value, id]);
+  }
+
+  protected removeReferee(userId: string): void {
+    const ctrl = this.form.controls.refereeIds;
+    ctrl.setValue(ctrl.value.filter((id) => id !== userId));
+  }
 
   protected readonly otherObjectives = computed(() => this.allObjectives().filter((o) => o.id !== this.objective()?.id));
 
@@ -905,8 +988,14 @@ export class ObjectiveEditorScreen {
     this.loadError.set(null);
     const eventId = this.eventId();
     try {
-      const [event, objectives, zones] = await Promise.all([this.api.event(eventId), this.api.objectives(eventId), this.api.zones(eventId).catch(() => [])]);
+      const [event, objectives, zones, members] = await Promise.all([
+        this.api.event(eventId),
+        this.api.objectives(eventId),
+        this.api.zones(eventId).catch(() => []),
+        this.api.members(eventId).catch(() => [] as Member[]),
+      ]);
       this.event.set(event);
+      this.members.set(members.filter((m) => m.status === 'approved'));
       this.allObjectives.set(objectives);
       this.zones.set(zones);
       let o: Objective | null = null;
@@ -974,6 +1063,8 @@ export class ObjectiveEditorScreen {
       prerequisiteIds: src.prerequisiteIds ?? [],
       nextObjectiveId: src.nextObjectiveId ?? '',
       enabled: src.enabled,
+      timerMin: Math.round((src.timerSec / 60) * 100) / 100,
+      refereeIds: src.refereeIds ?? [],
     });
     this.mapCenter.set(pos);
     this.patching = false;
@@ -1134,6 +1225,8 @@ export class ObjectiveEditorScreen {
       prerequisiteIds: v.prerequisiteIds,
       nextObjectiveId: v.nextObjectiveId || null,
       enabled: v.enabled,
+      timerSec: Math.max(0, Math.round(num(v.timerMin) * 60)),
+      refereeIds: v.refereeIds,
     };
     if (!geofenceOn) delete body.geofence;
     // The code is only sent when the code method is on (and when it changed, for existing objectives).
@@ -1178,7 +1271,7 @@ export class ObjectiveEditorScreen {
     } catch (e) {
       const err = ApiError.from(e);
       this.saveState.set('failed');
-      const rest = applyServerErrors(this.form, err, { code: 'captureCode', 'geofence.radius': 'geofence.radiusM' });
+      const rest = applyServerErrors(this.form, err, { code: 'captureCode', 'geofence.radius': 'geofence.radiusM', timerSec: 'timerMin' });
       if (err.code === 'code_taken' && !err.fields['captureCode']) {
         this.form.controls.captureCode.setErrors({ server: $localize`Another objective in this event already uses this code. Generate a new one.` });
         this.form.controls.captureCode.markAsTouched();
@@ -1378,5 +1471,9 @@ function blankObjective(): Objective {
     canCapture: false,
     blockedReason: null,
     capture: null,
+    timerSec: 0,
+    timers: [],
+    isReferee: false,
+    refereeIds: [],
   };
 }

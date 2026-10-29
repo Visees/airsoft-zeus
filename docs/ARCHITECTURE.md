@@ -28,6 +28,7 @@
 | `src/domain/anticheat.ts` | Pure GPS sample validation (timestamps, speed/teleport, mock flag, accuracy). |
 | `src/domain/ledger.ts` | The only code that changes team points/credits: row lock, clamping, append-only entry. |
 | `src/domain/objectives.ts` | Capture transaction (code, QR, zone, GM), recurring rewards, revocation. |
+| `src/domain/timers.ts` | Objective team timers (GM / objective referees): actions, game-clock counting (`timer-clock.ts`), time-up notices from the tick. |
 | `src/domain/locations.ts` | Location report pipeline → storage, alerts, geofence, UAV intel. |
 | `src/domain/perks.ts` | Store availability, purchase, approval, activation per perk type, cancel/refund, expiry. |
 | `src/domain/lifecycle.ts` | Event state machine and its side effects (start balances, pause clock, end game, stats, badges). |

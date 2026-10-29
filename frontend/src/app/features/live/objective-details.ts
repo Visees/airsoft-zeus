@@ -22,6 +22,7 @@ import {
 import { zoneCanAccrue } from '../../shared/capture-bar';
 import { CaptureProgress } from '../../shared/capture-progress';
 import { nowSignal } from '../../shared/game-timer';
+import { ObjectiveTimers } from '../../shared/objective-timers';
 import { ErrorState, LoadingSkeleton } from '../../shared/states';
 import { StatusChip, objectiveStatusChip } from '../../shared/status-chip';
 import { TeamBadge } from '../../shared/team-badge';
@@ -44,6 +45,7 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
     HlmLabel,
     CaptureProgress,
     CaptureFeedback,
+    ObjectiveTimers,
     StatusChip,
     TeamBadge,
     LoadingSkeleton,
@@ -82,6 +84,11 @@ const METHOD_LABELS: Record<Capture['method'], string> = { code: 'Code', qr: $lo
             }
           </p>
         </header>
+
+        <!-- Time limit: referees run every team's timer, players see their own -->
+        @if (o.timerSec > 0) {
+          <ah-objective-timers [objective]="o" [control]="o.isReferee" />
+        }
 
         <!-- Distance and direction -->
         <div class="panel flex items-center gap-3 p-3">

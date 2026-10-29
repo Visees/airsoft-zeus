@@ -248,6 +248,7 @@ export type NotificationType =
   | 'objective_captured'
   | 'objective_contested'
   | 'objective_lost'
+  | 'objective_timer'
   | 'perk_purchased'
   | 'perk_activated'
   | 'perk_expired'
@@ -580,9 +581,31 @@ export interface Objective {
   blockedReason: CaptureBlockReason | null;
   /** Zone capture under way (any team, everyone sees it on the map). */
   capture: ObjectiveCapture | null;
+  /** Time limit per team in seconds; 0 = no timer. */
+  timerSec: number;
+  /** Team timers the viewer may see: all for GMs and referees, the own team's for players. */
+  timers: ObjectiveTimer[];
+  /** The viewer is a referee of this objective (runs its timers). */
+  isReferee: boolean;
   /** GM only */
   captureCode?: string | null;
   qrVersion?: number;
+  refereeIds?: Uuid[];
+}
+
+export type ObjectiveTimerState = 'running' | 'paused' | 'stopped';
+export type ObjectiveTimerAction = 'start' | 'pause' | 'resume' | 'stop' | 'reset';
+
+/** A team's countdown on an objective. Counts game time: it stands still while the game is paused. */
+export interface ObjectiveTimer {
+  teamId: Uuid;
+  state: ObjectiveTimerState;
+  /** game time counted at `at` (server time) */
+  elapsedMs: number;
+  at: IsoDate;
+  /** counting right now (running and the game is live) */
+  ticking: boolean;
+  startedAt: IsoDate;
 }
 
 export interface ObjectiveCapture {
@@ -635,6 +658,8 @@ export type ObjectiveInput = Partial<
     | 'prerequisiteIds'
     | 'nextObjectiveId'
     | 'enabled'
+    | 'timerSec'
+    | 'refereeIds'
   >
 > & {
   geofence?: Partial<GeofenceConfig>;
@@ -1027,7 +1052,7 @@ export interface ActivityItem {
 
 export interface GmAlert {
   id: Uuid;
-  type: 'gps_suspicious' | 'disconnected' | 'capture' | 'purchase_request' | 'perk_fulfil' | 'emergency' | 'capture_failed';
+  type: 'gps_suspicious' | 'disconnected' | 'capture' | 'purchase_request' | 'perk_fulfil' | 'emergency' | 'capture_failed' | 'objective_timer';
   severity: 'info' | 'warning' | 'critical';
   userId: Uuid | null;
   nickname: string | null;

@@ -17,6 +17,7 @@ import { applyLedger } from '../domain/ledger.js';
 import { reportLocation, stopTracking } from '../domain/locations.js';
 import { loadObjectives, objectiveDtos, performCapture, revokeCapture, settleRecurring, statusOf, type ObjRow } from '../domain/objectives.js';
 import * as perks from '../domain/perks.js';
+import { runTimerAction } from '../domain/timers.js';
 import { computeResults, exportCsv, exportPdf } from '../domain/results.js';
 import { scopedVisible } from '../domain/rules.js';
 import * as dto from '../domain/serialize.js';
@@ -409,6 +410,22 @@ liveRouter.post('/:eventId/gm/objectives/:objectiveId', async (req, res) => {
   const ctx = await eventContext(eventId, me.id);
   const set = await loadObjectives(eventId);
   res.json(objectiveDtos(ctx, set).find((o) => o.id === objectiveId));
+});
+
+/** Team timer of an objective with a time limit: GMs and the objective's referees. */
+liveRouter.post('/:eventId/objectives/:objectiveId/timers', async (req, res) => {
+  const me = currentUser(req);
+  const eventId = idParam(req, 'eventId');
+  const objectiveId = idParam(req, 'objectiveId');
+  const b = body(req, z.object({ teamId: uuid, action: z.enum(['start', 'pause', 'resume', 'stop', 'reset']) }));
+  await tx(async (t) => {
+    // Event row locked: a pause or end in the same moment cannot shift the timer's game clock.
+    const ctx = await requireMember(eventId, me.id, t, true);
+    await runTimerAction(t, ctx, objectiveId, b.teamId, b.action, me.id);
+  });
+  const ctx = await eventContext(eventId, me.id);
+  const set = await loadObjectives(eventId);
+  res.json(objectiveDtos(ctx, set).find((o) => o.id === objectiveId) ?? null);
 });
 
 liveRouter.post('/:eventId/gm/captures/:captureId/revoke', async (req, res) => {

@@ -25,6 +25,7 @@ import { StatusChip, eventStatusChip } from '../../shared/status-chip';
 import { TeamBadge } from '../../shared/team-badge';
 import { TeamSwatch } from '../../shared/team-swatch';
 import { LiveSession } from './live-session';
+import { ObjectiveFailedPopup } from './objective-failed';
 import { LiveSheet } from './live-sheet';
 import { liveLink, sharingAudience } from './live-util';
 
@@ -70,6 +71,7 @@ interface SharingIndicator {
     ErrorState,
     StatusChip,
     LiveSheet,
+    ObjectiveFailedPopup,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Phone held sideways (compact:): the tab bar becomes a rail on the left and the HUD one line.
@@ -375,6 +377,7 @@ interface SharingIndicator {
           }
         }
       </ah-live-sheet>
+      <ah-objective-failed />
     }
   `,
 })

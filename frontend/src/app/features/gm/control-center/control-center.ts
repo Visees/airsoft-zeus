@@ -46,6 +46,7 @@ import { TacticalMap } from '../../../shared/map/tactical-map';
 import { ScoreDisplay } from '../../../shared/score-display';
 import { SquadBadge } from '../../../shared/squad-badge';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../../../shared/states';
+import { ObjectiveTimers } from '../../../shared/objective-timers';
 import { StatusChip, eventStatusChip, objectiveStatusChip, purchaseStatusChip } from '../../../shared/status-chip';
 import { TeamBadge } from '../../../shared/team-badge';
 import { TeamSwatch } from '../../../shared/team-swatch';
@@ -113,6 +114,7 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
     OpsDialog,
     AnnounceForm,
     AdjustBalanceDialog,
+    ObjectiveTimers,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'fixed inset-0 flex flex-col bg-background text-foreground', '(document:keydown)': 'onKey($event)' },
@@ -391,6 +393,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                       @if (o.ownerTeamId && teamById().get(o.ownerTeamId); as owner) {
                         <ah-team-badge [team]="owner" size="sm" [showIcon]="false" />
                       }
+                      @if (activeTimers(o); as n) {
+                        <span class="num rounded-sm border border-primary/50 px-1.5 text-xs font-semibold text-primary" title="Team timers going" i18n-title>⏱ {{ n }}</span>
+                      }
                     </div>
                   </div>
                   <span class="num text-xs text-muted-foreground" title="{{ o.captureCount }} captures" i18n-title>×{{ o.captureCount }}</span>
@@ -409,6 +414,9 @@ const OBJ_STATUSES: ObjectiveStatus[] = ['active', 'contested', 'captured', 'ina
                     }
                     {{ o.methods.join(' · ').toUpperCase() }}
                   </p>
+                  @if (o.timerSec > 0) {
+                    <ah-objective-timers [objective]="o" [control]="true" />
+                  }
                   <div class="grid grid-cols-2 gap-1.5">
                     @if (o.status === 'disabled') {
                       <button hlmBtn type="button" variant="outline" class="h-10" (click)="objAction(o, 'activate')" i18n>Activate</button>
@@ -1407,6 +1415,10 @@ export class ControlCenterScreen {
   }
 
   // ------------------------------------------------------------------ objectives & captures
+
+  protected activeTimers(o: Objective): number {
+    return o.timerSec > 0 ? o.timers.filter((t) => t.state !== 'stopped').length : 0;
+  }
 
   protected async objAction(o: Objective, action: GmObjectiveAction, teamId?: string): Promise<void> {
     const live = this.status() === 'live';

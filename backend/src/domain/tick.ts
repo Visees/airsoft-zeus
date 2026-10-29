@@ -10,6 +10,7 @@ import { transition } from './lifecycle.js';
 import { loadObjectives, settleRecurring, statusOf, type ObjRow } from './objectives.js';
 import { expireEffects } from './perks.js';
 import { captureBlock } from './rules.js';
+import { notifyTimerOverruns } from './timers.js';
 import { tr } from '../i18n/index.js';
 
 const ENGINE_LOCK = 730_301;
@@ -77,6 +78,9 @@ async function tickEvent(eventId: string): Promise<void> {
     });
     return;
   }
+
+  // Objective timers past their limit
+  await notifyTimerOverruns(ctx, now);
 
   // Recurring rewards for held objectives
   const due = await many<ObjRow>(

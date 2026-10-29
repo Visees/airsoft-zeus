@@ -17,10 +17,11 @@ import {
   type ObjectiveStatus,
 } from './rules.js';
 import * as dto from './serialize.js';
+import { timerDto, type TimerRow } from './timers.js';
 import { tr } from '../i18n/index.js';
 import { captureMethodLabel } from '../i18n/labels.js';
 
-export type ObjRow = Row & ObjectiveRow & { name: string; event_id: string; lat: number; lng: number; rewards: unknown; recurring_last_at: Date | null; last_status: string | null };
+export type ObjRow = Row & ObjectiveRow & { name: string; event_id: string; lat: number; lng: number; rewards: unknown; recurring_last_at: Date | null; last_status: string | null; timer_sec: number };
 
 export const OBJECTIVE_SELECT = `o.*, u.nickname AS last_captured_by_nickname FROM objectives o LEFT JOIN users u ON u.id = o.last_captured_by`;
 
@@ -30,16 +31,23 @@ export interface ObjectiveSet {
   armed: Map<string, Record<string, boolean>>;
   /** geofence capture state per objective */
   zones: Map<string, GeofenceState>;
+  /** team timers per objective */
+  timers: Map<string, TimerRow[]>;
 }
 
 export async function loadObjectives(eventId: string, q: Queryable = pool): Promise<ObjectiveSet> {
   const rows = await many<ObjRow>(`SELECT ${OBJECTIVE_SELECT} WHERE o.event_id = $1 ORDER BY o.sort_order, o.created_at`, [eventId], q);
   const states = await many('SELECT * FROM capture_states WHERE event_id = $1', [eventId], q);
+  const timers = new Map<string, TimerRow[]>();
+  for (const t of await many<TimerRow>('SELECT * FROM objective_timers WHERE event_id = $1', [eventId], q)) {
+    timers.set(t.objective_id, [...(timers.get(t.objective_id) ?? []), t]);
+  }
   return {
     rows,
     counts: new Map(rows.map((r) => [r.id, r.capture_count])),
     armed: new Map(states.map((s) => [s.objective_id, s.armed ?? {}])),
     zones: new Map(states.map((s) => [s.objective_id, fromRow(s)])),
+    timers,
   };
 }
 
@@ -63,6 +71,11 @@ export function objectiveDto(ctx: EventContext, row: ObjRow, status: ObjectiveSt
   const blocked: CaptureBlockReason | null = ctx.isGm ? null : captureBlock(row, status, ctx.event.status, teamId, now, 'any', set.armed.get(row.id) ?? {});
   const zone = set.zones.get(row.id);
   const capture = zone ? captureSummary(zone, geofenceOf(row.geofence), now) : null;
+  // Referees and GMs see every team's timer; a player only their team's.
+  const isReferee = ctx.viewer.approved && (row.referee_ids ?? []).includes(ctx.viewer.userId);
+  const timers = row.timer_sec > 0
+    ? (set.timers.get(row.id) ?? []).filter((t) => ctx.isGm || isReferee || t.team_id === teamId).map((t) => timerDto(t, ctx.event, now))
+    : [];
   return dto.objective(
     row,
     {
@@ -74,6 +87,8 @@ export function objectiveDto(ctx: EventContext, row: ObjRow, status: ObjectiveSt
       lastCapturedByNickname: (row.last_captured_by_nickname as string | null) ?? null,
       // nothing accrues while the game is not live, so clients must not run the fill on
       capture: capture && ctx.event.status !== 'live' ? { ...capture, rate: 0 } : capture,
+      timers,
+      isReferee,
       now,
     },
     ctx.isGm,

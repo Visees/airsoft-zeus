@@ -9,6 +9,7 @@ import type { Row } from '../db.js';
 import { geofence, rewards, scoring, tracking, visibility } from './defaults.js';
 import type { CaptureBlockReason, ObjectiveStatus } from './rules.js';
 import type { CaptureSummary } from './geofence.js';
+import type { ObjectiveTimerDto } from './timers.js';
 import { pick, tr } from '../i18n/index.js';
 
 export const iso = (d: Date | string | null | undefined): string | null => (d ? new Date(d).toISOString() : null);
@@ -278,6 +279,10 @@ export interface ObjectiveComputed {
   viewerTeamId: string | null;
   lastCapturedByNickname: string | null;
   capture: CaptureSummary | null;
+  /** team timers the viewer may see */
+  timers: ObjectiveTimerDto[];
+  /** the viewer runs this objective's timers */
+  isReferee: boolean;
   /** server time the capture progress was taken at */
   now: number;
 }
@@ -329,7 +334,10 @@ export function objective(o: Row, c: ObjectiveComputed, gm: boolean) {
     canCapture: c.canCapture,
     blockedReason: c.blockedReason,
     capture: c.capture ? { ...c.capture, progressSec: Math.round(c.capture.progressSec * 10) / 10, at: new Date(c.now).toISOString() } : null,
-    ...(gm ? { captureCode: o.capture_code ?? null, qrVersion: o.qr_version } : {}),
+    timerSec: o.timer_sec ?? 0,
+    timers: c.timers,
+    isReferee: c.isReferee,
+    ...(gm ? { captureCode: o.capture_code ?? null, qrVersion: o.qr_version, refereeIds: o.referee_ids ?? [] } : {}),
   };
 }
 
