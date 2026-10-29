@@ -50,7 +50,13 @@ export async function eventDetail(ctx: EventContext, q: Queryable = pool) {
     resultsPublished: !!e.results_published_at,
     gameMasters: gms.map((g) => ({ id: g.id, nickname: g.nickname, avatarUrl: g.avatar_url })),
     teams: teams.map((t) => dto.team(t, { showCurrency: ctx.isGm || ctx.rules.showEnemyCurrency || t.id === myTeam })),
-    squads: ctx.isGm || ctx.member?.status === 'approved' ? squads.map(dto.squad) : [],
+    // Players who pick their own team also pick a squad when they register; leaders stay hidden until they are in.
+    squads:
+      ctx.isGm || ctx.member?.status === 'approved'
+        ? squads.map(dto.squad)
+        : e.team_selection === 'player'
+          ? squads.map((s) => ({ ...dto.squad(s), leaderId: null }))
+          : [],
     me: meRow ? dto.member(meRow, { viewerIsGm: ctx.isGm, showRole: true, online: hub.isOnline(userId) }) : null,
     joinCode: ctx.isGm ? e.join_code : null,
     attachmentCount: attachments.length,

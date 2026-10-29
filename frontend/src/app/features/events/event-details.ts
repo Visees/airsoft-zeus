@@ -395,6 +395,43 @@ const TEAM_SELECTION_LABELS: Record<EventDetail['teamSelection'], string> = {
                       } @else if (joinError()) {
                         <p class="field-error" role="alert">{{ joinError() }}</p>
                       }
+                      @if (canPickTeam()) {
+                        <div class="flex flex-col gap-1.5">
+                          <label hlmLabel for="details-join-team" i18n>Team <span class="text-xs font-normal text-muted-foreground">(optional)</span></label>
+                          <select
+                            #teamSel
+                            id="details-join-team"
+                            class="h-12 rounded-md border border-input bg-background px-3 text-sm dark:bg-input/30"
+                            aria-describedby="details-join-team-hint"
+                            (change)="onPickTeam(teamSel.value)"
+                          >
+                            <option value="" [selected]="!pickTeam()" i18n>Choose later in the lobby</option>
+                            @for (t of sortedTeams(); track t.id) {
+                              @let full = t.capacity > 0 && t.memberCount >= t.capacity;
+                              <option [value]="t.id" [selected]="t.id === pickTeam()" [disabled]="full">
+                                {{ t.name }}{{ t.capacity ? ' (' + t.memberCount + '/' + t.capacity + ')' : '' }}{{ full ? txt.full : '' }}
+                              </option>
+                            }
+                          </select>
+                          <p id="details-join-team-hint" class="text-xs text-muted-foreground" i18n>You can change it in the lobby until the teams are locked.</p>
+                        </div>
+                        @if (pickSquads().length) {
+                          <div class="flex flex-col gap-1.5">
+                            <label hlmLabel for="details-join-squad" i18n>Squad <span class="text-xs font-normal text-muted-foreground">(optional)</span></label>
+                            <select
+                              #squadSel
+                              id="details-join-squad"
+                              class="h-12 rounded-md border border-input bg-background px-3 text-sm dark:bg-input/30"
+                              (change)="pickSquad.set(squadSel.value)"
+                            >
+                              <option value="" [selected]="!pickSquad()" i18n>No squad</option>
+                              @for (s of pickSquads(); track s.id) {
+                                <option [value]="s.id" [selected]="s.id === pickSquad()">{{ s.callsign ? s.name + ' · ' + s.callsign : s.name }}</option>
+                              }
+                            </select>
+                          </div>
+                        }
+                      }
                       @if (e.requiresApproval) {
                         <p class="text-sm text-muted-foreground" i18n>◐ The Game Master approves registrations. You'll be notified.</p>
                       }
@@ -473,6 +510,7 @@ export class EventDetailsScreen {
     shareInviteLink: $localize`Share invite link`,
     discover: $localize`Discover`,
     myEvents: $localize`My events`,
+    full: $localize` · full`,
   };
 
   private readonly api = inject(ApiService);
@@ -546,6 +584,14 @@ export class EventDetailsScreen {
   });
   protected readonly teamSelectionLabel = computed(() => TEAM_SELECTION_LABELS[this.event()!.teamSelection]);
   protected readonly sortedTeams = computed(() => [...(this.event()?.teams ?? [])].sort((a, b) => a.sortOrder - b.sortOrder));
+  /** Players who pick their own team can do it, with a squad, while registering. */
+  protected readonly canPickTeam = computed(() => {
+    const e = this.event();
+    return !!e && e.teamSelection === 'player' && !e.teamsLocked && e.teams.length > 0;
+  });
+  protected readonly pickTeam = signal('');
+  protected readonly pickSquad = signal('');
+  protected readonly pickSquads = computed(() => (this.pickTeam() ? (this.event()?.squads ?? []).filter((s) => s.teamId === this.pickTeam()) : []));
   protected readonly myTeam = computed<Team | null>(() => {
     const e = this.event();
     const id = e?.me?.teamId ?? e?.myTeamId;
@@ -681,6 +727,11 @@ export class EventDetailsScreen {
     this.joinError.set(null);
   }
 
+  protected onPickTeam(teamId: string): void {
+    this.pickTeam.set(teamId);
+    this.pickSquad.set('');
+  }
+
   protected async join(): Promise<void> {
     const e = this.event();
     if (!e || this.busy()) return;
@@ -699,13 +750,14 @@ export class EventDetailsScreen {
     this.busy.set(true);
     this.joinError.set(null);
     try {
-      const res = await this.api.joinEvent(e.id, code);
+      const pick = this.canPickTeam() && this.pickTeam() ? { teamId: this.pickTeam(), squadId: this.pickSquad() || null } : undefined;
+      const res = await this.api.joinEvent(e.id, code, pick);
       if (res.status === 'approved') this.toast.success($localize`You joined ${e.name}:name:`, $localize`Open the lobby to accept the rules and get ready.`);
       else if (res.status === 'pending') this.toast.info($localize`Request sent`, $localize`The Game Master reviews registrations. You will get a notification.`);
       await this.load();
     } catch (err) {
       const ae = ApiError.from(err);
-      this.joinError.set(ae.fields['joinCode'] ?? ae.fields['code'] ?? ae.message);
+      this.joinError.set(ae.fields['joinCode'] ?? ae.fields['code'] ?? ae.fields['teamId'] ?? ae.fields['squadId'] ?? ae.message);
       // Capacity or status may have changed: refresh what we show.
       if (ae.status === 409) void this.load();
     } finally {

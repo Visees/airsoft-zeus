@@ -386,3 +386,12 @@ and the notes below.
   API accepts in `icon` a built-in name or a `/api/files/team_icon-….(jpg|png|webp)` URL only.
   Logos show in team badges and inside map markers (team colour ring; the built-in icon stands
   in if the image fails). The service worker caches `/api/files/**` for weak connections.
+
+## Squad choice when registering (2026-10-29)
+
+* With team selection "players choose", the join form has optional Team and Squad selects;
+  `POST /events/:id/join` takes `teamId` / `squadId` (also for requests waiting for approval:
+  approval keeps the pick). Non-members of such events receive the squads, without `leaderId`.
+* The lobby checklist lets the player change squad within their team or leave it
+  (`POST /choose-team` takes an optional `squadId`); a squad leader is asked to confirm first.
+* Rejoining an event clears the old squad and squad leadership.

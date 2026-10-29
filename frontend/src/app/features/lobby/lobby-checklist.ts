@@ -8,6 +8,7 @@ import { PushService } from '../../core/push/push.service';
 import { ConfirmService } from '../../core/ui/confirm.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { PRECISION_LABELS, formatPlayerCount } from '../../core/util/format';
+import { SquadBadge } from '../../shared/squad-badge';
 import { TeamBadge } from '../../shared/team-badge';
 
 type LocState = PermissionState | 'unsupported' | 'checking';
@@ -28,7 +29,7 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
 /** The player's pre-game checklist: rules, permissions, tracking consent, team, ready. */
 @Component({
   selector: 'ah-lobby-checklist',
-  imports: [NgIcon, HlmButton, TeamBadge],
+  imports: [NgIcon, HlmButton, SquadBadge, TeamBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -171,7 +172,12 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
             <div class="min-w-0 flex-1">
               <h3 class="font-semibold" i18n>Team</h3>
               @if (myTeam(); as t) {
-                <p class="mt-1 flex items-center gap-2 text-sm"><ah-team-badge [team]="t" size="sm" /></p>
+                <p class="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                  <ah-team-badge [team]="t" size="sm" />
+                  @if (mySquad(); as s) {
+                    <ah-squad-badge [squad]="s" [leader]="m.isSquadLeader" />
+                  }
+                </p>
               } @else if (canChooseTeam()) {
                 <p class="text-sm text-muted-foreground" i18n>Pick the team you play for.</p>
               } @else if (e.teamSelection === 'auto') {
@@ -208,6 +214,23 @@ const ENEMY_LABELS: Record<EventDetail['visibilityRules']['enemies'], string> = 
                 </li>
               }
             </ul>
+            @if (myTeam() && mySquads().length) {
+              <div class="flex flex-col gap-1.5">
+                <label class="label-caps" for="squad-choice" i18n>Squad <span class="normal-case">(optional)</span></label>
+                <select
+                  #squadSel
+                  id="squad-choice"
+                  class="h-11 rounded-md border border-input bg-background px-3 text-sm dark:bg-input/30"
+                  [disabled]="busy() === 'team'"
+                  (change)="chooseSquad(squadSel)"
+                >
+                  <option value="" [selected]="!m.squadId" i18n>No squad</option>
+                  @for (s of mySquads(); track s.id) {
+                    <option [value]="s.id" [selected]="s.id === m.squadId">{{ s.callsign ? s.name + ' · ' + s.callsign : s.name }}</option>
+                  }
+                </select>
+              </div>
+            }
           }
         </li>
 
@@ -280,6 +303,8 @@ export class LobbyChecklist {
   protected readonly me = computed(() => this.event().me!);
   protected readonly teams = computed(() => [...this.event().teams].sort((a, b) => a.sortOrder - b.sortOrder));
   protected readonly myTeam = computed(() => this.event().teams.find((t) => t.id === this.me().teamId) ?? null);
+  protected readonly mySquads = computed(() => this.event().squads.filter((s) => s.teamId === this.me().teamId));
+  protected readonly mySquad = computed(() => this.event().squads.find((s) => s.id === this.me().squadId) ?? null);
   protected readonly canChooseTeam = computed(() => this.event().teamSelection === 'player' && !this.event().teamsLocked && this.event().teams.length > 0);
   protected readonly locBad = computed(() => this.locState() === 'denied' || this.locState() === 'unsupported');
   protected readonly notifState = computed<NotificationPermission | 'unsupported'>(() => {
@@ -427,6 +452,33 @@ export class LobbyChecklist {
       this.memberChange.emit(await this.api.chooseTeam(this.event().id, t.id));
       this.toast.success($localize`You joined ${t.name}:name:`);
     } catch (err) {
+      this.toast.error(err);
+    } finally {
+      this.busy.set(null);
+    }
+  }
+
+  protected async chooseSquad(sel: HTMLSelectElement): Promise<void> {
+    const team = this.myTeam();
+    if (!team) return;
+    const s = this.mySquads().find((x) => x.id === sel.value) ?? null;
+    if (this.me().isSquadLeader) {
+      const ok = await this.confirm.ask({
+        title: s ? $localize`Move to ${s.name}:name:?` : $localize`Leave your squad?`,
+        consequences: [$localize`You are no longer the squad leader.`],
+        confirmLabel: s ? $localize`Move` : $localize`Leave squad`,
+      });
+      if (!ok) {
+        sel.value = this.me().squadId ?? '';
+        return;
+      }
+    }
+    this.busy.set('team');
+    try {
+      this.memberChange.emit(await this.api.chooseTeam(this.event().id, team.id, s?.id ?? null));
+      this.toast.success(s ? $localize`You joined ${s.name}:name:` : $localize`You left your squad`);
+    } catch (err) {
+      sel.value = this.me().squadId ?? '';
       this.toast.error(err);
     } finally {
       this.busy.set(null);

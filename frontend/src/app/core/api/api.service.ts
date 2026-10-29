@@ -339,8 +339,9 @@ export class ApiService {
   findEventByCode(code: string) {
     return this.post<{ eventId: Uuid }>('/events/find-by-code', { code });
   }
-  joinEvent(eventId: Uuid, joinCode?: string) {
-    return this.post<{ status: Member['status'] }>(this.ev(eventId, '/join'), { joinCode });
+  /** `pick`: team and squad, only used when teamSelection == 'player'. */
+  joinEvent(eventId: Uuid, joinCode?: string, pick?: { teamId: Uuid; squadId: Uuid | null }) {
+    return this.post<{ status: Member['status'] }>(this.ev(eventId, '/join'), { joinCode, ...pick });
   }
   leaveEvent(eventId: Uuid) {
     return this.post<{ ok: true }>(this.ev(eventId, '/leave'));
@@ -370,8 +371,8 @@ export class ApiService {
     return this.post<Member>(this.ev(eventId, `/members/${userId}/assign`), body);
   }
   /** Player action when teamSelection == 'player'. */
-  chooseTeam(eventId: Uuid, teamId: Uuid) {
-    return this.post<Member>(this.ev(eventId, '/choose-team'), { teamId });
+  chooseTeam(eventId: Uuid, teamId: Uuid, squadId: Uuid | null = null) {
+    return this.post<Member>(this.ev(eventId, '/choose-team'), { teamId, squadId });
   }
   autoBalance(eventId: Uuid) {
     return this.post<{ assigned: number }>(this.ev(eventId, '/auto-balance'));

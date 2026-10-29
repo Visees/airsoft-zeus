@@ -3413,6 +3413,15 @@
     "5273361412819960201": "Mappa svuotata",
     "1634698264010181778": "Rimossi {$zones} zone, {$pois} POI e {$objectives} obiettivi.",
     "5811383472218800350": "Sulla mappa si leggono meglio loghi semplici e ad alto contrasto.",
-    "2122517249393888654": "Logo caricato"
+    "2122517249393888654": "Logo caricato",
+    "7627714984063779547": "Squadra {$START_TAG_SPAN}(facoltativa){$CLOSE_TAG_SPAN}",
+    "1460295953674385194": "Scegli dopo nella lobby",
+    "6949581517396425542": "Puoi cambiarla nella lobby finché le squadre non vengono bloccate.",
+    "6225356857335240544": "Gruppo {$START_TAG_SPAN}(facoltativo){$CLOSE_TAG_SPAN}",
+    "2637055023079343727": "Passare a {$name}?",
+    "4109318232622842259": "Lasciare il tuo gruppo?",
+    "1761830355625537288": "Non sarai più il capogruppo.",
+    "7091196215498741668": "Lascia il gruppo",
+    "5963033555723500364": "Hai lasciato il tuo gruppo"
   }
 }

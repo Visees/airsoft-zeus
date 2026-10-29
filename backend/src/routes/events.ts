@@ -387,7 +387,8 @@ async function emergencyFor(t: Tx, userId: string) {
 eventsRouter.post('/:eventId/join', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
-  const b = body(req, z.object({ joinCode: z.string().max(20).optional() }));
+  // teamId/squadId: the player's pick when the event lets players choose their team.
+  const b = body(req, z.object({ joinCode: z.string().max(20).optional(), teamId: uuid.optional(), squadId: uuid.nullable().optional() }));
   await consume('join', me.id, 10, 60);
   const result = await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
@@ -414,9 +415,10 @@ eventsRouter.post('/:eventId/join', async (req, res) => {
       `INSERT INTO event_members (event_id, user_id, role, status, player_role, team_id, emergency_contact, joined_at)
        VALUES ($1,$2,'player',$3,$4,$5,$6, now())
        ON CONFLICT (event_id, user_id) DO UPDATE SET status = EXCLUDED.status, player_role = EXCLUDED.player_role, team_id = EXCLUDED.team_id,
-         emergency_contact = EXCLUDED.emergency_contact, ready = false, joined_at = now(), updated_at = now()`,
+         squad_id = NULL, is_squad_leader = false, emergency_contact = EXCLUDED.emergency_contact, ready = false, joined_at = now(), updated_at = now()`,
       [eventId, me.id, status, user?.player_role ?? 'rifleman', teamId, JSON.stringify(await emergencyFor(t, me.id))],
     );
+    if (b.teamId && e.team_selection === 'player' && !e.teams_locked) await assign(t, ctx, me.id, b.teamId, b.squadId ?? null, false, me.id);
     await activity(t, eventId, { type: 'member_joined', message: `${user?.nickname} ${status === 'pending' ? 'asked to join' : 'joined'}`, scope: 'gm', userId: me.id });
     if (status === 'pending') {
       await notify(t, await eventGms(t, eventId), {
@@ -429,7 +431,8 @@ eventsRouter.post('/:eventId/join', async (req, res) => {
     }
     return status;
   });
-  hub.invalidate(eventId, ['members'], ['all']);
+  hub.invalidate(eventId, b.teamId ? ['members', 'event'] : ['members'], ['all']);
+  if (b.teamId) hub.teams(eventId);
   void hub.refreshUser(eventId, me.id);
   res.json({ status: result });
 });
@@ -696,13 +699,13 @@ eventsRouter.post('/:eventId/members/:userId/assign', async (req, res) => {
 eventsRouter.post('/:eventId/choose-team', async (req, res) => {
   const me = currentUser(req);
   const eventId = idParam(req, 'eventId');
-  const b = body(req, z.object({ teamId: uuid }));
+  const b = body(req, z.object({ teamId: uuid, squadId: uuid.nullable().optional() }));
   await tx(async (t) => {
     const ctx = await eventContext(eventId, me.id, t, true);
     if (ctx.member?.status !== 'approved' || ctx.member.role !== 'player') throw forbidden(tr`Join the event first.`, 'not_member');
     if (ctx.event.team_selection !== 'player') throw conflict(tr`The Game Master assigns the teams in this event.`, 'teams_assigned_by_gm');
     if (ctx.event.teams_locked || ['live', 'paused', 'completed', 'cancelled'].includes(ctx.event.status)) throw conflict(tr`Teams are locked.`, 'teams_locked');
-    await assign(t, ctx, me.id, b.teamId, null, false, me.id);
+    await assign(t, ctx, me.id, b.teamId, b.squadId ?? null, false, me.id);
   });
   hub.invalidate(eventId, ['members', 'event']);
   hub.teams(eventId);
